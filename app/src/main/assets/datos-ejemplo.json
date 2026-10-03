@@ -1,0 +1,40 @@
+{
+  "formato": "carpstrategy-datos",
+  "version": 1,
+  "ubicacion": { "nombre": "Embalse de Brovales", "lat": 38.35, "lon": -6.70 },
+  "zona_horaria": "Europe/Madrid",
+  "registros": [
+    {
+      "hora": "2026-10-02T08:00",
+      "fuente": "EJEMPLO - termómetro propio a 0,5 m y a 4 m",
+      "temp_agua_superficie_c": 19.5,
+      "temp_agua_fondo_c": 18.2,
+      "profundidad_fondo_m": 4,
+      "turbidez": 2,
+      "notas": "Ejemplo: sustituir por tus medidas reales"
+    },
+    {
+      "hora": "2026-10-02T08:00",
+      "fuente": "EJEMPLO - estación meteorológica propia",
+      "temp_aire_c": 14.2,
+      "presion_hpa": 1018.4,
+      "viento_kmh": 6,
+      "viento_dir_grados": 220,
+      "racha_kmh": 15,
+      "nubosidad_pct": 40,
+      "lluvia_mm": 0,
+      "humedad_pct": 80
+    },
+    {
+      "fecha": "2026-09-28",
+      "fuente": "EJEMPLO - Boletín Hidrológico semanal (MITECO)",
+      "nivel_embalse_hm3": 4.0,
+      "nivel_embalse_pct": 57.1
+    },
+    {
+      "fecha": "2026-10-01",
+      "fuente": "EJEMPLO - pluviómetro propio",
+      "lluvia_dia_mm": 2.5
+    }
+  ]
+}
