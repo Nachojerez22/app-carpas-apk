@@ -20,6 +20,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,14 +39,25 @@ import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.domain.derived.EnsembleHour
 import com.nachojerez.carpstrategy.domain.derived.Freshness
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
+import com.nachojerez.carpstrategy.domain.derived.MergedHour
+import com.nachojerez.carpstrategy.domain.derived.SourcedValue
+import com.nachojerez.carpstrategy.domain.manual.DataSource
+import com.nachojerez.carpstrategy.domain.manual.ManualField
+import com.nachojerez.carpstrategy.domain.manual.ManualRecord
+import com.nachojerez.carpstrategy.domain.manual.SourcePriority
+import com.nachojerez.carpstrategy.domain.manual.WeatherVariable
 import com.nachojerez.carpstrategy.domain.model.DataError
 import com.nachojerez.carpstrategy.domain.model.HourlyWeather
 import com.nachojerez.carpstrategy.domain.model.StationObservation
 import com.nachojerez.carpstrategy.domain.model.WeatherModel
 import com.nachojerez.carpstrategy.ui.conditions.Formatting.number
+import com.nachojerez.carpstrategy.ui.manual.display
+import com.nachojerez.carpstrategy.ui.manual.labelRes
+import com.nachojerez.carpstrategy.ui.manual.tagRes
 
 /** Qué serie se muestra en la tabla horaria. */
 private enum class SeriesView(@StringRes val label: Int, val model: WeatherModel?) {
+    Combined(R.string.model_combined, null),
     Mean(R.string.model_mean, null),
     IconEu(R.string.model_icon_eu, WeatherModel.ICON_EU),
     Arpege(R.string.model_arpege, WeatherModel.ARPEGE_EUROPE),
@@ -51,17 +65,38 @@ private enum class SeriesView(@StringRes val label: Int, val model: WeatherModel
 }
 
 @Composable
-fun ConditionsScreen(viewModel: ConditionsViewModel = hiltViewModel()) {
+fun ConditionsScreen(onOpenManualData: () -> Unit, viewModel: ConditionsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    ConditionsContent(state = state, onRefresh = viewModel::refresh)
+    ConditionsContent(
+        state = state,
+        onRefresh = viewModel::refresh,
+        onOpenManualData = onOpenManualData,
+        priorityActions = PriorityActions(
+            moveUp = viewModel::movePriorityUp,
+            moveDown = viewModel::movePriorityDown,
+            toggle = viewModel::togglePriority,
+        ),
+    )
 }
 
+data class PriorityActions(
+    val moveUp: (DataSource) -> Unit,
+    val moveDown: (DataSource) -> Unit,
+    val toggle: (DataSource) -> Unit,
+)
+
 @Composable
-fun ConditionsContent(state: ConditionsUiState, onRefresh: () -> Unit) {
-    var view by rememberSaveable { mutableStateOf(SeriesView.Mean) }
+fun ConditionsContent(
+    state: ConditionsUiState,
+    onRefresh: () -> Unit,
+    onOpenManualData: () -> Unit,
+    priorityActions: PriorityActions,
+) {
+    var view by rememberSaveable { mutableStateOf(SeriesView.Combined) }
     val raw = state.raw
     val forecast = raw?.forecast?.data
     val ensemble = raw?.ensemble.orEmpty()
+    val merged = raw?.merged.orEmpty()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -78,11 +113,17 @@ fun ConditionsContent(state: ConditionsUiState, onRefresh: () -> Unit) {
             item { Text(stringResource(R.string.raw_no_data)) }
         }
 
+        item {
+            OutlinedButton(onClick = onOpenManualData) { Text(stringResource(R.string.manual_open)) }
+        }
+        state.latestReservoir?.let { record -> item { ReservoirLine(record) } }
+        raw?.let { item { PriorityCard(it.priority, priorityActions) } }
+
         item { ObservationsCard(state) }
 
         item { ForecastCard(state) }
 
-        if (forecast != null) {
+        if (forecast != null || merged.isNotEmpty()) {
             item {
                 Row(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
@@ -98,11 +139,14 @@ fun ConditionsContent(state: ConditionsUiState, onRefresh: () -> Unit) {
                 }
             }
             val model = view.model
-            if (model == null) {
+            if (view == SeriesView.Combined) {
+                item { Caption(stringResource(R.string.combined_legend)) }
+                combinedRows(merged)
+            } else if (model == null) {
                 item { Caption(stringResource(R.string.mean_explanation)) }
                 ensembleRows(ensemble)
             } else {
-                val hours = forecast.series[model]
+                val hours = forecast?.series?.get(model)
                 if (hours.isNullOrEmpty()) {
                     item { Text(stringResource(R.string.model_missing)) }
                 } else {
@@ -297,3 +341,97 @@ private fun ErrorText(error: DataError) {
 private fun Caption(text: String) {
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
+
+private fun LazyListScope.combinedRows(hours: List<MergedHour>) {
+    items(hours, key = { it.time.epochSecond }) { h ->
+        Column {
+            Text(
+                stringResource(
+                    R.string.row_combined,
+                    Formatting.hour(h.time),
+                    sourced(h[WeatherVariable.AIR_TEMPERATURE]),
+                    sourced(h[WeatherVariable.PRESSURE_MSL]),
+                    sourced(h[WeatherVariable.WIND_SPEED]),
+                    Formatting.compass(h[WeatherVariable.WIND_DIRECTION]?.value),
+                    sourced(h[WeatherVariable.WIND_GUSTS]),
+                    sourced(h[WeatherVariable.CLOUD_COVER], 0),
+                    sourced(h[WeatherVariable.PRECIPITATION]),
+                    sourced(h[WeatherVariable.RELATIVE_HUMIDITY], 0),
+                ),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            val water = listOf(
+                WeatherVariable.WATER_TEMP_SURFACE,
+                WeatherVariable.WATER_TEMP_BOTTOM,
+                WeatherVariable.BOTTOM_DEPTH,
+                WeatherVariable.TURBIDITY,
+            )
+            if (water.any { h[it] != null }) {
+                Text(
+                    stringResource(
+                        R.string.row_water,
+                        number(h[WeatherVariable.WATER_TEMP_SURFACE]?.value),
+                        number(h[WeatherVariable.WATER_TEMP_BOTTOM]?.value),
+                        number(h[WeatherVariable.BOTTOM_DEPTH]?.value),
+                        number(h[WeatherVariable.TURBIDITY]?.value, 0),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            HorizontalDivider()
+        }
+    }
+}
+
+/** Valor seguido de la letra de su fuente (M, A o P). */
+@Composable
+private fun sourced(value: SourcedValue?, digits: Int = 1): String =
+    if (value == null) number(null) else "${number(value.value, digits)} ${stringResource(value.source.tagRes())}"
+
+@Composable
+private fun PriorityCard(priority: SourcePriority, actions: PriorityActions) {
+    SectionCard(title = stringResource(R.string.priority_title)) {
+        Caption(stringResource(R.string.priority_explanation))
+        val disabled = DataSource.entries.filterNot(priority::isEnabled)
+        (priority.order + disabled).forEach { source ->
+            val position = priority.order.indexOf(source)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = if (position >= 0) {
+                        stringResource(R.string.priority_position, position + 1) + " " + stringResource(source.labelRes())
+                    } else {
+                        stringResource(source.labelRes()) + " · " + stringResource(R.string.priority_disabled)
+                    },
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (position >= 0) {
+                    TextButton(onClick = { actions.moveUp(source) }, enabled = position > 0) {
+                        Text(stringResource(R.string.action_move_up))
+                    }
+                    TextButton(onClick = { actions.moveDown(source) }, enabled = position < priority.order.lastIndex) {
+                        Text(stringResource(R.string.action_move_down))
+                    }
+                }
+                Switch(
+                    checked = position >= 0,
+                    onCheckedChange = { actions.toggle(source) },
+                    enabled = position < 0 || priority.order.size > 1,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReservoirLine(record: ManualRecord) {
+    val values = stringResource(
+        R.string.reservoir_values,
+        number(record.values[ManualField.RESERVOIR_VOLUME]),
+        number(record.values[ManualField.RESERVOIR_PERCENT]),
+        number(record.values[ManualField.RESERVOIR_ELEVATION], 0),
+    )
+    Text(stringResource(R.string.reservoir_latest, values, record.period.display(), record.source))
+}
+

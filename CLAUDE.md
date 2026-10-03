@@ -46,8 +46,19 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `ResponseBody` y se decodifican con el charset de la cabecera o ISO-8859-15.
 - Los errores remotos se clasifican en `DataError` mediante `DataSourceException`; el
   repositorio devuelve `RefreshOutcome` y nunca borra la caché si falla.
-- La BD (`CarpStrategyDatabase`) es caché re-descargable con migración destructiva. El diario
-  (fase 5) necesitará esquema exportado y migraciones reales.
+- La BD (`CarpStrategyDatabase`) es caché re-descargable con migración destructiva.
+
+## Datos del usuario (fase 2)
+
+- `UserDataDatabase` (`data/userdata`) guarda registros manuales, ajustes y, más adelante, el
+  diario. Esquema exportado en `app/schemas` (versionarlo): cada cambio necesita una migración;
+  **nunca** migración destructiva. El CI avisa si hay esquemas sin versionar.
+- `domain/manual`: `ManualField` (claves JSON, rangos y si van por hora o por día),
+  `ManualRecordValidator` (común al formulario y a la importación) y `SourcePriority`.
+- `data/manual/ManualDataJson`: formato `carpstrategy-datos` v1 (docs/FORMATO_DATOS.md). Si se
+  cambia, actualizar a la vez la documentación, el ejemplo de `docs/ejemplos` y su copia en
+  `app/src/main/assets` (un test comprueba que son idénticos y válidos).
+- `domain/derived/SourceMerger`: serie horaria combinada según la prioridad del usuario.
 
 ## Stack
 

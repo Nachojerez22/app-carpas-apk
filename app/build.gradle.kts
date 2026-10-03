@@ -59,6 +59,11 @@ android {
     }
 }
 
+// Esquemas de Room de la BD de datos del usuario (se versionan para poder migrar sin perder datos).
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)

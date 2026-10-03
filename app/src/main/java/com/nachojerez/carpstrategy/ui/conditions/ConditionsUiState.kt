@@ -2,12 +2,16 @@ package com.nachojerez.carpstrategy.ui.conditions
 
 import com.nachojerez.carpstrategy.domain.derived.Freshness
 import com.nachojerez.carpstrategy.domain.derived.FreshnessPolicy
+import com.nachojerez.carpstrategy.domain.manual.ManualField
+import com.nachojerez.carpstrategy.domain.manual.ManualRecord
+import com.nachojerez.carpstrategy.domain.manual.RecordPeriod
 import com.nachojerez.carpstrategy.domain.model.DataError
 import com.nachojerez.carpstrategy.domain.model.RefreshOutcome
 import com.nachojerez.carpstrategy.domain.usecase.RawWeather
 import com.nachojerez.carpstrategy.domain.usecase.WeatherRefreshResult
 import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
 
 data class ConditionsUiState(
     val locationName: String,
@@ -21,6 +25,8 @@ data class ConditionsUiState(
     val observationsError: DataError? = null,
     /** Horas futuras en las que los modelos discrepan en el viento. */
     val divergentForecastHours: Int = 0,
+    /** Registro manual más reciente con nivel del embalse. */
+    val latestReservoir: ManualRecord? = null,
 )
 
 /** Construye el estado de la pantalla. Función pura para poder testearla. */
@@ -41,7 +47,22 @@ fun buildConditionsState(
     forecastError = (lastRefresh?.forecast as? RefreshOutcome.Failure)?.error,
     observationsError = (lastRefresh?.observations as? RefreshOutcome.Failure)?.error,
     divergentForecastHours = raw.ensemble.count { it.windDivergent && !it.time.isBefore(now) },
+    latestReservoir = raw.manualRecords
+        .filter { record -> RESERVOIR_FIELDS.any { it in record.values } }
+        .maxByOrNull { it.period.startInstant() },
 )
+
+private val RESERVOIR_FIELDS = setOf(
+    ManualField.RESERVOIR_VOLUME,
+    ManualField.RESERVOIR_PERCENT,
+    ManualField.RESERVOIR_ELEVATION,
+)
+
+/** Inicio del periodo (los días, a las 00:00 de Madrid) para ordenar registros. */
+fun RecordPeriod.startInstant(zone: ZoneId = Formatting.MADRID): Instant = when (this) {
+    is RecordPeriod.At -> time
+    is RecordPeriod.Day -> date.atStartOfDay(zone).toInstant()
+}
 
 /** Se descarga de nuevo al abrir la pantalla si falta algún dato o tiene más de 1 h. */
 fun needsRefresh(raw: RawWeather, now: Instant, maxAge: Duration = Duration.ofHours(1)): Boolean {

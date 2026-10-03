@@ -37,6 +37,15 @@ jobs:
       - name: Lint
         run: ./gradlew lintDebug --stacktrace
 
+      # Los esquemas de Room se generan al compilar y deben estar versionados en app/schemas.
+      - name: Comprobar esquemas de Room versionados
+        run: |
+          git status --porcelain app/schemas
+          for f in $(git ls-files --others --modified app/schemas); do
+            echo "::warning file=$f::Esquema de Room nuevo o cambiado sin versionar"
+            echo "----- $f -----"; cat "$f"; echo
+          done
+
       - name: Informes de tests y lint
         if: always()
         uses: actions/upload-artifact@v4

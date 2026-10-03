@@ -2,6 +2,10 @@ package com.nachojerez.carpstrategy.ui.conditions
 
 import com.nachojerez.carpstrategy.domain.derived.EnsembleHour
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
+import com.nachojerez.carpstrategy.domain.manual.ManualField
+import com.nachojerez.carpstrategy.domain.manual.ManualOrigin
+import com.nachojerez.carpstrategy.domain.manual.ManualRecord
+import com.nachojerez.carpstrategy.domain.manual.RecordPeriod
 import com.nachojerez.carpstrategy.domain.model.Cached
 import com.nachojerez.carpstrategy.domain.model.DataError
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
@@ -13,6 +17,7 @@ import com.nachojerez.carpstrategy.domain.usecase.RawWeather
 import com.nachojerez.carpstrategy.domain.usecase.WeatherRefreshResult
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
@@ -76,5 +81,18 @@ class ConditionsUiStateTest {
         assertTrue(needsRefresh(RawWeather(recent, emptyList(), null), now))
         assertTrue(needsRefresh(RawWeather(old, emptyList(), obsRecent), now))
         assertFalse(needsRefresh(RawWeather(recent, emptyList(), obsRecent), now))
+    }
+
+    @Test
+    fun `ultimo nivel del embalse entre registros por hora y por dia`() {
+        fun record(period: RecordPeriod, field: ManualField, value: Double) = ManualRecord(
+            period = period, location = point, source = "x", origin = ManualOrigin.Typed,
+            values = mapOf(field to value), createdAt = now,
+        )
+        val older = record(RecordPeriod.Day(LocalDate.parse("2026-09-28")), ManualField.RESERVOIR_VOLUME, 4.0)
+        val newer = record(RecordPeriod.At(Instant.parse("2026-10-01T08:00:00Z")), ManualField.RESERVOIR_PERCENT, 56.0)
+        val noLevel = record(RecordPeriod.At(Instant.parse("2026-10-02T08:00:00Z")), ManualField.WATER_TEMP_SURFACE, 19.0)
+        val raw = RawWeather(null, emptyList(), null, manualRecords = listOf(older, noLevel, newer))
+        assertEquals(newer, buildConditionsState("Brovales", raw, false, null, now).latestReservoir)
     }
 }

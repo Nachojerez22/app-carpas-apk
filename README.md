@@ -12,7 +12,7 @@ El conocimiento del dominio (biología de la carpa, datos de Brovales, normativa
 diseño del modelo) está en [`docs/CONOCIMIENTO.md`](docs/CONOCIMIENTO.md), que es la fuente de
 verdad del proyecto.
 
-> Estado: **Fase 1** (capa de datos). La pestaña *Condiciones* muestra los datos en bruto; el resto de pantallas siguen siendo provisionales.
+> Estado: **Fase 2** (datos manuales e importación JSON). La pestaña *Condiciones* muestra los datos en bruto y la serie combinada según tu prioridad de fuentes; el resto de pantallas siguen siendo provisionales.
 
 ## Fuentes de datos
 
@@ -39,6 +39,16 @@ Ambas fuentes se citan en la pantalla **Acerca de** y junto a los datos.
   3 más cercanas a menos de 60 km (distancia haversine) y se usa la primera que publique
   observación horaria. Los decimales con coma, "Ip" (inapreciable = 0) y la codificación
   ISO-8859-15 se tratan al leer. El viento se convierte de m/s a km/h.
+- **Datos manuales e importados:** en *Condiciones → Datos manuales* puedes añadir registros a
+  mano (por hora o por día) o importar un JSON con el formato documentado en
+  [`docs/FORMATO_DATOS.md`](docs/FORMATO_DATOS.md) (ejemplo en
+  [`docs/ejemplos/datos-ejemplo.json`](docs/ejemplos/datos-ejemplo.json), también copiable desde
+  la app). Todo se valida (rangos, fechas, fuente obligatoria) y la importación es todo o nada.
+  Lo importado se marca como *no verificado*. Se guardan en una base de datos aparte que nunca
+  se borra al actualizar la app.
+- **Prioridad de fuentes:** eliges el orden de Manual, AEMET y Modelos y cuáles están activas.
+  Para cada hora y variable se usa la primera fuente activa con valor; la vista *Combinada*
+  indica la fuente de cada valor (M, A, P).
 - **Caché (Room):** todo se guarda con la hora de descarga. Sin conexión se muestra la última
   copia y su antigüedad (aviso a partir de 3 h y de 24 h). Al abrir la pantalla se actualiza si
   los datos tienen más de 1 h.
@@ -100,10 +110,11 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 
 - [x] **Fase 0**: proyecto, estructura, CI, documentación
 - [x] **Fase 1**: capa de datos (Open-Meteo multimodelo + AEMET + Room) y pantalla de datos en bruto
-- [ ] **Fase 2**: parámetros derivados (presión, temperatura, agua estimada, viento, lluvia, sol/luna y ventana legal)
-- [ ] **Fase 3**: motor de filtros/multiplicadores por niveles (reglas JSON con etiqueta de evidencia) y pantalla de estrategia
-- [ ] **Fase 4**: UI completa, GPS, gráficas y nivel del embalse (semanal + manual)
-- [ ] **Fase 5**: diario de sesiones (horas-caña, bolos, valoración previa) y aprendizaje con datos propios
+- [x] **Fase 2**: datos manuales e importación JSON, prioridad de fuentes elegible y serie combinada
+- [ ] **Fase 3**: parámetros derivados (presión, temperatura, agua estimada/medida, viento, lluvia, sesgo con AEMET, sol/luna y ventana legal)
+- [ ] **Fase 4**: motor de filtros/multiplicadores por niveles (reglas JSON con etiqueta de evidencia) y pantalla de estrategia
+- [ ] **Fase 5**: UI completa, GPS y gráficas
+- [ ] **Fase 6**: diario de sesiones (horas-caña, bolos, valoración previa) y aprendizaje con datos propios
 
 ## CI
 
