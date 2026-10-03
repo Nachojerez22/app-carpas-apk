@@ -24,6 +24,7 @@ import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.ui.about.AboutScreen
 import com.nachojerez.carpstrategy.ui.conditions.ConditionsScreen
 import com.nachojerez.carpstrategy.ui.location.LocationScreen
+import com.nachojerez.carpstrategy.ui.manual.ManualDataScreen
 import com.nachojerez.carpstrategy.ui.strategy.StrategyScreen
 import kotlin.reflect.KClass
 import kotlinx.serialization.Serializable
@@ -32,6 +33,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object ConditionsRoute
 @Serializable data object StrategyRoute
 @Serializable data object AboutRoute
+@Serializable data object ManualDataRoute
 
 private enum class TopLevelDestination(
     val route: Any,
@@ -81,7 +83,10 @@ fun CarpStrategyNavHost() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable<LocationRoute> { LocationScreen() }
-            composable<ConditionsRoute> { ConditionsScreen() }
+            composable<ConditionsRoute> {
+                ConditionsScreen(onOpenManualData = { navController.navigate(ManualDataRoute) })
+            }
+            composable<ManualDataRoute> { ManualDataScreen(onBack = { navController.popBackStack() }) }
             composable<StrategyRoute> { StrategyScreen() }
             composable<AboutRoute> { AboutScreen() }
         }

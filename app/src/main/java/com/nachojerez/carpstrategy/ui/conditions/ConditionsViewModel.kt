@@ -2,7 +2,10 @@ package com.nachojerez.carpstrategy.ui.conditions
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nachojerez.carpstrategy.domain.manual.DataSource
+import com.nachojerez.carpstrategy.domain.manual.SourcePriority
 import com.nachojerez.carpstrategy.domain.model.DefaultLocation
+import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
 import com.nachojerez.carpstrategy.domain.usecase.RefreshWeatherUseCase
 import com.nachojerez.carpstrategy.domain.usecase.WeatherRefreshResult
@@ -23,6 +26,7 @@ import kotlinx.coroutines.launch
 class ConditionsViewModel @Inject constructor(
     observeRawWeather: ObserveRawWeatherUseCase,
     private val refreshWeather: RefreshWeatherUseCase,
+    private val settings: SettingsRepository,
     private val clock: Clock,
 ) : ViewModel() {
     private val location = DefaultLocation.value
@@ -63,5 +67,16 @@ class ConditionsViewModel @Inject constructor(
                 refreshing.value = false
             }
         }
+    }
+
+    fun movePriorityUp(source: DataSource) = updatePriority { it.moveUp(source) }
+
+    fun movePriorityDown(source: DataSource) = updatePriority { it.moveDown(source) }
+
+    fun togglePriority(source: DataSource) = updatePriority { it.toggle(source) }
+
+    private fun updatePriority(change: (SourcePriority) -> SourcePriority) {
+        val current = uiState.value.raw?.priority ?: return
+        viewModelScope.launch { settings.setSourcePriority(change(current)) }
     }
 }

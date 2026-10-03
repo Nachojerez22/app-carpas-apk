@@ -68,4 +68,110 @@
     <string name="row_observation">%1$s · %2$s °C · %3$s hPa · viento %4$s km/h %5$s · racha %6$s · lluvia %7$s mm · HR %8$s %%</string>
     <string name="row_divergent">⚠ viento incierto</string>
     <string name="value_missing">—</string>
+
+    <!-- Fase 2: datos manuales, importación y prioridad de fuentes -->
+    <string name="manual_title">Datos manuales</string>
+    <string name="manual_open">Datos manuales</string>
+    <string name="manual_intro">Tus medidas y los datos que importes tienen prioridad según el orden que elijas en Condiciones. La temperatura del agua solo puede venir de aquí: es el dato más valioso.</string>
+    <string name="action_back">Volver</string>
+    <string name="action_add">Añadir</string>
+    <string name="action_import">Importar JSON</string>
+    <string name="action_copy_example">Copiar ejemplo JSON</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_delete">Borrar</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_confirm_import">Importar %1$d registros</string>
+    <string name="action_close">Cerrar</string>
+    <string name="example_copied">Ejemplo copiado. Pégalo a tu asistente junto con tus datos reales y pídele un archivo con este formato (ver docs/FORMATO_DATOS.md).</string>
+    <string name="manual_empty">Todavía no hay datos manuales.</string>
+    <string name="manual_origin_typed">Introducido a mano</string>
+    <string name="manual_origin_imported">Importado de %1$s · no verificado</string>
+    <string name="manual_source">Fuente: %1$s</string>
+    <string name="manual_notes">Notas: %1$s</string>
+    <string name="manual_value">%1$s: %2$s</string>
+    <string name="manual_delete_confirm">¿Borrar este registro? No se puede deshacer.</string>
+
+    <string name="editor_title_new">Nuevo registro</string>
+    <string name="editor_title_edit">Editar registro</string>
+    <string name="editor_type_hourly">Medida a una hora</string>
+    <string name="editor_type_daily">Dato de un día</string>
+    <string name="editor_time">Hora local (AAAA-MM-DD HH:MM)</string>
+    <string name="editor_date">Día (AAAA-MM-DD)</string>
+    <string name="editor_source">Fuente (obligatoria): termómetro, boletín…</string>
+    <string name="editor_notes">Notas</string>
+    <string name="editor_hint">Rellena solo lo que hayas medido o consultado. Los campos vacíos se ignoran.</string>
+
+    <string name="import_reading">Leyendo archivo…</string>
+    <string name="import_preview_title">Importar %1$s</string>
+    <string name="import_preview_summary">%1$d registros válidos (%2$d por hora, %3$d por día).</string>
+    <string name="import_errors_title">No se puede importar: corrige estos errores y vuelve a cargar el archivo.</string>
+    <string name="import_warnings_title">Avisos (no impiden importar):</string>
+    <string name="import_unverified">Los datos importados se marcan como «no verificados». Comprueba que salen de una fuente real: un asistente puede inventar valores verosímiles.</string>
+    <string name="import_done">Importados %1$d registros.</string>
+    <string name="import_read_error">No se pudo leer el archivo: %1$s</string>
+
+    <string name="issue_prefix_file">Archivo</string>
+    <string name="issue_prefix_record">Registro %1$d</string>
+    <string name="issue_line">%1$s · %2$s</string>
+    <string name="issue_line_field">%1$s · «%2$s»: %3$s</string>
+    <string name="issue_not_json">El archivo no es un JSON válido o no es un objeto { … }.</string>
+    <string name="issue_bad_format">Falta "formato": "%1$s".</string>
+    <string name="issue_unsupported_version">Versión %1$s no admitida (solo la 1).</string>
+    <string name="issue_invalid_zone">Zona horaria desconocida: %1$s.</string>
+    <string name="issue_invalid_location">"ubicacion" debe tener lat (−90 a 90) y lon (−180 a 180).</string>
+    <string name="issue_no_records">No hay "registros" (debe ser una lista con al menos uno).</string>
+    <string name="issue_too_many_records">Demasiados registros (máximo %1$s).</string>
+    <string name="issue_record_not_object">El registro no es un objeto { … }.</string>
+    <string name="issue_missing_source">Falta la fuente.</string>
+    <string name="issue_missing_period">Falta la hora o el día.</string>
+    <string name="issue_both_time_and_date">Indica hora o día, no ambos.</string>
+    <string name="issue_invalid_time">Hora no válida: %1$s (ejemplo: 2026-10-03 08:00).</string>
+    <string name="issue_invalid_date">Fecha no válida: %1$s (ejemplo: 2026-10-03).</string>
+    <string name="issue_future_period">%1$s es futura: solo se admiten datos ya observados.</string>
+    <string name="issue_not_a_number">No es un número: %1$s.</string>
+    <string name="issue_out_of_range">%1$s está fuera de rango (%2$s a %3$s).</string>
+    <string name="issue_not_an_integer">Debe ser un número entero: %1$s.</string>
+    <string name="issue_field_not_allowed">No se admite en un registro con "%1$s".</string>
+    <string name="issue_no_values">No tiene ningún valor.</string>
+    <string name="issue_unknown_field">Clave desconocida (¿errata?): se ignora.</string>
+    <string name="issue_far_from_location">Los datos están a %1$s km de la ubicación de la app.</string>
+    <string name="issue_bottom_without_depth">Temperatura de fondo sin profundidad.</string>
+    <string name="issue_duplicate_in_file">Repetido (misma hora o día y fuente): se usa el último.</string>
+
+    <string name="field_temp_aire_c">Temp. aire (°C)</string>
+    <string name="field_presion_hpa">Presión nivel del mar (hPa)</string>
+    <string name="field_viento_kmh">Viento (km/h)</string>
+    <string name="field_viento_dir_grados">Dirección del viento (°, de dónde viene)</string>
+    <string name="field_racha_kmh">Racha (km/h)</string>
+    <string name="field_nubosidad_pct" formatted="false">Nubosidad (%)</string>
+    <string name="field_lluvia_mm">Lluvia última hora (mm)</string>
+    <string name="field_humedad_pct" formatted="false">Humedad (%)</string>
+    <string name="field_temp_agua_superficie_c">Temp. agua superficie (°C)</string>
+    <string name="field_temp_agua_fondo_c">Temp. agua fondo (°C)</string>
+    <string name="field_profundidad_fondo_m">Profundidad de la medida de fondo (m)</string>
+    <string name="field_turbidez">Turbidez (1 clara – 5 chocolate)</string>
+    <string name="field_lluvia_dia_mm">Lluvia del día (mm)</string>
+    <string name="field_nivel_embalse_hm3">Nivel embalse (hm³)</string>
+    <string name="field_nivel_embalse_pct" formatted="false">Nivel embalse (%)</string>
+    <string name="field_cota_embalse_m">Cota embalse (m)</string>
+
+    <string name="priority_title">Prioridad de fuentes</string>
+    <string name="priority_explanation">Para cada hora y dato se usa la primera fuente activa que lo tenga.</string>
+    <string name="source_manual">Manual / importado</string>
+    <string name="source_aemet">AEMET (observación)</string>
+    <string name="source_models">Modelos (media)</string>
+    <string name="priority_position">%1$d.</string>
+    <string name="priority_disabled">desactivada</string>
+    <string name="action_move_up">Subir</string>
+    <string name="action_move_down">Bajar</string>
+    <string name="model_combined">Combinada</string>
+    <string name="combined_legend">Fuente de cada valor: M = manual/importado · A = AEMET · P = previsión (media de modelos).</string>
+    <string name="source_tag_manual">M</string>
+    <string name="source_tag_aemet">A</string>
+    <string name="source_tag_models">P</string>
+    <string name="row_combined">%1$s · %2$s °C · %3$s hPa · viento %4$s km/h %5$s · racha %6$s · nubes %7$s %% · lluvia %8$s mm · HR %9$s %%</string>
+    <string name="row_water">Agua: superficie %1$s °C · fondo %2$s °C (%3$s m) · turbidez %4$s</string>
+    <string name="reservoir_latest">Último nivel del embalse: %1$s · %2$s (fuente: %3$s)</string>
+    <string name="reservoir_values">%1$s hm³ · %2$s %% · cota %3$s m</string>
 </resources>
