@@ -150,6 +150,7 @@ data class SessionForm(
             fulfilled = fulfilled,
             notes = notes.trim(),
             createdAt = base?.createdAt ?: now,
+            guided = base?.guided,
         )
         return Result(session, emptySet())
     }

@@ -105,6 +105,7 @@ object JournalJson {
         @SerialName("se_cumplio") val fulfilled: String? = null,
         @SerialName("notas") val notes: String = "",
         @SerialName("creada") val createdAt: String,
+        @SerialName("guiado") val guided: GuidedJson.GuidedDto? = null,
     )
 
     @Serializable
@@ -193,6 +194,7 @@ object JournalJson {
         fulfilled = fulfilled?.name,
         notes = notes,
         createdAt = createdAt.toString(),
+        guided = guided?.let { with(GuidedJson) { it.toDto() } },
     )
 
     fun SessionDto.toDomain(): Session? = Session(
@@ -217,6 +219,7 @@ object JournalJson {
         fulfilled = enumOrNull<Fulfilled>(fulfilled),
         notes = notes,
         createdAt = instant(createdAt) ?: Instant.EPOCH,
+        guided = guided?.let { with(GuidedJson) { it.toDomain() } },
     )
 
     /** Copia de seguridad legible del diario (la app no usa la copia en la nube de Android). */

@@ -43,6 +43,8 @@ data class SessionEntity(
     val fulfilled: String?,
     val notes: String,
     val createdAtEpochMs: Long,
+    /** Sesión guiada (fase 7) como JSON; null si se anotó sin guiar. */
+    val guidedJson: String? = null,
 )
 
 /**
