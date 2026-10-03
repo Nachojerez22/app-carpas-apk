@@ -87,6 +87,25 @@ Veredictos: CONFIRMADA · PARCIAL · PLAUSIBLE (no demostrada) · CONTRADICHA ·
 | 35 | Un choque térmico rompe la termoclina | **PARCIAL** | física | Puede profundizar la capa de mezcla; romper toda la termoclina requiere evento intenso. Sin perfiles es especulación |
 | 36 | Modelo de 5 niveles (vive → motivos → presente → se alimenta → interceptable) | **BUENA ARQUITECTURA** | diseño | Adoptar, ver §4 |
 
+### 3.2 Hallazgos añadidos (alternativas durante la sesión, oct. 2026)
+
+Fuente completa: [investigación de alternativas, oct. 2026](investigacion/2026-10-alternativas-sesion.md). Numeración continua con la tabla anterior.
+
+| # | Afirmación | Veredicto | Etiqueta | Fuente y matiz |
+|---|---|---|---|---|
+| 37 | Las carpas tardan 2–4 días en concentrarse en un punto cebado nuevo (respuesta aprendida) | **CONFIRMADA** | 🟢 | Bajer et al. 2010 (3–4 días; 21 de 34 carpas la décima noche); Kasumyan et al. 2024 (2–3 días, estable a la semana); Bullers et al. 2026 (~3 días). En una sesión de horas no se «construye» un comedero desde cero |
+| 38 | Tras empezar el cebado, las carpas visitan el punto y comen sobre todo de noche | **CONFIRMADA** | 🟢 | Ghosal et al. 2018 (densidad ×2, ADN ambiental ×500). En Brovales la noche no es pescable |
+| 39 | Encontrar el cebo no garantiza picadas: la capturabilidad cae tras los primeros días | **CONFIRMADA** | 🟢 | Monk y Arlinghaus 2017 (telemetría). «Señales sin picadas» = presentación o desconfianza, no ubicación |
+| 40 | La evitación del anzuelo se adquiere en pocos días, también por aprendizaje social | **CONFIRMADA** | 🟢 | Klefoth, Pieterek y Arlinghaus 2013; Beukema 1970 (capturabilidad ~3 veces menor un año después). Compatible con #22 y con el límite de ≤7 meses de Czapla et al. 2023 |
+| 41 | Con calor extremo la ingesta baja (significativo >34 °C) | **CONFIRMADA (acuicultura)** | 🟢 | Revisión de ritmo alimentario. En Brovales no se espera >34 °C en el fondo; >28 °C reduce el margen (🟣) |
+| 42 | Las carpas se agregan lejos de la orilla en otoño-invierno (<10 °C; densas <5 °C) y las agregaciones se mueven | **CONFIRMADA** | 🟢 | Penne y Pierce 2008; Bajer et al. 2011. En Brovales el agua rara vez bajará de 5 °C (🟣) |
+| 43 | Profundidad media estacional: ~5 m en invierno frente a ~2 m el resto del año (lago alemán) | **CONFIRMADA (otro sistema)** | 🟢 | J. R. Soc. Interface 18(183):20210445 (2021). Patrón general; batimetría de Brovales sin verificar |
+| 44 | Velocidad de movimiento 100–166 m/h; agregación somera en mayo, junio y agosto y dispersión en julio | **CONFIRMADA (otro sistema)** | 🟢 | Hennen et al. 2014 (Dakota del Sur). La espera depende de si hay peces cerca, no de la difusión del olor (🟣) |
+| 45 | El maíz en grano captura 2,1–3,4 veces más que la masa y el pescado; el tipo de cebo no cambia la talla, el anzuelo sí | **CONFIRMADA (un estudio)** | 🟢 | Ateşşahin y Dürrani 2023, Fish. Res. 261:106640. «Cebo más selectivo por talla» es 🟡 |
+| 46 | El olor atrae y el gusto decide la aceptación (~29 % de aminoácidos libres estimulantes; L-cisteína muy estimulante) | **CONFIRMADA (laboratorio)** | 🟢 | Kasumyan y Morsi 1996; Kasumyan y Døving 2003; Kasumyan et al. 2009. Argumento para cambiar el cebo de anzuelo con toques sin clavada |
+| 47 | A 17 °C eligen más grasa y a 25 °C más proteína; la grasa se digiere peor a 17 °C | **CONFIRMADA (acuicultura)** | 🟢 | Yamamoto et al. 🟣 En frío: cebos digeribles y poca cantidad; no trasladar la «preferencia por grasa» al anzuelo |
+| 48 | Existe una regla probada de cada cuánto cambiar de puesto, cebo o montaje durante una sesión | **SIN DATOS** | 🔴 | Ningún estudio compara rotar con mantener. Los tiempos de §5.9 son 🟣 a calibrar |
+
 ### 3.1 Correcciones a las fuentes originales (para no reintroducir errores)
 
 **Errores de Gemini:** convertir mecanismos físicos reales (plunging, seiches, vuelco) en reglas 🟢 de localización sin estudios en peces; asfixia "segura" en el hipolimnion; putrefacción intestinal; tensión superficial y "Factor x2"; reglas lunares tras haberlas descartado; contradicciones sobre turbidez; presentar como hechos conocimientos locales de Brovales inexistentes; la "Demasía Hidrográfica del Guadiana" **no existe** (el organismo es la **Confederación Hidrográfica del Guadiana, CHG**).
@@ -228,10 +247,24 @@ Reglas de diseño:
 - Prohibidos como cebo en aguas de río: almejas, mejillones, cangrejos y peces continentales. El único pez vivo permitido en aguas embalsadas es la tenca de acuicultura acreditada. Prohibido el clonk.
 - **Cangrejo rojo: invasor; prohibido poseerlo o transportarlo vivo.** Captura con reteles solo para autoconsumo.
 - Cantidad de cebo: ajustar a temperatura (§5.1). La regla "menos cebo en frío" es correcta en el fondo (demanda baja), aunque la explicación de "no digiere" no lo sea.
+- *(Añadido oct. 2026, [investigación de alternativas, oct. 2026](investigacion/2026-10-alternativas-sesion.md).)* La prohibición de la Orden de 2022 (art. 8.3) dice «en ninguna forma o estado» e incluye el **cebado**, no solo el cebo de anzuelo. La fórmula «cuando sean de río» deja dudas sobre el pescado o el mejillón de mar (la Orden de 2016 permitía peces de mar muertos): **confirmar**; mientras tanto, la app los trata como no recomendados.
+- 🟢 El maíz en grano capturó 2,1–3,4 veces más que la masa y el pescado (Ateşşahin y Dürrani 2023): es el «comodín» de sustitución.
+- 🟢 → 🟣 Proporción de cebado: la ración diaria es ~10 veces mayor a 26,5 °C que a 14 °C (Garcia y Adelman 1985). Regla de partida: cebado inicial en invierno ≈ 1/5–1/10 del de verano y recebado solo tras captura o señal. Sigue sin haber cifras en kg: dependen de la densidad de carpas de Brovales (🔴), que calibra el usuario.
+- 🟢 Pre-cebado de 2–3 días como opción de estrategia (Kasumyan et al. 2024; Bajer et al. 2010). ⚖ Requiere confirmar que el cebado es legal en Brovales.
+- 🟣 Grandes cantidades de partículas fermentadas en verano: no están prohibidas de forma expresa, pero el oxígeno de Brovales es desconocido y la Ley prohíbe sustancias «desoxigenadoras». Limitar cantidades.
+- 🟡 Chufa y legumbres: siempre preparadas (remojo ≥24 h + hervor ≥30 min); crudas se hinchan y son un riesgo para el pez. Cacahuete: no recomendado.
+- Funciones de un cebo y tabla de sustitutos: §5.9.5.
 
 ### 5.6 Montajes
 - Pop-up, Zig Rig y bolsas de PVA son técnicas de pescadores con lógica pero **sin estudios comparativos en carpa** (🟡).
 - Wallerius 2020 respalda tres ideas generales: rotar presentaciones en aguas presionadas, usar bajos menos visibles, no repetir el mismo montaje en el mismo puesto con peces ya capturados.
+- *(Añadido oct. 2026.)* Cambios de columna (🟡/🟣):
+
+| De | A | Cuándo |
+|---|---|---|
+| Fondo | Pop-up de 5–15 cm | Fondo sucio, cangrejo o algas; o señales sin picadas |
+| Pop-up | Zig a media agua (½–¾ de la profundidad) | Verano o calor, día soleado y carpas vistas en superficie o a media agua (en línea con Benito 2015) |
+| Zig | Superficie (pan o flotante) | Carpas comiendo en superficie; viento flojo (⚖ el pan es cebo vegetal permitido) |
 
 ### 5.7 Presión de pesca
 - Las capturas repetidas en un puesto reducen la capturabilidad durante semanas o meses. La app registra capturas por zona y sugiere rotar.
@@ -306,6 +339,88 @@ Reglas de diseño:
 
 ---
 
+### 5.9 Alternativas durante la sesión (sesión guiada)
+
+> Añadido en oct. 2026. Fuente completa y tablas originales: [investigación de alternativas, oct. 2026](investigacion/2026-10-alternativas-sesion.md). **Ningún estudio dice cada cuántos minutos hay que cambiar de puesto, cebo o montaje (🔴, #48).** Lo respaldado: un cebadero nuevo tarda días en atraer carpas (#37), encontrar el cebo no garantiza picadas (#39), aprenden a evitar el anzuelo (#40) y en frío comen mucho menos (§5.1). Por eso: **sin señales → cambiar de capa o distancia y luego de zona; con señales y sin picadas → cambiar la presentación; en invierno, paciencia.** Todos los tiempos son 🟣 a calibrar con las sesiones del usuario.
+
+#### 5.9.1 Diagnóstico en cada aviso (cada 30 min)
+
+| Situación | Diagnóstico probable | Acción prioritaria | Etiqueta |
+|---|---|---|---|
+| A. Sin señales y sin actividad en el anzuelo | No hay peces en la zona o en esa capa | Cambiar de columna o distancia y, si sigue igual, de zona por función | 🟣 |
+| B. Con señales y sin actividad | Hay peces que no comen en el punto o desconfían | Ajustar la presentación al punto exacto de la actividad, cebo de anzuelo más pequeño o de alta atracción (maíz o pop-up); **no cambiar de zona** | 🟢 (#39) + 🟣 |
+| C. Toques o picadas falladas | Peces que inspeccionan el cebo | Cambiar montaje o presentación (pelo más corto, otro anzuelo, cebo más pequeño o flotante, otro sabor o textura); mantener el cebado | 🟡 (+🟢 #46) |
+| D. Captura | La zona funciona | No cambiar nada; recebar poco y repetir. Avisar de que la capturabilidad puede caer tras capturas repetidas | 🟢 (#39, #40) |
+
+Modificadores (🟡 salvo indicación): cebo **desaparecido o roto** con anzuelo limpio → probable cangrejo, tortuga o peces pequeños: cebo duro (boilie endurecido, chufa, imitación) o pop-up separado del fondo · **mordisqueado** → peces pequeños: cebo de anzuelo más grande o partículas selectivas · **viento que gira o sube** → valorar la orilla que recibe el viento (🟡, sin telemetría que lo confirme) · **lluvia con escorrentía** → probar la boca de los arroyos Brovales y Rubiales (🟡/🟣) · **nivel bajando** → primera caída (🟣, Taylor et al. 2012).
+
+#### 5.9.2 Escalera de alternativas
+
+Regla general (🟣): en cada peldaño se cambia **una sola variable por caña**, en este orden: 1) presentación o cebo de anzuelo · 2) columna (fondo → pop-up → zig) · 3) distancia sobre la misma estructura · 4) zona por función · 5) cantidad de recebado. Excepción: sin señales en verano se empieza por columna o distancia (el problema más probable es la ubicación).
+
+Tiempos de partida (todos 🟣, a calibrar):
+
+| Fase | Peldaño 1 sin señales | Peldaño 2 sin señales | Señales sin picadas → presentación | Cambios de zona como máximo | Cuándo NO cambiar |
+|---|---|---|---|---|---|
+| Invierno (<10 °C) | 150 min → distancia o columna (más hondo) | 240 min → zona (refugio profundo o zona soleada) | 120 min | 1 por sesión | Si hubo una sola señal o picada en las últimas 2 h; en las horas centrales soleadas |
+| Primavera (10→20 °C, subiendo) | 90 min → más somero o zona de calentamiento | 150 min → zona (colas, ensenadas al sur) | 60–90 min | 2 | Con desove visible (no molestar; no comen) 🟡 |
+| Verano (>22 °C) | 60 min → columna (pop-up alto o zig) o distancia | 90–120 min → zona (sombra, viento o primera caída) | 60 min | 3 | En la primera hora legal y al anochecer, si el puesto ya tuvo actividad |
+| Calor extremo (>28 °C) | 60 min → zona más fresca u oxigenada (viento, entrada de agua, profundidad media) | 90 min | 60 min | 2 | En las horas centrales: no gastar cebo, esperar al anochecer legal |
+| Otoño (20→10 °C, bajando) | 90 min → distancia o caída | 150 min → zona de paso o refugio | 90 min | 2 | Si hay señales en el puesto |
+
+Por qué el invierno requiere paciencia (🟢 → 🟣): tránsito digestivo ~5 veces más lento y agregación en pocos puntos (#42). Cambiar de zona cada hora saca al pescador del único punto con peces antes de que coman.
+
+Modificadores por condición (🟣 salvo indicación): lluvia o escorrentía tras periodo seco → peldaño extra de «boca de recula o arroyo» antes del cambio de zona · viento sostenido → sin señales tras 60 min, orilla que recibe el viento (🟡) · nivel bajando → distancia a la primera caída; descartar someras sin datos recientes · nivel subiendo → zonas recién inundadas (🟡) · alta presión de pesca → peldaño de presentación 30 min antes, cebos de anzuelo poco habituales, recebado mínimo (🟢 #40 + 🟣) · **fin del horario legal en menos de 45 min → no proponer cambios de zona, solo de presentación** (⚖ + 🟣).
+
+#### 5.9.3 Decisión del usuario (prevalece sobre los tiempos)
+
+- El usuario puede **aceptar o rechazar** cada propuesta con un motivo («no tengo ese cebo», «no me convence», «ya lo probé», «las condiciones son otras»). Si falta el cebo, la app ofrece el sustituto de §5.9.5.
+- **Si el usuario marca «no funciona» dos veces en 30 minutos, la app propone el siguiente peldaño en ese momento**, sin esperar al tiempo de la tabla (decisión del usuario, oct. 2026). En invierno se muestra el aviso 🟣 de paciencia, pero no se bloquea. El cambio se registra como **forzado por el usuario** para poder compararlo después con los cambios por tiempo.
+- Las propuestas solo aparecen cuando una regla se activa o el usuario lo pide, no en cada aviso.
+
+#### 5.9.4 Alternativas por estructura (🟣)
+
+| Primera opción que falla | Alternativa 1 | Alternativa 2 | Alternativa 3 |
+|---|---|---|---|
+| Borde somero (≤2 m) | Primera caída (talud) | Pie del talud | Zona contigua con viento o sombra |
+| Primera caída | Antiguo cauce (si está localizado con sonda o mapa) | Borde somero por la mañana o al anochecer | Boca de recula |
+| Antiguo cauce | Primera caída del lado soleado (invierno) | Media agua sobre el cauce (zig) en verano | Llano intermedio |
+| Boca de recula o arroyo | Interior de la recula (si sube el nivel) | Punta o cabo exterior (zona de paso) | Primera caída cercana |
+
+**Aviso obligatorio:** la batimetría de Brovales no está verificada (§6.3). «Primera caída» y «antiguo cauce» son categorías funcionales que el usuario confirma con sonda o plomo marcador (⚖ la sonda no está prohibida en aguas no trucheras).
+
+#### 5.9.5 Sustitución de cebos
+
+Funciones de un cebo: **atracción** (olfativa, a distancia) · **retención** (mantener a los peces comiendo: partículas pequeñas y numerosas) · **selectividad** (filtrar peces pequeños, cangrejo y fauna no deseada) · **visibilidad** (contraste o flotabilidad). 🟢 El olor atrae y el gusto decide (#46): un sustituto debe cumplir **la misma función**, no tener el mismo aspecto.
+
+| Cebo propuesto | Función principal | Sustituto 1 | Sustituto 2 | Casero o barato | Temporada | Evidencia | ⚖ |
+|---|---|---|---|---|---|---|---|
+| Boilie 15–20 mm (anzuelo) | Selectividad media + atracción | Chufa preparada (2–3) | Maíz duro cocido (3–4) o maíz dulce + maíz artificial | Masilla dura casera | Todo el año; más pequeño en frío | 🟡 | Permitido |
+| Boilie ≥24 mm o endurecido | Selectividad alta, anti-cangrejo | Chufa grande ×3 | Imitación (plástico o corcho) | Boilie secado al aire | Verano y otoño | 🟡 | Permitido |
+| Pellet (cebado) | Atracción rápida | Harinas de engodo (girasol, maíz) | Boilie triturado | Pienso no medicado 🟣; harina de maíz + pan rallado | Primavera–otoño; poco en invierno | 🟢 (#37) | Permitido si no es tóxico |
+| Maíz dulce o en grano | Atracción + retención | Maíz duro cocido | Garbanzo 🟡 / trigo cocido | Maíz partido cocido | Todo el año | 🟢 (#45) | Permitido |
+| Cañamón | Retención | Trigo o cebada cocidos | Mijo o alpiste 🟡 | Trigo cocido | Primavera–otoño | 🟡 | Permitido |
+| Chufa | Selectividad + resistencia | Boilie endurecido | (cacahuete: no recomendado) | — | Verano y otoño | 🟡 | Permitido; **siempre preparada** |
+| Pasta o masilla | Atracción rápida, anzuelo blando | Pan (miga) | Boilie roto | Harina + huevo + maíz molido | Frío y primavera | 🟢 (#45: rinde menos que el maíz) | Permitido |
+| Pan | Visibilidad, superficie | Flotante (corcho + maíz) | Pop-up | Corteza de pan | Verano | 🟡 | Permitido |
+| Bolsa de PVA | Concentrar cebo junto al anzuelo | Method (engodo en el plomo) | Stick de engodo | Bola de engodo apretada | Todo el año; ideal en frío | 🟡 | Permitido |
+| Pop-up | Visibilidad + anti-cangrejo | Maíz artificial | Corcho + cebo natural | Boilie con inserto de corcho | Todo el año | 🟡 | Permitido |
+| Lombriz | Atracción animal | Asticot | — | — | Frío y primavera | 🟡 | Permitido (no es pez, almeja, mejillón ni cangrejo) |
+
+Selección según lo que lleva el usuario (🟣): identificar la función del cebo propuesto → filtrar su inventario por función y estación → si hay cangrejo o peces pequeños, priorizar selectividad alta → si no hay equivalente, avisar («sin equivalente: pesca con X, que cumple [función secundaria]; espera menos selectividad») → **bloquear siempre los cebos prohibidos (§7)** y avisar de la preparación de chufa y legumbres.
+
+#### 5.9.6 Avisos obligatorios de la sesión guiada
+
+- «Los tiempos de cambio son hipótesis 🟣: no hay estudios que los fijen.»
+- «La batimetría de Brovales no está verificada.»
+- «Sin datos de oxígeno, estratificación ni cangrejo rojo en Brovales.»
+- «Normativa revisada hasta marzo de 2026; confirma con el Servicio de Pesca y con los carteles del embalse.»
+- «La app no garantiza capturas; las carpas aprenden a evitar los montajes.»
+
+#### 5.9.7 Avisos cada 30 minutos sin molestar
+
+Solo vibración; notificación expandible para responder sin abrir la app · intervalo de 45–60 min en invierno o tras 3 respuestas seguidas de «nada» sin cambios · pausa de 20 min tras «Captura» · se salta el aviso si el usuario registró algo en los últimos 15 min · una sola notificación agrupada · cierre automático al acabar el horario legal (⚖).
+
 ## 6. Brovales
 
 ### 6.1 Verificado (oficial / inventario de presas MITECO)
@@ -317,6 +432,8 @@ Reglas de diseño:
 - Saneamiento: medida "EDAR (tratamiento adecuado) en Brovales", 0,315 M€, "no iniciado". Posible fuente de nutrientes, no cuantificada.
 - Patrón de nivel 2026 (Boletín Hidrológico vía embalses.net, redondeado a hm³): 6 hm³ (85,7 %) el 22 jun (media 10 años 87,1 %); 4 hm³ el 14 sep tras perder 1 hm³ en una semana; 4 hm³ (57,1 %) el 28 sep (media 10 años 55,7 %). **Vaciado estival de riego de ~30 puntos entre junio y septiembre, recurrente.**
 - Afluentes: río/arroyo Brovales y Rubiales (alimentado por los arroyos del Castaño y de Molinos).
+- *(Añadido oct. 2026.)* infoembalse: 6,75 hm³ en junio de 2025 frente a una media decenal de 6,24 hm³ en junio. Registrado como «Riego» en SEPREM y MITECO.
+- ⚖ No consta ningún régimen especial: no es coto (listado oficial de 23/03/2026), no figura en el Anexo II de 2022 ni en la Resolución de 14/01/2025 (falta leer el anexo completo de la Resolución de 18/03/2026). Se aplican las reglas generales de §7. **Cebado probablemente permitido**: confirmar por escrito que no se considera embalse de abastecimiento.
 
 ### 6.2 Plausible / estimado (mostrar marcado como "estimado")
 - Profundidad máxima a embalse lleno ~15–17 m (por cotas). Profundidad media ~4,4–4,8 m.
@@ -330,9 +447,12 @@ Reglas de diseño:
 - "Lo que saben los pescadores locales" sobre la cola (sin fuente).
 - Estado trófico (eutrófico/mesotrófico), clorofila, Secchi, perfiles de O₂/temperatura: existen tablas en informes CHG (2018–2019 y 2023) pero no fueron accesibles. **Tarea pendiente.**
 - Presencia de cangrejo rojo o Corbicula en Brovales (sin registro oficial).
+  - Contexto regional (oct. 2026): el cangrejo rojo apareció en el 69,77 % de 407 cuadrículas UTM 10×10 km de Extremadura y no por encima de 750 m (Pérez-Bote, Pula y Cascos 2000, Graellsia 56:71–78). Probable en la zona, sin confirmar en Brovales: se deducirá del estado del cebo registrado en las sesiones.
+- Talla de las carpas de Brovales («600–800 g», «mejor época abril–junio y septiembre–diciembre»): un blog sin contrastar (🟡 débil). **No mostrar.**
 
 ### 6.4 Valuengo (embalse vecino, mismo uso de riego)
 - Abastece de agua potable a Fregenal de la Sierra y otras poblaciones; la Orden de Vedas lo trata como **coto** sin límite de puestos, permiso diario código **12081-1**, con su Plan Técnico de Gestión. Posible prohibición de cebar (confirmar).
+- *(Añadido oct. 2026, ⚖ ambiguo.)* Su Plan Técnico de Gestión dice «Engodos: Sí; Masillas: Sí; Cebo de origen animal: Sí», y el art. 10.1 de la Orden permite que el plan de un coto difiera de ella. El Ayuntamiento indica que abastece a Jerez, Fregenal e Higuera la Real, y la Orden prohíbe cebar en embalses de abastecimiento sin publicar una lista. Interpretación no oficial: prevalece el Plan. La cola (ZEPA) es incompatible con la pesca todo el año.
 
 ---
 
@@ -347,6 +467,14 @@ Fuente: Orden de 7/11/2022 (en vigor desde 1/1/2023, con tramos actualizados por
 - **Carpa:** "otras especies", pescable sin límite de talla, cupo ni temporada en aguas embalsadas artificialmente antes de 2007 (Brovales, 1960, lo es). Fuera de esos casos rige el régimen de especie invasora con devolución prohibida. El "cupo de 5 carpas/día" de algunas guías comerciales **es un error**.
 - Valuengo: coto, permiso diario 12081-1.
 - La app debe **separar ventanas "científicas" (nocturnas) de ventanas legales** y mostrar solo las legales en Brovales.
+- *(Añadido oct. 2026.)* Cebos y prácticas (Ley 11/2010 y Orden de 2022):
+  - **Prohibidos como cebo y en el cebado**, «en ninguna forma o estado»: almejas, mejillones, cangrejos (incluido el rojo) y peces continentales (OGV art. 8.3; dudas con los de mar, ver §5.5). Pez vivo: solo tenca de acuicultura acreditada en embalses.
+  - Prohibido el **clonk** (OGV art. 8.6) y el **cebado en embalses de abastecimiento** (OGV art. 8.3).
+  - Prohibidas las sustancias venenosas, desoxigenantes, paralizantes o repelentes (falta muy grave; Ley arts. 39 d y 59) y las **fuentes de luz proyectadas al agua** (Ley art. 39 f).
+  - Cangrejo rojo: prohibido transportarlo vivo o devolverlo al agua; captura para autoconsumo con un máximo de 10 reteles (OGV art. 5 y DA 3.ª).
+  - **Cebado previo permitido** con productos no tóxicos (Ley art. 40.2), salvo aguas trucheras o régimen especial que lo prohíba.
+  - Sonda: no prohibida en aguas no trucheras.
+  - Sanciones de referencia: cebar en lugar o con sustancia no autorizados, leve (20–100 €) o menos grave (101–500 €); cebo no permitido, menos grave; sustancias tóxicas, grave (501–5.000 €).
 
 ---
 
@@ -381,6 +509,15 @@ Sesgos que hay que evitar:
 - Atribuir a luna/presión lo que fue temperatura.
 - Ignorar que las capturas propias reducen las siguientes.
 
+Sesión guiada (añadido oct. 2026, §5.9):
+- **Tramos:** cada configuración probada (plan A, B, C…) es un tramo con su inicio, fin, esfuerzo en horas-caña, picadas y capturas. El aprendizaje se hace por tramo, no por sesión.
+- **Propuestas y decisiones:** qué propuso la app, si se aceptó o rechazó, el motivo y si el cambio fue por tiempo o **forzado por el usuario** (dos «no funciona» en 30 min).
+- **Cada cambio:** hora, caña, la única variable cambiada (cebo, montaje, columna, distancia, zona), valor anterior y nuevo.
+- **Avisos cada 30 min:** señales (ninguna, indirectas, directas), actividad en el anzuelo (nada, toques, picada fallada, captura), estado del cebo (intacto, mordisqueado, desaparecido o roto, no revisado), cambios del tiempo y cambios del usuario.
+- **Inventario:** cebos y montajes que lleva el usuario (para proponer solo lo disponible).
+- **Franja horaria de cada tramo:** el plan B suele coincidir con el atardecer; sin registrarla, la hora se confunde con el plan.
+- Protocolo de tres cañas (🟣): A = recomendación, B = alternativa de un peldaño, C = exploración; rotar la posición física. ⚖ Las tres en ≤10 m de orilla, así que C solo puede explorar otra distancia o columna; otra zona exige mover las tres.
+
 ---
 
 ## 10. Validación y aprendizaje con pocos datos
@@ -392,6 +529,9 @@ Sesgos que hay que evitar:
 5. **No añadir una variable hasta que mejore la predicción fuera de muestra.**
 6. Con <50 sesiones, la mayoría de efectos secundarios (luna, presión) serán indistinguibles de cero: no sobreajustar.
 7. Una regla 🟣 solo sube de peso si los datos propios la respaldan de forma consistente.
+8. *(Añadido oct. 2026.)* Registrar también **picadas por hora-caña**: las capturas serán escasas.
+9. Con pocas capturas, usar medias con contracción (shrinkage) bayesiana hacia lo que dice la estrategia y **no cambiar una regla con menos de ~10 sesiones** en esa condición.
+10. Mostrar intervalos, no rankings, y tener en cuenta que un cebo que funciona al principio puede dejar de hacerlo (aprendizaje de los peces, #40).
 
 ---
 
@@ -414,6 +554,11 @@ Sesgos que hay que evitar:
 4. Localizar fuentes primarias del ritmo 08–11/19–23 h y del máximo a 28 °C, o eliminarlos (ya marcados como no usar).
 5. Buscar estudios de dieta de carpa en embalses ibéricos (grupo de García-Berthou, Univ. de Girona) para validar el papel del cangrejo rojo.
 6. Pedir acceso al SAIH Guadiana para ver si hay serie de cota de Brovales con más frecuencia que la semanal.
+7. *(Añadido oct. 2026.)* Pedir por escrito al Servicio de Pesca y Acuicultura: si Brovales o Valuengo se consideran «embalse de abastecimiento»; si se permiten pescado o mejillón de mar como cebo («cuando sean de río»).
+8. Leer el anexo completo de la Resolución de 18/03/2026 (DOE núm. 59, de 26/03/2026).
+9. Batimetría propia de Brovales con sonda o plomo marcador (o datos de la CHG).
+10. Calibrar con las sesiones el tiempo hasta la primera picada con cebado al momento (🔴, no existe estudio) y el efecto del viento sobre la ubicación (🔴).
+11. Presencia de cangrejo rojo y tortugas en Brovales: deducirla del estado del cebo registrado.
 
 ## 13. Caveats
 
@@ -421,6 +566,7 @@ Sesgos que hay que evitar:
 - Volúmenes semanales de agregadores redondeados a hm³ (±0,5 hm³).
 - Los estudios de telemetría disponibles (Flix, río Perla, lagos del norte de Europa) son de sistemas distintos a Brovales: sirven para refutar reglas universales, no para fijar reglas locales.
 - Normativa citada: Orden de 2022 con modificaciones conocidas hasta marzo de 2026. Confirmar en DOE antes de cada temporada.
+- *(Añadido oct. 2026.)* La telemetría de §5.9 procede de lagos de Norteamérica y Centroeuropa o del Ebro: su transferencia a un embalse monomíctico del suroeste es 🟣. La fisiología (ingesta, digestibilidad, gusto) viene de acuicultura o laboratorio con peces jóvenes. La eficacia comparada de cebos se basa en un solo estudio con caña. Las fuentes de pescadores (Eurocarp, fabricantes, blogs) son 🟡 y algunas tienen interés comercial.
 
 ## 14. Referencias clave
 
@@ -433,3 +579,21 @@ Sesgos que hay que evitar:
 - Zhang et al. 2020. Carpa en el río Perla, telemetría acústica (Water).
 - FAO, ficha de especies cultivadas *Cyprinus carpio* y manual de propagación de peces de aguas cálidas.
 - Plan Hidrológico del Guadiana 2022–2027 (Anexo VI); informes de estado de embalses de la CHG; inventario de presas MITECO; Ley 11/2010 de pesca y acuicultura de Extremadura; Orden General de Vedas de 7/11/2022 (DOE) y resoluciones posteriores.
+- *(Añadidas oct. 2026; lista completa en `investigacion/2026-10-alternativas-sesion.md`.)*
+- Bajer, Lim, Travaline, Miller y Sorensen 2010. Environ. Biol. Fishes 88:295–300.
+- Ghosal, Eichmiller, Witthuhn y Sorensen 2018. Ecology and Evolution.
+- Hundt et al. 2022. Ecology and Evolution.
+- Bullers, Bajcz, Mensinger y Bajer 2026. Management of Biological Invasions 17(1):133–154.
+- Kasumyan, Kuzishchin y Gruzdeva 2024. Journal of Ichthyology 64:689–704.
+- Kasumyan y Morsi 1996; Kasumyan y Døving 2003, Fish and Fisheries 4:289–347; Kasumyan et al. 2009.
+- Monk y Arlinghaus 2017. PLoS ONE.
+- Klefoth, Pieterek y Arlinghaus 2013. Fish. Manag. Ecol.
+- Beukema 1970.
+- Penne y Pierce 2008. TAFS 137:1050–1062.
+- Bajer, Chizinski y Sorensen 2011. Fish. Manag. Ecol. 18:497–505.
+- Taylor, Tracey, Hartmann y Patil 2012. Mar. Freshw. Res. 63:587–597.
+- Hennen et al. 2014. NAJFM.
+- *Network analysis of intra- and interspecific freshwater fish interactions using year-around tracking.* J. R. Soc. Interface 18(183):20210445 (2021).
+- Yamamoto et al. Aquaculture (autoselección de macronutrientes).
+- Ateşşahin y Dürrani 2023. Fisheries Research 261:106640.
+- Pérez-Bote, Pula y Cascos 2000. Graellsia 56:71–78.
