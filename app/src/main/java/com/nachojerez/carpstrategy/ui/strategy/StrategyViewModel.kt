@@ -2,6 +2,8 @@ package com.nachojerez.carpstrategy.ui.strategy
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nachojerez.carpstrategy.domain.journal.JournalStats
+import com.nachojerez.carpstrategy.domain.repository.JournalRepository
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
@@ -16,7 +18,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -24,6 +28,7 @@ class StrategyViewModel @Inject constructor(
     observeRawWeather: ObserveRawWeatherUseCase,
     rulesRepository: RulesRepository,
     settings: SettingsRepository,
+    private val journal: JournalRepository,
     clock: Clock,
 ) : ViewModel() {
     private val location = settings.observeLocation()
@@ -37,8 +42,15 @@ class StrategyViewModel @Inject constructor(
         }
     }
 
+    private val placeAndRaw = location.flatMapLatest { place -> observeRawWeather(place.point).map { place to it } }
+
     val uiState: StateFlow<StrategyUiState> =
-        combine(location.flatMapLatest { place -> observeRawWeather(place.point).map { place to it } }, rules, ticker) { (place, raw), rules, now ->
-            buildStrategyState(raw, rules, now, place.point)
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StrategyUiState())
+        combine(placeAndRaw, rules, journal.observeSessions(), ticker) { (place, raw), rules, sessions, now ->
+            place to buildStrategyState(raw, rules, now, place.point, sessions)
+        }.onEach { (place, state) ->
+            // Cada valoración se guarda (una por hora) para copiarla en el diario como
+            // "lo que dijo la app antes de salir", sin sesgo retrospectivo.
+            state.result?.let { result -> viewModelScope.launch { journal.recordPrediction(JournalStats.snapshotOf(result, place.point)) } }
+        }.map { it.second }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StrategyUiState())
 }

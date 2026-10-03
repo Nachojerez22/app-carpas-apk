@@ -48,7 +48,12 @@ import com.nachojerez.carpstrategy.ui.components.SectionTitle
 import com.nachojerez.carpstrategy.ui.components.WarningChip
 import com.nachojerez.carpstrategy.ui.components.WarningType
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
+import com.nachojerez.carpstrategy.ui.diary.zoneLabelRes
+import com.nachojerez.carpstrategy.ui.components.EvidenceBadge
+import com.nachojerez.carpstrategy.ui.theme.CarpTheme
+import com.nachojerez.carpstrategy.ui.theme.EvidenceKind
 import com.nachojerez.carpstrategy.ui.theme.Spacing
+import java.time.Duration
 
 @Composable
 fun StrategyScreen(viewModel: StrategyViewModel = hiltViewModel()) {
@@ -96,6 +101,9 @@ fun StrategyContent(state: StrategyUiState) {
                     }
                 }
                 item { ResultCard(result) }
+                if (state.recentCatchZones.isNotEmpty() && !result.blocked) {
+                    item { RotateCard(state) }
+                }
 
                 item { SectionTitle(stringResource(R.string.strategy_chain_title), subtitle = stringResource(R.string.strategy_chain_subtitle)) }
                 item {
@@ -179,6 +187,30 @@ fun StrategyContent(state: StrategyUiState) {
         state.regulationReviewed?.let { date ->
             item { Caption(stringResource(R.string.strategy_regulation, date)) }
         }
+    }
+}
+
+/** 🟢 Capturas propias recientes en un puesto: sugerir rotar puesto y montaje (§5.8). */
+@Composable
+private fun RotateCard(state: StrategyUiState) {
+    val now = state.result?.evaluatedAt ?: return
+    CarpCard(containerColor = CarpTheme.colors.warnContainer) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            Text(
+                stringResource(R.string.strategy_rotate_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = CarpTheme.colors.onWarnContainer,
+                modifier = Modifier.weight(1f),
+            )
+            EvidenceBadge(EvidenceKind.Strong, short = true)
+        }
+        state.recentCatchZones.entries.sortedByDescending { it.value }.forEach { (zone, last) ->
+            Text(
+                stringResource(R.string.strategy_rotate_zone, stringResource(zone.zoneLabelRes()), Duration.between(last, now).toDays().coerceAtLeast(0).toInt()),
+                color = CarpTheme.colors.onWarnContainer,
+            )
+        }
+        Caption(stringResource(R.string.strategy_rotate_why), color = CarpTheme.colors.onWarnContainer)
     }
 }
 
