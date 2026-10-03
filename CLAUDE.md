@@ -60,6 +60,17 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `app/src/main/assets` (un test comprueba que son idénticos y válidos).
 - `domain/derived/SourceMerger`: serie horaria combinada según la prioridad del usuario.
 
+## Parámetros derivados (fase 3)
+
+- `domain/derived/DerivedCalculator.compute(...)` reúne todo en `DerivedConditions` a partir de la
+  serie combinada; `now` y la zona horaria son parámetros (nada de reloj implícito).
+- Piezas: `Trends` (presión, aire, viento, lluvia/escorrentía, rachas), `WaterTemperatureModel`,
+  `TemperatureBiasModel`, `ReservoirModel`, `SeasonModel`, `SolarCalculator`/`LegalWindow`,
+  `MoonCalculator`. Los umbrales son constantes con nombre y comentario: cambiar ahí, no en la UI.
+- Referencias de sol y luna de los tests: librería astral 3.2 (tolerancia 2 min).
+- Las temperaturas de los modelos se corrigen con el sesgo frente a AEMET; las manuales y las de
+  AEMET no. La temperatura del agua medida manda sobre la estimada.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.
