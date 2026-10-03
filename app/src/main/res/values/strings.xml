@@ -4,7 +4,6 @@
 
     <string name="nav_strategy">Estrategia</string>
 
-    <string name="coming_soon">Disponible en una fase posterior.</string>
 
     <string name="about_description">App personal y no comercial: diario de sesiones de pesca de carpa y estimador de condiciones a partir del tiempo de los días anteriores y del día de pesca. No localiza peces: indica condiciones más o menos favorables según la evidencia disponible y tus propios datos.</string>
     <string name="about_source_openmeteo">Datos meteorológicos de Open-Meteo.com (licencia CC BY 4.0), con los modelos ICON-EU (DWD), ARPEGE Europe (Météo-France) e IFS (ECMWF).</string>
@@ -453,9 +452,6 @@
 
     <!-- Fase 5: Diario -->
     <string name="diary_title">Diario</string>
-    <string name="diary_overline">Tus sesiones</string>
-    <string name="diary_coming_title">El diario de sesiones llega en la fase 6</string>
-    <string name="diary_coming_text">Guardarás horas, zona, bolos, esfuerzo en horas-caña y la valoración que dio la app antes de la sesión.</string>
 
     <!-- Fase 5: Lugar -->
     <string name="place_title">Lugar</string>
@@ -501,4 +497,105 @@
     <string name="place_regulation_hours">En Brovales solo se pesca desde 1 h antes del amanecer hasta 1 h después del anochecer.</string>
     <string name="place_regulation_reviewed">Última revisión: %1$s</string>
     <string name="place_regulation_check">Confírmala en el DOE y en pescayrios.juntaextremadura.es antes de cada temporada.</string>
+    <!-- Fase 6: Diario -->
+    <string name="action_ok">Aceptar</string>
+    <string name="diary_overline_season">Temporada %1$d · %2$d sesiones</string>
+    <string name="diary_stat_sessions">sesiones %1$s</string>
+    <string name="diary_stat_rod_hours">horas-caña</string>
+    <string name="diary_stat_catches">capturas</string>
+    <string name="diary_stat_blanks">bolos</string>
+    <string name="diary_rate">🟢 %1$s capturas por hora-caña este mes (la métrica que cuenta, no capturas por sesión)</string>
+    <string name="diary_rate_none">Sin esfuerzo registrado este mes</string>
+    <string name="diary_ongoing_title">Sesión en curso</string>
+    <string name="diary_ongoing_since">Desde las %1$s · %2$s</string>
+    <string name="diary_finish">Terminar sesión</string>
+    <string name="diary_open_sheet">Abrir ficha</string>
+    <string name="diary_empty_title">Aún no hay sesiones</string>
+    <string name="diary_empty_text">Pulsa «Nueva sesión» al llegar al agua: la app guarda en ese momento su valoración para compararla luego con lo que pasó. Los bolos también cuentan.</string>
+    <string name="diary_sessions_title">Sesiones</string>
+    <string name="diary_new_session">Nueva sesión</string>
+    <string name="diary_one_catch">1 captura</string>
+    <string name="diary_n_catches">%1$d capturas</string>
+    <string name="diary_blank">Bolo</string>
+    <string name="diary_no_result">Sin resultado</string>
+    <string name="diary_bites">Picadas</string>
+    <string name="diary_losses">Pérdidas</string>
+    <string name="diary_no_zone">Sin zona</string>
+    <string name="diary_app_said">La app estimó: %1$s</string>
+    <string name="diary_app_said_blocked">La app estimó: ⚖ fuera de horario legal</string>
+    <string name="diary_app_said_none">Sin valoración previa guardada</string>
+    <string name="diary_app_no_band">sin valoración (faltaba la temperatura del agua)</string>
+    <string name="diary_accuracy_title">¿Acierta la app con tus datos?</string>
+    <string name="diary_accuracy_subtitle">Capturas por hora-caña según lo que estimó antes de cada sesión</string>
+    <string name="diary_accuracy_row">%1$d ses. · %2$s/h-caña</string>
+    <string name="diary_accuracy_few">Solo %1$d sesiones con valoración: con menos de %2$d las diferencias no son concluyentes.</string>
+    <string name="diary_export">Exportar diario (JSON)</string>
+    <string name="diary_export_hint">Tus sesiones solo están en este móvil: exporta una copia de vez en cuando.</string>
+    <string name="diary_export_file_name">carpstrategy-diario.json</string>
+    <string name="diary_export_done">Diario exportado: %1$d sesiones.</string>
+    <string name="diary_export_failed">No se pudo exportar: %1$s</string>
+    <string name="diary_delete_confirm">¿Borrar esta sesión? Se pierde también la valoración previa guardada.</string>
+    <string name="zone_north">N</string>
+    <string name="zone_east">E</string>
+    <string name="zone_south">S</string>
+    <string name="zone_west">O</string>
+    <string name="fulfilled_yes">Sí</string>
+    <string name="fulfilled_partly">En parte</string>
+    <string name="fulfilled_no">No</string>
+    <string name="session_title_new">Nueva sesión</string>
+    <string name="session_title_edit">Ficha de sesión</string>
+    <string name="session_date">Fecha (AAAA-MM-DD)</string>
+    <string name="session_start">Inicio (HH:MM)</string>
+    <string name="session_end">Fin (HH:MM)</string>
+    <string name="session_end_hint">Deja el fin vacío mientras sigues pescando y pulsa «Terminar sesión» al acabar.</string>
+    <string name="session_legal_note">⚖ En Brovales solo es legal desde 1 h antes del amanecer hasta 1 h después del anochecer.</string>
+    <string name="session_result_title">Resultado</string>
+    <string name="session_catches">Capturas: %1$d</string>
+    <string name="session_add_catch">Añadir captura</string>
+    <string name="session_catch_number">Captura %1$d</string>
+    <string name="session_catch_time">Hora</string>
+    <string name="session_catch_weight">Peso (kg)</string>
+    <string name="session_catch_rod">Caña</string>
+    <string name="session_catch_species">Especie</string>
+    <string name="session_blank_question">¿Bolo?</string>
+    <string name="session_blank_hint">Márcalo aunque no hubiera picadas: una sesión sin capturas también es un dato.</string>
+    <string name="session_spot_title">Puesto</string>
+    <string name="session_spot_subtitle">Zona del embalse; el detalle lo escribes tú</string>
+    <string name="session_zone_detail">Detalle de la zona</string>
+    <string name="session_depth">Profundidad (m)</string>
+    <string name="session_rotate_warning">Capturaste en esta zona hace %1$d días: rota puesto y montaje.</string>
+    <string name="session_gear_title">Equipo</string>
+    <string name="session_rods">Cañas</string>
+    <string name="session_rod_hours">Horas-caña</string>
+    <string name="session_rod_hours_hint">Vacío = cañas × duración. ⚖ Máximo %1$d cañas.</string>
+    <string name="session_bait">Cebo</string>
+    <string name="session_rig">Montaje</string>
+    <string name="session_groundbait">Cebado (kg)</string>
+    <string name="session_other_anglers">Otros pescadores</string>
+    <string name="session_prediction_title">Lo que dijo la app antes de salir</string>
+    <string name="session_prediction_pending">Se guardará al crear la sesión: si empieza ahora, la valoración actual; si la anotas después, la última que calculó la app en las 24 h anteriores al inicio.</string>
+    <string name="session_prediction_none">No había valoración guardada antes de esta sesión (no se calcula a posteriori para no sesgar la comparación).</string>
+    <string name="session_prediction_computed">Calculado el %1$s</string>
+    <string name="session_prediction_limiting">limitaba el nivel %1$d (%2$s)</string>
+    <string name="session_prediction_fixed">Copia fija: no cambia aunque cambien tus datos.</string>
+    <string name="session_fulfilled_question">¿Se cumplió?</string>
+    <string name="session_notes_hint">Señales en el agua, viento, lo que cambiaste…</string>
+    <string name="session_field_errors">Revisa los campos marcados en rojo.</string>
+    <string name="session_save_anyway">Son avisos: pulsa Guardar otra vez para guardarla igualmente.</string>
+    <string name="session_delete">Borrar sesión</string>
+    <string name="session_issue_end_before_start">La hora de fin debe ser posterior a la de inicio.</string>
+    <string name="session_issue_too_long">Una sesión no puede durar más de 24 h.</string>
+    <string name="session_issue_start_in_future">La sesión no puede empezar en el futuro.</string>
+    <string name="session_issue_invalid_rods">El número de cañas debe estar entre 1 y %1$s.</string>
+    <string name="session_issue_negative">Los contadores no pueden ser negativos.</string>
+    <string name="session_issue_blank_not_answered">Sin capturas: indica si fue bolo (Sí) o si aún faltan capturas por anotar (No).</string>
+    <string name="session_issue_blank_with_catches">Hay capturas anotadas: no puede ser bolo.</string>
+    <string name="session_issue_invalid_weight">Algún peso no es válido (entre 0 y 60 kg).</string>
+    <string name="session_issue_invalid_range">Revisa la profundidad, el cebado o las horas-caña: el valor está fuera de rango.</string>
+    <string name="session_issue_rods_over_limit">⚖ Aviso: la normativa permite como máximo %1$s cañas.</string>
+    <string name="session_issue_outside_legal">⚖ Aviso: parte de la sesión queda fuera del horario legal.</string>
+    <string name="session_issue_catch_outside">Aviso: alguna captura tiene una hora fuera de la sesión.</string>
+    <string name="strategy_rotate_title">Rota de puesto</string>
+    <string name="strategy_rotate_zone">Zona %1$s: capturaste hace %2$d días</string>
+    <string name="strategy_rotate_why">Las carpas capturadas evitan el mismo montaje durante semanas o meses (Wallerius 2020): cambia de puesto y de presentación.</string>
 </resources>
