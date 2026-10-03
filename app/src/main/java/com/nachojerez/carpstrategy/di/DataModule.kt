@@ -7,6 +7,7 @@ import com.nachojerez.carpstrategy.data.local.ForecastDao
 import com.nachojerez.carpstrategy.data.local.ObservationDao
 import com.nachojerez.carpstrategy.data.local.StationDao
 import com.nachojerez.carpstrategy.data.repository.WeatherRepositoryImpl
+import com.nachojerez.carpstrategy.data.rules.AssetRulesRepository
 import com.nachojerez.carpstrategy.data.userdata.ManualDataRepositoryImpl
 import com.nachojerez.carpstrategy.data.userdata.ManualRecordDao
 import com.nachojerez.carpstrategy.data.userdata.SettingDao
@@ -15,6 +16,7 @@ import com.nachojerez.carpstrategy.data.userdata.UserDataDatabase
 import com.nachojerez.carpstrategy.domain.repository.ManualDataRepository
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.repository.WeatherRepository
+import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -75,4 +77,11 @@ abstract class UserDataRepositoryModule {
 
     @Binds
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class RulesModule {
+    @Binds
+    abstract fun bindRulesRepository(impl: AssetRulesRepository): RulesRepository
 }

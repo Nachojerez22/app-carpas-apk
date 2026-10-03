@@ -37,3 +37,8 @@ sealed interface RuleLoadResult {
     data class Loaded(val ruleSet: RuleSet) : RuleLoadResult
     data class Invalid(val issues: List<RuleIssue>) : RuleLoadResult
 }
+
+/** Origen de las reglas (rules.json en la app). */
+interface RulesRepository {
+    suspend fun load(): RuleLoadResult
+}
