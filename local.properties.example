@@ -1,0 +1,6 @@
+# Copia este archivo como local.properties (está en .gitignore y NUNCA se sube).
+# Android Studio añade sdk.dir automáticamente.
+# sdk.dir=/ruta/al/Android/Sdk
+
+# API key de AEMET OpenData: https://opendata.aemet.es/centrodedescargas/altaUsuario
+AEMET_API_KEY=pega_aqui_tu_clave

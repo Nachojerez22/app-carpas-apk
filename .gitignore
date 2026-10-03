@@ -33,3 +33,9 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Secretos (no subir nunca)
+secrets.properties
+*.env
+.env*
+keystore.properties
