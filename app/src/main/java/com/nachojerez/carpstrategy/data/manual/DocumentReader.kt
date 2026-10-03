@@ -26,7 +26,7 @@ class DocumentReader @Inject constructor(
             if (buffer.size > MAX_BYTES) throw IOException("Archivo demasiado grande (máx. ${MAX_BYTES / 1024} KB)")
             buffer
         } ?: throw IOException("No se pudo abrir el archivo")
-        return Document(name, bytes.toString(Charsets.UTF_8).removePrefix("﻿"))
+        return Document(name, bytes.toString(Charsets.UTF_8).removePrefix(UTF8_BOM))
     }
 
     /** Lee el JSON de ejemplo incluido en la app. */
@@ -45,6 +45,9 @@ class DocumentReader @Inject constructor(
 
     companion object {
         const val MAX_BYTES = 2 * 1024 * 1024
+
+        /** Marca de orden de bytes que algunos editores añaden al principio de los archivos UTF-8. */
+        private val UTF8_BOM = Char(0xFEFF).toString()
         const val EXAMPLE_ASSET = "datos-ejemplo.json"
     }
 }
