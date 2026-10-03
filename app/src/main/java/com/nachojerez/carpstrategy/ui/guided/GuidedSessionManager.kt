@@ -133,7 +133,7 @@ class GuidedSessionManager @Inject constructor(
             return@withLock
         }
         val now = clock.instant()
-        afterChange(GuidedUpdate(session, emptySet()), now, alert = false, reschedule = !scheduler.isScheduled())
+        afterChange(GuidedUpdate(session), now, alert = false, reschedule = !scheduler.isScheduled())
     }
 
     private suspend fun active(): Session? = GuidedSessions.active(journal.observeSessions().first())
