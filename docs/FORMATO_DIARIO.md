@@ -1,0 +1,61 @@
+# Formato `carpstrategy-diario` (versión 1)
+
+Copia de seguridad del diario de sesiones que genera **Diario → Exportar diario (JSON)**. Las
+sesiones solo se guardan en el móvil (la app no usa la copia en la nube de Android), así que
+conviene exportar de vez en cuando. Es JSON legible en UTF-8.
+
+```json
+{
+  "formato": "carpstrategy-diario",
+  "version": 1,
+  "exportado": "2026-10-03T10:00:00Z",
+  "sesiones": [
+    {
+      "inicio": "2026-09-27T05:20:00Z",
+      "fin": "2026-09-27T10:40:00Z",
+      "lat": 38.35,
+      "lon": -6.7,
+      "zona": "NORTH",
+      "zona_detalle": "carrizal norte",
+      "profundidad_m": 2.5,
+      "canas": 3,
+      "horas_cana": 16.0,
+      "cebo": "Boilie de pescado 20 mm",
+      "montaje": "Pelo · plomo en línea",
+      "cebado_kg": 1.5,
+      "otros_pescadores": 1,
+      "picadas": 4,
+      "perdidas": 1,
+      "capturas": [{ "hora": "2026-09-27T06:05:00Z", "peso_kg": 8.4, "cana": 2, "especie": "Carpa común" }],
+      "bolo": false,
+      "valoracion_previa": {
+        "calculada": "2026-09-26T19:40:00Z", "lat": 38.35, "lon": -6.7, "bloqueada": false,
+        "favorabilidad": 0.72, "tramo": "FAVORABLE", "nivel_limitante": "PHYSICAL", "demanda": "MEDIUM"
+      },
+      "contexto": { "temp_agua_c": 18.1, "agua_medida": true, "luna_iluminacion": 0.3 },
+      "se_cumplio": "PARTLY",
+      "notas": "Burbujeo en el borde del carrizo",
+      "creada": "2026-09-27T11:00:00Z"
+    }
+  ]
+}
+```
+
+## Campos de cada sesión
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `inicio`, `fin` | ISO-8601 UTC | `fin` ausente = sesión en curso |
+| `lat`, `lon` | grados decimales | Lugar de la app al crear la sesión |
+| `zona` | `NORTH`, `EAST`, `SOUTH`, `WEST` | Zona codificada (CONOCIMIENTO.md §9); opcional |
+| `zona_detalle` | texto | Lo escribe el usuario |
+| `canas` | entero | ⚖ La normativa permite como máximo 3 |
+| `horas_cana` | número | Esfuerzo: tecleado (`horas_cana_tecleadas`) o cañas × duración. Solo informativo al importar |
+| `picadas`, `perdidas` | entero | |
+| `capturas` | lista | `hora` (UTC), `peso_kg`, `cana`, `especie`; todo opcional |
+| `bolo` | booleano | Respuesta explícita; una sesión sin capturas es un dato |
+| `valoracion_previa` | objeto | Copia fija de lo que dijo la app **antes** de la sesión. `tramo`: `VERY_UNFAVORABLE` … `VERY_FAVORABLE`; `nivel_limitante`: `HABITAT`, `TEMPERATURE`, `PHYSICAL`, `CATCHABILITY` |
+| `contexto` | objeto | Rellenado al guardar: agua (y si era medida), aire 24 h, viento, lluvia 72 h, nivel %, horario legal, y con peso 0 la luna y la presión |
+| `se_cumplio` | `YES`, `PARTLY`, `NO` | Opcional |
+
+Los campos sin valor se omiten. Las claves desconocidas se ignoran al leer.

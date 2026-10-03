@@ -4,6 +4,9 @@ import com.nachojerez.carpstrategy.domain.derived.DerivedCalculator
 import com.nachojerez.carpstrategy.domain.derived.DerivedConditions
 import com.nachojerez.carpstrategy.domain.derived.Freshness
 import com.nachojerez.carpstrategy.domain.derived.FreshnessPolicy
+import com.nachojerez.carpstrategy.domain.journal.FishingZone
+import com.nachojerez.carpstrategy.domain.journal.JournalStats
+import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.manual.DataSource
 import com.nachojerez.carpstrategy.domain.model.DefaultLocation
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
@@ -30,6 +33,8 @@ data class StrategyUiState(
     val regulationReviewed: String? = null,
     /** Antigüedad de la previsión usada; con datos antiguos se avisa en la pantalla. */
     val forecastFreshness: Freshness? = null,
+    /** 🟢 Zonas con capturas propias recientes: sugerir rotar puesto y montaje (§5.8). */
+    val recentCatchZones: Map<FishingZone, Instant> = emptyMap(),
 )
 
 /** Horas de previsión (próximas 24 h) en las que el viento de los modelos es incierto. */
@@ -41,6 +46,7 @@ fun buildStrategyState(
     rules: RuleLoadResult,
     now: Instant,
     location: GeoPoint = DefaultLocation.value.point,
+    sessions: List<Session> = emptyList(),
 ): StrategyUiState {
     val ruleSet = when (rules) {
         is RuleLoadResult.Invalid -> return StrategyUiState(isLoading = false, ruleIssues = rules.issues)
@@ -72,6 +78,7 @@ fun buildStrategyState(
         derived = derived,
         regulationReviewed = ruleSet.regulationReviewed,
         forecastFreshness = raw.forecast?.let { FreshnessPolicy.evaluate(it.fetchedAt, now) },
+        recentCatchZones = JournalStats.recentCatchZones(sessions, now),
     )
 }
 

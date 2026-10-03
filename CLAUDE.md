@@ -95,6 +95,21 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - La lógica de cada pantalla que se pueda probar va en funciones puras (`chainRows`,
   `groupRecordsByDay`, `parseCoordinates`, `TodayCharts`) con sus tests.
 
+## Diario de sesiones (fase 6)
+
+- `domain/journal`: `Session` (en curso si `end == null`; horas-caña = cañas × duración salvo
+  dato tecleado; bolo explícito), `SessionValidator` (errores y avisos ⚖ de horario y cañas) y
+  `JournalStats` (capturas por hora-caña, resultado por valoración previa, zonas con capturas
+  recientes, selección de la valoración previa).
+- **Valoración previa sin sesgo retrospectivo**: `StrategyViewModel` guarda cada valoración
+  (`prediction_snapshot`, una por hora y lugar, 30 días). Al crear una sesión se copia la
+  calculada en ese momento (si empieza ahora) o la última de las 24 h previas al inicio. Nunca
+  se recalcula después.
+- Persistencia en `UserDataDatabase` v2 (tablas `session` y `prediction_snapshot`) con
+  `AutoMigration(1 → 2)`. Capturas, valoración y contexto van como JSON (`JournalJson`), que
+  también define la exportación `carpstrategy-diario` v1 (docs/FORMATO_DIARIO.md).
+- UI en `ui/diary`: `SessionForm` y `completeSession` son puras y tienen tests.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.
@@ -117,9 +132,11 @@ domain/
   usecase/            casos de uso
   derived/            parámetros derivados: funciones PURAS y 100 % testeadas
   rules/              motor de filtros/multiplicadores (reglas en assets/rules.json)
+  journal/            diario: sesiones, validación y estadísticas (capturas por hora-caña)
 ui/
   navigation/ theme/ components/   navegación de 5 pestañas, tokens del diseño y componentes
   today/ strategy/ manual/ diary/ place/   pestañas Hoy, Estrategia, Datos, Diario y Lugar
+                      (diary/: lista, ficha de sesión y exportación del diario)
   conditions/         datos en bruto por fuente (subruta desde Hoy) y su ViewModel
 di/                   módulos de Hilt
 ```
