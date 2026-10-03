@@ -17,6 +17,21 @@ import org.junit.jupiter.api.Test
 
 class ManualDataJsonTest {
     @Test
+    fun `un registro sin valores se omite con aviso y se importa el resto`() {
+        val text = File("src/test/resources/manual/importacion-usuario.json").readText()
+        val preview = ManualDataJson.parse(text, "datos.json", GeoPoint(38.35, -6.70), Instant.parse("2026-10-03T10:00:00Z"))
+        assertTrue(preview.errors.isEmpty(), preview.errors.toString())
+        assertTrue(preview.canImport)
+        assertEquals(4, preview.records.size)
+        assertEquals(listOf(1), preview.warnings.filter { it.code == IssueCode.EMPTY_RECORD_SKIPPED }.map { it.recordNumber })
+        // Los null cuentan como "sin dato": el registro 2 solo trae los valores presentes.
+        assertEquals(
+            setOf(ManualField.AIR_TEMPERATURE, ManualField.WIND_SPEED, ManualField.WIND_DIRECTION, ManualField.PRECIPITATION, ManualField.RELATIVE_HUMIDITY),
+            preview.records.first().values.keys,
+        )
+    }
+
+    @Test
     fun `la copia de seguridad se vuelve a importar con los mismos valores`() {
         val point = GeoPoint(38.35, -6.70)
         val now = Instant.parse("2026-10-03T10:00:00Z")
