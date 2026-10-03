@@ -12,7 +12,7 @@ El conocimiento del dominio (biología de la carpa, datos de Brovales, normativa
 diseño del modelo) está en [`docs/CONOCIMIENTO.md`](docs/CONOCIMIENTO.md), que es la fuente de
 verdad del proyecto.
 
-> Estado: **Fase 0** (esqueleto del proyecto). Las pantallas son provisionales.
+> Estado: **Fase 1** (capa de datos). La pestaña *Condiciones* muestra los datos en bruto; el resto de pantallas siguen siendo provisionales.
 
 ## Fuentes de datos
 
@@ -23,7 +23,25 @@ verdad del proyecto.
 | Boletín Hidrológico semanal (MITECO) + entrada manual | Nivel del embalse (dato semanal redondeado a ±0,5 hm³). SAIH Guadiana **no tiene API pública** (acceso por cuenta) | — |
 
 Los datos de Open-Meteo se publican con licencia CC BY 4.0, y los de AEMET están © AEMET.
-Ambas fuentes se citan en la pantalla **Acerca de**.
+Ambas fuentes se citan en la pantalla **Acerca de** y junto a los datos.
+
+### Cómo se usan (fase 1)
+
+- **Open-Meteo:** una petición con `models=icon_eu,meteofrance_arpege_europe,ecmwf_ifs025`,
+  `past_days=7`, `forecast_days=3`, `timezone=Europe/Madrid` y `timeformat=unixtime` (horas sin
+  ambigüedad en los cambios de hora). Variables: temperatura a 2 m, presión a nivel del mar,
+  viento a 10 m (velocidad, dirección y rachas), nubosidad, precipitación y radiación de onda
+  corta. Cada modelo llega en su propia serie (`temperature_2m_icon_eu`, …): se guardan por
+  separado y se calcula la **media** y la **divergencia** (máximo − mínimo) entre modelos.
+  Hay aviso de incertidumbre del viento si la velocidad difiere ≥ 10 km/h, o la dirección
+  ≥ 90° con viento medio ≥ 5 km/h (umbrales de trabajo, ajustables).
+- **AEMET:** se descarga el inventario de estaciones (se renueva cada 30 días), se eligen las
+  3 más cercanas a menos de 60 km (distancia haversine) y se usa la primera que publique
+  observación horaria. Los decimales con coma, "Ip" (inapreciable = 0) y la codificación
+  ISO-8859-15 se tratan al leer. El viento se convierte de m/s a km/h.
+- **Caché (Room):** todo se guarda con la hora de descarga. Sin conexión se muestra la última
+  copia y su antigüedad (aviso a partir de 3 h y de 24 h). Al abrir la pantalla se actualiza si
+  los datos tienen más de 1 h.
 
 ### Limitaciones (importante)
 
@@ -31,7 +49,12 @@ Ambas fuentes se citan en la pantalla **Acerca de**.
   (termómetro a 0,5 m y, si se puede, a 3–5 m). Si no la hay, se *estima* con una media móvil
   ponderada de la temperatura del aire de los últimos días, que puede desviarse varios grados y
   se calibra con tus mediciones.
-- AEMET solo ofrece unas 24 h de observación horaria, así que la corrección de sesgo es aproximada.
+- AEMET solo ofrece unas 24 h de observación horaria, así que la corrección de sesgo (fase 2)
+  será aproximada. La estación más cercana puede estar a varios km y a otra altitud que el embalse.
+- ECMWF IFS 0,25° tiene paso de 3 h: Open-Meteo rellena las horas intermedias (la lluvia aparece
+  repetida en bloques de 3 h). Hay que tenerlo en cuenta antes de sumar lluvia por modelo (fase 2).
+- La rejilla de los modelos no coincide con el embalse: Open-Meteo devuelve el punto de rejilla
+  usado (p. ej. 38,375 N, 6,688 O a 305 m), que se muestra en pantalla.
 - Cada regla lleva una etiqueta de evidencia (🟢 fuerte, 🟡 moderada, 🔴 mito/insuficiente,
   🟣 hipótesis local, 🔵 variabilidad individual). Luna, presión barométrica y nubosidad se
   registran **con peso 0** porque no hay evidencia publicada en carpa.
@@ -76,7 +99,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 ## Fases
 
 - [x] **Fase 0**: proyecto, estructura, CI, documentación
-- [ ] **Fase 1**: capa de datos (Open-Meteo multimodelo + AEMET + Room) y pantalla de datos en bruto
+- [x] **Fase 1**: capa de datos (Open-Meteo multimodelo + AEMET + Room) y pantalla de datos en bruto
 - [ ] **Fase 2**: parámetros derivados (presión, temperatura, agua estimada, viento, lluvia, sol/luna y ventana legal)
 - [ ] **Fase 3**: motor de filtros/multiplicadores por niveles (reglas JSON con etiqueta de evidencia) y pantalla de estrategia
 - [ ] **Fase 4**: UI completa, GPS, gráficas y nivel del embalse (semanal + manual)

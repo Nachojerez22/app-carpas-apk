@@ -8,7 +8,6 @@
     <string name="nav_about">Acerca de</string>
 
     <string name="placeholder_location">Aquí podrás elegir la ubicación por GPS o de forma manual (pin en el mapa o coordenadas). Por defecto: %1$s (%2$.2f, %3$.2f).</string>
-    <string name="placeholder_conditions">Aquí verás la presión y la temperatura de los últimos días y la previsión, con el aviso de divergencia entre modelos.</string>
     <string name="placeholder_strategy">Aquí verás la valoración de condiciones (cadena de filtros), la estrategia sugerida y las reglas activadas con su nivel de evidencia.</string>
     <string name="coming_soon">Disponible en una fase posterior.</string>
 
@@ -24,4 +23,49 @@
     <string name="about_aemet_key_missing">No hay API key de AEMET configurada: no se usarán observaciones reales.</string>
     <string name="about_aemet_key_present">API key de AEMET configurada.</string>
     <string name="about_version">Versión %1$s</string>
+
+    <!-- Condiciones: datos en bruto (fase 1) -->
+    <string name="raw_title">Datos en bruto</string>
+    <string name="raw_subtitle">%1$s · %2$.2f, %3$.2f</string>
+    <string name="action_refresh">Actualizar</string>
+    <string name="raw_loading">Cargando datos guardados…</string>
+    <string name="raw_no_data">Todavía no hay datos guardados. Pulsa Actualizar con conexión.</string>
+
+    <string name="openmeteo_title">Previsión multimodelo (Open-Meteo)</string>
+    <string name="openmeteo_grid">Punto de rejilla del modelo: %1$.3f, %2$.3f · altitud %3$s m</string>
+    <string name="openmeteo_attribution">Fuente: Open-Meteo.com (CC BY 4.0) · 7 días pasados + 3 de previsión</string>
+    <string name="wind_divergence_warning">⚠ Incertidumbre alta: los modelos discrepan en el viento en %1$d horas de la previsión. Toma el viento previsto con cautela.</string>
+    <string name="wind_divergence_none">Los modelos coinciden razonablemente en el viento previsto.</string>
+    <string name="model_mean">Media</string>
+    <string name="model_icon_eu">ICON-EU</string>
+    <string name="model_arpege">ARPEGE</string>
+    <string name="model_ecmwf">ECMWF</string>
+    <string name="model_missing">Este modelo no devolvió datos en la última descarga.</string>
+    <string name="mean_explanation">Media de los modelos disponibles; ± indica la diferencia entre el modelo más alto y el más bajo.</string>
+
+    <string name="aemet_title">Observación real (AEMET)</string>
+    <string name="aemet_station">Estación %1$s (%2$s) · a %3$s km</string>
+    <string name="aemet_attribution">Fuente: © AEMET · últimas ~24 h de observación horaria</string>
+    <string name="aemet_no_observations">Sin observaciones guardadas.</string>
+
+    <string name="freshness_fresh">Actualizado hace %1$s.</string>
+    <string name="freshness_aging">Datos de hace %1$s.</string>
+    <string name="freshness_stale">⚠ Datos antiguos (hace %1$s): pueden no reflejar el tiempo actual.</string>
+    <string name="age_now">menos de 1 min</string>
+    <string name="age_minutes">%1$d min</string>
+    <string name="age_hours">%1$d h</string>
+    <string name="age_days">%1$d d</string>
+
+    <string name="error_network">No se pudo actualizar: sin conexión. Se muestra la última copia guardada.</string>
+    <string name="error_server">No se pudo actualizar: el servicio respondió con un error. Se muestra la última copia guardada.</string>
+    <string name="error_invalid_response">No se pudo actualizar: respuesta no reconocida. Se muestra la última copia guardada.</string>
+    <string name="error_missing_api_key">Falta la API key de AEMET (AEMET_API_KEY en local.properties): no hay observaciones reales.</string>
+    <string name="error_unauthorized">AEMET rechazó la API key. Revisa que sea válida y no haya caducado.</string>
+    <string name="error_rate_limited">Demasiadas peticiones seguidas. Prueba de nuevo en un minuto.</string>
+    <string name="error_no_data">No hay datos disponibles para esta ubicación.</string>
+
+    <string name="row_forecast">%1$s · %2$s °C · %3$s hPa · viento %4$s km/h %5$s · racha %6$s · nubes %7$s %% · lluvia %8$s mm · rad. %9$s W/m²</string>
+    <string name="row_observation">%1$s · %2$s °C · %3$s hPa · viento %4$s km/h %5$s · racha %6$s · lluvia %7$s mm · HR %8$s %%</string>
+    <string name="row_divergent">⚠ viento incierto</string>
+    <string name="value_missing">—</string>
 </resources>

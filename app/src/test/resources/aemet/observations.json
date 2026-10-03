@@ -1,0 +1,46 @@
+[
+ {
+  "idema": "TEST1",
+  "lon": -6.7667,
+  "fint": "2026-10-03T06:00:00+0000",
+  "prec": 0.0,
+  "alt": 511.0,
+  "vmax": 4.2,
+  "vv": 1.5,
+  "dv": 200.0,
+  "lat": 38.3167,
+  "dmax": 210.0,
+  "ubi": "JEREZ DE LOS CABALLEROS (PRUEBA)",
+  "pres": 960.1,
+  "hr": 81.0,
+  "pres_nmar": 1018.4,
+  "tamin": 16.1,
+  "ta": 16.4,
+  "tamax": 16.9
+ },
+ {
+  "idema": "TEST1",
+  "lon": -6.7667,
+  "fint": "2026-10-03T05:00:00",
+  "prec": "Ip",
+  "alt": 511.0,
+  "vmax": "3,5",
+  "vv": "1,0",
+  "dv": 190.0,
+  "lat": 38.3167,
+  "ubi": "JEREZ DE LOS CABALLEROS (PRUEBA)",
+  "hr": "83",
+  "pres_nmar": "1018,6",
+  "ta": "16,9"
+ },
+ {
+  "idema": "TEST1",
+  "lon": -6.7667,
+  "fint": "2026-10-03T07:00:00Z",
+  "vv": 2.0,
+  "dv": 210.0,
+  "lat": 38.3167,
+  "ubi": "JEREZ DE LOS CABALLEROS (PRUEBA)",
+  "ta": 16.2
+ }
+]

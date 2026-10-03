@@ -1,0 +1,47 @@
+[
+ {
+  "latitud": "381900N",
+  "provincia": "BADAJOZ",
+  "altitud": "511",
+  "indicativo": "TEST1",
+  "nombre": "JEREZ DE LOS CABALLEROS (PRUEBA)",
+  "indsinop": "",
+  "longitud": "064600W"
+ },
+ {
+  "latitud": "381100N",
+  "provincia": "BADAJOZ",
+  "altitud": "560",
+  "indicativo": "TEST2",
+  "nombre": "FREGENAL DE LA SIERRA (PRUEBA)",
+  "indsinop": "",
+  "longitud": "063900W"
+ },
+ {
+  "latitud": "385300N",
+  "provincia": "BADAJOZ",
+  "altitud": "185",
+  "indicativo": "TEST3",
+  "nombre": "BADAJOZ (PRUEBA)",
+  "indsinop": "08330",
+  "longitud": "065000W"
+ },
+ {
+  "latitud": "404100N",
+  "provincia": "MADRID",
+  "altitud": "667",
+  "indicativo": "TEST4",
+  "nombre": "MADRID (PRUEBA)",
+  "indsinop": "",
+  "longitud": "034100W"
+ },
+ {
+  "latitud": "malformada",
+  "provincia": "X",
+  "altitud": "1",
+  "indicativo": "BAD",
+  "nombre": "MAL",
+  "indsinop": "",
+  "longitud": "064600W"
+ }
+]
