@@ -5,6 +5,7 @@ import com.nachojerez.carpstrategy.domain.derived.Geo
 import com.nachojerez.carpstrategy.domain.derived.WaterTempSource
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
+import com.nachojerez.carpstrategy.domain.rules.RuleContext
 import com.nachojerez.carpstrategy.domain.rules.StrategyResult
 import java.time.Duration
 import java.time.Instant
@@ -85,7 +86,12 @@ object JournalStats {
             .filter { Geo.haversineKm(it.location, location) <= PREDICTION_RADIUS_KM }
             .maxByOrNull { it.computedAt }
 
-    fun snapshotOf(result: StrategyResult, location: GeoPoint): PredictionSnapshot = PredictionSnapshot(
+    fun snapshotOf(
+        result: StrategyResult,
+        location: GeoPoint,
+        context: RuleContext? = null,
+        rulesFingerprint: String? = null,
+    ): PredictionSnapshot = PredictionSnapshot(
         computedAt = result.evaluatedAt,
         location = location,
         blocked = result.blocked,
@@ -93,10 +99,14 @@ object JournalStats {
         band = result.band,
         limitingLevel = result.limitingLevel,
         demand = result.demand,
+        features = context?.let { FeatureSnapshot.of(it) },
+        levels = result.levels.associate { it.level to it.value },
+        activeRules = result.activeRules.associate { it.rule.id to it.appliedFactor },
+        rulesFingerprint = rulesFingerprint,
     )
 
     /** Contexto automático de la sesión a partir de los derivados calculados para su inicio. */
-    fun contextOf(derived: DerivedConditions, pressureHpa: Double?): SessionContext = SessionContext(
+    fun contextOf(derived: DerivedConditions, pressureHpa: Double?, ruleContext: RuleContext? = null): SessionContext = SessionContext(
         legalStart = derived.legalToday?.start,
         legalEnd = derived.legalToday?.end,
         waterTempC = derived.water?.valueC,
@@ -108,5 +118,6 @@ object JournalStats {
         reservoirPercent = derived.reservoir?.percent,
         moonIllumination = derived.moon.illumination,
         pressureHpa = pressureHpa,
+        features = ruleContext?.let { FeatureSnapshot.of(it) },
     )
 }

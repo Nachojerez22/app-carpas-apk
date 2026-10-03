@@ -10,6 +10,7 @@ import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.manual.DataSource
 import com.nachojerez.carpstrategy.domain.model.DefaultLocation
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
+import com.nachojerez.carpstrategy.domain.rules.RuleContext
 import com.nachojerez.carpstrategy.domain.rules.RuleContextBuilder
 import com.nachojerez.carpstrategy.domain.rules.RuleEngine
 import com.nachojerez.carpstrategy.domain.rules.RuleIssue
@@ -35,6 +36,9 @@ data class StrategyUiState(
     val forecastFreshness: Freshness? = null,
     /** 🟢 Zonas con capturas propias recientes: sugerir rotar puesto y montaje (§5.8). */
     val recentCatchZones: Map<FishingZone, Instant> = emptyMap(),
+    /** Parámetros con los que se evaluaron las reglas (se guardan con la valoración, §10). */
+    val ruleContext: RuleContext? = null,
+    val rulesFingerprint: String? = null,
 )
 
 /** Horas de previsión (próximas 24 h) en las que el viento de los modelos es incierto. */
@@ -79,6 +83,8 @@ fun buildStrategyState(
         regulationReviewed = ruleSet.regulationReviewed,
         forecastFreshness = raw.forecast?.let { FreshnessPolicy.evaluate(it.fetchedAt, now) },
         recentCatchZones = JournalStats.recentCatchZones(sessions, now),
+        ruleContext = context,
+        rulesFingerprint = ruleSet.fingerprint,
     )
 }
 

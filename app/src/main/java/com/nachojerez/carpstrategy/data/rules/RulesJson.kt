@@ -15,6 +15,7 @@ import com.nachojerez.carpstrategy.domain.rules.RuleType
 import com.nachojerez.carpstrategy.domain.rules.RuleWeight
 import com.nachojerez.carpstrategy.domain.rules.StrategyField
 import com.nachojerez.carpstrategy.domain.rules.StrategyItem
+import java.security.MessageDigest
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -145,7 +146,7 @@ object RulesJson {
             }
         }
         return if (issues.isEmpty()) {
-            RuleLoadResult.Loaded(RuleSet(rules, root.string("revision_normativa"), root.string("fuente")))
+            RuleLoadResult.Loaded(RuleSet(rules, root.string("revision_normativa"), root.string("fuente"), fingerprint(text)))
         } else {
             RuleLoadResult.Invalid(issues)
         }
@@ -263,4 +264,10 @@ object RulesJson {
 
     private fun JsonObject.string(key: String): String? =
         (this[key] as? JsonPrimitive)?.takeUnless { it is JsonNull }?.contentOrNull
+
+    /** Primeros 12 caracteres hexadecimales del SHA-256 del archivo. */
+    fun fingerprint(text: String): String =
+        MessageDigest.getInstance("SHA-256").digest(text.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+            .take(12)
 }
