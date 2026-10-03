@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.ui.AppViewModel
+import com.nachojerez.carpstrategy.ui.CrashReportDialog
 import com.nachojerez.carpstrategy.ui.navigation.CarpStrategyNavHost
 import com.nachojerez.carpstrategy.ui.theme.CarpTheme
 import com.nachojerez.carpstrategy.ui.theme.toThemePrefs
@@ -22,8 +23,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val appearance by appViewModel.appearance.collectAsStateWithLifecycle()
+            val lastCrash by appViewModel.lastCrash.collectAsStateWithLifecycle()
             CarpTheme(appearance.toThemePrefs()) {
                 CarpStrategyNavHost()
+                lastCrash?.let { CrashReportDialog(it, onDismiss = appViewModel::dismissCrash) }
             }
         }
     }

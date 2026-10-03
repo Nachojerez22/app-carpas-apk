@@ -116,6 +116,11 @@ object ManualDataJson {
                 now = now,
                 zone = zone,
             )
+            // Un registro sin ningún valor no bloquea el archivo: se omite con un aviso.
+            if (result.issues.any { it.code == IssueCode.NO_VALUES } && result.issues.none { it.code.isError && it.code != IssueCode.NO_VALUES }) {
+                issues += ManualIssue(number, null, IssueCode.EMPTY_RECORD_SKIPPED)
+                return@forEachIndexed
+            }
             // El aviso de ubicación lejana es del archivo, no de cada registro.
             result.issues.forEach { issue ->
                 if (issue.code == IssueCode.FAR_FROM_LOCATION) {

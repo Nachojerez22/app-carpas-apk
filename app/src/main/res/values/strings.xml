@@ -118,6 +118,7 @@
     <string name="issue_not_an_integer">Debe ser un número entero: %1$s.</string>
     <string name="issue_field_not_allowed">No se admite en un registro con "%1$s".</string>
     <string name="issue_no_values">No tiene ningún valor.</string>
+    <string name="issue_empty_record_skipped">No tiene ningún valor: se omite y se importa el resto.</string>
     <string name="issue_unknown_field">Clave desconocida (¿errata?): se ignora.</string>
     <string name="issue_far_from_location">Los datos están a %1$s km de la ubicación de la app.</string>
     <string name="issue_bottom_without_depth">Temperatura de fondo sin profundidad.</string>
@@ -609,4 +610,9 @@
     <string name="diary_restore">Restaurar una copia del diario</string>
     <string name="diary_restore_done">Restauradas %1$d de %2$d sesiones (las que ya estaban no se duplican).</string>
     <string name="diary_restore_invalid">El archivo no es una copia del diario (formato carpstrategy-diario).</string>
+    <!-- Informe de cierre -->
+    <string name="crash_title">La app se cerró por un error</string>
+    <string name="crash_text">Copia este informe y pégaselo a Claude para corregirlo. Solo está en tu móvil.</string>
+    <string name="crash_copy">Copiar informe</string>
+    <string name="action_close_dialog">Cerrar</string>
 </resources>

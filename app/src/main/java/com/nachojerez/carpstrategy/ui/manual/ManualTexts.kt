@@ -75,6 +75,7 @@ fun issueText(issue: ManualIssue): String {
         IssueCode.NOT_AN_INTEGER -> stringResource(R.string.issue_not_an_integer, arg(0))
         IssueCode.FIELD_NOT_ALLOWED -> stringResource(R.string.issue_field_not_allowed, arg(0))
         IssueCode.NO_VALUES -> stringResource(R.string.issue_no_values)
+        IssueCode.EMPTY_RECORD_SKIPPED -> stringResource(R.string.issue_empty_record_skipped)
         IssueCode.UNKNOWN_FIELD -> stringResource(R.string.issue_unknown_field)
         IssueCode.FAR_FROM_LOCATION -> stringResource(R.string.issue_far_from_location, arg(0))
         IssueCode.BOTTOM_WITHOUT_DEPTH -> stringResource(R.string.issue_bottom_without_depth)

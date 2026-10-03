@@ -48,6 +48,8 @@ enum class IssueCode(val isError: Boolean) {
     NO_VALUES(true),
 
     // Avisos (no impiden guardar)
+    /** Importación: registro sin ningún valor (p. ej. "no disponible"); se omite y se importa el resto. */
+    EMPTY_RECORD_SKIPPED(false),
     UNKNOWN_FIELD(false),
     FAR_FROM_LOCATION(false),
     BOTTOM_WITHOUT_DEPTH(false),

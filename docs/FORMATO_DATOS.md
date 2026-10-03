@@ -76,6 +76,10 @@ La importación es **todo o nada**: si algún registro tiene errores, no se impo
 app lista cada error con su número de registro y campo. Los avisos (clave desconocida, ubicación
 lejana, temperatura de fondo sin profundidad, registro repetido) no impiden importar.
 
+Un valor `null` cuenta como «sin dato». Un registro **sin ningún valor** (por ejemplo, una nota
+de «no disponible» con todos los campos a `null`) no es un error: se omite con un aviso y se
+importa el resto.
+
 Si se reimporta un registro con la misma `hora`/`fecha` y la misma `fuente` en la misma
 ubicación, **sustituye** al anterior (así se puede corregir un archivo y volver a cargarlo).
 
