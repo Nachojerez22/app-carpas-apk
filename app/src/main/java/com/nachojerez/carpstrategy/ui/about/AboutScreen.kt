@@ -34,6 +34,7 @@ fun AboutScreen() {
         Text(stringResource(R.string.about_disclaimers_title), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.about_disclaimer_water))
         Text(stringResource(R.string.about_disclaimer_rules))
+        Text(stringResource(R.string.about_disclaimer_legal))
         Text(
             stringResource(
                 if (BuildConfig.AEMET_API_KEY.isBlank()) {

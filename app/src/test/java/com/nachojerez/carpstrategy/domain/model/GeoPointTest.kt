@@ -9,10 +9,10 @@ import org.junit.jupiter.params.provider.CsvSource
 class GeoPointTest {
 
     @Test
-    fun `la ubicacion por defecto es Brovales - Jerez de los Caballeros`() {
+    fun `la ubicacion por defecto es el embalse de Brovales`() {
         val point = DefaultLocation.value.point
-        assertEquals(38.37, point.latitude, 1e-9)
-        assertEquals(-6.88, point.longitude, 1e-9)
+        assertEquals(38.35, point.latitude, 1e-9)
+        assertEquals(-6.70, point.longitude, 1e-9)
     }
 
     @ParameterizedTest

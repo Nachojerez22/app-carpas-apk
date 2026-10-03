@@ -11,10 +11,13 @@ data class GeoPoint(val latitude: Double, val longitude: Double) {
 /** Ubicación con nombre visible para el usuario. */
 data class FishingLocation(val name: String, val point: GeoPoint)
 
-/** Ubicación por defecto: Brovales / Jerez de los Caballeros (Badajoz). Configurable en la app. */
+/**
+ * Ubicación por defecto: embalse de Brovales (Jerez de los Caballeros, Badajoz), junto a la presa.
+ * Coordenadas según docs/CONOCIMIENTO.md §8 (≈38,35 N, −6,70 O). Configurable en la app.
+ */
 object DefaultLocation {
     val value = FishingLocation(
-        name = "Brovales / Jerez de los Caballeros",
-        point = GeoPoint(latitude = 38.37, longitude = -6.88),
+        name = "Embalse de Brovales",
+        point = GeoPoint(latitude = 38.35, longitude = -6.70),
     )
 }
