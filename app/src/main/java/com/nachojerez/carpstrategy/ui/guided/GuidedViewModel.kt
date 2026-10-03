@@ -2,12 +2,8 @@ package com.nachojerez.carpstrategy.ui.guided
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nachojerez.carpstrategy.domain.guided.BaitState
-import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
-import com.nachojerez.carpstrategy.domain.guided.CheckIn
-import com.nachojerez.carpstrategy.domain.guided.HookActivity
+import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
-import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
@@ -66,31 +62,45 @@ class GuidedViewModel @Inject constructor(
         permissions.value = manager.canNotify() to manager.canScheduleExact()
     }
 
-    fun start(rods: Int, zone: FishingZone?) {
+    fun start(rodNames: List<String>, zone: FishingZone?, groundbait: GroundbaitLevel?) {
         if (starting.value) return
         starting.value = true
         viewModelScope.launch {
             try {
-                manager.start(rods, zone)
+                manager.start(rodNames, zone, groundbait)
             } finally {
                 starting.value = false
             }
         }
     }
 
-    fun checkIn(signals: SignalLevel, activity: HookActivity, baitState: BaitState, notWorking: Boolean = false, change: ChangedVariable? = null) {
+    fun checkIn(rodId: Int, draft: CheckInDraft) {
         viewModelScope.launch {
-            manager.checkIn { now -> CheckIn(now, signals, activity, baitState, notWorking, change) }
+            manager.checkIn(rodId) { now -> draft.toCheckIn(now) }
             saved.value = clock.instant()
         }
     }
 
-    fun accept() {
-        viewModelScope.launch { manager.accept() }
+    fun nothingEverywhere() {
+        viewModelScope.launch {
+            manager.nothingEverywhere()
+            saved.value = clock.instant()
+        }
     }
 
-    fun reject(reason: RejectReason, comment: String) {
-        viewModelScope.launch { manager.reject(reason, comment) }
+    fun windChanged() {
+        viewModelScope.launch {
+            manager.windChanged()
+            saved.value = clock.instant()
+        }
+    }
+
+    fun accept(rodId: Int) {
+        viewModelScope.launch { manager.accept(rodId) }
+    }
+
+    fun reject(rodId: Int, reason: RejectReason, comment: String) {
+        viewModelScope.launch { manager.reject(rodId, reason, comment) }
     }
 
     fun finish(onFinished: (Long) -> Unit) {

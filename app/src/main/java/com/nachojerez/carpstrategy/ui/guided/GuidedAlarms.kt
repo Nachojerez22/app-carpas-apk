@@ -92,7 +92,7 @@ class GuidedAlarmReceiver : HiltBroadcastReceiver() {
 }
 
 /** Respuesta rápida desde la notificación (sin abrir la app). */
-enum class QuickAnswer { NOTHING, MISSED, CATCH, NOT_WORKING, ACCEPT }
+enum class QuickAnswer { NOTHING, NOTHING_ALL, MISSED, CATCH, NOT_WORKING, ACCEPT }
 
 @AndroidEntryPoint
 class GuidedActionReceiver : HiltBroadcastReceiver() {
@@ -102,12 +102,14 @@ class GuidedActionReceiver : HiltBroadcastReceiver() {
         super.onReceive(context, intent)
         if (intent.action != ACTION_ANSWER) return
         val answer = intent.getStringExtra(EXTRA_ANSWER)?.let { name -> QuickAnswer.entries.firstOrNull { it.name == name } } ?: return
+        val rodId = intent.getIntExtra(EXTRA_ROD, 0).takeIf { it > 0 }
         val result = goAsync()
         manager.scope.launch {
             try {
                 when (answer) {
-                    QuickAnswer.ACCEPT -> manager.accept()
-                    else -> manager.checkIn { now -> answer.toCheckIn(now) }
+                    QuickAnswer.ACCEPT -> manager.accept(rodId)
+                    QuickAnswer.NOTHING_ALL -> manager.nothingEverywhere()
+                    else -> manager.checkIn(rodId) { now -> answer.toCheckIn(now) }
                 }
             } finally {
                 result.finish()
@@ -118,6 +120,7 @@ class GuidedActionReceiver : HiltBroadcastReceiver() {
     companion object {
         const val ACTION_ANSWER = "com.nachojerez.carpstrategy.guided.ANSWER"
         const val EXTRA_ANSWER = "respuesta"
+        const val EXTRA_ROD = "cana"
     }
 }
 
@@ -125,5 +128,5 @@ fun QuickAnswer.toCheckIn(now: Instant): CheckIn = when (this) {
     QuickAnswer.MISSED -> CheckIn(now, activity = HookActivity.MISSED)
     QuickAnswer.CATCH -> CheckIn(now, activity = HookActivity.CATCH)
     QuickAnswer.NOT_WORKING -> CheckIn(now, notWorking = true)
-    QuickAnswer.NOTHING, QuickAnswer.ACCEPT -> CheckIn(now, baitState = BaitState.NOT_CHECKED)
+    QuickAnswer.NOTHING, QuickAnswer.NOTHING_ALL, QuickAnswer.ACCEPT -> CheckIn(now, baitState = BaitState.NOT_CHECKED)
 }

@@ -46,13 +46,20 @@ class GuidedNotifier @Inject constructor(@param:ApplicationContext private val c
         if (!canNotify()) return
         ensureChannel()
         val res = context.resources
-        val log = session.guided ?: return
-        val pending = log.pending?.proposal
+        val record = session.guided ?: return
+        val single = record.rods.singleOrNull()
+        val pending = record.rods.mapNotNull { r -> r.log.pending?.let { r to it.proposal } }
         val ended = legalEnd != null && !now.isBefore(legalEnd)
-        val plan = res.baitText(log.current.bait, log.current.baitName)?.let { res.getString(R.string.guided_notif_plan, it) }
+        val plan = record.rods.mapNotNull { r ->
+            res.baitText(r.log.current.bait, r.log.current.baitName)?.let { b -> if (single != null || r.name.isBlank()) b else "${r.name}: $b" }
+        }.joinToString(" · ").ifBlank { null }?.let { res.getString(R.string.guided_notif_plan, it) }
         val text = when {
             ended -> res.getString(R.string.guided_notif_legal_end)
-            pending != null -> res.getString(R.string.guided_notif_proposal, res.proposalText(pending, phase))
+            pending.isNotEmpty() -> res.getString(
+                R.string.guided_notif_proposal,
+                pending.joinToString(" ") { (r, p) -> res.rodPrefix(r.name, single == null) + res.proposalText(p, phase) },
+            )
+            checkIn && single == null -> res.getString(R.string.guided_notif_check_rods)
             checkIn -> res.getString(R.string.guided_notif_check)
             else -> listOfNotNull(plan, next?.let { res.getString(R.string.guided_notif_next, Formatting.clock(it)) }).joinToString(" · ")
         }
@@ -72,12 +79,14 @@ class GuidedNotifier @Inject constructor(@param:ApplicationContext private val c
             .setVibrate(if (alert) VIBRATION else null)
             .setContentIntent(openApp())
         if (!ended) {
+            // Con varias cañas, picadas y capturas se anotan en la app (hay que decir en cuál).
             val actions = when {
-                pending != null -> listOf(QuickAnswer.ACCEPT to R.string.guided_notif_accept, QuickAnswer.CATCH to R.string.guided_notif_catch, QuickAnswer.NOT_WORKING to R.string.guided_notif_not_working)
+                single == null -> listOf(QuickAnswer.NOTHING_ALL to R.string.guided_notif_nothing_all)
+                pending.isNotEmpty() -> listOf(QuickAnswer.ACCEPT to R.string.guided_notif_accept, QuickAnswer.CATCH to R.string.guided_notif_catch, QuickAnswer.NOT_WORKING to R.string.guided_notif_not_working)
                 checkIn -> listOf(QuickAnswer.NOTHING to R.string.guided_notif_nothing, QuickAnswer.MISSED to R.string.guided_notif_missed, QuickAnswer.CATCH to R.string.guided_notif_catch)
                 else -> listOf(QuickAnswer.MISSED to R.string.guided_notif_missed, QuickAnswer.CATCH to R.string.guided_notif_catch, QuickAnswer.NOT_WORKING to R.string.guided_notif_not_working)
             }
-            actions.forEach { (answer, label) -> builder.addAction(0, res.getString(label), answerIntent(answer)) }
+            actions.forEach { (answer, label) -> builder.addAction(0, res.getString(label), answerIntent(answer, single?.id)) }
         }
         try {
             manager.notify(NOTIFICATION_ID, builder.build())
@@ -97,12 +106,13 @@ class GuidedNotifier @Inject constructor(@param:ApplicationContext private val c
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 
-    private fun answerIntent(answer: QuickAnswer): PendingIntent = PendingIntent.getBroadcast(
+    private fun answerIntent(answer: QuickAnswer, rodId: Int?): PendingIntent = PendingIntent.getBroadcast(
         context,
         REQUEST_ANSWER + answer.ordinal,
         Intent(context, GuidedActionReceiver::class.java)
             .setAction(GuidedActionReceiver.ACTION_ANSWER)
-            .putExtra(GuidedActionReceiver.EXTRA_ANSWER, answer.name),
+            .putExtra(GuidedActionReceiver.EXTRA_ANSWER, answer.name)
+            .putExtra(GuidedActionReceiver.EXTRA_ROD, rodId ?: 0),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 

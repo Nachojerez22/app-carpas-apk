@@ -725,7 +725,7 @@
     <string name="guided_activity_nothing">Nada</string>
     <string name="guided_activity_touches">Toques</string>
     <string name="guided_activity_missed">Picada fallada</string>
-    <string name="guided_activity_catch">Captura</string>
+    <string name="guided_activity_catch">Captura…</string>
     <string name="guided_bait_not_checked">Sin revisar</string>
     <string name="guided_bait_intact">Intacto</string>
     <string name="guided_bait_nibbled">Mordisqueado</string>
@@ -788,4 +788,34 @@
     <string name="guided_notif_catch">Captura</string>
     <string name="guided_notif_not_working">No funciona</string>
     <string name="guided_notif_accept">Aceptar</string>
+
+    <!-- Fase 7: cañas, especies, cebado y viento -->
+    <string name="guided_rods_names">Nombre de cada caña</string>
+    <string name="guided_rod_default">Caña %1$d</string>
+    <string name="guided_rod_name_hint">p. ej. fija, carrete</string>
+    <string name="guided_groundbait_start">Cebado inicial</string>
+    <string name="guided_groundbait_hint">Sin gramos: poco, normal o mucho según lo que sueles echar.</string>
+    <string name="guided_rebait">He recebado</string>
+    <string name="guided_rebait_title">¿Cuánto has recebado en esta caña?</string>
+    <string name="guided_wind_changed">Ha cambiado el viento</string>
+    <string name="guided_which_rod">¿En qué caña?</string>
+    <string name="guided_nothing_all">Nada en ninguna</string>
+    <string name="guided_catch_species">¿Qué ha entrado?</string>
+    <string name="guided_rod_groundbait">Cebado: %1$s</string>
+    <string name="guided_plan_bycatch">Otras especies o pequeños: %1$d</string>
+    <string name="guided_step_selective">Cebo más grande o selectivo: %1$s. Ceba menos para no atraer pequeños ni otras especies.</string>
+    <string name="guided_situation_other_fish">Entran pequeños u otras especies (barbo, boga, black bass) o mordisquean el cebo antes que la carpa.</string>
+    <string name="guided_msg_reduce_groundbait">Con mucho cebado entran pequeños y otras especies: ceba menos y más selectivo.</string>
+    <string name="guided_msg_winter_groundbait">En frío, cebado mínimo: la carpa come poco y el resto atrae a otros peces.</string>
+    <string name="guided_msg_wind">Ha cambiado el viento: valora la orilla que lo recibe.</string>
+    <string name="guided_notif_check_rods">¿Cómo va? Toca para anotar en cada caña.</string>
+    <string name="guided_notif_nothing_all">Nada en ninguna</string>
+    <string name="species_carp">Carpa</string>
+    <string name="species_barbel">Barbo</string>
+    <string name="species_nase">Boga</string>
+    <string name="species_black_bass">Black bass</string>
+    <string name="species_small">Pequeño (sin identificar)</string>
+    <string name="groundbait_low">Poco</string>
+    <string name="groundbait_normal">Normal</string>
+    <string name="groundbait_high">Mucho</string>
 </resources>

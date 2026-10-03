@@ -9,12 +9,14 @@ import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.Decision
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
+import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedMessage
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.RigType
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
+import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.guided.Situation
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
@@ -119,6 +121,23 @@ fun Situation.titleRes(): Int = when (this) {
     Situation.SIGNALS_NO_BITES -> R.string.guided_situation_signals
     Situation.TOUCHES -> R.string.guided_situation_touches
     Situation.CRAB_OR_SMALL_FISH -> R.string.guided_situation_crab
+    Situation.OTHER_FISH -> R.string.guided_situation_other_fish
+}
+
+@StringRes
+fun Species.titleRes(): Int = when (this) {
+    Species.CARP -> R.string.species_carp
+    Species.BARBEL -> R.string.species_barbel
+    Species.NASE -> R.string.species_nase
+    Species.BLACK_BASS -> R.string.species_black_bass
+    Species.SMALL -> R.string.species_small
+}
+
+@StringRes
+fun GroundbaitLevel.titleRes(): Int = when (this) {
+    GroundbaitLevel.LOW -> R.string.groundbait_low
+    GroundbaitLevel.NORMAL -> R.string.groundbait_normal
+    GroundbaitLevel.HIGH -> R.string.groundbait_high
 }
 
 @StringRes
@@ -131,15 +150,18 @@ fun GuidedMessage.titleRes(): Int = when (this) {
     GuidedMessage.ZONE_LIMIT_REACHED -> R.string.guided_msg_zone_limit
     GuidedMessage.NO_EQUIVALENT_BAIT -> R.string.guided_msg_no_equivalent
     GuidedMessage.PREPARE_BAIT -> R.string.guided_msg_prepare
+    GuidedMessage.REDUCE_GROUNDBAIT -> R.string.guided_msg_reduce_groundbait
+    GuidedMessage.WINTER_GROUNDBAIT -> R.string.guided_msg_winter_groundbait
+    GuidedMessage.WIND_CHANGED -> R.string.guided_msg_wind
 }
 
 /** Etiqueta de evidencia de cada aviso (§5.9). */
 val GuidedMessage.evidence: Evidence
     get() = when (this) {
-        GuidedMessage.KEEP_AFTER_CATCH -> Evidence.GREEN
+        GuidedMessage.KEEP_AFTER_CATCH, GuidedMessage.WINTER_GROUNDBAIT -> Evidence.GREEN
         GuidedMessage.WINTER_PATIENCE, GuidedMessage.FORCED_IN_WINTER, GuidedMessage.ZONE_LIMIT_REACHED, GuidedMessage.NO_EQUIVALENT_BAIT -> Evidence.PURPLE
         GuidedMessage.LEGAL_END_SOON, GuidedMessage.NO_ZONE_CHANGES_LEGAL -> Evidence.REGULATION
-        GuidedMessage.PREPARE_BAIT -> Evidence.YELLOW
+        GuidedMessage.PREPARE_BAIT, GuidedMessage.REDUCE_GROUNDBAIT, GuidedMessage.WIND_CHANGED -> Evidence.YELLOW
     }
 
 /** «Boilie fresa 20 (boilie)» si es del equipo; si no, solo el tipo. */
@@ -160,6 +182,7 @@ fun Resources.proposalText(p: Proposal, phase: FishingPhase): String {
         StepKind.RIG -> getString(R.string.guided_step_rig, bait)
         StepKind.COLUMN -> getString(R.string.guided_step_column, getString((p.column ?: Column.POPUP).titleRes()))
         StepKind.ANTI_CRAB -> getString(R.string.guided_step_anti_crab, bait)
+        StepKind.SELECTIVE -> getString(R.string.guided_step_selective, bait)
         StepKind.DISTANCE -> getString(
             when (phase) {
                 FishingPhase.WINTER -> R.string.guided_step_distance_winter
@@ -188,10 +211,16 @@ fun Resources.situationText(p: Proposal, phase: FishingPhase): String =
 fun Resources.stepShort(kind: StepKind): String = getString(
     when (kind) {
         StepKind.INITIAL -> R.string.guided_plan_title
-        StepKind.PRESENTATION, StepKind.ANTI_CRAB -> R.string.guided_change_bait
+        StepKind.PRESENTATION, StepKind.ANTI_CRAB, StepKind.SELECTIVE -> R.string.guided_change_bait
         StepKind.RIG -> R.string.guided_change_rig
         StepKind.COLUMN -> R.string.guided_change_column
         StepKind.DISTANCE -> R.string.guided_change_distance
         StepKind.ZONE -> R.string.guided_change_zone
     },
 )
+
+/** Nombre de la caña para mostrar: el que puso el usuario o «Caña N». */
+fun Resources.rodLabel(id: Int, name: String): String = name.ifBlank { getString(R.string.guided_rod_default, id) }
+
+/** «fija: » delante de una propuesta cuando hay varias cañas. */
+fun Resources.rodPrefix(name: String, show: Boolean): String = if (show && name.isNotBlank()) "$name: " else ""

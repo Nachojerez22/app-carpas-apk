@@ -45,11 +45,14 @@ import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
 import com.nachojerez.carpstrategy.domain.guided.Decision
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
+import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
+import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.GuidedMessage
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
+import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.rules.Evidence
@@ -82,6 +85,8 @@ fun GuidedScreen(
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { viewModel.recheckPermissions() }
     var confirmFinish by rememberSaveable { mutableStateOf(false) }
 
+    var selectedRod by rememberSaveable { mutableStateOf(1) }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = Spacing.screen, end = Spacing.screen, top = Spacing.sm, bottom = 48.dp),
@@ -110,19 +115,40 @@ fun GuidedScreen(
         if (session == null || phase == null) {
             if (!state.isLoading) {
                 item {
-                    StartCard(state, onOpenGear) { rods, zone ->
+                    StartCard(state, onOpenGear) { names, zone, groundbait ->
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) permission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        viewModel.start(rods, zone)
+                        viewModel.start(names, zone, groundbait)
                     }
                 }
             }
         } else {
-            item { HeaderCard(state, session, phase) }
-            session.guided?.pending?.let { record -> item { ProposalCard(record.proposal, phase, viewModel::accept, viewModel::reject) } }
+            val rods = state.rods
+            val rod = rods.firstOrNull { it.id == selectedRod } ?: rods.firstOrNull()
+            item { HeaderCard(state, session, phase, rods.size > 1, viewModel::nothingEverywhere, viewModel::windChanged) }
+            rods.forEach { r ->
+                r.log.pending?.let { record ->
+                    item(key = "propuesta-${r.id}") {
+                        ProposalCard(r, rods.size > 1, record.proposal, phase, { viewModel.accept(r.id) }, { reason, comment -> viewModel.reject(r.id, reason, comment) })
+                    }
+                }
+            }
             if (state.messages.isNotEmpty()) item { MessagesCard(state.messages) }
-            item { PlanCard(session, state) }
-            item { RegisterCard(viewModel::checkIn) }
-            item { HistoryCard(session, phase) }
+            if (rods.size > 1) {
+                item {
+                    val res = LocalContext.current.resources
+                    Text(stringResource(R.string.guided_which_rod), style = MaterialTheme.typography.titleSmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        rods.forEach { r ->
+                            FilterChip(selected = rod?.id == r.id, onClick = { selectedRod = r.id }, label = { Text(res.rodLabel(r.id, r.name)) })
+                        }
+                    }
+                }
+            }
+            if (rod != null) {
+                item { PlanCard(session, rod, rods.size > 1, state) }
+                item { RegisterCard(rod) { draft -> viewModel.checkIn(rod.id, draft) } }
+            }
+            item { HistoryCard(rods, phase) }
             item {
                 Button(
                     onClick = { confirmFinish = true },
@@ -159,14 +185,27 @@ private fun PermissionCard(text: String, action: String?, onAction: (() -> Unit)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onStart: (Int, FishingZone?) -> Unit) {
+private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onStart: (List<String>, FishingZone?, GroundbaitLevel?) -> Unit) {
     var rods by rememberSaveable { mutableStateOf(2) }
+    var names by rememberSaveable { mutableStateOf(listOf("", "", "")) }
     var zone by rememberSaveable { mutableStateOf<FishingZone?>(null) }
+    var groundbait by rememberSaveable { mutableStateOf<GroundbaitLevel?>(null) }
     CarpCard {
         Text(stringResource(R.string.guided_intro))
         Text(stringResource(R.string.guided_rods), style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            (1..3).forEach { n -> FilterChip(selected = rods == n, onClick = { rods = n }, label = { Text("$n") }) }
+            (1..GuidedSessions.MAX_RODS).forEach { n -> FilterChip(selected = rods == n, onClick = { rods = n }, label = { Text("$n") }) }
+        }
+        Text(stringResource(R.string.guided_rods_names), style = MaterialTheme.typography.titleSmall)
+        (0 until rods).forEach { i ->
+            OutlinedTextField(
+                value = names[i],
+                onValueChange = { value -> names = names.toMutableList().also { it[i] = value } },
+                label = { Text(stringResource(R.string.guided_rod_default, i + 1)) },
+                placeholder = { Text(stringResource(R.string.guided_rod_name_hint)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
         Text(stringResource(R.string.guided_zone), style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -174,18 +213,25 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onStart: (In
                 FilterChip(selected = zone == z, onClick = { zone = if (zone == z) null else z }, label = { Text(stringResource(z.zoneLabelRes())) })
             }
         }
+        Text(stringResource(R.string.guided_groundbait_start), style = MaterialTheme.typography.titleSmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            GroundbaitLevel.entries.forEach { g ->
+                FilterChip(selected = groundbait == g, onClick = { groundbait = if (groundbait == g) null else g }, label = { Text(stringResource(g.titleRes())) })
+            }
+        }
+        Caption(stringResource(R.string.guided_groundbait_hint))
         Caption(
             if (state.baits + state.rigs == 0) stringResource(R.string.guided_gear_empty) else stringResource(R.string.guided_gear_summary, state.baits, state.rigs),
         )
         OutlinedButton(onClick = onOpenGear) { Text(stringResource(R.string.guided_gear_open)) }
-        Button(onClick = { onStart(rods, zone) }, enabled = !state.starting, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = { onStart(rodNamesFor(rods, names), zone, groundbait) }, enabled = !state.starting, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(if (state.starting) R.string.guided_starting else R.string.guided_start))
         }
     }
 }
 
 @Composable
-private fun HeaderCard(state: GuidedUiState, session: Session, phase: FishingPhase) {
+private fun HeaderCard(state: GuidedUiState, session: Session, phase: FishingPhase, severalRods: Boolean, onNothingAll: () -> Unit, onWind: () -> Unit) {
     val cs = MaterialTheme.colorScheme
     val elapsed = Duration.between(session.start, state.now).coerceAtLeast(Duration.ZERO)
     CarpCard(containerColor = cs.primaryContainer) {
@@ -199,17 +245,23 @@ private fun HeaderCard(state: GuidedUiState, session: Session, phase: FishingPha
             state.nextCheckIn?.let { stringResource(R.string.guided_next_check, Formatting.clock(it)) } ?: stringResource(R.string.guided_next_none),
             color = cs.onPrimaryContainer,
         )
+        state.lastSaved?.let { Caption(stringResource(R.string.guided_saved, Formatting.clock(it)), color = cs.onPrimaryContainer) }
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            if (severalRods) OutlinedButton(onClick = onNothingAll) { Text(stringResource(R.string.guided_nothing_all)) }
+            OutlinedButton(onClick = onWind) { Text(stringResource(R.string.guided_wind_changed)) }
+        }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ProposalCard(proposal: Proposal, phase: FishingPhase, onAccept: () -> Unit, onReject: (RejectReason, String) -> Unit) {
+private fun ProposalCard(rod: RodUi, showRod: Boolean, proposal: Proposal, phase: FishingPhase, onAccept: () -> Unit, onReject: (RejectReason, String) -> Unit) {
     val res = LocalContext.current.resources
-    var rejecting by rememberSaveable { mutableStateOf(false) }
+    var rejecting by rememberSaveable(rod.id) { mutableStateOf(false) }
     CarpCard(border = CardBorder.Warning) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            Text(stringResource(R.string.guided_proposal_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            val title = stringResource(R.string.guided_proposal_title)
+            Text(if (showRod) "$title · ${res.rodLabel(rod.id, rod.name)}" else title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             AnyEvidenceBadge(proposal.evidence)
         }
         Text(res.proposalText(proposal, phase), style = MaterialTheme.typography.bodyLarge)
@@ -266,27 +318,30 @@ private fun MessagesCard(messages: Set<GuidedMessage>) {
 }
 
 @Composable
-private fun PlanCard(session: Session, state: GuidedUiState) {
+private fun PlanCard(session: Session, rod: RodUi, showRod: Boolean, state: GuidedUiState) {
     val res = LocalContext.current.resources
-    val segment = session.guided?.current ?: return
+    val segment = rod.log.current
     CarpCard {
-        Text(stringResource(R.string.guided_plan_title), style = MaterialTheme.typography.titleMedium)
+        val title = stringResource(R.string.guided_plan_title)
+        Text(if (showRod) "$title · ${res.rodLabel(rod.id, rod.name)}" else title, style = MaterialTheme.typography.titleMedium)
         res.baitText(segment.bait, segment.baitName)?.let { Text(stringResource(R.string.guided_plan_bait, it)) }
-        session.rig.ifBlank { null }?.let { Text(stringResource(R.string.guided_plan_rig, it)) }
+        (segment.rigName ?: session.rig.ifBlank { null }.takeIf { !showRod })?.let { Text(stringResource(R.string.guided_plan_rig, it)) }
         segment.column?.let { Text(stringResource(R.string.guided_plan_column, stringResource(it.titleRes()))) }
+        rod.groundbait?.let { Text(stringResource(R.string.guided_rod_groundbait, stringResource(it.titleRes()).lowercase())) }
         Caption(stringResource(R.string.guided_plan_since, Formatting.clock(segment.start), segment.bites, segment.catches))
+        if (segment.bycatch > 0) Caption(stringResource(R.string.guided_plan_bycatch, segment.bycatch))
         state.lastSaved?.let { Caption(stringResource(R.string.guided_saved, Formatting.clock(it))) }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun RegisterCard(onCheckIn: (SignalLevel, HookActivity, BaitState, Boolean, ChangedVariable?) -> Unit) {
-    var signals by rememberSaveable { mutableStateOf(SignalLevel.NONE) }
-    var bait by rememberSaveable { mutableStateOf(BaitState.NOT_CHECKED) }
-    var changing by rememberSaveable { mutableStateOf(false) }
-    fun send(activity: HookActivity, notWorking: Boolean = false, change: ChangedVariable? = null) {
-        onCheckIn(signals, activity, bait, notWorking, change)
+private fun RegisterCard(rod: RodUi, onCheckIn: (CheckInDraft) -> Unit) {
+    var signals by rememberSaveable(rod.id) { mutableStateOf(SignalLevel.NONE) }
+    var bait by rememberSaveable(rod.id) { mutableStateOf(BaitState.NOT_CHECKED) }
+    var dialog by rememberSaveable(rod.id) { mutableStateOf<RegisterDialog?>(null) }
+    fun send(draft: CheckInDraft) {
+        onCheckIn(draft.copy(signals = signals, baitState = bait))
         signals = SignalLevel.NONE
         bait = BaitState.NOT_CHECKED
     }
@@ -305,54 +360,85 @@ private fun RegisterCard(onCheckIn: (SignalLevel, HookActivity, BaitState, Boole
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             HookActivity.entries.forEach { a ->
                 if (a == HookActivity.CATCH) {
-                    Button(onClick = { send(a) }) { Text(stringResource(a.titleRes())) }
+                    Button(onClick = { dialog = RegisterDialog.SPECIES }) { Text(stringResource(a.titleRes())) }
                 } else {
-                    OutlinedButton(onClick = { send(a) }) { Text(stringResource(a.titleRes())) }
+                    OutlinedButton(onClick = { send(CheckInDraft(activity = a)) }) { Text(stringResource(a.titleRes())) }
                 }
             }
         }
         Button(
-            onClick = { send(HookActivity.NOTHING, notWorking = true) },
+            onClick = { send(CheckInDraft(notWorking = true)) },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = CarpTheme.colors.warnStrong),
         ) { Text(stringResource(R.string.guided_not_working)) }
         Caption(stringResource(R.string.guided_not_working_hint))
-        TextButton(onClick = { changing = true }) { Text(stringResource(R.string.guided_changed)) }
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            TextButton(onClick = { dialog = RegisterDialog.REBAIT }) { Text(stringResource(R.string.guided_rebait)) }
+            TextButton(onClick = { dialog = RegisterDialog.CHANGE }) { Text(stringResource(R.string.guided_changed)) }
+        }
     }
-    if (changing) {
-        AlertDialog(
-            onDismissRequest = { changing = false },
-            title = { Text(stringResource(R.string.guided_changed_title)) },
-            text = {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    ChangedVariable.entries.forEach { v ->
-                        FilterChip(selected = false, onClick = {
-                            send(HookActivity.NOTHING, change = v)
-                            changing = false
-                        }, label = { Text(stringResource(v.titleRes())) })
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = { TextButton(onClick = { changing = false }) { Text(stringResource(R.string.action_cancel)) } },
+    when (dialog) {
+        RegisterDialog.SPECIES -> ChoiceDialog(
+            title = stringResource(R.string.guided_catch_species),
+            options = Species.entries.map { it to stringResource(it.titleRes()) },
+            onPick = { send(CheckInDraft(activity = HookActivity.CATCH, species = it)) },
+            onDismiss = { dialog = null },
         )
+        RegisterDialog.REBAIT -> ChoiceDialog(
+            title = stringResource(R.string.guided_rebait_title),
+            options = GroundbaitLevel.entries.map { it to stringResource(it.titleRes()) },
+            onPick = { send(CheckInDraft(rebait = it)) },
+            onDismiss = { dialog = null },
+        )
+        RegisterDialog.CHANGE -> ChoiceDialog(
+            title = stringResource(R.string.guided_changed_title),
+            options = ChangedVariable.entries.map { it to stringResource(it.titleRes()) },
+            onPick = { send(CheckInDraft(change = it)) },
+            onDismiss = { dialog = null },
+        )
+        null -> Unit
     }
 }
 
+private enum class RegisterDialog { SPECIES, REBAIT, CHANGE }
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun HistoryCard(session: Session, phase: FishingPhase) {
+private fun <T> ChoiceDialog(title: String, options: List<Pair<T, String>>, onPick: (T) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                options.forEach { (value, label) ->
+                    FilterChip(selected = false, onClick = {
+                        onPick(value)
+                        onDismiss()
+                    }, label = { Text(label) })
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
+}
+
+@Composable
+private fun HistoryCard(rods: List<RodUi>, phase: FishingPhase) {
     val res = LocalContext.current.resources
-    val log = session.guided ?: return
     CarpCard {
         Text(stringResource(R.string.guided_history_title), style = MaterialTheme.typography.titleMedium)
-        log.segments.forEach { s ->
-            val what = listOfNotNull(res.baitText(s.bait, s.baitName), s.column?.let { res.getString(it.titleRes()) }).joinToString(" · ").ifBlank { res.stepShort(s.kind) }
-            Text(stringResource(R.string.guided_history_segment, Formatting.clock(s.start), Formatting.clock(s.end), what, s.bites, s.catches))
-        }
-        log.proposals.filter { it.decision != Decision.PENDING }.forEach { r ->
-            Caption(stringResource(R.string.guided_history_proposal, stringResource(r.decision.titleRes()), Formatting.clock(r.decidedAt), res.proposalText(r.proposal, phase)))
-            r.reason?.let { reason ->
-                Caption(stringResource(R.string.guided_history_reason, listOf(stringResource(reason.titleRes()), r.comment).filter { it.isNotBlank() }.joinToString(": ")))
+        rods.forEach { rod ->
+            if (rods.size > 1) Text(res.rodLabel(rod.id, rod.name), style = MaterialTheme.typography.titleSmall)
+            rod.log.segments.forEach { s ->
+                val what = listOfNotNull(res.baitText(s.bait, s.baitName), s.column?.let { res.getString(it.titleRes()) }).joinToString(" · ").ifBlank { res.stepShort(s.kind) }
+                Text(stringResource(R.string.guided_history_segment, Formatting.clock(s.start), Formatting.clock(s.end), what, s.bites, s.catches))
+            }
+            rod.log.proposals.filter { it.decision != Decision.PENDING }.forEach { r ->
+                Caption(stringResource(R.string.guided_history_proposal, stringResource(r.decision.titleRes()), Formatting.clock(r.decidedAt), res.proposalText(r.proposal, phase)))
+                r.reason?.let { reason ->
+                    Caption(stringResource(R.string.guided_history_reason, listOf(stringResource(reason.titleRes()), r.comment).filter { it.isNotBlank() }.joinToString(": ")))
+                }
             }
         }
     }
