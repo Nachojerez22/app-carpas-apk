@@ -2,6 +2,8 @@ package com.nachojerez.carpstrategy.domain.repository
 
 import com.nachojerez.carpstrategy.domain.manual.ManualRecord
 import com.nachojerez.carpstrategy.domain.manual.SourcePriority
+import com.nachojerez.carpstrategy.domain.model.AppearanceSettings
+import com.nachojerez.carpstrategy.domain.model.FishingLocation
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import kotlinx.coroutines.flow.Flow
 
@@ -26,4 +28,11 @@ interface ManualDataRepository {
 interface SettingsRepository {
     fun observeSourcePriority(): Flow<SourcePriority>
     suspend fun setSourcePriority(priority: SourcePriority)
+
+    fun observeAppearance(): Flow<AppearanceSettings>
+    suspend fun setAppearance(settings: AppearanceSettings)
+
+    /** Ubicación de trabajo; por defecto el embalse de Brovales. */
+    fun observeLocation(): Flow<FishingLocation>
+    suspend fun setLocation(location: FishingLocation)
 }
