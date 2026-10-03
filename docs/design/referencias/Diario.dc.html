@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Diario de sesiones</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&amp;family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 412px; height: 1140px; box-sizing: border-box; background: {{t.bg}}; color: {{t.on}}; font-family: 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; font-variant-numeric: tabular-nums; position: relative">
+
+  <header style="display: flex; align-items: center; gap: 4px; padding: 20px 8px 8px 20px">
+    <div style="display: flex; flex-direction: column; gap: 2px; flex: 1">
+      <h1 style="margin: 0; font-size: 30px; line-height: 36px; font-weight: 800">Diario</h1>
+      <span style="font-size: 15px; color: {{t.onVar}}">Temporada 2026 · 24 sesiones</span>
+    </div>
+    <button aria-label="Buscar sesiones" style="width: 48px; height: 48px; border-radius: 24px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.on}}" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+    </button>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 12px; padding: 4px 16px 24px">
+    <section style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 14px 8px; border-radius: 18px; background: {{t.s2}}; text-align: center">
+      <div style="display: flex; flex-direction: column"><span style="font-size: 24px; font-weight: 800">4</span><span style="font-size: 12px; color: {{t.onVar}}">sesiones oct</span></div>
+      <div style="display: flex; flex-direction: column"><span style="font-size: 24px; font-weight: 800">58</span><span style="font-size: 12px; color: {{t.onVar}}">horas-caña</span></div>
+      <div style="display: flex; flex-direction: column"><span style="font-size: 24px; font-weight: 800">5</span><span style="font-size: 12px; color: {{t.onVar}}">capturas</span></div>
+      <div style="display: flex; flex-direction: column"><span style="font-size: 24px; font-weight: 800">1</span><span style="font-size: 12px; color: {{t.onVar}}">bolo</span></div>
+    </section>
+
+    <sc-for list="{{sesiones}}" as="s" hint-placeholder-count="4">
+      <a href="Sesion.dc.html" style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 18px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}; text-decoration: none; color: {{t.on}}">
+        <div style="display: flex; align-items: flex-start; gap: 10px">
+          <div style="display: flex; flex-direction: column; flex: 1">
+            <span style="font-size: 18px; font-weight: 800">{{s.fecha}}</span>
+            <span style="font-size: 14px; color: {{t.onVar}}">{{s.horas}} · {{s.zona}}</span>
+          </div>
+          <span style="display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; background: {{s.resBg}}; color: {{s.resFg}}; font-size: 14px; font-weight: 800; white-space: nowrap">{{s.res}}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+          <div style="display: flex; flex-direction: column"><span style="font-size: 20px; font-weight: 800">{{s.pic}}</span><span style="font-size: 12px; color: {{t.onVar}}">picadas</span></div>
+          <div style="display: flex; flex-direction: column"><span style="font-size: 20px; font-weight: 800">{{s.cap}}</span><span style="font-size: 12px; color: {{t.onVar}}">capturas</span></div>
+          <div style="display: flex; flex-direction: column"><span style="font-size: 20px; font-weight: 800">{{s.per}}</span><span style="font-size: 12px; color: {{t.onVar}}">pérdidas</span></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid {{t.outlineVar}}; font-size: 13px; color: {{t.onVar}}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"></path></svg>
+          <span>La app estimó: <strong style="color: {{t.on}}">{{s.app}}</strong></span>
+        </div>
+      </a>
+    </sc-for>
+  </main>
+
+  <a href="Sesion.dc.html" style="position: absolute; right: 16px; bottom: 108px; height: 56px; padding: 0 20px 0 16px; border-radius: 16px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 16px; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,0.22)">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onPrimary}}" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+    Nueva sesión
+  </a>
+
+  <nav aria-label="Navegación principal" style="margin-top: auto; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 12px 4px 16px; background: {{t.navBg}}">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></span>Hoy</a>
+    <a href="Estrategia.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"></path></svg></span>Estrategia</a>
+    <a href="Datos.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"></path></svg></span>Datos</a>
+    <a href="Diario.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.on}}; font-size: 13px; font-weight: 800"><span style="width: 64px; height: 32px; border-radius: 16px; background: {{t.navInd}}; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onPrimaryC}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19V5M9 8h6"></path></svg></span>Diario</a>
+    <a href="Mas.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></span>Lugar</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":412,"height":1140}}'>
+var THEME = {
+  light: {bg:'#F2F4EC',surface:'#FFFFFF',s2:'#E8ECE0',s3:'#DCE0D4',on:'#191D16',onVar:'#42493D',outline:'#72796B',outlineVar:'#C6CBBD',primary:'#36652A',onPrimary:'#FFFFFF',primaryC:'#C9E7B2',onPrimaryC:'#0D2004',secondary:'#8A4A27',onSecondary:'#FFFFFF',secondaryC:'#F7D9C5',onSecondaryC:'#331100',navBg:'#E3E8DA',navInd:'#C9E7B2'},
+  dark: {bg:'#10140E',surface:'#192017',s2:'#222A1F',s3:'#2D3529',on:'#E2E6DA',onVar:'#C3C8BA',outline:'#8D9385',outlineVar:'#3E463A',primary:'#A6D58C',onPrimary:'#123806',primaryC:'#285018',onPrimaryC:'#C9EFB0',secondary:'#F2B591',onSecondary:'#4E2209',secondaryC:'#6B3416',onSecondaryC:'#FFDCC8',navBg:'#1E251B',navInd:'#285018'}
+};
+class Component extends DCLogic {
+  renderVals() {
+    var t = (this.props.dark ?? false) ? THEME.dark : THEME.light;
+    var cap = { resBg: t.primaryC, resFg: t.onPrimaryC };
+    var bolo = { resBg: t.secondary, resFg: t.onSecondary };
+    var sesiones = [
+      Object.assign({ fecha: 'Jue 1 oct', horas: '17:30–20:55', zona: 'Zona N · Carrizal', pic: '2', cap: '1', per: '1', res: '1 captura', app: 'Moderadamente favorables' }, cap),
+      Object.assign({ fecha: 'Sáb 27 sep', horas: '07:20–12:40', zona: 'Zona N · Carrizal', pic: '4', cap: '2', per: '1', res: '2 capturas', app: 'Favorables' }, cap),
+      Object.assign({ fecha: 'Mié 24 sep', horas: '18:00–21:10', zona: 'Zona S · Cola', pic: '0', cap: '0', per: '0', res: 'Bolo', app: 'Poco favorables' }, bolo),
+      Object.assign({ fecha: 'Dom 21 sep', horas: '07:30–11:00', zona: 'Zona E · Presa', pic: '3', cap: '2', per: '0', res: '2 capturas', app: 'Moderadamente favorables' }, cap)
+    ];
+    return { t: t, sesiones: sesiones };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Estados de la pantalla Hoy</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&amp;family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1600px; height: 940px; box-sizing: border-box; padding: 40px; background: {{t.canvas}}; color: {{t.on}}; font-family: 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, sans-serif; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; font-variant-numeric: tabular-nums">
+
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <span style="font-size: 16px; font-weight: 800; color: {{t.onVar}}">Vacío · primer uso</span>
+    <div style="flex: 1; border-radius: 28px; background: {{t.bg}}; border: 1px solid {{t.outlineVar}}; overflow: hidden; display: flex; flex-direction: column">
+      <div style="padding: 20px 20px 8px; font-size: 28px; font-weight: 800">Hoy</div>
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center">
+        <svg width="120" height="80" viewBox="0 0 120 80" aria-hidden="true"><path d="M8 52c14-8 24-8 38 0s24 8 38 0 22-8 28-4" fill="none" stroke="{{t.tertiary}}" stroke-width="4" stroke-linecap="round"></path><path d="M8 66c14-8 24-8 38 0s24 8 38 0 22-8 28-4" fill="none" stroke="{{t.outlineVar}}" stroke-width="4" stroke-linecap="round"></path><path d="M60 8v30M52 18c0-6 16-6 16 0" fill="none" stroke="{{t.primary}}" stroke-width="4" stroke-linecap="round"></path></svg>
+        <span style="font-size: 22px; line-height: 28px; font-weight: 800">Aún no hay datos para este lugar</span>
+        <span style="font-size: 15px; line-height: 22px; color: {{t.onVar}}">Fija la ubicación para descargar el tiempo, o añade tu primera medición del agua.</span>
+        <button style="height: 52px; width: 100%; border-radius: 26px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font-family: inherit; font-size: 16px; font-weight: 800">Fijar ubicación</button>
+        <button style="height: 52px; width: 100%; border-radius: 26px; border: 1.5px solid {{t.outline}}; background: transparent; color: {{t.primary}}; font-family: inherit; font-size: 16px; font-weight: 800">Añadir medición</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <span style="font-size: 16px; font-weight: 800; color: {{t.onVar}}">Cargando</span>
+    <div style="flex: 1; border-radius: 28px; background: {{t.bg}}; border: 1px solid {{t.outlineVar}}; overflow: hidden; display: flex; flex-direction: column">
+      <div style="height: 4px; background: {{t.s3}}; position: relative"><div style="position: absolute; left: 0; top: 0; width: 45%; height: 4px; background: {{t.primary}}"></div></div>
+      <div style="padding: 16px 20px 8px; font-size: 28px; font-weight: 800">Hoy</div>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px 16px">
+        <span style="font-size: 15px; font-weight: 700; color: {{t.onVar}}">Descargando AEMET y 3 modelos…</span>
+        <div style="height: 180px; border-radius: 20px; background: {{t.s3}}"></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <div style="height: 120px; border-radius: 16px; background: {{t.s3}}"></div>
+          <div style="height: 120px; border-radius: 16px; background: {{t.s3}}"></div>
+          <div style="height: 120px; border-radius: 16px; background: {{t.s3}}"></div>
+          <div style="height: 120px; border-radius: 16px; background: {{t.s3}}"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <span style="font-size: 16px; font-weight: 800; color: {{t.onVar}}">Error al descargar</span>
+    <div style="flex: 1; border-radius: 28px; background: {{t.bg}}; border: 1px solid {{t.outlineVar}}; overflow: hidden; display: flex; flex-direction: column">
+      <div style="padding: 20px 20px 8px; font-size: 28px; font-weight: 800">Hoy</div>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px 16px">
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 16px; background: {{t.errorC}}; color: {{t.onErrorC}}">
+          <div style="display: flex; gap: 10px; align-items: center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{t.onErrorC}}" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>
+            <span style="font-size: 16px; font-weight: 800">No se pudo descargar la previsión</span>
+          </div>
+          <span style="font-size: 14px; line-height: 20px">Open-Meteo no respondió. Se muestran tus datos manuales y la última observación de AEMET.</span>
+          <button style="align-self: flex-start; height: 44px; padding: 0 18px; border-radius: 22px; border: 0; background: {{t.error}}; color: {{t.onError}}; font-family: inherit; font-size: 15px; font-weight: 800">Reintentar</button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 16px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+            <div style="display: flex; justify-content: space-between"><span style="font-size: 14px; font-weight: 700; color: {{t.onVar}}">Agua</span><span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; box-sizing: border-box; border-radius: 6px; border: 1.5px solid {{t.secondary}}; color: {{t.secondary}}; font-size: 12px; font-weight: 800">M</span></div>
+            <span style="font-size: 32px; font-weight: 800">18,1 °C</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 16px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+            <span style="font-size: 14px; font-weight: 700; color: {{t.onVar}}">Viento</span>
+            <span style="font-size: 32px; font-weight: 800; color: {{t.onVar}}">—</span>
+            <span style="font-size: 13px; color: {{t.onVar}}">Sin previsión</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <span style="font-size: 16px; font-weight: 800; color: {{t.onVar}}">Sin conexión · datos antiguos</span>
+    <div style="flex: 1; border-radius: 28px; background: {{t.bg}}; border: 1px solid {{t.outlineVar}}; overflow: hidden; display: flex; flex-direction: column">
+      <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: {{t.warnC}}; color: {{t.onWarnC}}">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{t.onWarnC}}" stroke-width="2.2" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0M3 3l18 18"></path></svg>
+        <div style="display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 800">Sin conexión</span><span style="font-size: 13px">Datos de hace 14 h · ayer 19:22</span></div>
+      </div>
+      <div style="padding: 16px 20px 8px; font-size: 28px; font-weight: 800">Hoy</div>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px 16px">
+        <div style="display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 2px dashed {{t.warnIcon}}">
+          <div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px; font-weight: 700">Temperatura del agua</span><span style="display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 12px; background: {{t.warnC}}; color: {{t.onWarnC}}; font-size: 12px; font-weight: 800"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="{{t.onWarnC}}" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Hace 14 h</span></div>
+          <span style="font-size: 48px; font-weight: 800; color: {{t.onVar}}">≈ 18 °C</span>
+        </div>
+        <div style="display: flex; gap: 10px; padding: 12px 14px; border-radius: 14px; background: {{t.s2}}; font-size: 14px; line-height: 20px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linejoin="round" style="flex-shrink: 0"><path d="M3 5h18l-7 8v6l-4 2v-8z"></path></svg>
+          <span>La valoración usa datos antiguos. Tómala con cautela hasta actualizar.</span>
+        </div>
+        <button style="height: 48px; border-radius: 24px; border: 1.5px solid {{t.outline}}; background: transparent; color: {{t.onVar}}; font-family: inherit; font-size: 15px; font-weight: 800" disabled>Actualizar (sin red)</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1600,"height":940}}'>
+var THEME = {
+  light: {canvas:'#E6E9DF',bg:'#F2F4EC',surface:'#FFFFFF',s2:'#E8ECE0',s3:'#DCE0D4',on:'#191D16',onVar:'#42493D',outline:'#72796B',outlineVar:'#C6CBBD',primary:'#36652A',onPrimary:'#FFFFFF',secondary:'#8A4A27',tertiary:'#1A5E7A',error:'#B3261E',onError:'#FFFFFF',errorC:'#F9DEDC',onErrorC:'#410E0B',warnC:'#FFE39A',onWarnC:'#3A2A00',warnIcon:'#9A7000'},
+  dark: {canvas:'#080A07',bg:'#10140E',surface:'#192017',s2:'#222A1F',s3:'#2D3529',on:'#E2E6DA',onVar:'#C3C8BA',outline:'#8D9385',outlineVar:'#3E463A',primary:'#A6D58C',onPrimary:'#123806',secondary:'#F2B591',tertiary:'#8ED0EE',error:'#F2B8B5',onError:'#601410',errorC:'#8C1D18',onErrorC:'#F9DEDC',warnC:'#4F3B00',onWarnC:'#FFE39A',warnIcon:'#F1C24B'}
+};
+class Component extends DCLogic {
+  renderVals() { return { t: (this.props.dark ?? false) ? THEME.dark : THEME.light }; }
+}
+</script>
+</body>
+</html>

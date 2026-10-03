@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Diario · estilo Apple</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 412px; height: 1240px; box-sizing: border-box; background: {{t.bg}}; color: {{t.label}}; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Atkinson Hyperlegible Next', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; position: relative; font-variant-numeric: tabular-nums; letter-spacing: -0.2px">
+
+  <div style="display: flex; justify-content: flex-end; align-items: center; padding: 14px 12px 0 16px; height: 44px">
+    <a href="#" aria-label="Nueva sesión" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.tint}}" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></a>
+  </div>
+  <header style="display: flex; flex-direction: column; gap: 10px; padding: 4px 20px 8px">
+    <h1 style="margin: 0; font-size: 36px; line-height: 40px; font-weight: 800">Diario</h1>
+    <label style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; border-radius: 10px; background: {{t.fill}}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.label2}}" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+      <input placeholder="Buscar zona, cebo, fecha" aria-label="Buscar sesiones" style="flex: 1; border: 0; background: transparent; font-family: inherit; font-size: 17px; color: {{t.label}}">
+    </label>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 20px; padding: 10px 16px 120px">
+    <section style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 16px 6px; border-radius: 14px; background: {{t.cell}}; text-align: center">
+      <div style="display: flex; flex-direction: column"><span style="font-size: 26px; font-weight: 700">4</span><span style="font-size: 12px; color: {{t.label2}}">sesiones oct</span></div>
+      <div style="display: flex; flex-direction: column"><span style="font-size: 26px; font-weight: 700">58</span><span style="font-size: 12px; color: {{t.label2}}">horas-caña</span></div>
+      <div style="display: flex; flex-direction: column"><span style="font-size: 26px; font-weight: 700; color: {{t.tint}}">5</span><span style="font-size: 12px; color: {{t.label2}}">capturas</span></div>
+      <div style="display: flex; flex-direction: column"><span style="font-size: 26px; font-weight: 700; color: {{t.clay}}">1</span><span style="font-size: 12px; color: {{t.label2}}">bolo</span></div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0 16px; font-size: 13px; font-weight: 600; color: {{t.label2}}; text-transform: uppercase">Sesiones</h2>
+      <div style="border-radius: 14px; background: {{t.cell}}; overflow: hidden">
+        <sc-for list="{{sesiones}}" as="s" hint-placeholder-count="4">
+          <a href="#" style="display: flex; align-items: center; gap: 12px; padding: 0 14px 0 16px; text-decoration: none; color: {{t.label}}">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 14px 0; border-bottom: {{s.sep}}">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <span style="flex: 1; font-size: 17px; font-weight: 700">{{s.fecha}}</span>
+                <span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 13px; background: {{s.rbg}}; color: {{s.rfg}}; font-size: 13px; font-weight: 700">{{s.res}}</span>
+              </div>
+              <span style="font-size: 15px; color: {{t.label2}}">{{s.horas}} · {{s.zona}}</span>
+              <span style="font-size: 15px">{{s.pic}} picadas · {{s.cap}} capturas · {{s.per}} pérdidas</span>
+              <span style="font-size: 13px; color: {{t.label2}}">La app estimó: {{s.app}}</span>
+            </div>
+            <svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="{{t.label3}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l6 6-6 6"></path></svg>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0 16px; font-size: 13px; font-weight: 600; color: {{t.label2}}; text-transform: uppercase">Ficha · Sáb 27 sep (vista rápida)</h2>
+      <div style="border-radius: 14px; background: {{t.cell}}; overflow: hidden">
+        <sc-for list="{{ficha}}" as="f" hint-placeholder-count="6">
+          <div style="display: flex; justify-content: space-between; gap: 12px; min-height: 48px; align-items: center; margin-left: 16px; padding-right: 16px; border-bottom: {{f.sep}}">
+            <span style="font-size: 17px">{{f.k}}</span><span style="font-size: 17px; color: {{t.label2}}; text-align: right">{{f.v}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+
+  <nav aria-label="Navegación principal" style="position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 8px 4px 26px; background: {{t.tabBg}}; backdrop-filter: blur(20px); border-top: 0.5px solid {{t.sep}}">
+    <sc-for list="{{tabs}}" as="b" hint-placeholder-count="5">
+      <a href="{{b.href}}" style="display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: {{b.c}}; font-size: 11.5px; font-weight: 600; min-height: 48px; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{b.c}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.icon}}"></path></svg>{{b.k}}</a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":412,"height":1240}}'>
+var A = {
+  light: {bg:'#F2F2F7',cell:'#FFFFFF',label:'#000000',label2:'#5C5C63',label3:'#8E8E93',sep:'#C6C6C8',fill:'#E5E5EA',tint:'#2E7D32',tintSoft:'#E3F1E1',clay:'#9A4A22',claySoft:'#F8E6DA',tabBg:'rgba(249,249,249,0.88)'},
+  dark: {bg:'#000000',cell:'#1C1C1E',label:'#FFFFFF',label2:'#AEAEB2',label3:'#8E8E93',sep:'#38383A',fill:'#2C2C2E',tint:'#7BD17F',tintSoft:'#1B3A1D',clay:'#F0A57A',claySoft:'#3D2316',tabBg:'rgba(22,22,24,0.88)'}
+};
+var ICON = {
+  hoy: 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  est: 'M3 5h18l-7 8v6l-4 2v-8z',
+  dat: 'M6 4h12a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM9 10h6M9 14h6M9 18h3',
+  dia: 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19V5',
+  lug: 'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 7.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5z'
+};
+function tabs(t, active) {
+  return [['hoy', 'Hoy', 'AHoy.dc.html'], ['est', 'Estrategia', 'AEstrategia.dc.html'], ['dat', 'Datos', 'ADatos.dc.html'], ['dia', 'Diario', 'ADiario.dc.html'], ['lug', 'Lugar', 'ALugar.dc.html']].map(function (x) {
+    return { k: x[1], href: x[2], icon: ICON[x[0]], c: x[0] === active ? t.tint : t.label3 };
+  });
+}
+function seps(list, t) { return list.map(function (x, i) { return Object.assign({}, x, { sep: i === list.length - 1 ? '0' : '0.5px solid ' + t.sep }); }); }
+class Component extends DCLogic {
+  renderVals() {
+    var t = (this.props.dark ?? false) ? A.dark : A.light;
+    var c = { rbg: t.tintSoft, rfg: t.tint }, b = { rbg: t.claySoft, rfg: t.clay };
+    var sesiones = seps([
+      Object.assign({ fecha: 'Jue 1 oct', horas: '17:30–20:55', zona: 'N · Carrizal', pic: '2', cap: '1', per: '1', res: '1 captura', app: 'Moderadamente favorables' }, c),
+      Object.assign({ fecha: 'Sáb 27 sep', horas: '07:20–12:40', zona: 'N · Carrizal', pic: '4', cap: '2', per: '1', res: '2 capturas', app: 'Favorables' }, c),
+      Object.assign({ fecha: 'Mié 24 sep', horas: '18:00–21:10', zona: 'S · Cola', pic: '0', cap: '0', per: '0', res: 'Bolo', app: 'Poco favorables' }, b),
+      Object.assign({ fecha: 'Dom 21 sep', horas: '07:30–11:00', zona: 'E · Presa', pic: '3', cap: '2', per: '0', res: '2 capturas', app: 'Moderadamente favorables' }, c)
+    ], t);
+    var ficha = seps([
+      { k: 'Horas', v: '07:20–12:40 · 5 h 20' },
+      { k: 'Puesto', v: 'N · Carrizal · 2,5 m' },
+      { k: 'Cañas · horas-caña', v: '3 · 16,0' },
+      { k: 'Cebo y montaje', v: 'Boilie 20 mm · pelo' },
+      { k: 'Bolo', v: 'No' },
+      { k: 'Valoración previa', v: 'Favorables' }
+    ], t);
+    return { t: t, sesiones: sesiones, ficha: ficha, tabs: tabs(t, 'dia') };
+  }
+}
+</script>
+</body>
+</html>

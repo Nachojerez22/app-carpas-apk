@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Estrategia</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&amp;family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 412px; height: 2440px; box-sizing: border-box; background: {{t.bg}}; color: {{t.on}}; font-family: 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; font-variant-numeric: tabular-nums">
+
+  <header style="display: flex; align-items: center; gap: 8px; padding: 20px 8px 8px 20px">
+    <div style="display: flex; flex-direction: column; gap: 2px; flex: 1">
+      <h1 style="margin: 0; font-size: 30px; line-height: 36px; font-weight: 800">Estrategia</h1>
+      <span style="font-size: 15px; color: {{t.onVar}}">Para hoy · datos de las 09:12</span>
+    </div>
+    <button aria-label="Cómo se calcula" style="width: 48px; height: 48px; border-radius: 24px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.on}}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>
+    </button>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 24px">
+
+    <section style="display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 20px; background: {{t.primaryC}}; color: {{t.onPrimaryC}}">
+      <span style="font-size: 15px; font-weight: 700">Condiciones según tus datos</span>
+      <span style="font-size: 30px; line-height: 34px; font-weight: 800; letter-spacing: -0.3px">Moderadamente favorables</span>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px">
+          <span style="height: 12px; border-radius: 6px 2px 2px 6px; background: {{t.scaleOff}}"></span>
+          <span style="height: 12px; border-radius: 2px; background: {{t.scaleOff}}"></span>
+          <span style="height: 12px; border-radius: 2px; background: {{t.onPrimaryC}}; outline: 3px solid {{t.onPrimaryC}}; outline-offset: 2px"></span>
+          <span style="height: 12px; border-radius: 2px; background: {{t.scaleOff}}"></span>
+          <span style="height: 12px; border-radius: 2px 6px 6px 2px; background: {{t.scaleOff}}"></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600">
+          <span>Poco</span><span>Moderadas</span><span>Muy favorables</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: {{t.secondaryC}}; color: {{t.onSecondaryC}}">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{t.onSecondaryC}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5V5a2 2 0 1 1 4 0v8.5a4 4 0 1 1-4 0z"></path></svg>
+        <span style="font-size: 15px; font-weight: 700">Limita el nivel 2 · Temperatura del agua</span>
+      </div>
+      <p style="margin: 0; font-size: 13px; line-height: 18px">Es una estimación con tus datos y reglas. No indica dónde están los peces.</p>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 0; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Cadena de filtros</h2>
+      <p style="margin: 4px 0 14px; font-size: 14px; line-height: 20px; color: {{t.onVar}}">Se evalúan en orden. El nivel más restrictivo fija el techo del resultado.</p>
+      <sc-for list="{{niveles}}" as="n" hint-placeholder-count="5">
+        <div style="display: flex; gap: 12px">
+          <div style="display: flex; flex-direction: column; align-items: center; width: 32px">
+            <span style="width: 32px; height: 32px; border-radius: 16px; box-sizing: border-box; border: 2px solid {{n.ring}}; background: {{n.dotBg}}; color: {{n.dotFg}}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800">{{n.num}}</span>
+            <span style="flex: 1; width: 2px; min-height: 12px; background: {{n.line}}"></span>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 4px 10px 14px; margin-bottom: 4px; border-radius: 12px; background: {{n.cardBg}}">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+              <span style="font-size: 16px; font-weight: 800">{{n.title}}</span>
+              <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; background: {{n.pillBg}}; color: {{n.pillFg}}; font-size: 12.5px; font-weight: 800; white-space: nowrap">{{n.status}}</span>
+            </div>
+            <span style="font-size: 14px; line-height: 20px; color: {{t.onVar}}">{{n.why}}</span>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 800">Demanda alimentaria</h2>
+        <span style="display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 7px; border-radius: 12px; background: {{evY.bg}}; color: {{evY.fg}}; font-size: 12.5px; font-weight: 700; white-space: nowrap"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="none" stroke="{{evY.ring}}" stroke-width="1.6"></circle><path d="{{evY.d}}" fill="{{evY.fill}}" stroke="{{evY.stroke}}" stroke-width="1.6"></path></svg>{{evY.label}}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; align-items: end">
+        <span style="height: 14px; border-radius: 4px; background: {{t.tertiary}}"></span>
+        <span style="height: 22px; border-radius: 4px; background: {{t.tertiary}}"></span>
+        <span style="height: 30px; border-radius: 4px; background: {{t.tertiary}}"></span>
+        <span style="height: 38px; border-radius: 4px; background: {{t.s3}}"></span>
+        <span style="height: 46px; border-radius: 4px; background: {{t.s3}}"></span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; font-size: 12px; text-align: center; color: {{t.onVar}}">
+        <span>Muy baja</span><span>Baja</span><span style="font-weight: 800; color: {{t.on}}">Media</span><span>Alta</span><span>Muy alta</span>
+      </div>
+      <p style="margin: 0; font-size: 15px; line-height: 22px">Agua a 18 °C bajando despacio: siguen comiendo, pero menos que en verano. Ajusta la cantidad a lo que veas en el puesto.</p>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Cuándo</h2>
+      <div style="display: grid; grid-template-columns: 105fr 156fr 239fr; gap: 3px; height: 40px">
+        <span style="border-radius: 8px 3px 3px 8px; background: {{t.primary}}; color: {{t.onPrimary}}; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center">Mejor</span>
+        <span style="border-radius: 3px; background: {{t.s3}}; color: {{t.onVar}}; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">Menos activa</span>
+        <span style="border-radius: 3px 8px 8px 3px; background: {{t.primary}}; color: {{t.onPrimary}}; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center">Mejor</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: {{t.onVar}}; margin-top: -6px">
+        <span>07:15</span><span>10:30</span><span>17:00</span><span>20:58</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 15px; line-height: 22px">Primeras horas y última luz, dentro del horario legal.</span>
+        <span style="display: inline-flex; align-self: flex-start; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 7px; border-radius: 12px; background: {{evY.bg}}; color: {{evY.fg}}; font-size: 12.5px; font-weight: 700; white-space: nowrap"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="none" stroke="{{evY.ring}}" stroke-width="1.6"></circle><path d="{{evY.d}}" fill="{{evY.fill}}" stroke="{{evY.stroke}}" stroke-width="1.6"></path></svg>{{evY.label}}</span>
+      </div>
+    </section>
+
+    <sc-for list="{{recs}}" as="r" hint-placeholder-count="4">
+      <section style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: {{r.bg}}; border: 1px solid {{r.border}}">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: {{r.titleColor}}">{{r.title}}</h2>
+        <sc-for list="{{r.items}}" as="it" hint-placeholder-count="2">
+          <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid {{t.outlineVar}}">
+            <span style="font-size: 15px; line-height: 22px">{{it.text}}</span>
+            <span style="display: inline-flex; align-self: flex-start; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 7px; border-radius: 12px; background: {{it.ev.bg}}; color: {{it.ev.fg}}; font-size: 12.5px; font-weight: 700; white-space: nowrap"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="none" stroke="{{it.ev.ring}}" stroke-width="1.6"></circle><path d="{{it.ev.d}}" fill="{{it.ev.fill}}" stroke="{{it.ev.stroke}}" stroke-width="1.6"></path></svg>{{it.ev.label}}</span>
+          </div>
+        </sc-for>
+      </section>
+    </sc-for>
+
+    <section style="display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Reglas activadas hoy</h2>
+      <p style="margin: 0 0 8px; font-size: 14px; color: {{t.onVar}}">5 de 23 reglas · toca una para ver la fuente</p>
+      <sc-for list="{{reglas}}" as="g" hint-placeholder-count="5">
+        <a href="#" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-top: 1px solid {{t.outlineVar}}; text-decoration: none; color: {{t.on}}">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <span style="font-family: 'Atkinson Hyperlegible Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: {{t.onVar}}">{{g.code}}</span>
+            <span style="flex: 1"></span>
+            <span style="font-size: 12.5px; font-weight: 800; color: {{g.effColor}}">{{g.effect}}</span>
+          </div>
+          <span style="font-size: 16px; line-height: 22px; font-weight: 700">{{g.title}}</span>
+          <span style="font-size: 14px; line-height: 20px; color: {{t.onVar}}">Por qué: {{g.why}}</span>
+          <span style="display: inline-flex; align-self: flex-start; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 7px; border-radius: 12px; background: {{g.ev.bg}}; color: {{g.ev.fg}}; font-size: 12.5px; font-weight: 700; white-space: nowrap"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="none" stroke="{{g.ev.ring}}" stroke-width="1.6"></circle><path d="{{g.ev.d}}" fill="{{g.ev.fill}}" stroke="{{g.ev.stroke}}" stroke-width="1.6"></path></svg>{{g.ev.label}}</span>
+        </a>
+      </sc-for>
+    </section>
+  </main>
+
+  <nav aria-label="Navegación principal" style="margin-top: auto; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 12px 4px 16px; background: {{t.navBg}}">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></span>Hoy</a>
+    <a href="Estrategia.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.on}}; font-size: 13px; font-weight: 800"><span style="width: 64px; height: 32px; border-radius: 16px; background: {{t.navInd}}; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onPrimaryC}}" stroke-width="2" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"></path></svg></span>Estrategia</a>
+    <a href="Datos.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"></path></svg></span>Datos</a>
+    <a href="Diario.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19V5M9 8h6"></path></svg></span>Diario</a>
+    <a href="Mas.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></span>Lugar</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":412,"height":2440}}'>
+var THEME = {
+  light: {bg:'#F2F4EC',surface:'#FFFFFF',s2:'#E8ECE0',s3:'#DCE0D4',on:'#191D16',onVar:'#42493D',outline:'#72796B',outlineVar:'#C6CBBD',primary:'#36652A',onPrimary:'#FFFFFF',primaryC:'#C9E7B2',onPrimaryC:'#0D2004',scaleOff:'rgba(13,32,4,0.18)',secondary:'#8A4A27',onSecondary:'#FFFFFF',secondaryC:'#F7D9C5',onSecondaryC:'#331100',tertiary:'#1A5E7A',onTertiary:'#FFFFFF',tertiaryC:'#C2E6F5',onTertiaryC:'#001F2A',error:'#B3261E',errorC:'#F9DEDC',onErrorC:'#410E0B',warnC:'#FFE39A',onWarnC:'#3A2A00',warnIcon:'#9A7000',warnText:'#6E4F00',navBg:'#E3E8DA',navInd:'#C9E7B2',evGbg:'#DDEFD5',evGfg:'#1B4D1F',evGdot:'#2E7D32',evYbg:'#FBEDC0',evYfg:'#5A4200',evYdot:'#A67C00',evRbg:'#F8DCD9',evRfg:'#7A1A14',evRdot:'#C62828',evPbg:'#ECDDF7',evPfg:'#4A2470',evPdot:'#7B4BB0',evBbg:'#D8E6F7',evBfg:'#123F73',evBdot:'#1E63B5'},
+  dark: {bg:'#10140E',surface:'#192017',s2:'#222A1F',s3:'#2D3529',on:'#E2E6DA',onVar:'#C3C8BA',outline:'#8D9385',outlineVar:'#3E463A',primary:'#A6D58C',onPrimary:'#123806',primaryC:'#285018',onPrimaryC:'#C9EFB0',scaleOff:'rgba(201,239,176,0.22)',secondary:'#F2B591',onSecondary:'#4E2209',secondaryC:'#6B3416',onSecondaryC:'#FFDCC8',tertiary:'#8ED0EE',onTertiary:'#003546',tertiaryC:'#004D66',onTertiaryC:'#C2E8F8',error:'#F2B8B5',errorC:'#8C1D18',onErrorC:'#F9DEDC',warnC:'#4F3B00',onWarnC:'#FFE39A',warnIcon:'#F1C24B',warnText:'#F1C24B',navBg:'#1E251B',navInd:'#285018',evGbg:'#1F3A1F',evGfg:'#BDE7B4',evGdot:'#7BC67E',evYbg:'#3E3210',evYfg:'#F5DC8A',evYdot:'#E6B93A',evRbg:'#451B18',evRfg:'#F6C1BC',evRdot:'#EF7B73',evPbg:'#352548',evPfg:'#E1CDF5',evPdot:'#B992E3',evBbg:'#172F4A',evBfg:'#C3DBF7',evBdot:'#6FA8E8'}
+};
+function EV(k, t) {
+  var T = 'transparent';
+  var m = {
+    g: { bg: t.evGbg, fg: t.evGfg, c: t.evGdot, ring: T, d: 'M6 1a5 5 0 1 0 0.01 0z', f: 1, label: 'Fuerte' },
+    y: { bg: t.evYbg, fg: t.evYfg, c: t.evYdot, ring: t.evYdot, d: 'M6 1.4a4.6 4.6 0 0 1 0 9.2z', f: 1, label: 'Moderada / hipótesis' },
+    r: { bg: t.evRbg, fg: t.evRfg, c: t.evRdot, ring: t.evRdot, d: 'M2.8 9.2L9.2 2.8', f: 0, label: 'Sin evidencia · peso 0' },
+    p: { bg: t.evPbg, fg: t.evPfg, c: t.evPdot, ring: T, d: 'M6 0.6L11.4 6L6 11.4L0.6 6z', f: 1, label: 'Hipótesis local' },
+    b: { bg: t.evBbg, fg: t.evBfg, c: t.evBdot, ring: T, d: 'M1 7c1.6-3.2 3.4-3.2 5 0s3.4 3.2 5 0', f: 0, label: 'Variabilidad individual' }
+  }[k];
+  return { bg: m.bg, fg: m.fg, ring: m.ring, d: m.d, fill: m.f ? m.c : 'none', stroke: m.f ? 'none' : m.c, label: m.label };
+}
+class Component extends DCLogic {
+  renderVals() {
+    var t = (this.props.dark ?? false) ? THEME.dark : THEME.light;
+    var st = {
+      ok: { ring: t.primary, dotBg: t.primary, dotFg: t.onPrimary, pillBg: t.primaryC, pillFg: t.onPrimaryC, cardBg: 'transparent' },
+      lim: { ring: t.secondary, dotBg: t.secondary, dotFg: t.onSecondary, pillBg: t.secondary, pillFg: t.onSecondary, cardBg: t.secondaryC },
+      plus: { ring: t.primary, dotBg: 'transparent', dotFg: t.primary, pillBg: t.tertiaryC, pillFg: t.onTertiaryC, cardBg: 'transparent' },
+      neu: { ring: t.outline, dotBg: 'transparent', dotFg: t.onVar, pillBg: t.s3, pillFg: t.on, cardBg: 'transparent' }
+    };
+    var niveles = [
+      { num: '0', title: 'Legalidad', status: 'Superado', s: 'ok', why: 'Hora dentro de 07:15–20:58. Sin veda especial registrada.' },
+      { num: '1', title: 'Hábitat', status: 'Superado', s: 'ok', why: 'Embalse al 54 %: orillas con carrizo y fondos de 1,5–3 m accesibles.' },
+      { num: '2', title: 'Temperatura', status: 'Limita', s: 'lim', why: 'Agua 18,1 °C y bajando 0,6 °C en 3 días: el metabolismo empieza a frenar.' },
+      { num: '3', title: 'Modificadores físicos', status: 'Suma, incierto', s: 'plus', why: 'Viento NO persistente 3 días, pero los modelos discrepan (8–22 km/h).' },
+      { num: '4', title: 'Capturabilidad', status: 'Neutro', s: 'neu', why: 'Sábado: presión de pesca media en las orillas de acceso fácil.', last: true }
+    ].map(function (n, i, a) { return Object.assign({}, n, st[n.s], { line: i === a.length - 1 ? 'transparent' : t.outlineVar }); });
+    var card = { bg: t.surface, border: t.outlineVar, titleColor: t.on };
+    var recs = [
+      Object.assign({ title: 'Dónde', items: [
+        { text: 'Orilla que recibe el viento del noroeste (lado sureste), en la franja de 1,5 a 3 m.', ev: EV('y', t) },
+        { text: 'Bordes del carrizal norte por la tarde: en tu diario rinde más en otoño.', ev: EV('p', t) }
+      ] }, card),
+      Object.assign({ title: 'Cebado', items: [
+        { text: 'Poco y concentrado, repitiendo si hay actividad. Con demanda media, mejor quedarse corto.', ev: EV('y', t) }
+      ] }, card),
+      Object.assign({ title: 'Presentación', items: [
+        { text: 'Cebo de tamaño medio y bajo de línea discreto. Lo que funciona cambia mucho entre peces.', ev: EV('b', t) }
+      ] }, card),
+      { title: 'Qué evitar', bg: t.errorC, border: t.errorC, titleColor: t.onErrorC, items: [
+        { text: 'Someros sin viento a mediodía: el agua se enfría de noche y tarda en recuperar.', ev: EV('y', t) },
+        { text: 'Decidir por la fase lunar o la presión: se muestran, pero no cuentan.', ev: EV('r', t) }
+      ] }
+    ];
+    var eff = { lim: { effect: 'Limita', effColor: t.secondary }, plus: { effect: 'Suma', effColor: t.primary }, zero: { effect: 'Sin efecto', effColor: t.onVar } };
+    var reglas = [
+      Object.assign({ code: 'T-03', title: 'Agua 16–20 °C en descenso → demanda media', why: 'el agua ha bajado 0,6 °C en 3 días y está a 18,1 °C.', ev: EV('g', t) }, eff.lim),
+      Object.assign({ code: 'V-02', title: 'Viento persistente empuja agua templada a la orilla receptora', why: '3 días seguidos de NO; incertidumbre alta entre modelos.', ev: EV('y', t) }, eff.plus),
+      Object.assign({ code: 'B-05', title: 'Brovales: el carrizal norte rinde más en otoño', why: '7 de tus 11 sesiones con captura en oct–nov fueron allí.', ev: EV('p', t) }, eff.plus),
+      Object.assign({ code: 'P-01', title: 'Montaje y cebo: respuesta distinta entre ejemplares', why: 'tus capturas no muestran un patrón claro por cebo.', ev: EV('b', t) }, eff.zero),
+      Object.assign({ code: 'L-01', title: 'Fase lunar', why: 'no hay evidencia sólida; se informa pero pesa 0.', ev: EV('r', t) }, eff.zero)
+    ];
+    return { t: t, niveles: niveles, recs: recs, reglas: reglas, evY: EV('y', t) };
+  }
+}
+</script>
+</body>
+</html>

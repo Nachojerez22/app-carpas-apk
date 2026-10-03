@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Importar JSON</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&amp;family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 412px; height: 1400px; box-sizing: border-box; background: {{t.bg}}; color: {{t.on}}; font-family: 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; font-variant-numeric: tabular-nums">
+
+  <header style="display: flex; align-items: center; gap: 4px; padding: 12px 12px 12px 4px">
+    <a href="Datos.dc.html" aria-label="Volver" style="width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.on}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>
+    </a>
+    <h1 style="margin: 0; flex: 1; font-size: 22px; font-weight: 800">Importar JSON</h1>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 32px">
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <button style="height: 48px; border-radius: 14px; border: 0; background: {{t.s3}}; color: {{t.on}}; font-family: inherit; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.on}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="2"></rect><path d="M9 4V2h6v2"></path></svg>Pegar</button>
+      <button style="height: 48px; border-radius: 14px; border: 0; background: {{t.s3}}; color: {{t.on}}; font-family: inherit; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.on}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h10l6 6v10H4z"></path><path d="M14 4v6h6"></path></svg>Archivo</button>
+      <button style="height: 48px; border-radius: 14px; border: 0; background: {{t.s3}}; color: {{t.on}}; font-family: inherit; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.on}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V4H4v12h4"></path></svg>Ejemplo</button>
+    </div>
+
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Contenido JSON
+      <pre style="margin: 0; padding: 14px; border-radius: 14px; border: 1px solid {{t.outline}}; background: {{t.code}}; color: {{t.on}}; font-family: 'Atkinson Hyperlegible Mono', ui-monospace, monospace; font-size: 13px; line-height: 19px; font-weight: 400; white-space: pre-wrap; overflow: hidden; height: 300px">[
+  {
+    "fecha": "2026-09-30",
+    "hora": "07:00",
+    "agua_sup": 18.9,
+    "turbidez": 2
+  },
+  {
+    "fecha": "2026-09-30",
+    "tipo": "dia",
+    "lluvia_mm": 0
+  },
+  {
+    "fecha": "2026-10-01",
+    "turbidez": 7,
+    "nivel": { "valor": 3.9, "unidad": "m3" }
+  },
+  { "fecha": "2026-10-01", "aire": 21 }
+]</pre>
+    </label>
+
+    <section style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Vista previa</h2>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <span style="display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 15px; background: {{t.primaryC}}; color: {{t.onPrimaryC}}; font-size: 14px; font-weight: 800">3 válidos</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 15px; background: {{t.errorC}}; color: {{t.onErrorC}}; font-size: 14px; font-weight: 800">1 con errores</span>
+      </div>
+      <sc-for list="{{regs}}" as="r" hint-placeholder-count="4">
+        <div style="display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid {{t.outlineVar}}">
+          <span style="width: 28px; height: 28px; border-radius: 14px; flex-shrink: 0; background: {{r.dotBg}}; display: flex; align-items: center; justify-content: center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{r.dotFg}}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="{{r.icon}}"></path></svg>
+          </span>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0">
+            <span style="font-size: 15px; font-weight: 800">#{{r.n}} · {{r.titulo}}</span>
+            <span style="font-size: 14px; line-height: 20px; color: {{t.onVar}}">{{r.detalle}}</span>
+            <sc-for list="{{r.errores}}" as="e" hint-placeholder-count="0">
+              <span style="font-size: 14px; line-height: 20px; color: {{t.errText}}; display: flex; gap: 6px"><span style="font-family: 'Atkinson Hyperlegible Mono', ui-monospace, monospace; font-weight: 600">{{e.campo}}</span><span>{{e.msg}}</span></span>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+
+    <div style="display: flex; gap: 12px; padding: 12px 14px; border-radius: 14px; background: {{t.secondaryC}}; color: {{t.onSecondaryC}}; font-size: 14px; line-height: 20px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.onSecondaryC}}" stroke-width="2.2" stroke-linecap="round" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>
+      <span>Lo importado se guarda con fuente M y la marca «no verificado» hasta que lo revises en la lista.</span>
+    </div>
+
+    <button style="height: 52px; border-radius: 26px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font-family: inherit; font-size: 16px; font-weight: 800">Importar 3 válidos</button>
+    <button style="height: 48px; border-radius: 24px; border: 0; background: transparent; color: {{t.primary}}; font-family: inherit; font-size: 15px; font-weight: 800">Corregir y volver a validar</button>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":412,"height":1400}}'>
+var THEME = {
+  light: {bg:'#F2F4EC',surface:'#FFFFFF',s2:'#E8ECE0',s3:'#DCE0D4',code:'#F7F8F3',on:'#191D16',onVar:'#42493D',outline:'#72796B',outlineVar:'#C6CBBD',primary:'#36652A',onPrimary:'#FFFFFF',primaryC:'#C9E7B2',onPrimaryC:'#0D2004',secondaryC:'#F7D9C5',onSecondaryC:'#331100',error:'#B3261E',onError:'#FFFFFF',errorC:'#F9DEDC',onErrorC:'#410E0B',errText:'#9C1F18'},
+  dark: {bg:'#10140E',surface:'#192017',s2:'#222A1F',s3:'#2D3529',code:'#141A12',on:'#E2E6DA',onVar:'#C3C8BA',outline:'#8D9385',outlineVar:'#3E463A',primary:'#A6D58C',onPrimary:'#123806',primaryC:'#285018',onPrimaryC:'#C9EFB0',secondaryC:'#6B3416',onSecondaryC:'#FFDCC8',error:'#F2B8B5',onError:'#601410',errorC:'#8C1D18',onErrorC:'#F9DEDC',errText:'#F2B8B5'}
+};
+class Component extends DCLogic {
+  renderVals() {
+    var t = (this.props.dark ?? false) ? THEME.dark : THEME.light;
+    var ok = { dotBg: t.primary, dotFg: t.onPrimary, icon: 'M5 12l5 5 9-10', errores: [] };
+    var bad = { dotBg: t.error, dotFg: t.onError, icon: 'M7 7l10 10M17 7L7 17' };
+    var regs = [
+      Object.assign({ n: '1', titulo: '30 sep · 07:00 · por hora', detalle: 'Agua sup. 18,9 °C · turbidez 2' }, ok),
+      Object.assign({ n: '2', titulo: '30 sep · por día', detalle: 'Lluvia 0 mm' }, ok),
+      Object.assign({ n: '3', titulo: '1 oct · por día', detalle: 'No se importará hasta corregirlo:', errores: [
+        { campo: 'turbidez', msg: '7 está fuera de rango (1–5)' },
+        { campo: 'nivel.unidad', msg: '«m3» no válido: usa hm3, pct o cota' }
+      ] }, bad),
+      Object.assign({ n: '4', titulo: '1 oct · por día', detalle: 'Aire 21 °C · sin hora: se guarda como dato diario' }, ok)
+    ];
+    return { t: t, regs: regs };
+  }
+}
+</script>
+</body>
+</html>

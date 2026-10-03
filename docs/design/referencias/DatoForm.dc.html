@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nuevo registro manual</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&amp;family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 412px; height: 1640px; box-sizing: border-box; background: {{t.bg}}; color: {{t.on}}; font-family: 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; font-variant-numeric: tabular-nums">
+
+  <header style="display: flex; align-items: center; gap: 4px; padding: 12px 12px 12px 4px; background: {{t.surface}}; border-bottom: 1px solid {{t.outlineVar}}">
+    <a href="Datos.dc.html" aria-label="Cerrar sin guardar" style="width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.on}}" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </a>
+    <h1 style="margin: 0; flex: 1; font-size: 22px; font-weight: 800">Nuevo registro</h1>
+    <a href="Datos.dc.html" style="height: 44px; padding: 0 18px; border-radius: 22px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; text-decoration: none; font-size: 15px; font-weight: 800">Guardar</a>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 14px; padding: 16px 16px 32px">
+    <p style="margin: 0; font-size: 15px; line-height: 22px; color: {{t.onVar}}">Todos los campos son opcionales. Rellena solo lo que hayas medido.</p>
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">Cuándo</h2>
+      <div role="group" aria-label="Tipo de registro" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid {{t.outline}}; border-radius: 22px; overflow: hidden; height: 44px">
+        <button style="border: 0; background: {{t.primaryC}}; color: {{t.onPrimaryC}}; font-family: inherit; font-size: 15px; font-weight: 800">Por hora</button>
+        <button style="border: 0; border-left: 1px solid {{t.outline}}; background: transparent; color: {{t.on}}; font-family: inherit; font-size: 15px; font-weight: 600">Por día</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Fecha
+          <span style="display: flex; align-items: center; height: 52px; border: 1px solid {{t.outline}}; border-radius: 12px; padding: 0 12px; background: {{t.surface}}"><input value="03/10/2026" style="flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 17px; color: {{t.on}}"></span>
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Hora
+          <span style="display: flex; align-items: center; height: 52px; border: 1px solid {{t.outline}}; border-radius: 12px; padding: 0 12px; background: {{t.surface}}"><input value="07:40" style="flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 17px; color: {{t.on}}"></span>
+        </label>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">Agua</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Superficie
+          <span style="display: flex; align-items: center; gap: 6px; height: 52px; border: 2px solid {{t.primary}}; border-radius: 12px; padding: 0 12px; background: {{t.surface}}"><input value="18,1" style="flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 20px; font-weight: 700; color: {{t.on}}"><span style="font-size: 15px; color: {{t.onVar}}">°C</span></span>
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Fondo
+          <span style="display: flex; align-items: center; gap: 6px; height: 52px; border: 1px solid {{t.outline}}; border-radius: 12px; padding: 0 12px; background: {{t.surface}}"><input placeholder="—" style="flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 20px; color: {{t.on}}"><span style="font-size: 15px; color: {{t.onVar}}">°C</span></span>
+        </label>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; font-weight: 700; color: {{t.onVar}}">Turbidez</span>
+        <div role="radiogroup" aria-label="Turbidez de 1 a 5" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{turb}}" as="b" hint-placeholder-count="5">
+            <button role="radio" aria-checked="{{b.sel}}" onClick="{{b.pick}}" style="height: 48px; border-radius: 12px; border: 2px solid {{b.border}}; background: {{b.bg}}; color: {{b.fg}}; font-family: inherit; font-size: 18px; font-weight: 800; cursor: pointer">{{b.n}}</button>
+          </sc-for>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: {{t.onVar}}"><span>1 · Clara</span><span>5 · Muy turbia</span></div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">Aire y viento</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Temperatura aire
+          <span style="display: flex; align-items: center; gap: 6px; height: 52px; border: 1px solid {{t.outline}}; border-radius: 12px; padding: 0 12px"><input value="14" style="flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 20px; color: {{t.on}}"><span style="font-size: 15px; color: {{t.onVar}}">°C</span></span>
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Presión
+          <span style="display: flex; align-items: center; gap: 6px; height: 52px; border: 1px solid {{t.outline}}; border-radius: 12px; padding: 0 12px"><input placeholder="—" style="flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 20px; color: {{t.on}}"><span style="font-size: 15px; color: {{t.onVar}}">hPa</span></span>
+        </label>
+      </div>
+      <span style="font-size: 13px; font-weight: 700; color: {{t.onVar}}">Dirección del viento (de dónde viene)</span>
+      <div role="radiogroup" aria-label="Dirección del viento" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{dirs}}" as="d" hint-placeholder-count="8">
+          <button role="radio" aria-checked="{{d.sel}}" style="height: 44px; border-radius: 10px; border: 1.5px solid {{d.border}}; background: {{d.bg}}; color: {{d.fg}}; font-family: inherit; font-size: 15px; font-weight: 800">{{d.n}}</button>
+        </sc-for>
+      </div>
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Velocidad
+        <span style="display: flex; align-items: center; gap: 6px; height: 52px; border: 1px solid {{t.outline}}; border-radius: 12px; padding: 0 12px"><input value="10" style="flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 20px; color: {{t.on}}"><span style="font-size: 15px; color: {{t.onVar}}">km/h</span></span>
+      </label>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">Lluvia</h2>
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Acumulada en el periodo
+        <span style="display: flex; align-items: center; gap: 6px; height: 52px; border: 1px solid {{t.outline}}; border-radius: 12px; padding: 0 12px"><input placeholder="—" style="flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 20px; color: {{t.on}}"><span style="font-size: 15px; color: {{t.onVar}}">mm</span></span>
+      </label>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">Nivel del embalse</h2>
+      <div role="group" aria-label="Unidad del nivel" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid {{t.outline}}; border-radius: 22px; overflow: hidden; height: 44px">
+        <button style="border: 0; background: transparent; color: {{t.on}}; font-family: inherit; font-size: 15px; font-weight: 600">hm³</button>
+        <button style="border: 0; border-left: 1px solid {{t.outline}}; background: {{t.primaryC}}; color: {{t.onPrimaryC}}; font-family: inherit; font-size: 15px; font-weight: 800">%</button>
+        <button style="border: 0; border-left: 1px solid {{t.outline}}; background: transparent; color: {{t.on}}; font-family: inherit; font-size: 15px; font-weight: 600">Cota (m)</button>
+      </div>
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Porcentaje de llenado
+        <span style="display: flex; align-items: center; gap: 6px; height: 52px; border: 1px solid {{t.outline}}; border-radius: 12px; padding: 0 12px"><input value="54" style="flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 20px; color: {{t.on}}"><span style="font-size: 15px; color: {{t.onVar}}">%</span></span>
+      </label>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Notas
+        <textarea rows="3" placeholder="Algo que quieras recordar del dato" style="border: 1px solid {{t.outline}}; border-radius: 12px; padding: 12px; background: transparent; font-family: inherit; font-size: 16px; color: {{t.on}}; resize: none"></textarea>
+      </label>
+    </section>
+
+    <button style="height: 48px; border-radius: 24px; border: 1.5px solid {{t.error}}; background: transparent; color: {{t.error}}; font-family: inherit; font-size: 15px; font-weight: 800">Eliminar registro</button>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":412,"height":1640}}'>
+var THEME = {
+  light: {bg:'#F2F4EC',surface:'#FFFFFF',s2:'#E8ECE0',s3:'#DCE0D4',on:'#191D16',onVar:'#42493D',outline:'#72796B',outlineVar:'#C6CBBD',primary:'#36652A',onPrimary:'#FFFFFF',primaryC:'#C9E7B2',onPrimaryC:'#0D2004',error:'#B3261E'},
+  dark: {bg:'#10140E',surface:'#192017',s2:'#222A1F',s3:'#2D3529',on:'#E2E6DA',onVar:'#C3C8BA',outline:'#8D9385',outlineVar:'#3E463A',primary:'#A6D58C',onPrimary:'#123806',primaryC:'#285018',onPrimaryC:'#C9EFB0',error:'#F2B8B5'}
+};
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { turb: 2 }; }
+  renderVals() {
+    var t = (this.props.dark ?? false) ? THEME.dark : THEME.light;
+    var self = this;
+    var turb = [1, 2, 3, 4, 5].map(function (n) {
+      var on = self.state.turb === n;
+      return { n: String(n), sel: on ? 'true' : 'false', bg: on ? t.primary : 'transparent', fg: on ? t.onPrimary : t.on, border: on ? t.primary : t.outline, pick: function () { self.setState({ turb: n }); } };
+    });
+    var dirs = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'].map(function (n) {
+      var on = n === 'NO';
+      return { n: n, sel: on ? 'true' : 'false', bg: on ? t.primaryC : 'transparent', fg: on ? t.onPrimaryC : t.on, border: on ? t.primary : t.outline };
+    });
+    return { t: t, turb: turb, dirs: dirs };
+  }
+}
+</script>
+</body>
+</html>

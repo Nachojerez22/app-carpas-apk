@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Datos manuales</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&amp;family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 412px; height: 1100px; box-sizing: border-box; background: {{t.bg}}; color: {{t.on}}; font-family: 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; font-variant-numeric: tabular-nums; position: relative">
+
+  <header style="display: flex; align-items: center; gap: 4px; padding: 20px 8px 8px 20px">
+    <div style="display: flex; flex-direction: column; gap: 2px; flex: 1">
+      <h1 style="margin: 0; font-size: 30px; line-height: 36px; font-weight: 800">Datos manuales</h1>
+      <span style="font-size: 15px; color: {{t.onVar}}">38 registros · Brovales</span>
+    </div>
+    <a href="Importar.dc.html" aria-label="Importar JSON" style="width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.on}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>
+    </a>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 24px">
+    <div role="group" aria-label="Agrupar registros" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid {{t.outline}}; border-radius: 24px; overflow: hidden; height: 44px">
+      <button style="border: 0; background: {{t.primaryC}}; color: {{t.onPrimaryC}}; font-family: inherit; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.onPrimaryC}}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>Todos</button>
+      <button style="border: 0; border-left: 1px solid {{t.outline}}; background: transparent; color: {{t.on}}; font-family: inherit; font-size: 15px; font-weight: 600">Por hora</button>
+      <button style="border: 0; border-left: 1px solid {{t.outline}}; background: transparent; color: {{t.on}}; font-family: inherit; font-size: 15px; font-weight: 600">Por día</button>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: {{t.secondaryC}}; color: {{t.onSecondaryC}}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{t.onSecondaryC}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17v.5"></path></svg>
+      <span style="flex: 1; font-size: 15px; font-weight: 700; line-height: 20px">1 registro importado sin verificar. Revísalo para quitar el aviso.</span>
+    </div>
+
+    <sc-for list="{{grupos}}" as="g" hint-placeholder-count="3">
+      <section style="display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 4px 4px 0; font-size: 14px; font-weight: 800; color: {{t.onVar}}; letter-spacing: 0.4px; text-transform: uppercase">{{g.dia}}</h2>
+        <sc-for list="{{g.regs}}" as="r" hint-placeholder-count="2">
+          <a href="DatoForm.dc.html" style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 16px; background: {{t.surface}}; border: {{r.border}}; text-decoration: none; color: {{t.on}}">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 4px; box-sizing: border-box; border-radius: 6px; border: 1.5px solid {{t.secondary}}; color: {{t.secondary}}; font-size: 12px; font-weight: 800" title="Fuente: manual o importado">M</span>
+              <span style="font-size: 17px; font-weight: 800">{{r.hora}}</span>
+              <span style="font-size: 13px; color: {{t.onVar}}">{{r.tipo}}</span>
+              <span style="flex: 1"></span>
+              <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; background: {{r.oBg}}; color: {{r.oFg}}; font-size: 12.5px; font-weight: 800">{{r.origen}}</span>
+            </div>
+            <span style="font-size: 15px; line-height: 22px">{{r.resumen}}</span>
+          </a>
+        </sc-for>
+      </section>
+    </sc-for>
+  </main>
+
+  <a href="DatoForm.dc.html" style="position: absolute; right: 16px; bottom: 108px; height: 56px; padding: 0 20px 0 16px; border-radius: 16px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 16px; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,0.22)">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onPrimary}}" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+    Nuevo registro
+  </a>
+
+  <nav aria-label="Navegación principal" style="margin-top: auto; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 12px 4px 16px; background: {{t.navBg}}">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></span>Hoy</a>
+    <a href="Estrategia.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"></path></svg></span>Estrategia</a>
+    <a href="Datos.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.on}}; font-size: 13px; font-weight: 800"><span style="width: 64px; height: 32px; border-radius: 16px; background: {{t.navInd}}; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onPrimaryC}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"></path></svg></span>Datos</a>
+    <a href="Diario.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19V5M9 8h6"></path></svg></span>Diario</a>
+    <a href="Mas.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></span>Lugar</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":412,"height":1100}}'>
+var THEME = {
+  light: {bg:'#F2F4EC',surface:'#FFFFFF',s2:'#E8ECE0',s3:'#DCE0D4',on:'#191D16',onVar:'#42493D',outline:'#72796B',outlineVar:'#C6CBBD',primary:'#36652A',onPrimary:'#FFFFFF',primaryC:'#C9E7B2',onPrimaryC:'#0D2004',secondary:'#8A4A27',onSecondary:'#FFFFFF',secondaryC:'#F7D9C5',onSecondaryC:'#331100',tertiary:'#1A5E7A',onTertiary:'#FFFFFF',tertiaryC:'#C2E6F5',onTertiaryC:'#001F2A',navBg:'#E3E8DA',navInd:'#C9E7B2'},
+  dark: {bg:'#10140E',surface:'#192017',s2:'#222A1F',s3:'#2D3529',on:'#E2E6DA',onVar:'#C3C8BA',outline:'#8D9385',outlineVar:'#3E463A',primary:'#A6D58C',onPrimary:'#123806',primaryC:'#285018',onPrimaryC:'#C9EFB0',secondary:'#F2B591',onSecondary:'#4E2209',secondaryC:'#6B3416',onSecondaryC:'#FFDCC8',tertiary:'#8ED0EE',onTertiary:'#003546',tertiaryC:'#004D66',onTertiaryC:'#C2E8F8',navBg:'#1E251B',navInd:'#285018'}
+};
+class Component extends DCLogic {
+  renderVals() {
+    var t = (this.props.dark ?? false) ? THEME.dark : THEME.light;
+    var manual = { origen: 'Manual', oBg: t.s3, oFg: t.on, border: '1px solid ' + t.outlineVar };
+    var imp = { origen: 'Importado', oBg: t.tertiaryC, oFg: t.onTertiaryC, border: '1px solid ' + t.outlineVar };
+    var nover = { origen: 'Sin verificar', oBg: t.secondary, oFg: t.onSecondary, border: '2px dashed ' + t.secondary };
+    var grupos = [
+      { dia: 'Hoy · sáb 3 oct', regs: [
+        Object.assign({ hora: '07:40', tipo: 'por hora', resumen: 'Agua 18,1 °C sup. · 16,9 °C fondo · turbidez 2 · embalse 54 %' }, manual)
+      ] },
+      { dia: 'Vie 2 oct', regs: [
+        Object.assign({ hora: '19:30', tipo: 'por hora', resumen: 'Agua 18,4 °C sup. · aire 21 °C · viento NO 12 km/h' }, manual),
+        Object.assign({ hora: 'Día', tipo: 'por día', resumen: 'Lluvia 0 mm · nivel 3,94 hm³' }, imp)
+      ] },
+      { dia: 'Jue 1 oct', regs: [
+        Object.assign({ hora: 'Día', tipo: 'por día', resumen: 'Lluvia 4,2 mm · presión 1010 hPa · cota 312,4 m' }, nover),
+        Object.assign({ hora: '08:10', tipo: 'por hora', resumen: 'Agua 18,7 °C sup. · turbidez 3' }, manual)
+      ] },
+      { dia: 'Lun 28 sep', regs: [
+        Object.assign({ hora: '18:45', tipo: 'por hora', resumen: 'Agua 19,2 °C sup. · aire 26 °C · viento SO 6 km/h' }, manual)
+      ] }
+    ];
+    return { t: t, grupos: grupos };
+  }
+}
+</script>
+</body>
+</html>

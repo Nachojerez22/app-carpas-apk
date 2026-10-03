@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Hoy · Condiciones</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&amp;family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 412px; height: 2280px; box-sizing: border-box; background: {{t.bg}}; color: {{t.on}}; font-family: 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; font-variant-numeric: tabular-nums">
+
+  <header style="display: flex; align-items: center; gap: 8px; padding: 20px 8px 8px 20px">
+    <div style="display: flex; flex-direction: column; gap: 2px; flex: 1">
+      <h1 style="margin: 0; font-size: 30px; line-height: 36px; font-weight: 800; letter-spacing: -0.3px">Hoy</h1>
+      <div style="font-size: 15px; color: {{t.onVar}}; display: flex; align-items: center; gap: 6px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+        Sáb 3 oct · Embalse de Brovales
+      </div>
+    </div>
+    <button aria-label="Actualizar datos" style="width: 48px; height: 48px; border-radius: 24px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.on}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg>
+    </button>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 12px; padding: 4px 16px 24px">
+
+    <section style="display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 14px; border-radius: 14px; background: {{t.s2}}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+      <div style="flex: 1; display: flex; flex-direction: column">
+        <span style="font-size: 15px; font-weight: 700">Datos de hace 25 min</span>
+        <span style="font-size: 13px; color: {{t.onVar}}">Última descarga 09:12 · AEMET y 3 modelos</span>
+      </div>
+      <button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer">Actualizar</button>
+    </section>
+
+    <section aria-label="Avisos" style="display: flex; flex-wrap: wrap; gap: 8px">
+      <span style="display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 12px; box-sizing: border-box; border-radius: 10px; background: {{t.warnC}}; color: {{t.onWarnC}}; font-size: 14px; font-weight: 700">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.onWarnC}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h11a3 3 0 1 0-3-3"></path><path d="M3 12h15a3 3 0 1 1-3 3"></path><path d="M3 16h7"></path></svg>
+        Viento incierto: los modelos discrepan
+      </span>
+      <span style="display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 12px; box-sizing: border-box; border-radius: 10px; background: {{t.secondaryC}}; color: {{t.onSecondaryC}}; font-size: 14px; font-weight: 700">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.onSecondaryC}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>
+        1 dato importado sin verificar
+      </span>
+    </section>
+
+    <sc-if value="{{aguaMedida}}" hint-placeholder-val="{{true}}">
+    <section style="display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 20px; background: {{t.tertiaryC}}; color: {{t.onTertiaryC}}">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+        <span style="font-size: 16px; font-weight: 700">Temperatura del agua</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 14px; background: {{t.tertiary}}; color: {{t.onTertiary}}; font-size: 13px; font-weight: 800; letter-spacing: 0.6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{t.onTertiary}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+          MEDIDA
+        </span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 6px">
+        <span style="font-size: 64px; line-height: 64px; font-weight: 800; letter-spacing: -1.5px">18,1</span>
+        <span style="font-size: 28px; font-weight: 700">°C</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 15px">
+        <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 4px; box-sizing: border-box; border-radius: 6px; border: 1.5px solid {{t.secondary}}; color: {{t.secondary}}; background: {{t.surface}}; font-size: 12px; font-weight: 800" title="Fuente: manual">M</span>
+        Superficie, termómetro a las 07:40 · fondo 16,9 °C
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding-top: 10px; border-top: 1px solid {{t.tertiaryLine}}">
+        <svg width="96" height="32" viewBox="0 0 96 32" role="img" aria-label="Tendencia del agua: bajando"><path d="M2 8 L34 13 L66 19 L94 25" fill="none" stroke="{{t.onTertiaryC}}" stroke-width="2.5" stroke-linecap="round"></path><circle cx="94" cy="25" r="3.5" fill="{{t.onTertiaryC}}"></circle></svg>
+        <div style="display: flex; flex-direction: column">
+          <span style="font-size: 17px; font-weight: 800">−0,6 °C en 3 días</span>
+          <span style="font-size: 13px">Tendencia: enfriándose despacio</span>
+        </div>
+      </div>
+    </section>
+    </sc-if>
+    <sc-if value="{{aguaEstimada}}" hint-placeholder-val="{{false}}">
+    <section style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 2px dashed {{t.tertiary}}; color: {{t.on}}">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+        <span style="font-size: 16px; font-weight: 700">Temperatura del agua</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 14px; border: 1.5px dashed {{t.tertiary}}; color: {{t.tertiary}}; font-size: 13px; font-weight: 800; letter-spacing: 0.6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{t.tertiary}}" stroke-width="2.4" stroke-linecap="round"><path d="M4 9c3-3 5-3 8 0s5 3 8 0"></path><path d="M4 15c3-3 5-3 8 0s5 3 8 0"></path></svg>
+          ESTIMADA
+        </span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 6px; color: {{t.tertiary}}">
+        <span style="font-size: 40px; font-weight: 700">≈</span>
+        <span style="font-size: 64px; line-height: 64px; font-weight: 800; letter-spacing: -1.5px">18</span>
+        <span style="font-size: 28px; font-weight: 700">°C</span>
+        <span style="font-size: 20px; font-weight: 700; color: {{t.onVar}}">± 1,5</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 15px; color: {{t.onVar}}">
+        <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 4px; box-sizing: border-box; border-radius: 6px; border: 1.5px dashed {{t.onVar}}; color: {{t.onVar}}; font-size: 12px; font-weight: 800" title="Fuente: previsión">P</span>
+        Calculada con el aire de los últimos 7 días. Mídela para afinar.
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding-top: 10px; border-top: 1px solid {{t.outlineVar}}">
+        <svg width="96" height="32" viewBox="0 0 96 32" role="img" aria-label="Tendencia estimada: bajando"><path d="M2 8 L34 13 L66 19 L94 25" fill="none" stroke="{{t.tertiary}}" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round"></path></svg>
+        <div style="display: flex; flex-direction: column">
+          <span style="font-size: 17px; font-weight: 800">≈ −0,6 °C en 3 días</span>
+          <span style="font-size: 13px; color: {{t.onVar}}">Tendencia estimada</span>
+        </div>
+      </div>
+    </section>
+    </sc-if>
+
+    <section style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <article style="display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 16px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <span style="font-size: 14px; font-weight: 700; color: {{t.onVar}}">Aire</span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 4px; box-sizing: border-box; border-radius: 6px; background: {{t.tertiary}}; border: 1.5px solid {{t.tertiary}}; color: {{t.onTertiary}}; font-size: 12px; font-weight: 800" title="Fuente: AEMET observación">A</span>
+        </div>
+        <span style="font-size: 36px; line-height: 40px; font-weight: 800">23 °C</span>
+        <span style="font-size: 14px; color: {{t.onVar}}">Máx 26 · mín 13</span>
+      </article>
+      <article style="display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 16px; background: {{t.surface}}; border: 2px solid {{t.warnIcon}}">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <span style="font-size: 14px; font-weight: 700; color: {{t.onVar}}">Viento dominante</span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 4px; box-sizing: border-box; border-radius: 6px; border: 1.5px dashed {{t.onVar}}; color: {{t.onVar}}; font-size: 12px; font-weight: 800" title="Fuente: previsión">P</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg width="30" height="30" viewBox="0 0 24 24" role="img" aria-label="Viene del noroeste"><circle cx="12" cy="12" r="10.5" fill="none" stroke="{{t.outlineVar}}" stroke-width="1.5"></circle><path d="M12 4l3 10-3-2-3 2z" fill="{{t.on}}" transform="rotate(135 12 12)"></path></svg>
+          <span style="font-size: 30px; line-height: 40px; font-weight: 800">NO 14</span>
+        </div>
+        <span style="font-size: 14px; color: {{t.onVar}}">km/h · 3 días seguidos</span>
+        <span style="font-size: 13px; font-weight: 700; color: {{t.warnText}}">Modelos: 8–22 km/h</span>
+      </article>
+      <article style="display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 16px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <span style="font-size: 14px; font-weight: 700; color: {{t.onVar}}">Lluvia</span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 4px; box-sizing: border-box; border-radius: 6px; background: {{t.tertiary}}; border: 1.5px solid {{t.tertiary}}; color: {{t.onTertiary}}; font-size: 12px; font-weight: 800" title="Fuente: AEMET observación">A</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 6px">
+          <span style="font-size: 36px; line-height: 40px; font-weight: 800">0</span>
+          <span style="font-size: 16px; font-weight: 700">mm 24 h</span>
+        </div>
+        <span style="font-size: 14px; color: {{t.onVar}}">4,2 mm en 72 h</span>
+      </article>
+      <article style="display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 16px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <span style="font-size: 14px; font-weight: 700; color: {{t.onVar}}">Embalse</span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 4px; box-sizing: border-box; border-radius: 6px; border: 1.5px solid {{t.secondary}}; color: {{t.secondary}}; font-size: 12px; font-weight: 800" title="Fuente: manual">M</span>
+        </div>
+        <span style="font-size: 36px; line-height: 40px; font-weight: 800">54 %</span>
+        <span style="font-size: 14px; color: {{t.onVar}}">3,92 hm³</span>
+        <span style="font-size: 14px; font-weight: 700; color: {{t.secondary}}">↓ 0,12 hm³ en 7 días</span>
+      </article>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 800">Horario legal</h2>
+        <span style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 14px; background: {{t.primaryC}}; color: {{t.onPrimaryC}}; font-size: 13px; font-weight: 800">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{t.onPrimaryC}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+          Ahora dentro
+        </span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px">
+        <span style="font-size: 34px; line-height: 40px; font-weight: 800">07:15 – 20:58</span>
+      </div>
+      <div style="position: relative; height: 64px">
+        <div style="position: absolute; left: 0; top: 18px; width: 105px; height: 22px; border-radius: 6px 0 0 6px; background: repeating-linear-gradient(135deg, {{t.night}} 0 6px, {{t.nightStripe}} 6px 9px)"></div>
+        <div style="position: absolute; left: 105px; top: 18px; width: 199px; height: 22px; background: {{t.legal}}"></div>
+        <div style="position: absolute; left: 304px; top: 18px; width: 44px; height: 22px; border-radius: 0 6px 6px 0; background: repeating-linear-gradient(135deg, {{t.night}} 0 6px, {{t.nightStripe}} 6px 9px)"></div>
+        <div style="position: absolute; left: 138px; top: 10px; width: 3px; height: 38px; border-radius: 2px; background: {{t.on}}"></div>
+        <span style="position: absolute; left: 124px; top: -6px; font-size: 12px; font-weight: 800">09:37</span>
+        <span style="position: absolute; left: 0; top: 46px; font-size: 12px; color: {{t.onVar}}">00</span>
+        <span style="position: absolute; left: 106px; top: 46px; font-size: 12px; color: {{t.onVar}}">↑ 08:15</span>
+        <span style="position: absolute; left: 248px; top: 46px; font-size: 12px; color: {{t.onVar}}">↓ 19:58</span>
+        <span style="position: absolute; right: 0; top: 46px; font-size: 12px; color: {{t.onVar}}">24</span>
+      </div>
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: {{t.onVar}}">Amanecer 08:15 · anochecer 19:58. Las zonas rayadas no son horario de pesca y nunca se recomiendan.</p>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: {{t.s2}}">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 800">Se muestran, pero no cuentan</h2>
+        <span style="display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 7px; border-radius: 12px; background: {{t.evRbg}}; color: {{t.evRfg}}; font-size: 12.5px; font-weight: 700; white-space: nowrap"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="{{t.evRdot}}" stroke-width="1.6"></circle><path d="M2.8 9.2l6.4-6.4" stroke="{{t.evRdot}}" stroke-width="1.6"></path></svg>Peso 0</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <svg width="28" height="28" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="{{t.onVar}}" stroke-width="1.6"></circle><path d="M12 3a9 9 0 0 1 0 18a6 9 0 0 0 0-18z" fill="{{t.onVar}}"></path></svg>
+          <div style="display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 700">Creciente 78 %</span><span style="font-size: 13px; color: {{t.onVar}}">Luna</span></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="1.8" stroke-linecap="round"><path d="M4 16a8 8 0 1 1 16 0"></path><path d="M12 16l4-5"></path></svg>
+          <div style="display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 700">1016 hPa ↑</span><span style="font-size: 13px; color: {{t.onVar}}">Presión · 3 h</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 800">Presión</h2>
+        <span style="font-size: 13px; color: {{t.onVar}}">hPa · 5 días + 3 previsión</span>
+      </div>
+      <svg width="348" height="150" viewBox="-6 0 348 150" role="img" aria-label="Gráfica de presión: bajó hasta 1010 el 1 de octubre y se prevé entre 1012 y 1020">
+        <path d="M-6 40H336M-6 100H336" stroke="{{t.grid}}" stroke-width="1"></path>
+        <text x="336" y="36" text-anchor="end" font-size="11" fill="{{t.onVar}}" font-family="inherit">1020</text>
+        <text x="336" y="96" text-anchor="end" font-size="11" fill="{{t.onVar}}" font-family="inherit">1010</text>
+        <rect x="210" y="4" width="126" height="128" fill="{{t.s2}}"></rect>
+        <path d="M210 64 L252 46 L294 46 L336 58 L336 94 L294 70 L252 58 Z" fill="{{t.band}}"></path>
+        <path d="M210 4V132" stroke="{{t.on}}" stroke-width="1.5" stroke-dasharray="3 3"></path>
+        <path d="M0 46 L42 64 L84 88 L126 100 L168 82 L210 64" fill="none" stroke="{{t.tertiary}}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></path>
+        <path d="M210 64 L252 52 L294 58 L336 76" fill="none" stroke="{{t.tertiary}}" stroke-width="3" stroke-dasharray="6 5" stroke-linecap="round"></path>
+        <circle cx="210" cy="64" r="5" fill="{{t.tertiary}}" stroke="{{t.surface}}" stroke-width="2"></circle>
+        <text x="0" y="147" font-size="11" fill="{{t.onVar}}" font-family="inherit">28/9</text>
+        <text x="84" y="147" text-anchor="middle" font-size="11" fill="{{t.onVar}}" font-family="inherit">30</text>
+        <text x="168" y="147" text-anchor="middle" font-size="11" fill="{{t.onVar}}" font-family="inherit">2/10</text>
+        <text x="210" y="147" text-anchor="middle" font-size="11" font-weight="800" fill="{{t.on}}" font-family="inherit">Hoy</text>
+        <text x="294" y="147" text-anchor="middle" font-size="11" fill="{{t.onVar}}" font-family="inherit">5</text>
+      </svg>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: {{t.onVar}}">
+        <span style="display: inline-flex; align-items: center; gap: 6px"><svg width="20" height="6"><path d="M1 3H19" stroke="{{t.tertiary}}" stroke-width="3" stroke-linecap="round"></path></svg>Observado</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px"><svg width="20" height="6"><path d="M1 3H19" stroke="{{t.tertiary}}" stroke-width="3" stroke-dasharray="5 4"></path></svg>Media de 3 modelos</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 10px; border-radius: 3px; background: {{t.band}}"></span>Discrepancia</span>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 800">Temperatura</h2>
+        <span style="font-size: 13px; color: {{t.onVar}}">°C · aire máx. y agua</span>
+      </div>
+      <svg width="348" height="150" viewBox="-6 0 348 150" role="img" aria-label="Gráfica de temperatura: aire entre 21 y 27 grados, agua bajando de 19,2 a 18,1">
+        <path d="M-6 46H336M-6 106H336" stroke="{{t.grid}}" stroke-width="1"></path>
+        <text x="336" y="42" text-anchor="end" font-size="11" fill="{{t.onVar}}" font-family="inherit">24</text>
+        <text x="336" y="102" text-anchor="end" font-size="11" fill="{{t.onVar}}" font-family="inherit">14</text>
+        <rect x="210" y="4" width="126" height="128" fill="{{t.s2}}"></rect>
+        <path d="M210 46 L252 28 L294 28 L336 40 L336 76 L294 52 L252 40 Z" fill="{{t.bandWarm}}"></path>
+        <path d="M210 4V132" stroke="{{t.on}}" stroke-width="1.5" stroke-dasharray="3 3"></path>
+        <path d="M0 28 L42 40 L84 58 L126 64 L168 52 L210 46" fill="none" stroke="{{t.secondary}}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></path>
+        <path d="M210 46 L252 34 L294 40 L336 58" fill="none" stroke="{{t.secondary}}" stroke-width="3" stroke-dasharray="6 5" stroke-linecap="round"></path>
+        <path d="M0 75 L42 76 L84 78 L126 80 L168 81 L210 81" fill="none" stroke="{{t.tertiary}}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></path>
+        <path d="M210 81 L252 82 L294 83 L336 84" fill="none" stroke="{{t.tertiary}}" stroke-width="3" stroke-dasharray="6 5" stroke-linecap="round"></path>
+        <circle cx="210" cy="46" r="5" fill="{{t.secondary}}" stroke="{{t.surface}}" stroke-width="2"></circle>
+        <circle cx="210" cy="81" r="5" fill="{{t.tertiary}}" stroke="{{t.surface}}" stroke-width="2"></circle>
+        <text x="0" y="147" font-size="11" fill="{{t.onVar}}" font-family="inherit">28/9</text>
+        <text x="84" y="147" text-anchor="middle" font-size="11" fill="{{t.onVar}}" font-family="inherit">30</text>
+        <text x="168" y="147" text-anchor="middle" font-size="11" fill="{{t.onVar}}" font-family="inherit">2/10</text>
+        <text x="210" y="147" text-anchor="middle" font-size="11" font-weight="800" fill="{{t.on}}" font-family="inherit">Hoy</text>
+        <text x="294" y="147" text-anchor="middle" font-size="11" fill="{{t.onVar}}" font-family="inherit">5</text>
+      </svg>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: {{t.onVar}}">
+        <span style="display: inline-flex; align-items: center; gap: 6px"><svg width="20" height="6"><path d="M1 3H19" stroke="{{t.secondary}}" stroke-width="3" stroke-linecap="round"></path></svg>Aire máx.</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px"><svg width="20" height="6"><path d="M1 3H19" stroke="{{t.tertiary}}" stroke-width="3" stroke-linecap="round"></path></svg>Agua</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px"><svg width="20" height="6"><path d="M1 3H19" stroke="{{t.onVar}}" stroke-width="3" stroke-dasharray="5 4"></path></svg>Previsión</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 10px; border-radius: 3px; background: {{t.bandWarm}}"></span>Discrepancia</span>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 4px; padding: 16px 16px 8px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Prioridad de fuentes</h2>
+      <p style="margin: 0 0 6px; font-size: 14px; line-height: 20px; color: {{t.onVar}}">Si hay varios valores para el mismo dato, gana el de más arriba.</p>
+      <sc-for list="{{fuentes}}" as="f" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 10px; min-height: 64px; border-top: 1px solid {{t.outlineVar}}">
+          <span style="width: 24px; font-size: 17px; font-weight: 800; color: {{t.onVar}}; text-align: center">{{f.pos}}</span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 4px; box-sizing: border-box; border-radius: 7px; border: 1.5px {{f.line}} {{f.bc}}; background: {{f.bg}}; color: {{f.fg}}; font-size: 13px; font-weight: 800">{{f.k}}</span>
+          <div style="flex: 1; display: flex; flex-direction: column; min-width: 0">
+            <span style="font-size: 16px; font-weight: 700">{{f.name}}</span>
+            <span style="font-size: 13px; color: {{t.onVar}}">{{f.desc}}</span>
+          </div>
+          <div style="display: flex; flex-direction: column">
+            <button aria-label="Subir prioridad" style="width: 44px; height: 26px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2.4" stroke-linecap="round"><path d="M6 15l6-6 6 6"></path></svg></button>
+            <button aria-label="Bajar prioridad" style="width: 44px; height: 26px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></button>
+          </div>
+          <button role="switch" aria-checked="{{f.on}}" aria-label="Activar fuente" onClick="{{f.toggle}}" style="width: 52px; height: 32px; border-radius: 16px; border: 2px solid {{f.swBorder}}; background: {{f.swBg}}; padding: 0; position: relative; cursor: pointer; flex-shrink: 0">
+            <span style="position: absolute; top: 50%; left: {{f.knobLeft}}; width: {{f.knob}}; height: {{f.knob}}; margin-top: {{f.knobOff}}; border-radius: 50%; background: {{f.knobBg}}"></span>
+          </button>
+        </div>
+      </sc-for>
+    </section>
+  </main>
+
+  <nav aria-label="Navegación principal" style="margin-top: auto; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 12px 4px 16px; background: {{t.navBg}}">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.on}}; font-size: 13px; font-weight: 800"><span style="width: 64px; height: 32px; border-radius: 16px; background: {{t.navInd}}; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onPrimaryC}}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></span>Hoy</a>
+    <a href="Estrategia.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"></path></svg></span>Estrategia</a>
+    <a href="Datos.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"></path></svg></span>Datos</a>
+    <a href="Diario.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19V5M9 8h6"></path></svg></span>Diario</a>
+    <a href="Mas.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></span>Lugar</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"aguaMedida":{"editor":"boolean","default":true},"$preview":{"width":412,"height":2280}}'>
+var THEME = {
+  light: {bg:'#F2F4EC',surface:'#FFFFFF',s2:'#E8ECE0',s3:'#DCE0D4',on:'#191D16',onVar:'#42493D',outline:'#72796B',outlineVar:'#C6CBBD',primary:'#36652A',onPrimary:'#FFFFFF',primaryC:'#C9E7B2',onPrimaryC:'#0D2004',secondary:'#8A4A27',onSecondary:'#FFFFFF',secondaryC:'#F7D9C5',onSecondaryC:'#331100',tertiary:'#1A5E7A',onTertiary:'#FFFFFF',tertiaryC:'#C2E6F5',onTertiaryC:'#001F2A',tertiaryLine:'rgba(0,31,42,0.2)',error:'#B3261E',onError:'#FFFFFF',errorC:'#F9DEDC',onErrorC:'#410E0B',warnC:'#FFE39A',onWarnC:'#3A2A00',warnIcon:'#9A7000',warnText:'#6E4F00',navBg:'#E3E8DA',navInd:'#C9E7B2',band:'rgba(26,94,122,0.20)',bandWarm:'rgba(138,74,39,0.18)',grid:'#D5DACB',night:'#D3D8CA',nightStripe:'#B4BBA9',legal:'#36652A',evGbg:'#DDEFD5',evGfg:'#1B4D1F',evGdot:'#2E7D32',evYbg:'#FBEDC0',evYfg:'#5A4200',evYdot:'#A67C00',evRbg:'#F8DCD9',evRfg:'#7A1A14',evRdot:'#C62828',evPbg:'#ECDDF7',evPfg:'#4A2470',evPdot:'#7B4BB0',evBbg:'#D8E6F7',evBfg:'#123F73',evBdot:'#1E63B5'},
+  dark: {bg:'#10140E',surface:'#192017',s2:'#222A1F',s3:'#2D3529',on:'#E2E6DA',onVar:'#C3C8BA',outline:'#8D9385',outlineVar:'#3E463A',primary:'#A6D58C',onPrimary:'#123806',primaryC:'#285018',onPrimaryC:'#C9EFB0',secondary:'#F2B591',onSecondary:'#4E2209',secondaryC:'#6B3416',onSecondaryC:'#FFDCC8',tertiary:'#8ED0EE',onTertiary:'#003546',tertiaryC:'#004D66',onTertiaryC:'#C2E8F8',tertiaryLine:'rgba(194,232,248,0.25)',error:'#F2B8B5',onError:'#601410',errorC:'#8C1D18',onErrorC:'#F9DEDC',warnC:'#4F3B00',onWarnC:'#FFE39A',warnIcon:'#F1C24B',warnText:'#F1C24B',navBg:'#1E251B',navInd:'#285018',band:'rgba(142,208,238,0.24)',bandWarm:'rgba(242,181,145,0.22)',grid:'#2F372B',night:'#262D23',nightStripe:'#3A4435',legal:'#A6D58C',evGbg:'#1F3A1F',evGfg:'#BDE7B4',evGdot:'#7BC67E',evYbg:'#3E3210',evYfg:'#F5DC8A',evYdot:'#E6B93A',evRbg:'#451B18',evRfg:'#F6C1BC',evRdot:'#EF7B73',evPbg:'#352548',evPfg:'#E1CDF5',evPdot:'#B992E3',evBbg:'#172F4A',evBfg:'#C3DBF7',evBdot:'#6FA8E8'}
+};
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { off: {} }; }
+  renderVals() {
+    var dark = this.props.dark ?? false;
+    var t = dark ? THEME.dark : THEME.light;
+    var medida = this.props.aguaMedida ?? true;
+    var self = this;
+    var src = [
+      { id: 'M', k: 'M', name: 'Manual / importado', desc: 'Tus mediciones en el embalse', line: 'solid', bc: t.secondary, bg: 'transparent', fg: t.secondary },
+      { id: 'A', k: 'A', name: 'AEMET', desc: 'Observación real de estación', line: 'solid', bc: t.tertiary, bg: t.tertiary, fg: t.onTertiary },
+      { id: 'P', k: 'P', name: 'Modelos (previsión)', desc: 'Media de 3 modelos · Open-Meteo', line: 'dashed', bc: t.onVar, bg: 'transparent', fg: t.onVar }
+    ];
+    var fuentes = src.map(function (s, i) {
+      var on = !self.state.off[s.id];
+      return Object.assign({}, s, {
+        pos: String(i + 1),
+        on: on ? 'true' : 'false',
+        swBg: on ? t.primary : t.s3,
+        swBorder: on ? t.primary : t.outline,
+        knobBg: on ? t.onPrimary : t.outline,
+        knob: on ? '24px' : '16px',
+        knobOff: on ? '-12px' : '-8px',
+        knobLeft: on ? '22px' : '6px',
+        toggle: function () { var o = Object.assign({}, self.state.off); o[s.id] = !o[s.id]; self.setState({ off: o }); }
+      });
+    });
+    return { t: t, aguaMedida: medida, aguaEstimada: !medida, fuentes: fuentes };
+  }
+}
+</script>
+</body>
+</html>
