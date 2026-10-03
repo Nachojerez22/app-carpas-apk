@@ -144,6 +144,12 @@ Sin clave la app compila y funciona, pero sin observaciones de AEMET (lo indica 
 > Nota: cualquier clave incluida en un APK se puede extraer. Para un uso personal es aceptable;
 > no distribuyas el APK con tu clave.
 
+## Instalar en Android
+
+APK de prueba y de producción desde **GitHub Actions → CI → Artifacts**. Configuración de la
+clave de firma, instalación, actualización sin perder datos y copias de seguridad en
+[`docs/INSTALACION.md`](docs/INSTALACION.md).
+
 ## Requisitos y compilación
 
 - JDK 17 o superior, y Android SDK con la plataforma 37 (Android Studio la instala sola).
@@ -170,6 +176,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 4**: motor de filtros/multiplicadores por niveles (reglas JSON con etiqueta de evidencia) y pantalla de estrategia
 - [x] **Fase 5**: UI completa (diseño Material/Apple, claro/oscuro), GPS y gráficas
 - [x] **Fase 6**: diario de sesiones (horas-caña, bolos, valoración previa sin sesgo, exportación)
+- [x] **Fase 6.1**: preparar producción (APK firmado en la CI, foto completa de parámetros para la fase 7, copias de seguridad)
 - [ ] Más adelante: aprendizaje con datos propios cuando haya 20–40 sesiones (CONOCIMIENTO.md §10)
 
 ## CI

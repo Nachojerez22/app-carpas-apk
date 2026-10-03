@@ -109,6 +109,13 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `AutoMigration(1 → 2)`. Capturas, valoración y contexto van como JSON (`JournalJson`), que
   también define la exportación `carpstrategy-diario` v1 (docs/FORMATO_DIARIO.md).
 - UI en `ui/diary`: `SessionForm` y `completeSession` son puras y tienen tests.
+- Fase 6.1 (preparar producción): cada `PredictionSnapshot` y el contexto de cada sesión guardan
+  `FeatureSnapshot` (todos los parámetros de las reglas con sus claves JSON), el valor de cada
+  nivel, las reglas activadas con su factor y la huella de rules.json (`RuleSet.fingerprint`).
+  Es la base del aprendizaje de la fase 7: no quitar campos sin pensar en las sesiones ya
+  guardadas. Las mediciones de la ficha (agua, turbidez, nivel) se guardan como registro de
+  Datos con fuente `SessionForm.MEASUREMENT_SOURCE`. Datos y Diario se pueden exportar y
+  restaurar (docs/INSTALACION.md).
 
 ## Stack
 
@@ -162,6 +169,11 @@ Los paquetes se crean conforme los necesita cada fase.
 - `AEMET_API_KEY` se lee de `local.properties` o de la variable de entorno y se expone en
   `BuildConfig.AEMET_API_KEY`.
 - **Nunca** se suben `local.properties`, claves ni keystores (`*.jks`, `*.keystore`).
+- Firma de producción: `CARP_KEYSTORE_FILE`, `CARP_KEYSTORE_PASSWORD`, `CARP_KEY_ALIAS` y
+  `CARP_KEY_PASSWORD` (local.properties o entorno). En la CI salen de los secretos
+  `CARP_KEYSTORE_BASE64` y compañía; la clave debe ser siempre la misma (docs/INSTALACION.md).
+- La CI publica el APK de prueba (`applicationIdSuffix ".prueba"`) en cada ejecución y el de
+  producción en `main`; `versionCode` = número de ejecución (`CARP_VERSION_CODE`).
 
 ## Git
 
