@@ -1,9 +1,16 @@
 # CarpStrategy
 
-App Android nativa, **personal y no comercial**, que analiza el tiempo de los días anteriores
-y del propio día de pesca y propone una **estrategia de pesca de carpas** a partir de reglas
-configurables. Zona por defecto: Brovales / Jerez de los Caballeros (Badajoz, Extremadura),
-38.37 N, 6.88 O. La ubicación se podrá cambiar por GPS o a mano.
+App Android nativa, **personal y no comercial**: **diario de sesiones de pesca de carpa +
+estimador de condiciones**. Analiza el tiempo de los días anteriores y del propio día de pesca
+y sugiere una estrategia mediante una cadena de filtros y multiplicadores configurable, siempre
+con su etiqueta de evidencia. **No localiza peces.**
+
+Zona por defecto: embalse de Brovales (Jerez de los Caballeros, Badajoz), ≈38,35 N, 6,70 O.
+La ubicación se podrá cambiar por GPS o a mano.
+
+El conocimiento del dominio (biología de la carpa, datos de Brovales, normativa extremeña y
+diseño del modelo) está en [`docs/CONOCIMIENTO.md`](docs/CONOCIMIENTO.md), que es la fuente de
+verdad del proyecto.
 
 > Estado: **Fase 0** (esqueleto del proyecto). Las pantallas son provisionales.
 
@@ -13,19 +20,24 @@ configurables. Zona por defecto: Brovales / Jerez de los Caballeros (Badajoz, Ex
 |---|---|---|
 | [Open-Meteo](https://open-meteo.com/) | Serie base horaria (7 días pasados + 3 de previsión) con varios modelos europeos (ICON-EU, ARPEGE Europe, ECMWF IFS) para calcular la media y la divergencia entre modelos | No necesita |
 | [AEMET OpenData](https://opendata.aemet.es/) | Observaciones reales de la estación más cercana (~24 h) para corregir el sesgo del modelo | **Sí** (gratuita) |
-| SAIH Guadiana / boletín hidrológico | Nivel de los embalses (fase 2+, **pendiente de investigar**) | — |
+| Boletín Hidrológico semanal (MITECO) + entrada manual | Nivel del embalse (dato semanal redondeado a ±0,5 hm³). SAIH Guadiana **no tiene API pública** (acceso por cuenta) | — |
 
 Los datos de Open-Meteo se publican con licencia CC BY 4.0, y los de AEMET están © AEMET.
 Ambas fuentes se citan en la pantalla **Acerca de**.
 
 ### Limitaciones (importante)
 
-- **La temperatura del agua NO se mide**: es una *estimación* a partir de una media móvil
-  ponderada de la temperatura del aire de los últimos días. Puede desviarse varios grados,
-  sobre todo en embalses profundos o tras cambios bruscos de tiempo.
+- **La app no mide la temperatura del agua**: lo recomendable es introducir tu propia medición
+  (termómetro a 0,5 m y, si se puede, a 3–5 m). Si no la hay, se *estima* con una media móvil
+  ponderada de la temperatura del aire de los últimos días, que puede desviarse varios grados y
+  se calibra con tus mediciones.
 - AEMET solo ofrece unas 24 h de observación horaria, así que la corrección de sesgo es aproximada.
-- Las reglas de estrategia iniciales son **PLACEHOLDER** (ejemplos) hasta que se sustituyan
-  por conocimiento real de pesca.
+- Cada regla lleva una etiqueta de evidencia (🟢 fuerte, 🟡 moderada, 🔴 mito/insuficiente,
+  🟣 hipótesis local, 🔵 variabilidad individual). Luna, presión barométrica y nubosidad se
+  registran **con peso 0** porque no hay evidencia publicada en carpa.
+- **Normativa:** en Brovales solo es legal pescar desde 1 h antes del orto hasta 1 h después del
+  ocaso (no hay horario libre). La app nunca propone horas nocturnas. Revisa el DOE y
+  pescayrios.juntaextremadura.es antes de cada temporada.
 
 ## Obtener la API key de AEMET
 
@@ -65,10 +77,10 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 
 - [x] **Fase 0**: proyecto, estructura, CI, documentación
 - [ ] **Fase 1**: capa de datos (Open-Meteo multimodelo + AEMET + Room) y pantalla de datos en bruto
-- [ ] **Fase 2**: parámetros derivados (presión, temperatura, agua estimada, viento, lluvia, astronomía)
-- [ ] **Fase 3**: motor de reglas JSON y pantalla de estrategia
-- [ ] **Fase 4**: UI completa, GPS y gráficas
-- [ ] **Fase 5**: diario de capturas y mejoras
+- [ ] **Fase 2**: parámetros derivados (presión, temperatura, agua estimada, viento, lluvia, sol/luna y ventana legal)
+- [ ] **Fase 3**: motor de filtros/multiplicadores por niveles (reglas JSON con etiqueta de evidencia) y pantalla de estrategia
+- [ ] **Fase 4**: UI completa, GPS, gráficas y nivel del embalse (semanal + manual)
+- [ ] **Fase 5**: diario de sesiones (horas-caña, bolos, valoración previa) y aprendizaje con datos propios
 
 ## CI
 
