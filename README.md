@@ -106,6 +106,19 @@ avisa de rotar puesto si capturaste en la misma zona en los últimos 14 días. L
 están en el móvil: **Exportar diario** guarda una copia en JSON
 ([formato](docs/FORMATO_DIARIO.md)).
 
+### Sesión guiada (fase 7)
+
+Desde **Diario → Pescar ahora (guiado)**. La app propone un plan A (cebo de la fase según la
+temperatura del agua, a fondo) con lo que llevas en **Mi equipo** (cebos y montajes que añades
+tú). Lo aceptas o lo rechazas con un motivo («no tengo ese cebo»…) y un comentario. Cada 30 min
+(45 en invierno) te llega un aviso que **solo vibra**, con botones para anotar sin abrir la app
+(nada, picada, captura). Si no funciona, propone el siguiente paso de la escalera (presentación,
+montaje, capa, distancia, zona) según lo que ves: sin señales, con señales sin picadas, toques o
+cebo desaparecido. **Si pulsas «No funciona» dos veces en 30 min, propone ya.** Todos los tiempos
+son hipótesis 🟣 a calibrar con tus sesiones; nunca propone cambios de zona a menos de 45 min del
+fin del horario legal. Cada tramo, aviso y decisión queda en el diario para aprender después.
+Para que los avisos lleguen a su hora, permite las notificaciones y las alarmas exactas.
+
 ### Limitaciones (importante)
 
 - **La app no mide la temperatura del agua**: lo recomendable es introducir tu propia medición
@@ -177,7 +190,8 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 5**: UI completa (diseño Material/Apple, claro/oscuro), GPS y gráficas
 - [x] **Fase 6**: diario de sesiones (horas-caña, bolos, valoración previa sin sesgo, exportación)
 - [x] **Fase 6.1**: preparar producción (APK firmado en la CI, foto completa de parámetros para la fase 7, copias de seguridad)
-- [ ] Más adelante: aprendizaje con datos propios cuando haya 20–40 sesiones (CONOCIMIENTO.md §10)
+- [x] **Fase 7**: sesión guiada (plan A, avisos cada 30 min, alternativas y sustitutos de cebo, «Mi equipo»)
+- [ ] **Fase 8**: aprendizaje con datos propios cuando haya 20–40 sesiones (CONOCIMIENTO.md §10)
 
 ## CI
 
