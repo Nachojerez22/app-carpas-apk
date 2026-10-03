@@ -93,6 +93,19 @@ y **Lugar** (GPS o coordenadas, apariencia Material/Apple y claro/oscuro, fuente
 evidencias, limitaciones y normativa con su fecha de revisión). La ubicación del GPS se lee una
 sola vez al pulsar el botón y no sale del móvil.
 
+### Diario (fase 6)
+
+Pulsa **Nueva sesión** al llegar al agua: la app guarda en ese momento su valoración y, al
+terminar, anotas picadas, capturas (hora, peso, caña), pérdidas y si fue **bolo** (una sesión
+sin capturas también es un dato). El esfuerzo se mide en **horas-caña** y la métrica es
+capturas por hora-caña. Cada ficha guarda una **copia fija** de lo que dijo la app antes de
+salir (nunca se recalcula después, para no sesgar la comparación) y el contexto del momento
+(agua, aire, viento, lluvia, nivel; luna y presión con peso 0). El diario muestra el resumen
+del mes, cómo te fue según la valoración previa (no concluyente con menos de 20 sesiones) y
+avisa de rotar puesto si capturaste en la misma zona en los últimos 14 días. Las sesiones solo
+están en el móvil: **Exportar diario** guarda una copia en JSON
+([formato](docs/FORMATO_DIARIO.md)).
+
 ### Limitaciones (importante)
 
 - **La app no mide la temperatura del agua**: lo recomendable es introducir tu propia medición
@@ -156,7 +169,8 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 3**: parámetros derivados (presión, temperatura, agua estimada/medida, viento, lluvia, sesgo con AEMET, sol/luna y ventana legal)
 - [x] **Fase 4**: motor de filtros/multiplicadores por niveles (reglas JSON con etiqueta de evidencia) y pantalla de estrategia
 - [x] **Fase 5**: UI completa (diseño Material/Apple, claro/oscuro), GPS y gráficas
-- [ ] **Fase 6**: diario de sesiones (horas-caña, bolos, valoración previa) y aprendizaje con datos propios
+- [x] **Fase 6**: diario de sesiones (horas-caña, bolos, valoración previa sin sesgo, exportación)
+- [ ] Más adelante: aprendizaje con datos propios cuando haya 20–40 sesiones (CONOCIMIENTO.md §10)
 
 ## CI
 
