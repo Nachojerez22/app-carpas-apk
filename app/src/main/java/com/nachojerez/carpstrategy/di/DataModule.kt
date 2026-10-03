@@ -8,11 +8,15 @@ import com.nachojerez.carpstrategy.data.local.ObservationDao
 import com.nachojerez.carpstrategy.data.local.StationDao
 import com.nachojerez.carpstrategy.data.repository.WeatherRepositoryImpl
 import com.nachojerez.carpstrategy.data.rules.AssetRulesRepository
+import com.nachojerez.carpstrategy.data.userdata.JournalRepositoryImpl
 import com.nachojerez.carpstrategy.data.userdata.ManualDataRepositoryImpl
 import com.nachojerez.carpstrategy.data.userdata.ManualRecordDao
+import com.nachojerez.carpstrategy.data.userdata.PredictionSnapshotDao
+import com.nachojerez.carpstrategy.data.userdata.SessionDao
 import com.nachojerez.carpstrategy.data.userdata.SettingDao
 import com.nachojerez.carpstrategy.data.userdata.SettingsRepositoryImpl
 import com.nachojerez.carpstrategy.data.userdata.UserDataDatabase
+import com.nachojerez.carpstrategy.domain.repository.JournalRepository
 import com.nachojerez.carpstrategy.domain.repository.ManualDataRepository
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.repository.WeatherRepository
@@ -67,6 +71,12 @@ object UserDataModule {
 
     @Provides
     fun provideSettingDao(db: UserDataDatabase): SettingDao = db.settingDao()
+
+    @Provides
+    fun provideSessionDao(db: UserDataDatabase): SessionDao = db.sessionDao()
+
+    @Provides
+    fun providePredictionSnapshotDao(db: UserDataDatabase): PredictionSnapshotDao = db.predictionSnapshotDao()
 }
 
 @Module
@@ -77,6 +87,9 @@ abstract class UserDataRepositoryModule {
 
     @Binds
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
+
+    @Binds
+    abstract fun bindJournalRepository(impl: JournalRepositoryImpl): JournalRepository
 }
 
 @Module
