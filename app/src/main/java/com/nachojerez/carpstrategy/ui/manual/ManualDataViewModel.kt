@@ -10,6 +10,8 @@ import com.nachojerez.carpstrategy.di.IoDispatcher
 import com.nachojerez.carpstrategy.domain.manual.ManualField
 import com.nachojerez.carpstrategy.domain.manual.ManualRecord
 import com.nachojerez.carpstrategy.domain.model.DefaultLocation
+import com.nachojerez.carpstrategy.domain.model.GeoPoint
+import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.repository.ManualDataRepository
 import com.nachojerez.carpstrategy.domain.usecase.SaveManualRecordUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,10 +19,13 @@ import java.io.IOException
 import java.time.Clock
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -41,21 +46,25 @@ data class ManualDataUiState(
     val pendingDelete: ManualRecord? = null,
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ManualDataViewModel @Inject constructor(
     private val repository: ManualDataRepository,
     private val saveRecord: SaveManualRecordUseCase,
     private val reader: DocumentReader,
     private val clock: Clock,
+    settings: SettingsRepository,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
-    private val location = DefaultLocation.value.point
+    private val location: StateFlow<GeoPoint> = settings.observeLocation()
+        .map { it.point }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, DefaultLocation.value.point)
     private val editor = MutableStateFlow<EditorState?>(null)
     private val import = MutableStateFlow<ImportState>(ImportState.Idle)
     private val pendingDelete = MutableStateFlow<ManualRecord?>(null)
 
     val uiState: StateFlow<ManualDataUiState> = combine(
-        repository.observeRecords(location),
+        location.flatMapLatest { repository.observeRecords(it) },
         editor,
         import,
         pendingDelete,
@@ -83,7 +92,7 @@ class ManualDataViewModel @Inject constructor(
     fun saveEditor() {
         val current = editor.value ?: return
         viewModelScope.launch {
-            val result = saveRecord(current.toRawRecord(), location, existingId = current.id)
+            val result = saveRecord(current.toRawRecord(), location.value, existingId = current.id)
             editor.value = if (result.record != null && result.errors.isEmpty()) null else current.copy(issues = result.issues)
         }
     }
@@ -110,7 +119,7 @@ class ManualDataViewModel @Inject constructor(
             import.value = try {
                 val document = withContext(ioDispatcher) { reader.read(uri) }
                 val preview = withContext(ioDispatcher) {
-                    ManualDataJson.parse(document.text, document.name, location, clock.instant())
+                    ManualDataJson.parse(document.text, document.name, location.value, clock.instant())
                 }
                 ImportState.Preview(document.name, preview)
             } catch (e: IOException) {
@@ -118,6 +127,15 @@ class ManualDataViewModel @Inject constructor(
             } catch (e: SecurityException) {
                 ImportState.ReadError(e.message.orEmpty())
             }
+        }
+    }
+
+    /** Importa un JSON pegado en el editor de la pantalla Importar. */
+    fun onTextPasted(text: String, name: String) {
+        if (text.isBlank()) return
+        viewModelScope.launch {
+            val preview = withContext(ioDispatcher) { ManualDataJson.parse(text, name, location.value, clock.instant()) }
+            import.value = ImportState.Preview(name, preview)
         }
     }
 

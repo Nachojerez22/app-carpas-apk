@@ -2,26 +2,31 @@ package com.nachojerez.carpstrategy.ui.strategy
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nachojerez.carpstrategy.domain.model.DefaultLocation
+import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class StrategyViewModel @Inject constructor(
     observeRawWeather: ObserveRawWeatherUseCase,
     rulesRepository: RulesRepository,
+    settings: SettingsRepository,
     clock: Clock,
 ) : ViewModel() {
-    private val location = DefaultLocation.value.point
+    private val location = settings.observeLocation()
     private val rules = flow { emit(rulesRepository.load()) }
 
     /** Se reevalúa cada 5 minutos: la hora cambia las ventanas y el "ahora es legal". */
@@ -33,7 +38,7 @@ class StrategyViewModel @Inject constructor(
     }
 
     val uiState: StateFlow<StrategyUiState> =
-        combine(observeRawWeather(location), rules, ticker) { raw, rules, now ->
-            buildStrategyState(raw, rules, now, location)
+        combine(location.flatMapLatest { place -> observeRawWeather(place.point).map { place to it } }, rules, ticker) { (place, raw), rules, now ->
+            buildStrategyState(raw, rules, now, place.point)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StrategyUiState())
 }
