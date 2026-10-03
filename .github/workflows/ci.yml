@@ -5,6 +5,7 @@ on:
     branches: [main, "feature/**"]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -16,8 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      # La API key real de AEMET nunca se usa en CI; el build funciona con la clave vacía.
-      AEMET_API_KEY: ""
+      # Secretos del repositorio (Settings → Secrets and variables → Actions). Si no existen,
+      # todo funciona igual: la app sin AEMET y los APK firmados con una clave temporal.
+      AEMET_API_KEY: ${{ secrets.AEMET_API_KEY }}
+      CARP_KEYSTORE_BASE64: ${{ secrets.CARP_KEYSTORE_BASE64 }}
+      CARP_KEYSTORE_PASSWORD: ${{ secrets.CARP_KEYSTORE_PASSWORD }}
+      CARP_KEY_ALIAS: ${{ secrets.CARP_KEY_ALIAS }}
+      CARP_KEY_PASSWORD: ${{ secrets.CARP_KEY_PASSWORD }}
+      # Cada ejecución sube el número de versión para que el APK nuevo actualice al anterior.
+      CARP_VERSION_CODE: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
 
@@ -27,6 +35,17 @@ jobs:
           java-version: "17"
 
       - uses: gradle/actions/setup-gradle@v4
+
+      # La clave nunca está en el repositorio: se reconstruye desde el secreto en un directorio temporal.
+      - name: Preparar la clave de firma
+        if: env.CARP_KEYSTORE_BASE64 != ''
+        run: |
+          echo "$CARP_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/carpstrategy.jks"
+          echo "CARP_KEYSTORE_FILE=$RUNNER_TEMP/carpstrategy.jks" >> "$GITHUB_ENV"
+
+      - name: Aviso si falta la clave
+        if: env.CARP_KEYSTORE_BASE64 == ''
+        run: echo "::notice::Sin secreto CARP_KEYSTORE_BASE64. El APK de prueba se firma con una clave temporal y no podrá actualizarse sin desinstalar (ver docs/INSTALACION.md)."
 
       - name: Build debug
         run: ./gradlew assembleDebug --stacktrace
@@ -45,6 +64,30 @@ jobs:
             echo "::warning file=$f::Esquema de Room nuevo o cambiado sin versionar"
             echo "----- $f -----"; cat "$f"; echo
           done
+
+      - name: APK de prueba
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarpStrategy-prueba-${{ github.run_number }}
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      # Versión de producción: solo en main y solo con la clave fija.
+      - name: Build release
+        if: github.ref == 'refs/heads/main' && env.CARP_KEYSTORE_BASE64 != ''
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: APK de producción
+        if: github.ref == 'refs/heads/main' && env.CARP_KEYSTORE_BASE64 != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarpStrategy-${{ github.run_number }}
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Borrar la clave temporal
+        if: always()
+        run: rm -f "$RUNNER_TEMP/carpstrategy.jks"
 
       - name: Informes de tests y lint
         if: always()
