@@ -71,6 +71,16 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - Las temperaturas de los modelos se corrigen con el sesgo frente a AEMET; las manuales y las de
   AEMET no. La temperatura del agua medida manda sobre la estimada.
 
+## Motor de reglas (fase 4)
+
+- Reglas en `app/src/main/assets/rules.json`, formato en `docs/REGLAS.md`. `data/rules/RulesJson`
+  valida (todo o nada) y aplica las normas de CONOCIMIENTO.md §0 (rojo y exploratoria ⇒ peso 0,
+  filtro duro ⇒ nivel 0). Hay tests que cargan el rules.json real y escenarios que lo evalúan.
+- `domain/rules`: `RuleEngine` (cadena por niveles, factores ≤ 1, producto, nivel limitante),
+  `RuleContextBuilder` (derivados → parámetros), `SessionWindows` (ventanas recortadas al
+  horario legal). Nuevo parámetro ⇒ añadirlo a `RuleParameter`, al builder, a strings
+  (`param_*`) y a docs/REGLAS.md.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.
