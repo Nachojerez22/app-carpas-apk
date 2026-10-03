@@ -421,6 +421,16 @@ Selección según lo que lleva el usuario (🟣): identificar la función del ce
 
 Solo vibración; notificación expandible para responder sin abrir la app · intervalo de 45–60 min en invierno o tras 3 respuestas seguidas de «nada» sin cambios · pausa de 20 min tras «Captura» · se salta el aviso si el usuario registró algo en los últimos 15 min · una sola notificación agrupada · cierre automático al acabar el horario legal (⚖).
 
+#### 5.9.8 Registro por caña, otras especies, cebado y viento (oct. 2026, sesión del usuario)
+
+> Añadido tras una sesión real del usuario: viento muy cambiante; mucho cebado; en la caña fija entraron peces pequeños y apenas capturó; en la de carrete hubo mucha actividad al principio, luego paró, entró el barbo y apenas volvió a capturar carpas.
+
+- **Una pista por caña** (decisión del usuario): cada caña lleva nombre («fija», «carrete»), su plan, sus avisos y sus propuestas, porque en cada peldaño se cambia una sola variable por caña (§5.9.2). La segunda caña empieza por el segundo cebo de la fase si el usuario lo lleva, para comparar (🟣).
+- **Otras especies** (Brovales, §6: boga, barbo, black bass; más «pequeño sin identificar»): se anotan con su especie y **no cuentan como captura** para el plan ni para las capturas por hora-caña. Dos capturas de otras especies o cebos mordisqueados en un tramo ⇒ cebo de anzuelo más grande o selectivo (chufa, boilie duro o grande) (🟡, §5.9.1 «mordisqueado»; el maíz es poco selectivo frente a barbos y bogas, 🟡). El umbral de dos es 🟣.
+- **Cebado sin gramos** (poco · normal · mucho), al empezar y en cada recebado por caña. Con cebado abundante y entrada de otras especies o pequeños ⇒ «ceba menos y más selectivo» (🟡 + 🟣). En invierno, con cebado abundante ⇒ aviso de cebado mínimo (🟢, §5.5).
+- **Viento**: el usuario anota «ha cambiado el viento»; durante 2 h la app recuerda valorar la orilla que lo recibe (🟡, §5.9.1; las 2 h son 🟣).
+- Black bass: **no hay normativa verificada** en este documento sobre su captura o devolución en Brovales; la app no dice nada legal sobre él hasta verificarlo (§6.3).
+
 ## 6. Brovales
 
 ### 6.1 Verificado (oficial / inventario de presas MITECO)

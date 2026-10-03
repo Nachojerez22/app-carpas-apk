@@ -66,33 +66,43 @@ de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "te
 
 ```json
 "guiado": {
-  "tramos": [
-    { "inicio": "…", "fin": "…", "paso": "INITIAL", "cebo": "BOILIE", "cebo_nombre": "Boilie fresa 20",
-      "columna": "BOTTOM", "forzado": false,
-      "avisos": [ { "hora": "…", "senales": "INDIRECT", "actividad": "TOUCHES", "estado_cebo": "NIBBLED",
-                    "no_funciona": false, "cambio_usuario": "BAIT" } ] }
+  "canas": [
+    { "id": 1, "nombre": "fija",
+      "tramos": [
+        { "inicio": "…", "fin": "…", "paso": "INITIAL", "cebo": "BOILIE", "cebo_nombre": "Boilie fresa 20",
+          "columna": "BOTTOM", "montaje": "Pelo 25 lb", "forzado": false,
+          "avisos": [ { "hora": "…", "senales": "INDIRECT", "actividad": "CATCH", "especie": "BARBEL",
+                        "estado_cebo": "NIBBLED", "no_funciona": false, "cambio_usuario": "BAIT", "recebado": "LOW" } ] }
+      ],
+      "propuestas": [
+        { "propuesta": { "paso": "SELECTIVE", "situacion": "OTHER_FISH", "cebo": "TIGERNUT",
+                         "forzada": false, "evidencia": "YELLOW", "creada": "…" },
+          "decision": "REJECTED", "motivo": "NO_BAIT", "comentario": "no la llevo", "decidida": "…" }
+      ] }
   ],
-  "propuestas": [
-    { "propuesta": { "paso": "COLUMN", "situacion": "NO_SIGNALS", "columna": "POPUP", "montaje": "Pop-up 2 cm",
-                     "forzada": true, "evidencia": "PURPLE", "creada": "…" },
-      "decision": "REJECTED", "motivo": "NO_BAIT", "comentario": "no lo llevo", "decidida": "…" }
-  ],
+  "cebado_inicial": "HIGH",
+  "cambios_viento": ["…"],
   "avisos_mostrados": ["…"]
 }
 ```
 
-- Un **tramo** es el tiempo pescado con una misma configuración; al aceptar una propuesta empieza
-  otro. `paso`: `INITIAL`, `PRESENTATION`, `RIG`, `COLUMN`, `DISTANCE`, `ZONE`, `ANTI_CRAB`.
+- Una entrada en `canas` por caña, con su nombre (puede ir vacío: «Caña N»).
+- Un **tramo** es el tiempo pescado en una caña con una misma configuración; al aceptar una
+  propuesta empieza otro. `paso`: `INITIAL`, `PRESENTATION`, `RIG`, `COLUMN`, `DISTANCE`, `ZONE`,
+  `ANTI_CRAB`, `SELECTIVE`.
 - `senales`: `NONE`, `INDIRECT`, `DIRECT` · `actividad`: `NOTHING`, `TOUCHES`, `MISSED` (picada
   fallada), `CATCH` · `estado_cebo`: `NOT_CHECKED`, `INTACT`, `NIBBLED`, `GONE` ·
   `cambio_usuario`: `BAIT`, `RIG`, `COLUMN`, `DISTANCE`, `ZONE`.
+- `especie` (solo con `CATCH`; ausente = carpa): `BARBEL`, `NASE` (boga), `BLACK_BASS`, `SMALL`
+  (pequeño sin identificar) · `recebado` y `cebado_inicial`: `LOW`, `NORMAL`, `HIGH`.
 - `cebo`: `BOILIE`, `BOILIE_HARD`, `PELLET`, `MAIZE`, `HEMP`, `TIGERNUT`, `PASTE`, `BREAD`, `POPUP`,
   `PVA`, `WORM`, `OTHER` · `columna`: `BOTTOM`, `POPUP`, `ZIG`, `SURFACE`.
 - `decision`: `PENDING`, `ACCEPTED`, `REJECTED` · `motivo`: `NO_BAIT`, `NOT_CONVINCED`,
   `ALREADY_TRIED`, `CONDITIONS_DIFFER`, `OTHER` · `forzada`: pedida con dos «No funciona» en 30 min.
 - `avisos_mostrados`: avisos que lanzó la app, contestados o no.
-- Las picadas falladas y las capturas anotadas en la sesión guiada también suman en `picadas` y
-  `capturas` de la sesión.
+- Las picadas falladas y las carpas anotadas en la sesión guiada también suman en `picadas` y
+  `capturas` de la sesión (la captura lleva la caña). Las otras especies solo quedan en `guiado`.
+- `cambios_viento`: momentos en que el usuario anotó que el viento cambió.
 
 Los campos sin valor se omiten. Las claves desconocidas se ignoran al leer. **Diario →
 Restaurar una copia del diario** lee este formato y omite las sesiones que ya existen (misma

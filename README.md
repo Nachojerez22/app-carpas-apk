@@ -117,6 +117,10 @@ montaje, capa, distancia, zona) según lo que ves: sin señales, con señales si
 cebo desaparecido. **Si pulsas «No funciona» dos veces en 30 min, propone ya.** Todos los tiempos
 son hipótesis 🟣 a calibrar con tus sesiones; nunca propone cambios de zona a menos de 45 min del
 fin del horario legal. Cada tramo, aviso y decisión queda en el diario para aprender después.
+Cada caña lleva su nombre («fija», «carrete») y su propio plan y registro. En cada aviso puedes
+anotar la especie (carpa, barbo, boga, black bass o pequeño): solo la carpa cuenta como captura;
+si entran otras especies o mordisquean, propone un cebo más selectivo y, si cebaste mucho, cebar
+menos. Anota también el cebado (poco, normal, mucho), los recebados y si cambia el viento.
 Para que los avisos lleguen a su hora, permite las notificaciones y las alarmas exactas.
 
 ### Limitaciones (importante)

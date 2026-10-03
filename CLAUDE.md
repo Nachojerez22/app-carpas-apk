@@ -120,10 +120,13 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 ## Sesión guiada (fase 7)
 
 - `domain/guided` (puro, CONOCIMIENTO.md §5.9): `Gear` (tipos de cebo con sus funciones,
-  `BaitCatalog` para elegir sustituto del equipo), `GuidedLog` (tramos, avisos, propuestas y
-  decisiones), `GuidedEngine` (diagnóstico A/B/C/D, escalera por fase, tiempos 🟣 en
+  `BaitCatalog` para elegir sustituto del equipo), `GuidedLog` (registro de **una caña**: tramos,
+  avisos, propuestas y decisiones), `GuidedRecord` (una `RodTrack` por caña con nombre, avisos
+  mostrados, cambios de viento y cebado inicial), `GuidedEngine` (diagnóstico A/B/C/D y E «otras
+  especies» (solo la carpa es captura), escalera por fase, tiempos 🟣 en
   `THRESHOLDS`, dos «No funciona» en 30 min ⇒ propuesta forzada, límites ⚖ del fin legal,
-  `nextCheckIn`) y `GuidedSessions` (aplica cada acción a la `Session`: picadas y capturas).
+  `nextCheckIn`) y `GuidedSessions` (aplica cada acción a la `Session` caña a caña: picadas y
+  carpas con su caña).
 - Persistencia: columna `guidedJson` de `session` (BD v3, `AutoMigration(2 → 3)`) con
   `GuidedJson` (también campo `guiado` de la exportación); el equipo va en el ajuste `gear`.
 - `ui/guided`: `GuidedSessionManager` (singleton; un cerrojo para pantalla, alarma y
