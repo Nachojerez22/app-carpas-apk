@@ -8,19 +8,26 @@ import com.nachojerez.carpstrategy.domain.manual.ManualRecordValidator
 import com.nachojerez.carpstrategy.domain.manual.RawRecord
 import com.nachojerez.carpstrategy.domain.manual.RawValue
 import com.nachojerez.carpstrategy.domain.manual.RecordPeriod
+import com.nachojerez.carpstrategy.domain.model.FishingLocation
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import java.time.DateTimeException
 import java.time.Instant
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 
 /** Resultado de leer un archivo: solo se importa si no hay ningún error. */
 data class ImportPreview(
@@ -149,4 +156,45 @@ object ManualDataJson {
 
     private fun JsonObject.string(key: String): String? =
         (this[key] as? JsonPrimitive)?.takeUnless { it is JsonNull }?.contentOrNull
+
+    private val prettyJson = Json { prettyPrint = true }
+    private val LOCAL_HOUR: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+
+    /**
+     * Copia de seguridad de tus registros en este mismo formato, para volver a importarlos (por
+     * ejemplo, tras reinstalar la app). Al reimportarlos quedan marcados como importados.
+     */
+    fun export(records: List<ManualRecord>, location: FishingLocation, zone: ZoneId = ZoneId.of("Europe/Madrid")): String {
+        val root = buildJsonObject {
+            put("formato", FORMAT)
+            put("version", VERSION)
+            putJsonObject("ubicacion") {
+                put("nombre", location.name)
+                put("lat", location.point.latitude)
+                put("lon", location.point.longitude)
+            }
+            put("zona_horaria", zone.id)
+            putJsonArray("registros") {
+                records.sortedBy { record ->
+                    when (val period = record.period) {
+                        is RecordPeriod.At -> period.time
+                        is RecordPeriod.Day -> period.date.atStartOfDay(zone).toInstant()
+                    }
+                }.forEach { record ->
+                    addJsonObject {
+                        when (val period = record.period) {
+                            is RecordPeriod.At -> put("hora", LOCAL_HOUR.format(period.time.atZone(zone)))
+                            is RecordPeriod.Day -> put("fecha", period.date.toString())
+                        }
+                        put("fuente", record.source)
+                        record.values.toSortedMap().forEach { (field, value) ->
+                            if (field.integer) put(field.key, value.toLong()) else put(field.key, value)
+                        }
+                        record.notes?.let { put("notas", it) }
+                    }
+                }
+            }
+        }
+        return prettyJson.encodeToString(JsonObject.serializer(), root)
+    }
 }

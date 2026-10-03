@@ -4,12 +4,14 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nachojerez.carpstrategy.data.manual.DocumentReader
+import com.nachojerez.carpstrategy.data.manual.DocumentWriter
 import com.nachojerez.carpstrategy.data.manual.ImportPreview
 import com.nachojerez.carpstrategy.data.manual.ManualDataJson
 import com.nachojerez.carpstrategy.di.IoDispatcher
 import com.nachojerez.carpstrategy.domain.manual.ManualField
 import com.nachojerez.carpstrategy.domain.manual.ManualRecord
 import com.nachojerez.carpstrategy.domain.model.DefaultLocation
+import com.nachojerez.carpstrategy.domain.model.FishingLocation
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.repository.ManualDataRepository
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -39,6 +42,9 @@ sealed interface ImportState {
     data class Done(val count: Int) : ImportState
 }
 
+/** [error] null = exportado correctamente. */
+data class ExportResult(val count: Int, val error: String?)
+
 data class ManualDataUiState(
     val records: List<ManualRecord> = emptyList(),
     val editor: EditorState? = null,
@@ -52,13 +58,20 @@ class ManualDataViewModel @Inject constructor(
     private val repository: ManualDataRepository,
     private val saveRecord: SaveManualRecordUseCase,
     private val reader: DocumentReader,
+    private val writer: DocumentWriter,
     private val clock: Clock,
     settings: SettingsRepository,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
-    private val location: StateFlow<GeoPoint> = settings.observeLocation()
+    private val place: StateFlow<FishingLocation> =
+        settings.observeLocation().stateIn(viewModelScope, SharingStarted.Eagerly, DefaultLocation.value)
+    private val location: StateFlow<GeoPoint> = place
         .map { it.point }
         .stateIn(viewModelScope, SharingStarted.Eagerly, DefaultLocation.value.point)
+    private val export = MutableStateFlow<ExportResult?>(null)
+
+    /** Resultado de la última copia de seguridad, para mostrarlo una vez. */
+    val exportResult: StateFlow<ExportResult?> = export
     private val editor = MutableStateFlow<EditorState?>(null)
     private val import = MutableStateFlow<ImportState>(ImportState.Idle)
     private val pendingDelete = MutableStateFlow<ManualRecord?>(null)
@@ -150,6 +163,25 @@ class ManualDataViewModel @Inject constructor(
 
     fun dismissImport() {
         import.value = ImportState.Idle
+    }
+
+    /** Copia de seguridad de los registros de este lugar en formato carpstrategy-datos. */
+    fun exportTo(uri: Uri) {
+        viewModelScope.launch {
+            export.value = try {
+                val records = repository.observeRecords(place.value.point).first()
+                withContext(ioDispatcher) { writer.write(uri, ManualDataJson.export(records, place.value)) }
+                ExportResult(records.size, null)
+            } catch (e: IOException) {
+                ExportResult(0, e.message.orEmpty())
+            } catch (e: SecurityException) {
+                ExportResult(0, e.message.orEmpty())
+            }
+        }
+    }
+
+    fun dismissExport() {
+        export.value = null
     }
 
     /** Texto del ejemplo para copiarlo al portapapeles. */

@@ -598,4 +598,15 @@
     <string name="strategy_rotate_title">Rota de puesto</string>
     <string name="strategy_rotate_zone">Zona %1$s: capturaste hace %2$d días</string>
     <string name="strategy_rotate_why">Las carpas capturadas evitan el mismo montaje durante semanas o meses (Wallerius 2020): cambia de puesto y de presentación.</string>
+    <!-- Fase 6.1 -->
+    <string name="session_measurements_title">Mediciones</string>
+    <string name="session_measurements_subtitle">Se guardan también en Datos a la hora de inicio y afinan la estimación del agua</string>
+    <string name="session_water_surface">Agua superficie (°C)</string>
+    <string name="session_reservoir_percent" formatted="false">Nivel embalse (%)</string>
+    <string name="data_export">Exportar copia</string>
+    <string name="data_export_file_name">carpstrategy-datos.json</string>
+    <string name="data_export_done">Copia guardada: %1$d registros. Se puede volver a importar en Datos → Importar JSON.</string>
+    <string name="diary_restore">Restaurar una copia del diario</string>
+    <string name="diary_restore_done">Restauradas %1$d de %2$d sesiones (las que ya estaban no se duplican).</string>
+    <string name="diary_restore_invalid">El archivo no es una copia del diario (formato carpstrategy-diario).</string>
 </resources>
