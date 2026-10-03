@@ -9,7 +9,8 @@ import androidx.room.RoomDatabase
  * cada cambio necesita una migración; NUNCA migración destructiva.
  *
  * Versiones: 1 = registros manuales y ajustes (fase 2); 2 = diario de sesiones y valoraciones
- * previas (fase 6, migración automática: solo añade tablas).
+ * previas (fase 6, migración automática: solo añade tablas); 3 = registro de la sesión guiada
+ * (fase 7, migración automática: solo añade una columna).
  */
 @Database(
     entities = [
@@ -18,9 +19,9 @@ import androidx.room.RoomDatabase
         SessionEntity::class,
         PredictionSnapshotEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2)],
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
 abstract class UserDataDatabase : RoomDatabase() {
     abstract fun manualRecordDao(): ManualRecordDao

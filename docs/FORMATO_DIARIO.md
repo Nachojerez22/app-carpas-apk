@@ -57,9 +57,52 @@ conviene exportar de vez en cuando. Es JSON legible en UTF-8.
 | `valoracion_previa` | objeto | Copia fija de lo que dijo la app **antes** de la sesión. `tramo`: `VERY_UNFAVORABLE` … `VERY_FAVORABLE`; `nivel_limitante`: `HABITAT`, `TEMPERATURE`, `PHYSICAL`, `CATCHABILITY`. Desde 0.7.0 también `parametros`, `niveles` (valor 0–1 de cada nivel), `reglas_activas` (id → factor aplicado) y `huella_reglas` (versión de rules.json) |
 | `contexto` | objeto | Rellenado al guardar: agua (y si era medida), aire 24 h, viento, lluvia 72 h, nivel %, horario legal, y con peso 0 la luna y la presión. Desde 0.7.0, `parametros` con todos los parámetros de las reglas al inicio de la sesión |
 | `se_cumplio` | `YES`, `PARTLY`, `NO` | Opcional |
+| `guiado` | objeto | Desde 0.8.0, solo en sesiones guiadas: tramos, avisos y decisiones (ver abajo) |
 
 `parametros` es un objeto `{ "numeros": {…}, "booleanos": {…}, "textos": {…} }` con las claves
 de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "textos": {"estacion": "otono"}}`.
+
+### Sesión guiada (`guiado`)
+
+```json
+"guiado": {
+  "canas": [
+    { "id": 1, "nombre": "fija",
+      "tramos": [
+        { "inicio": "…", "fin": "…", "paso": "INITIAL", "cebo": "BOILIE", "cebo_nombre": "Boilie fresa 20",
+          "columna": "BOTTOM", "montaje": "Pelo 25 lb", "forzado": false,
+          "avisos": [ { "hora": "…", "senales": "INDIRECT", "actividad": "CATCH", "especie": "BARBEL",
+                        "estado_cebo": "NIBBLED", "no_funciona": false, "cambio_usuario": "BAIT", "recebado": "LOW" } ] }
+      ],
+      "propuestas": [
+        { "propuesta": { "paso": "SELECTIVE", "situacion": "OTHER_FISH", "cebo": "TIGERNUT",
+                         "forzada": false, "evidencia": "YELLOW", "creada": "…" },
+          "decision": "REJECTED", "motivo": "NO_BAIT", "comentario": "no la llevo", "decidida": "…" }
+      ] }
+  ],
+  "cebado_inicial": "HIGH",
+  "cambios_viento": ["…"],
+  "avisos_mostrados": ["…"]
+}
+```
+
+- Una entrada en `canas` por caña, con su nombre (puede ir vacío: «Caña N»).
+- Un **tramo** es el tiempo pescado en una caña con una misma configuración; al aceptar una
+  propuesta empieza otro. `paso`: `INITIAL`, `PRESENTATION`, `RIG`, `COLUMN`, `DISTANCE`, `ZONE`,
+  `ANTI_CRAB`, `SELECTIVE`.
+- `senales`: `NONE`, `INDIRECT`, `DIRECT` · `actividad`: `NOTHING`, `TOUCHES`, `MISSED` (picada
+  fallada), `CATCH` · `estado_cebo`: `NOT_CHECKED`, `INTACT`, `NIBBLED`, `GONE` ·
+  `cambio_usuario`: `BAIT`, `RIG`, `COLUMN`, `DISTANCE`, `ZONE`.
+- `especie` (solo con `CATCH`; ausente = carpa): `BARBEL`, `NASE` (boga), `BLACK_BASS`, `SMALL`
+  (pequeño sin identificar) · `recebado` y `cebado_inicial`: `LOW`, `NORMAL`, `HIGH`.
+- `cebo`: `BOILIE`, `BOILIE_HARD`, `PELLET`, `MAIZE`, `HEMP`, `TIGERNUT`, `PASTE`, `BREAD`, `POPUP`,
+  `PVA`, `WORM`, `OTHER` · `columna`: `BOTTOM`, `POPUP`, `ZIG`, `SURFACE`.
+- `decision`: `PENDING`, `ACCEPTED`, `REJECTED` · `motivo`: `NO_BAIT`, `NOT_CONVINCED`,
+  `ALREADY_TRIED`, `CONDITIONS_DIFFER`, `OTHER` · `forzada`: pedida con dos «No funciona» en 30 min.
+- `avisos_mostrados`: avisos que lanzó la app, contestados o no.
+- Las picadas falladas y las carpas anotadas en la sesión guiada también suman en `picadas` y
+  `capturas` de la sesión (la captura lleva la caña). Las otras especies solo quedan en `guiado`.
+- `cambios_viento`: momentos en que el usuario anotó que el viento cambió.
 
 Los campos sin valor se omiten. Las claves desconocidas se ignoran al leer. **Diario →
 Restaurar una copia del diario** lee este formato y omite las sesiones que ya existen (misma

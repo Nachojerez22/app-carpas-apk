@@ -84,6 +84,7 @@ class JournalRepositoryImpl @Inject constructor(
             fulfilled = fulfilled?.name,
             notes = notes,
             createdAtEpochMs = createdAt.toEpochMilli(),
+            guidedJson = guided?.let(GuidedJson::encode),
         )
 
         internal fun SessionEntity.toDomain() = Session(
@@ -109,6 +110,7 @@ class JournalRepositoryImpl @Inject constructor(
             fulfilled = Fulfilled.entries.firstOrNull { it.name == fulfilled },
             notes = notes,
             createdAt = Instant.ofEpochMilli(createdAtEpochMs),
+            guided = GuidedJson.decode(guidedJson),
         )
     }
 }

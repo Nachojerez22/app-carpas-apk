@@ -86,6 +86,16 @@ class DiaryViewModel @Inject constructor(
         openEditor(session, SessionForm.from(session))
     }
 
+    private val openedById = mutableSetOf<Long>()
+
+    /** Abre una sesión por id una sola vez (al llegar desde la sesión guiada terminada). */
+    fun openOnce(id: Long) {
+        if (id == 0L || !openedById.add(id)) return
+        viewModelScope.launch {
+            journal.observeSessions().first().firstOrNull { it.id == id }?.let(::open)
+        }
+    }
+
     /** Terminar una sesión en curso: hora de fin = ahora y se abre la ficha para el resultado. */
     fun finish(session: Session) {
         val form = SessionForm.from(session)

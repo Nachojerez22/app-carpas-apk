@@ -24,6 +24,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,7 +62,12 @@ private const val MIN_SESSIONS_FOR_COMPARISON = 20
  * la ficha de cada sesión.
  */
 @Composable
-fun DiaryScreen(viewModel: DiaryViewModel = hiltViewModel()) {
+fun DiaryScreen(
+    openSessionId: Long = 0L,
+    onOpenGuided: () -> Unit = {},
+    viewModel: DiaryViewModel = hiltViewModel(),
+) {
+    LaunchedEffect(openSessionId) { viewModel.openOnce(openSessionId) }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val deleteRequest by viewModel.deleteRequest.collectAsStateWithLifecycle()
     val exportStatus by viewModel.exportStatus.collectAsStateWithLifecycle()
@@ -89,6 +95,7 @@ fun DiaryScreen(viewModel: DiaryViewModel = hiltViewModel()) {
         DiaryList(
             state = state,
             onStart = viewModel::startNow,
+            onStartGuided = onOpenGuided,
             onOpen = viewModel::open,
             onFinish = viewModel::finish,
             onExport = { exporter.launch(exportName) },
@@ -133,6 +140,7 @@ fun DiaryScreen(viewModel: DiaryViewModel = hiltViewModel()) {
 private fun DiaryList(
     state: DiaryUiState,
     onStart: () -> Unit,
+    onStartGuided: () -> Unit,
     onOpen: (Session) -> Unit,
     onFinish: (Session) -> Unit,
     onExport: () -> Unit,
@@ -153,7 +161,18 @@ private fun DiaryList(
             }
             item { MonthSummary(state) }
             state.ongoing?.let { ongoing ->
-                item { OngoingCard(ongoing, onOpen = { onOpen(ongoing) }, onFinish = { onFinish(ongoing) }) }
+                item {
+                    if (ongoing.guided != null) {
+                        OngoingCard(ongoing, onOpen = onStartGuided, onFinish = null)
+                    } else {
+                        OngoingCard(ongoing, onOpen = { onOpen(ongoing) }, onFinish = { onFinish(ongoing) })
+                    }
+                }
+            }
+            if (state.ongoing == null) {
+                item {
+                    Button(onClick = onStartGuided, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.guided_start_from_diary)) }
+                }
             }
             val finished = state.sessions.filterNot { it.isOngoing }
             if (finished.isEmpty() && state.ongoing == null && !state.isLoading) {
@@ -218,7 +237,7 @@ private fun Stat(value: String, label: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun OngoingCard(session: Session, onOpen: () -> Unit, onFinish: () -> Unit) {
+private fun OngoingCard(session: Session, onOpen: () -> Unit, onFinish: (() -> Unit)?) {
     val cs = MaterialTheme.colorScheme
     CarpCard(containerColor = cs.primaryContainer) {
         Text(stringResource(R.string.diary_ongoing_title), style = MaterialTheme.typography.titleMedium, color = cs.onPrimaryContainer)
@@ -230,8 +249,13 @@ private fun OngoingCard(session: Session, onOpen: () -> Unit, onFinish: () -> Un
             Caption(stringResource(R.string.diary_app_said, capitalized(stringResource(it.labelRes()))), color = cs.onPrimaryContainer)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            Button(onClick = onFinish) { Text(stringResource(R.string.diary_finish)) }
-            OutlinedButton(onClick = onOpen) { Text(stringResource(R.string.diary_open_sheet)) }
+            if (onFinish != null) {
+                Button(onClick = onFinish) { Text(stringResource(R.string.diary_finish)) }
+                OutlinedButton(onClick = onOpen) { Text(stringResource(R.string.diary_open_sheet)) }
+            } else {
+                // Sesión guiada: se termina desde su pantalla (cierra tramos y avisos).
+                Button(onClick = onOpen) { Text(stringResource(R.string.guided_open)) }
+            }
         }
     }
 }

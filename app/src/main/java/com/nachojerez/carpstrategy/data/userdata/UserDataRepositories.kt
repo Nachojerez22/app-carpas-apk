@@ -3,6 +3,7 @@ package com.nachojerez.carpstrategy.data.userdata
 import com.nachojerez.carpstrategy.data.userdata.UserDataMappers.toDomain
 import com.nachojerez.carpstrategy.data.userdata.UserDataMappers.toEntity
 import com.nachojerez.carpstrategy.domain.derived.Geo
+import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.manual.ManualRecord
 import com.nachojerez.carpstrategy.domain.manual.SourcePriority
 import com.nachojerez.carpstrategy.domain.model.AppearanceSettings
@@ -64,7 +65,14 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setLocation(location: FishingLocation) =
         dao.upsert(SettingEntity(KEY_LOCATION, LocationCodec.encode(location)))
 
+    override fun observeGear(): Flow<List<GearItem>> =
+        dao.observe(KEY_GEAR).map(GuidedJson::decodeGear).distinctUntilChanged()
+
+    override suspend fun setGear(items: List<GearItem>) =
+        dao.upsert(SettingEntity(KEY_GEAR, GuidedJson.encodeGear(items)))
+
     companion object {
+        const val KEY_GEAR = "gear"
         const val KEY_SOURCE_PRIORITY = "source_priority"
         const val KEY_APPEARANCE = "appearance"
         const val KEY_LOCATION = "location"

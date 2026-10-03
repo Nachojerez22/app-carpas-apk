@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.domain.repository
 
+import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.manual.ManualRecord
 import com.nachojerez.carpstrategy.domain.manual.SourcePriority
 import com.nachojerez.carpstrategy.domain.model.AppearanceSettings
@@ -35,4 +36,8 @@ interface SettingsRepository {
     /** Ubicación de trabajo; por defecto el embalse de Brovales. */
     fun observeLocation(): Flow<FishingLocation>
     suspend fun setLocation(location: FishingLocation)
+
+    /** Equipo del usuario (cebos y montajes) para la sesión guiada. */
+    fun observeGear(): Flow<List<GearItem>>
+    suspend fun setGear(items: List<GearItem>)
 }

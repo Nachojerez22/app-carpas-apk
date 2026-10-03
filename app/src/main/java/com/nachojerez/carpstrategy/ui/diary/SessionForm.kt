@@ -150,6 +150,8 @@ data class SessionForm(
             fulfilled = fulfilled,
             notes = notes.trim(),
             createdAt = base?.createdAt ?: now,
+            // Al poner hora de fin en la ficha se cierra también el último tramo guiado.
+            guided = base?.guided?.let { record -> end?.let(record::finish) ?: record },
         )
         return Result(session, emptySet())
     }

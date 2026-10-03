@@ -117,6 +117,23 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   Datos con fuente `SessionForm.MEASUREMENT_SOURCE`. Datos y Diario se pueden exportar y
   restaurar (docs/INSTALACION.md).
 
+## Sesión guiada (fase 7)
+
+- `domain/guided` (puro, CONOCIMIENTO.md §5.9): `Gear` (tipos de cebo con sus funciones,
+  `BaitCatalog` para elegir sustituto del equipo), `GuidedLog` (registro de **una caña**: tramos,
+  avisos, propuestas y decisiones), `GuidedRecord` (una `RodTrack` por caña con nombre, avisos
+  mostrados, cambios de viento y cebado inicial), `GuidedEngine` (diagnóstico A/B/C/D y E «otras
+  especies» (solo la carpa es captura), escalera por fase, tiempos 🟣 en
+  `THRESHOLDS`, dos «No funciona» en 30 min ⇒ propuesta forzada, límites ⚖ del fin legal,
+  `nextCheckIn`) y `GuidedSessions` (aplica cada acción a la `Session` caña a caña: picadas y
+  carpas con su caña).
+- Persistencia: columna `guidedJson` de `session` (BD v3, `AutoMigration(2 → 3)`) con
+  `GuidedJson` (también campo `guiado` de la exportación); el equipo va en el ajuste `gear`.
+- `ui/guided`: `GuidedSessionManager` (singleton; un cerrojo para pantalla, alarma y
+  notificación), `CheckInScheduler` + receptores (AlarmManager, sin servicio en primer plano),
+  `GuidedNotifier` (una notificación con cronómetro, solo vibra) y pantallas Guiada y Mi equipo.
+  Los textos de pasos y avisos salen de `GuidedTexts` (Resources) para pantalla y notificación.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.
@@ -140,10 +157,12 @@ domain/
   derived/            parámetros derivados: funciones PURAS y 100 % testeadas
   rules/              motor de filtros/multiplicadores (reglas en assets/rules.json)
   journal/            diario: sesiones, validación y estadísticas (capturas por hora-caña)
+  guided/             sesión guiada: equipo, motor de alternativas y registro por tramos
 ui/
   navigation/ theme/ components/   navegación de 5 pestañas, tokens del diseño y componentes
   today/ strategy/ manual/ diary/ place/   pestañas Hoy, Estrategia, Datos, Diario y Lugar
                       (diary/: lista, ficha de sesión y exportación del diario)
+  guided/             sesión guiada, Mi equipo, avisos (alarmas) y notificación
   conditions/         datos en bruto por fuente (subruta desde Hoy) y su ViewModel
 di/                   módulos de Hilt
 ```
