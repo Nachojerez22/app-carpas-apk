@@ -82,6 +82,17 @@ no suma puntos, un nivel bajo no se compensa con otro alto y se muestra el nivel
 Luna, presión y nubosidad aparecen con peso 0. Las ventanas horarias se sugieren siempre dentro
 del horario legal. El JSON se valida al cargarlo y los errores se muestran en la app.
 
+### Interfaz (fase 5)
+
+Cinco pestañas según el diseño de `docs/design/`: **Hoy** (agua medida o estimada, aire, viento,
+lluvia, embalse, horario legal, datos con peso 0 y gráficas de 5 días + 3 de previsión con la
+banda entre modelos), **Estrategia** (resultado en 5 tramos, cadena de filtros 0 → 4, demanda,
+franjas dentro del horario legal, consejos y reglas activadas con su evidencia), **Datos**
+(registros por día, formulario completo e importación JSON con vista previa), **Diario** (fase 6)
+y **Lugar** (GPS o coordenadas, apariencia Material/Apple y claro/oscuro, fuentes, leyenda de
+evidencias, limitaciones y normativa con su fecha de revisión). La ubicación del GPS se lee una
+sola vez al pulsar el botón y no sale del móvil.
+
 ### Limitaciones (importante)
 
 - **La app no mide la temperatura del agua**: lo recomendable es introducir tu propia medición
@@ -144,7 +155,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 2**: datos manuales e importación JSON, prioridad de fuentes elegible y serie combinada
 - [x] **Fase 3**: parámetros derivados (presión, temperatura, agua estimada/medida, viento, lluvia, sesgo con AEMET, sol/luna y ventana legal)
 - [x] **Fase 4**: motor de filtros/multiplicadores por niveles (reglas JSON con etiqueta de evidencia) y pantalla de estrategia
-- [ ] **Fase 5**: UI completa, GPS y gráficas
+- [x] **Fase 5**: UI completa (diseño Material/Apple, claro/oscuro), GPS y gráficas
 - [ ] **Fase 6**: diario de sesiones (horas-caña, bolos, valoración previa) y aprendizaje con datos propios
 
 ## CI

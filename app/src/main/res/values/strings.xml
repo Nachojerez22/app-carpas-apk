@@ -2,17 +2,11 @@
 <resources>
     <string name="app_name">CarpStrategy</string>
 
-    <string name="nav_location">Ubicación</string>
-    <string name="nav_conditions">Condiciones</string>
     <string name="nav_strategy">Estrategia</string>
-    <string name="nav_about">Acerca de</string>
 
-    <string name="placeholder_location">Aquí podrás elegir la ubicación por GPS o de forma manual (pin en el mapa o coordenadas). Por defecto: %1$s (%2$.2f, %3$.2f).</string>
     <string name="coming_soon">Disponible en una fase posterior.</string>
 
-    <string name="about_title">Acerca de CarpStrategy</string>
     <string name="about_description">App personal y no comercial: diario de sesiones de pesca de carpa y estimador de condiciones a partir del tiempo de los días anteriores y del día de pesca. No localiza peces: indica condiciones más o menos favorables según la evidencia disponible y tus propios datos.</string>
-    <string name="about_sources_title">Fuentes de datos</string>
     <string name="about_source_openmeteo">Datos meteorológicos de Open-Meteo.com (licencia CC BY 4.0), con los modelos ICON-EU (DWD), ARPEGE Europe (Météo-France) e IFS (ECMWF).</string>
     <string name="about_source_aemet">Observaciones: © AEMET (Agencia Estatal de Meteorología), AEMET OpenData.</string>
     <string name="about_disclaimers_title">Limitaciones</string>
@@ -66,14 +60,11 @@
     <string name="row_forecast">%1$s · %2$s °C · %3$s hPa · viento %4$s km/h %5$s · racha %6$s · nubes %7$s %% · lluvia %8$s mm · rad. %9$s W/m²</string>
     <string name="row_observation">%1$s · %2$s °C · %3$s hPa · viento %4$s km/h %5$s · racha %6$s · lluvia %7$s mm · HR %8$s %%</string>
     <string name="row_divergent">⚠ viento incierto</string>
-    <string name="value_missing">—</string>
 
     <!-- Fase 2: datos manuales, importación y prioridad de fuentes -->
-    <string name="manual_title">Datos manuales</string>
     <string name="manual_open">Datos manuales</string>
-    <string name="manual_intro">Tus medidas y los datos que importes tienen prioridad según el orden que elijas en Condiciones. La temperatura del agua solo puede venir de aquí: es el dato más valioso.</string>
+    <string name="manual_intro">Tus medidas y los datos que importes tienen prioridad según el orden que elijas en Hoy → Prioridad de fuentes. La temperatura del agua solo puede venir de aquí: es el dato más valioso.</string>
     <string name="action_back">Volver</string>
-    <string name="action_add">Añadir</string>
     <string name="action_import">Importar JSON</string>
     <string name="action_copy_example">Copiar ejemplo JSON</string>
     <string name="action_edit">Editar</string>
@@ -81,14 +72,9 @@
     <string name="action_save">Guardar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_confirm_import">Importar %1$d registros</string>
-    <string name="action_close">Cerrar</string>
     <string name="example_copied">Ejemplo copiado. Pégalo a tu asistente junto con tus datos reales y pídele un archivo con este formato (ver docs/FORMATO_DATOS.md).</string>
-    <string name="manual_empty">Todavía no hay datos manuales.</string>
     <string name="manual_origin_typed">Introducido a mano</string>
     <string name="manual_origin_imported">Importado de %1$s · no verificado</string>
-    <string name="manual_source">Fuente: %1$s</string>
-    <string name="manual_notes">Notas: %1$s</string>
-    <string name="manual_value">%1$s: %2$s</string>
     <string name="manual_delete_confirm">¿Borrar este registro? No se puede deshacer.</string>
 
     <string name="editor_title_new">Nuevo registro</string>
@@ -222,50 +208,40 @@
     <string name="strategy_title">Estrategia para hoy</string>
     <string name="strategy_disclaimer">No localiza peces: indica condiciones más o menos favorables según la evidencia disponible y tus datos. Cada indicación lleva su etiqueta.</string>
     <string name="strategy_loading">Evaluando reglas…</string>
-    <string name="strategy_no_data">Todavía no hay datos. Actualiza en Condiciones o añade datos manuales.</string>
+    <string name="strategy_no_data">Actualiza en Hoy o añade tus mediciones en Datos.</string>
     <string name="strategy_rules_invalid">Las reglas (rules.json) tienen errores y no se pueden usar:</string>
-    <string name="strategy_blocked">⚖ No se recomienda ninguna sesión:</string>
-    <string name="strategy_favorability">Condiciones %1$s (%2$d/100)</string>
+    <string name="strategy_blocked">⚖ Hoy no se recomienda ninguna sesión</string>
     <string name="strategy_favorability_unknown">Sin valoración: falta la temperatura del agua (mídela o espera a tener 5 días de datos).</string>
     <string name="band_very_unfavorable">muy desfavorables</string>
     <string name="band_unfavorable">desfavorables</string>
     <string name="band_intermediate">intermedias</string>
     <string name="band_favorable">favorables</string>
     <string name="band_very_favorable">muy favorables</string>
-    <string name="strategy_limiting">Nivel que limita el resultado: %1$s</string>
-    <string name="strategy_not_limited">Ningún nivel limita el resultado.</string>
-    <string name="strategy_demand">🟢 Demanda alimentaria esperada: %1$s</string>
     <string name="demand_very_low">muy baja (&lt; 10 °C)</string>
     <string name="demand_low">baja (10–14 °C)</string>
     <string name="demand_medium">media (14–20 °C)</string>
     <string name="demand_high">alta (20–24 °C)</string>
     <string name="demand_very_high">muy alta (24–28 °C)</string>
     <string name="demand_uncertain_heat">incierta por calor (&gt; 28 °C): baja la confianza</string>
-    <string name="strategy_levels_title">Cadena de filtros</string>
-    <string name="strategy_level_row">%1$s: %2$d %%</string>
     <string name="level_0">0 · Legalidad</string>
     <string name="level_1">1 · Hábitat posible</string>
     <string name="level_2">2 · Temperatura</string>
     <string name="level_3">3 · Modificadores físicos</string>
     <string name="level_4">4 · Capturabilidad</string>
     <string name="level_exploratory">Exploratorias (peso 0)</string>
-    <string name="strategy_windows_title">Ventanas horarias sugeridas (dentro del horario legal)</string>
     <string name="strategy_windows_none">Sin ventanas: no hay horario legal calculable hoy.</string>
     <string name="window_dawn">Amanecer legal</string>
     <string name="window_midday">Horas centrales</string>
     <string name="window_afternoon_dusk">Tarde y anochecer legal</string>
     <string name="window_dusk">Anochecer legal</string>
-    <string name="strategy_window_row">%1$s %2$s: %3$s – %4$s</string>
     <string name="field_where">Dónde</string>
     <string name="field_when">Cuándo</string>
     <string name="field_bait">Cebado</string>
     <string name="field_presentation">Presentación</string>
     <string name="field_avoid">Evitar</string>
     <string name="field_notes">Notas</string>
-    <string name="strategy_advice_item">%1$s %2$s</string>
     <string name="strategy_why_title">Por qué: reglas activadas</string>
-    <string name="strategy_rule_title">%1$s %2$s</string>
-    <string name="strategy_rule_factor">× %1$s en el nivel</string>
+    <string name="strategy_rule_factor">× %1$s</string>
     <string name="strategy_rule_membership">%1$s = %2$s → × %3$s</string>
     <string name="strategy_check">%1$s = %2$s (%3$s)</string>
     <string name="strategy_not_evaluable_title">Sin datos para evaluar</string>
@@ -326,4 +302,203 @@
     <string name="param_en_horario_legal">ahora en horario legal</string>
     <string name="param_fin_de_semana">fin de semana</string>
     <string name="param_mes">mes</string>
+    <!-- Fase 5: navegación -->
+    <string name="nav_today">Hoy</string>
+    <string name="nav_data">Datos</string>
+    <string name="nav_diary">Diario</string>
+    <string name="nav_place">Lugar</string>
+    <string name="action_retry">Reintentar</string>
+
+    <!-- Fase 5: insignias -->
+    <string name="evidence_description">Evidencia: %1$s</string>
+    <string name="evidence_strong">Fuerte</string>
+    <string name="evidence_moderate">Moderada / hipótesis</string>
+    <string name="evidence_moderate_short">Moderada</string>
+    <string name="evidence_none">Sin evidencia · peso 0</string>
+    <string name="evidence_none_short">Peso 0</string>
+    <string name="evidence_local">Hipótesis local</string>
+    <string name="evidence_individual">Variabilidad individual</string>
+    <string name="evidence_individual_short">Variabilidad</string>
+    <string name="badge_regulation">Normativa</string>
+    <string name="source_badge_manual">Fuente: manual o importado</string>
+    <string name="source_badge_aemet">Fuente: AEMET, observación real</string>
+    <string name="source_badge_forecast">Fuente: previsión, media de 3 modelos</string>
+    <string name="source_manual_desc">Tus medidas e importaciones</string>
+    <string name="source_aemet_desc">Observación real de la estación más cercana</string>
+    <string name="source_models_desc">Media de ICON, ARPEGE y ECMWF</string>
+    <string name="priority_explanation_short">Para cada dato se usa la primera fuente activa que lo tenga.</string>
+
+    <!-- Fase 5: cadena de filtros y demanda -->
+    <string name="chain_passed">Superado</string>
+    <string name="chain_limits">Limita</string>
+    <string name="chain_reduces">Resta</string>
+    <string name="chain_neutral">Neutro</string>
+    <string name="chain_blocks">Bloquea</string>
+    <string name="demand_bar_1">Muy baja</string>
+    <string name="demand_bar_2">Baja</string>
+    <string name="demand_bar_3">Media</string>
+    <string name="demand_bar_4">Alta</string>
+    <string name="demand_bar_5">Muy alta</string>
+    <string name="level_title_0">Legalidad</string>
+    <string name="level_title_1">Hábitat posible</string>
+    <string name="level_title_2">Temperatura</string>
+    <string name="level_title_3">Modificadores físicos</string>
+    <string name="level_title_4">Capturabilidad</string>
+
+    <!-- Fase 5: Hoy -->
+    <string name="today_title">Hoy</string>
+    <string name="today_loading">Descargando datos…</string>
+    <string name="today_empty_title">Aún no hay datos para este lugar</string>
+    <string name="today_empty_text">Fija la ubicación y actualiza, o añade una medición propia.</string>
+    <string name="today_set_location">Fijar ubicación</string>
+    <string name="today_error_title">No se pudo actualizar</string>
+    <string name="today_no_download">Aún no se ha descargado la previsión</string>
+    <string name="today_age">Datos de hace %1$s</string>
+    <string name="today_offline">Sin conexión · datos de hace %1$s</string>
+    <string name="today_sources_line">Open-Meteo (3 modelos) · AEMET · tus datos</string>
+    <string name="today_old_data_note">Datos antiguos: tómalos con cautela.</string>
+    <string name="today_open_raw">Ver los datos en bruto de cada fuente</string>
+    <string name="warning_stale">Datos de hace más de 24 h</string>
+    <string name="warning_divergence">Los modelos discrepan en el viento</string>
+    <string name="warning_unverified">Importados sin verificar: %1$d</string>
+    <string name="water_title">Temperatura del agua</string>
+    <string name="water_missing">Aún no hay datos para estimarla. Tu medición es el dato más valioso.</string>
+    <string name="water_add_measurement">Añadir medición</string>
+    <string name="water_chip_measured">MEDIDA</string>
+    <string name="water_chip_estimated">ESTIMADA</string>
+    <string name="water_measured_at">Medida por ti: %1$s</string>
+    <string name="water_estimated_how">Estimación a partir del aire de los últimos días. Mídela para afinar.</string>
+    <string name="water_trend">%1$s °C en 3 días</string>
+    <string name="water_trend_estimated">Tendencia estimada: %1$s °C en 3 días</string>
+    <string name="water_calibrated">Calibrada con %1$d medidas tuyas</string>
+    <string name="data_air">Aire</string>
+    <string name="data_air_trend">%1$s °C frente a los 3 días previos</string>
+    <string name="data_wind">Viento 24 h</string>
+    <string name="data_wind_persistence">Persistencia %1$s %% · racha %2$s km/h</string>
+    <string name="data_wind_models">Modelos: %1$s–%2$s km/h</string>
+    <string name="data_rain">Lluvia 24 h</string>
+    <string name="data_rain_unit">mm</string>
+    <string name="data_rain_72h">%1$s mm en 72 h</string>
+    <string name="data_reservoir">Embalse</string>
+    <string name="data_reservoir_delta">%1$s hm³ en 7 días</string>
+    <string name="data_reservoir_missing">Sin lectura: añádela en Datos</string>
+    <string name="legal_title">⚖ Horario legal hoy</string>
+    <string name="legal_now_inside">Ahora: dentro</string>
+    <string name="legal_now_outside">Ahora: fuera</string>
+    <string name="legal_caption">Orto %1$s · ocaso %2$s. Fuera de la franja no se recomienda pescar.</string>
+    <string name="legal_bar_description">Horario legal de %1$s a %2$s; las horas rayadas no son legales.</string>
+    <string name="weight_zero_title">Se muestran, pero no cuentan</string>
+    <string name="weight_zero_moon">Luna iluminada</string>
+    <string name="weight_zero_pressure">Presión y tendencia de 3 h</string>
+    <string name="chart_today">Hoy</string>
+    <string name="chart_pressure_title">Presión (hPa)</string>
+    <string name="chart_pressure_subtitle">5 días y 3 de previsión · 🔴 peso 0, solo informativa</string>
+    <string name="chart_temperature_title">Temperatura (°C)</string>
+    <string name="chart_temperature_subtitle">Aire: 5 días y 3 de previsión · agua: tus medidas</string>
+    <string name="chart_legend">Continua: observado · discontinua: media de los modelos · banda: mínimo y máximo entre modelos</string>
+    <string name="chart_temperature_legend">Continua: aire · puntos: agua medida · banda: mínimo y máximo entre modelos</string>
+
+    <!-- Fase 5: Estrategia -->
+    <string name="strategy_overline">Según tus datos · no localiza peces</string>
+    <string name="strategy_result_overline">Condiciones para hoy</string>
+    <string name="strategy_band_title">Condiciones %1$s</string>
+    <string name="strategy_limiting_chip">Limita el nivel %1$d · %2$s</string>
+    <string name="strategy_stale">Valoración con datos antiguos</string>
+    <string name="strategy_chain_title">Cadena de filtros</string>
+    <string name="strategy_chain_subtitle">Si un nivel inferior es bajo, los superiores no lo compensan.</string>
+    <string name="strategy_demand_title">Demanda alimentaria</string>
+    <string name="strategy_demand_subtitle">🟢 Orientativa y nunca en gramos.</string>
+    <string name="strategy_demand_unknown">Sin estimación</string>
+    <string name="strategy_windows_subtitle">Franjas sugeridas dentro del horario legal</string>
+    <string name="strategy_windows_legal_note">⚖ Solo se proponen franjas dentro del horario legal.</string>
+    <string name="strategy_why_subtitle">Código, efecto, porqué y evidencia de cada regla.</string>
+    <string name="strategy_no_rules">Ninguna regla aplica con los datos actuales.</string>
+    <string name="strategy_recorded_title">Registradas con peso 0</string>
+    <string name="strategy_recorded_subtitle">Se calculan y se guardan, pero no cambian la valoración.</string>
+    <string name="strategy_effect_blocks">Bloquea</string>
+    <string name="strategy_effect_warning">Aviso</string>
+    <string name="strategy_effect_record">Peso 0</string>
+    <string name="strategy_effect_advice">Consejo</string>
+
+    <!-- Fase 5: Datos -->
+    <string name="data_title">Datos</string>
+    <string name="data_overline">Tus mediciones e importaciones</string>
+    <string name="data_filter_all">Todos</string>
+    <string name="data_filter_hourly">Por hora</string>
+    <string name="data_filter_daily">Por día</string>
+    <string name="data_empty_title">Aún no hay registros</string>
+    <string name="data_new_record">Nuevo registro</string>
+    <string name="data_origin_typed">Manual</string>
+    <string name="data_origin_unverified">Sin verificar</string>
+    <string name="data_footer">Tus registros se guardan solo en este móvil.</string>
+    <string name="editor_source_hint">Quién o qué lo midió (p. ej. «termómetro propio»)</string>
+    <string name="editor_group_water">Agua</string>
+    <string name="editor_group_air">Aire</string>
+    <string name="editor_group_wind">Viento</string>
+    <string name="editor_group_rain">Lluvia</string>
+    <string name="editor_group_reservoir">Nivel del embalse</string>
+    <string name="editor_wind_direction">Dirección (de dónde viene)</string>
+    <string name="editor_wind_direction_hint">Pulsa otra vez el rumbo elegido para borrarlo.</string>
+    <string name="editor_turbidity_hint">1 = muy clara · 5 = muy turbia</string>
+    <string name="editor_delete">Eliminar registro</string>
+    <string name="import_title">Importar JSON</string>
+    <string name="import_intro">Formato carpstrategy-datos v1. Copia el ejemplo, pídele a Claude un archivo con tus datos reales y pégalo aquí o ábrelo como archivo.</string>
+    <string name="import_paste">Pegar</string>
+    <string name="import_file">Abrir archivo</string>
+    <string name="import_editor_label">JSON</string>
+    <string name="import_check">Comprobar</string>
+    <string name="import_pasted_name">texto pegado</string>
+    <string name="import_preview_more">… y %1$d registros más</string>
+    <string name="import_back_to_data">Volver a Datos</string>
+
+    <!-- Fase 5: Diario -->
+    <string name="diary_title">Diario</string>
+    <string name="diary_overline">Tus sesiones</string>
+    <string name="diary_coming_title">El diario de sesiones llega en la fase 6</string>
+    <string name="diary_coming_text">Guardarás horas, zona, bolos, esfuerzo en horas-caña y la valoración que dio la app antes de la sesión.</string>
+
+    <!-- Fase 5: Lugar -->
+    <string name="place_title">Lugar</string>
+    <string name="place_location_title">Ubicación</string>
+    <string name="place_location_subtitle">La previsión, AEMET y el horario legal se calculan para este punto.</string>
+    <string name="place_my_location">Mi ubicación</string>
+    <string name="place_use_gps">Usar mi ubicación</string>
+    <string name="place_gps_found">Ubicación actualizada.</string>
+    <string name="place_gps_denied">Sin permiso de ubicación. Puedes teclear las coordenadas.</string>
+    <string name="place_gps_unavailable">No se pudo obtener la ubicación. Prueba al aire libre o teclea las coordenadas.</string>
+    <string name="place_gps_privacy">Se lee una sola vez al pulsar el botón; nunca en segundo plano y no sale del móvil.</string>
+    <string name="place_coordinates_title">Coordenadas</string>
+    <string name="place_name">Nombre</string>
+    <string name="place_latitude">Latitud</string>
+    <string name="place_longitude">Longitud</string>
+    <string name="place_latitude_error">Latitud no válida: grados decimales entre −90 y 90.</string>
+    <string name="place_longitude_error">Longitud no válida: grados decimales entre −180 y 180.</string>
+    <string name="place_save_coordinates">Guardar coordenadas</string>
+    <string name="place_reset">Volver a %1$s</string>
+    <string name="place_appearance_title">Apariencia</string>
+    <string name="appearance_style">Estilo</string>
+    <string name="appearance_style_material">Material</string>
+    <string name="appearance_style_apple">Apple</string>
+    <string name="appearance_theme">Tema</string>
+    <string name="appearance_theme_system">Sistema</string>
+    <string name="appearance_theme_light">Claro</string>
+    <string name="appearance_theme_dark">Oscuro</string>
+    <string name="appearance_dynamic">Color dinámico</string>
+    <string name="appearance_dynamic_hint">Usa los colores del fondo de pantalla (Android 12 o superior).</string>
+    <string name="appearance_fixed_colors">Los colores de evidencia, avisos y horario legal son fijos para que siempre signifiquen lo mismo.</string>
+    <string name="place_sources_title">Fuentes</string>
+    <string name="place_source_openmeteo">Open-Meteo</string>
+    <string name="place_source_manual">Tus mediciones e importaciones. Se guardan solo en este móvil.</string>
+    <string name="place_legend_title">Leyenda de evidencias</string>
+    <string name="place_legend_subtitle">Cada regla y recomendación lleva su etiqueta.</string>
+    <string name="legend_strong">Respaldada por estudios con carpa.</string>
+    <string name="legend_moderate">Indicios razonables o hipótesis operativa.</string>
+    <string name="legend_none">Se calcula y se muestra, pero no cuenta en la valoración.</string>
+    <string name="legend_local">Hipótesis propia de Brovales, por confirmar con tu diario.</string>
+    <string name="legend_individual">Depende mucho de cada pez o de cada día.</string>
+    <string name="legend_regulation">Normativa de pesca: filtro duro, nunca se salta.</string>
+    <string name="place_regulation_title">Normativa</string>
+    <string name="place_regulation_hours">En Brovales solo se pesca desde 1 h antes del amanecer hasta 1 h después del anochecer.</string>
+    <string name="place_regulation_reviewed">Última revisión: %1$s</string>
+    <string name="place_regulation_check">Confírmala en el DOE y en pescayrios.juntaextremadura.es antes de cada temporada.</string>
 </resources>

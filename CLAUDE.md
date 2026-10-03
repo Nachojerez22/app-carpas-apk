@@ -81,6 +81,20 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   horario legal). Nuevo parámetro ⇒ añadirlo a `RuleParameter`, al builder, a strings
   (`param_*`) y a docs/REGLAS.md.
 
+## Interfaz (fase 5)
+
+- Diseño de Claude Design: `docs/design/DISENO.md` y maquetas en `docs/design/referencias/`.
+  Tokens en `ui/theme` (`CarpTheme(ThemePrefs)`: estilo Material/Apple × claro/oscuro, color
+  dinámico opcional; `CarpTheme.colors` son colores semánticos **fijos**). Fuente Atkinson
+  Hyperlegible Next en `res/font` (OFL, `docs/licencias/`).
+- Componentes reutilizables en `ui/components` (insignias de evidencia y fuente, tarjetas,
+  cadena de filtros, gráficas con `Canvas`). Vistas previas con `@CarpPreviews` (4 variantes).
+- Navegación: Hoy · Estrategia · Datos · Diario · Lugar, más la subruta de datos en bruto.
+- La apariencia y la ubicación se guardan en la tabla de ajustes de `UserDataDatabase`
+  (no en DataStore). GPS: una sola lectura con `DeviceLocationProvider`, permiso pedido al pulsar.
+- La lógica de cada pantalla que se pueda probar va en funciones puras (`chainRows`,
+  `groupRecordsByDay`, `parseCoordinates`, `TodayCharts`) con sus tests.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.
@@ -104,7 +118,9 @@ domain/
   derived/            parámetros derivados: funciones PURAS y 100 % testeadas
   rules/              motor de filtros/multiplicadores (reglas en assets/rules.json)
 ui/
-  navigation/ theme/ location/ conditions/ strategy/ journal/ about/
+  navigation/ theme/ components/   navegación de 5 pestañas, tokens del diseño y componentes
+  today/ strategy/ manual/ diary/ place/   pestañas Hoy, Estrategia, Datos, Diario y Lugar
+  conditions/         datos en bruto por fuente (subruta desde Hoy) y su ViewModel
 di/                   módulos de Hilt
 ```
 

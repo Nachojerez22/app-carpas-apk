@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Entrada manual · estilo Apple</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 412px; height: 1500px; box-sizing: border-box; background: {{t.bg}}; color: {{t.label}}; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Atkinson Hyperlegible Next', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; font-variant-numeric: tabular-nums; letter-spacing: -0.2px">
+
+  <div style="display: flex; flex-direction: column; align-items: center; padding-top: 8px"><span style="width: 40px; height: 5px; border-radius: 3px; background: {{t.label3}}"></span></div>
+  <header style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 8px 16px; min-height: 52px">
+    <a href="ADatos.dc.html" style="justify-self: start; color: {{t.tint}}; font-size: 17px; text-decoration: none; min-height: 44px; display: flex; align-items: center">Cancelar</a>
+    <h1 style="margin: 0; font-size: 17px; font-weight: 700">Nuevo registro</h1>
+    <a href="ADatos.dc.html" style="justify-self: end; color: {{t.tint}}; font-size: 17px; font-weight: 700; text-decoration: none; min-height: 44px; display: flex; align-items: center">Guardar</a>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 22px; padding: 8px 16px 40px">
+    <span style="margin: 0 16px; font-size: 14px; line-height: 19px; color: {{t.label2}}">Todo es opcional. Rellena solo lo que hayas medido.</span>
+
+    <sc-for list="{{secciones}}" as="s" hint-placeholder-count="5">
+      <section style="display: flex; flex-direction: column; gap: 6px">
+        <h2 style="margin: 0 16px; font-size: 13px; font-weight: 600; color: {{t.label2}}; text-transform: uppercase">{{s.titulo}}</h2>
+        <sc-if value="{{s.seg}}" hint-placeholder-val="{{false}}">
+          <div style="display: grid; grid-template-columns: repeat({{s.segN}}, minmax(0, 1fr)); padding: 3px; border-radius: 10px; background: {{t.fill}}">
+            <sc-for list="{{s.opts}}" as="o" hint-placeholder-count="3">
+              <button style="height: 34px; border: 0; border-radius: 8px; background: {{o.bg}}; color: {{t.label}}; font-family: inherit; font-size: 14px; font-weight: {{o.w}}; box-shadow: {{o.sh}}">{{o.k}}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="border-radius: 14px; background: {{t.cell}}; overflow: hidden">
+          <sc-for list="{{s.campos}}" as="c" hint-placeholder-count="2">
+            <label style="display: flex; align-items: center; gap: 12px; min-height: 52px; margin-left: 16px; padding-right: 16px; border-bottom: {{c.sep}}">
+              <span style="flex: 1; font-size: 17px">{{c.k}}</span>
+              <input value="{{c.v}}" placeholder="—" style="width: 110px; text-align: right; border: 0; background: transparent; font-family: inherit; font-size: 17px; font-weight: 600; color: {{c.color}}">
+              <span style="width: 40px; font-size: 15px; color: {{t.label2}}">{{c.u}}</span>
+            </label>
+          </sc-for>
+        </div>
+      </section>
+    </sc-for>
+
+    <section style="display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0 16px; font-size: 13px; font-weight: 600; color: {{t.label2}}; text-transform: uppercase">Turbidez</h2>
+      <div role="radiogroup" aria-label="Turbidez de 1 a 5" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 3px; border-radius: 10px; background: {{t.fill}}">
+        <sc-for list="{{turb}}" as="b" hint-placeholder-count="5">
+          <button role="radio" aria-checked="{{b.sel}}" onClick="{{b.pick}}" style="height: 40px; border: 0; border-radius: 8px; background: {{b.bg}}; color: {{t.label}}; font-family: inherit; font-size: 17px; font-weight: {{b.w}}; box-shadow: {{b.sh}}; cursor: pointer">{{b.n}}</button>
+        </sc-for>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin: 0 16px; font-size: 13px; color: {{t.label2}}"><span>Clara</span><span>Muy turbia</span></div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0 16px; font-size: 13px; font-weight: 600; color: {{t.label2}}; text-transform: uppercase">Notas</h2>
+      <textarea rows="3" placeholder="Algo que quieras recordar" style="border: 0; border-radius: 14px; padding: 14px 16px; background: {{t.cell}}; font-family: inherit; font-size: 17px; color: {{t.label}}; resize: none"></textarea>
+    </section>
+
+    <button style="height: 52px; border: 0; border-radius: 14px; background: {{t.cell}}; color: {{t.red}}; font-family: inherit; font-size: 17px">Eliminar registro</button>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":412,"height":1500}}'>
+var A = {
+  light: {bg:'#F2F2F7',cell:'#FFFFFF',label:'#000000',label2:'#5C5C63',label3:'#8E8E93',sep:'#C6C6C8',fill:'#E5E5EA',tint:'#2E7D32',red:'#C62828'},
+  dark: {bg:'#000000',cell:'#1C1C1E',label:'#FFFFFF',label2:'#AEAEB2',label3:'#8E8E93',sep:'#38383A',fill:'#2C2C2E',tint:'#7BD17F',red:'#FF8A80'}
+};
+function seps(list, t) { return list.map(function (x, i) { return Object.assign({ color: x.v ? t.label : t.label3 }, x, { sep: i === list.length - 1 ? '0' : '0.5px solid ' + t.sep }); }); }
+function seg(t, opts, sel) { return opts.map(function (k) { var on = k === sel; return { k: k, bg: on ? t.cell : 'transparent', w: on ? '700' : '400', sh: on ? '0 1px 3px rgba(0,0,0,0.15)' : 'none' }; }); }
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { turb: 2 }; }
+  renderVals() {
+    var t = (this.props.dark ?? false) ? A.dark : A.light;
+    var self = this;
+    var secciones = [
+      { titulo: 'Cuándo', seg: true, segN: 2, opts: seg(t, ['Por hora', 'Por día'], 'Por hora'), campos: seps([{ k: 'Fecha', v: '3 oct 2026', u: '' }, { k: 'Hora', v: '07:40', u: '' }], t) },
+      { titulo: 'Agua', seg: false, segN: 1, opts: [], campos: seps([{ k: 'Superficie', v: '18,1', u: '°C' }, { k: 'Fondo', v: '', u: '°C' }], t) },
+      { titulo: 'Aire y viento', seg: false, segN: 1, opts: [], campos: seps([{ k: 'Temperatura', v: '14', u: '°C' }, { k: 'Presión', v: '', u: 'hPa' }, { k: 'Viento desde', v: 'NO', u: '' }, { k: 'Velocidad', v: '10', u: 'km/h' }], t) },
+      { titulo: 'Lluvia', seg: false, segN: 1, opts: [], campos: seps([{ k: 'Acumulada', v: '', u: 'mm' }], t) },
+      { titulo: 'Nivel del embalse', seg: true, segN: 3, opts: seg(t, ['hm³', '%', 'Cota'], '%'), campos: seps([{ k: 'Llenado', v: '54', u: '%' }], t) }
+    ];
+    var turb = [1, 2, 3, 4, 5].map(function (n) { var on = self.state.turb === n; return { n: String(n), sel: on ? 'true' : 'false', bg: on ? t.cell : 'transparent', w: on ? '800' : '400', sh: on ? '0 1px 3px rgba(0,0,0,0.15)' : 'none', pick: function () { self.setState({ turb: n }); } }; });
+    return { t: t, secciones: secciones, turb: turb };
+  }
+}
+</script>
+</body>
+</html>

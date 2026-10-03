@@ -56,6 +56,17 @@ fun RuleLevel.labelRes(): Int = when (this) {
     RuleLevel.EXPLORATORY -> R.string.level_exploratory
 }
 
+/** Nombre del nivel sin número (el número va en el círculo de la cadena). */
+@StringRes
+fun RuleLevel.titleRes(): Int = when (this) {
+    RuleLevel.LEGALITY -> R.string.level_title_0
+    RuleLevel.HABITAT -> R.string.level_title_1
+    RuleLevel.TEMPERATURE -> R.string.level_title_2
+    RuleLevel.PHYSICAL -> R.string.level_title_3
+    RuleLevel.CATCHABILITY -> R.string.level_title_4
+    RuleLevel.EXPLORATORY -> R.string.level_exploratory
+}
+
 @StringRes
 fun StrategyField.labelRes(): Int = when (this) {
     StrategyField.WHERE -> R.string.field_where

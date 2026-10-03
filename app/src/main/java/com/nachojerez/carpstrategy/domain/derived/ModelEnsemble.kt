@@ -9,7 +9,13 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /** Media y dispersión (máximo − mínimo) de una variable entre los modelos disponibles. */
-data class VariableStats(val mean: Double, val spread: Double, val count: Int)
+data class VariableStats(
+    val mean: Double,
+    val spread: Double,
+    val count: Int,
+    val min: Double = mean - spread / 2,
+    val max: Double = mean + spread / 2,
+)
 
 /**
  * Dirección media circular y dispersión angular: la mayor diferencia entre dos modelos
@@ -84,6 +90,8 @@ object ModelEnsemble {
             mean = values.average(),
             spread = values.max() - values.min(),
             count = values.size,
+            min = values.min(),
+            max = values.max(),
         )
     }
 

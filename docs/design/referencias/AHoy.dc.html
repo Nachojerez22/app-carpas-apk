@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Hoy · estilo Apple</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 412px; height: 2060px; box-sizing: border-box; background: {{t.bg}}; color: {{t.label}}; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Atkinson Hyperlegible Next', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; position: relative; font-variant-numeric: tabular-nums; letter-spacing: -0.2px">
+
+  <header style="display: flex; align-items: flex-end; gap: 8px; padding: 56px 20px 8px">
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 15px; font-weight: 600; color: {{t.label2}}; text-transform: uppercase; letter-spacing: 0.2px">Sábado 3 oct · Brovales</span>
+      <h1 style="margin: 0; font-size: 36px; line-height: 40px; font-weight: 800; letter-spacing: 0.3px">Hoy</h1>
+    </div>
+    <button aria-label="Actualizar" style="width: 44px; height: 44px; border-radius: 22px; border: 0; background: {{t.fill}}; display: flex; align-items: center; justify-content: center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{t.tint}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg>
+    </button>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 22px; padding: 6px 16px 120px">
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: {{t.label2}}; padding: 0 4px">
+      <span style="width: 8px; height: 8px; border-radius: 4px; background: {{t.tint}}"></span>
+      Actualizado hace 25 min · 09:12
+    </div>
+
+    <section style="display: flex; flex-direction: column; gap: 6px; padding: 20px; border-radius: 24px; background: {{t.water}}; color: {{t.onWater}}">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <span style="font-size: 16px; font-weight: 600">Agua · superficie</span>
+        <span style="display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 11px; border-radius: 13px; background: {{t.onWater}}; color: {{t.water}}; font-size: 13px; font-weight: 700"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="{{t.water}}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>Medida</span>
+      </div>
+      <span style="font-size: 84px; line-height: 88px; font-weight: 300; letter-spacing: -3px">18,1°</span>
+      <span style="font-size: 17px; font-weight: 600">Bajando 0,6° en 3 días</span>
+      <span style="font-size: 14px; opacity: 0.9">Termómetro 07:40 · fondo 16,9° · fuente M</span>
+    </section>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 14px; background: {{t.warnSoft}}; color: {{t.warn}}; font-size: 15px; font-weight: 600">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.warn}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17v.5"></path></svg>
+        Viento incierto: los modelos discrepan
+      </div>
+    </div>
+
+    <section style="display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0 16px; font-size: 13px; font-weight: 600; color: {{t.label2}}; text-transform: uppercase; letter-spacing: 0.3px">Condiciones</h2>
+      <div style="border-radius: 14px; background: {{t.cell}}; overflow: hidden">
+        <sc-for list="{{filas}}" as="f" hint-placeholder-count="4">
+          <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 0 14px">
+            <span style="width: 32px; height: 32px; border-radius: 8px; background: {{f.tile}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="{{f.icon}}"></path></svg></span>
+            <div style="flex: 1; display: flex; align-items: center; gap: 10px; min-height: 60px; border-bottom: {{f.sep}}">
+              <div style="flex: 1; display: flex; flex-direction: column">
+                <span style="font-size: 17px">{{f.k}}</span>
+                <span style="font-size: 13px; color: {{f.subColor}}">{{f.sub}}</span>
+              </div>
+              <span style="font-size: 22px; font-weight: 700">{{f.v}}</span>
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; box-sizing: border-box; border-radius: 6px; border: 1.5px {{f.sl}} {{f.sc}}; background: {{f.sbg}}; color: {{f.sfg}}; font-size: 11px; font-weight: 800">{{f.s}}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0 16px; font-size: 13px; font-weight: 600; color: {{t.label2}}; text-transform: uppercase; letter-spacing: 0.3px">Horario legal</h2>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; background: {{t.cell}}">
+        <div style="display: flex; align-items: baseline; justify-content: space-between">
+          <span style="font-size: 30px; font-weight: 700">07:15 – 20:58</span>
+          <span style="font-size: 14px; font-weight: 700; color: {{t.tint}}">Ahora dentro</span>
+        </div>
+        <div style="position: relative; height: 12px; border-radius: 6px; background: repeating-linear-gradient(135deg, {{t.fill}} 0 5px, {{t.sep}} 5px 8px)">
+          <div style="position: absolute; left: 30%; width: 57%; top: 0; height: 12px; border-radius: 6px; background: {{t.tint}}"></div>
+          <div style="position: absolute; left: 40%; top: -5px; width: 4px; height: 22px; border-radius: 2px; background: {{t.label}}"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; color: {{t.label2}}"><span>Amanecer 08:15</span><span>Anochecer 19:58</span></div>
+      </div>
+      <span style="margin: 0 16px; font-size: 13px; line-height: 18px; color: {{t.label2}}">Fuera de esta franja no se puede pescar y la app nunca la recomienda.</span>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0 16px; font-size: 13px; font-weight: 600; color: {{t.label2}}; text-transform: uppercase; letter-spacing: 0.3px">Presión · 5 días + previsión</h2>
+      <div style="padding: 16px; border-radius: 14px; background: {{t.cell}}">
+        <svg width="348" height="140" viewBox="-6 0 348 140" role="img" aria-label="Presión: mínimo de 1010 el 1 de octubre, previsión entre 1012 y 1020">
+          <rect x="210" y="0" width="126" height="124" rx="6" fill="{{t.fill}}"></rect>
+          <path d="M210 64 L252 46 L294 46 L336 58 L336 94 L294 70 L252 58 Z" fill="{{t.band}}"></path>
+          <path d="M0 46 L42 64 L84 88 L126 100 L168 82 L210 64" fill="none" stroke="{{t.waterLine}}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></path>
+          <path d="M210 64 L252 52 L294 58 L336 76" fill="none" stroke="{{t.waterLine}}" stroke-width="3" stroke-dasharray="6 5" stroke-linecap="round"></path>
+          <circle cx="210" cy="64" r="5" fill="{{t.waterLine}}" stroke="{{t.cell}}" stroke-width="2"></circle>
+          <text x="0" y="138" font-size="11" fill="{{t.label2}}">28/9</text>
+          <text x="210" y="138" text-anchor="middle" font-size="11" font-weight="700" fill="{{t.label}}">Hoy</text>
+          <text x="336" y="138" text-anchor="end" font-size="11" fill="{{t.label2}}">6/10</text>
+        </svg>
+        <span style="font-size: 13px; color: {{t.label2}}">Línea discontinua: media de 3 modelos · sombreado: cuánto discrepan</span>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0 16px; font-size: 13px; font-weight: 600; color: {{t.label2}}; text-transform: uppercase; letter-spacing: 0.3px">Se muestran, no cuentan</h2>
+      <div style="border-radius: 14px; background: {{t.cell}}; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 14px; border-bottom: 0.5px solid {{t.sep}}"><span style="flex: 1; font-size: 17px">Luna</span><span style="font-size: 17px; color: {{t.label2}}">Creciente 78 %</span></div>
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 14px"><span style="flex: 1; font-size: 17px">Presión</span><span style="font-size: 17px; color: {{t.label2}}">1016 hPa ↑</span></div>
+      </div>
+      <span style="margin: 0 16px; font-size: 13px; color: {{t.label2}}">Peso 0 en la valoración: sin evidencia sólida.</span>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 6px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin: 0 16px">
+        <h2 style="margin: 0; font-size: 13px; font-weight: 600; color: {{t.label2}}; text-transform: uppercase; letter-spacing: 0.3px">Prioridad de fuentes</h2>
+        <button style="border: 0; background: transparent; color: {{t.tint}}; font-family: inherit; font-size: 15px; font-weight: 600; height: 32px">Editar</button>
+      </div>
+      <div style="border-radius: 14px; background: {{t.cell}}; overflow: hidden">
+        <sc-for list="{{fuentes}}" as="f" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; box-sizing: border-box; border-radius: 7px; border: 1.5px {{f.sl}} {{f.sc}}; background: {{f.sbg}}; color: {{f.sfg}}; font-size: 12px; font-weight: 800; flex-shrink: 0">{{f.s}}</span>
+            <div style="flex: 1; display: flex; align-items: center; gap: 10px; min-height: 56px; border-bottom: {{f.sep}}">
+              <span style="flex: 1; font-size: 17px">{{f.k}}</span>
+              <button role="switch" aria-checked="{{f.on}}" aria-label="Activar {{f.k}}" onClick="{{f.toggle}}" style="width: 51px; height: 31px; border-radius: 16px; border: 0; padding: 0; background: {{f.track}}; position: relative; cursor: pointer; flex-shrink: 0"><span style="position: absolute; top: 2px; left: {{f.knob}}; width: 27px; height: 27px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 2px 4px rgba(0,0,0,0.2)"></span></button>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.label3}}" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14"></path></svg>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <span style="margin: 0 16px; font-size: 13px; color: {{t.label2}}">Arrastra para reordenar. Gana la de más arriba.</span>
+    </section>
+  </main>
+
+  <nav aria-label="Navegación principal" style="position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 8px 4px 26px; background: {{t.tabBg}}; backdrop-filter: blur(20px); border-top: 0.5px solid {{t.sep}}">
+    <sc-for list="{{tabs}}" as="b" hint-placeholder-count="5">
+      <a href="{{b.href}}" style="display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: {{b.c}}; font-size: 11.5px; font-weight: 600; min-height: 48px; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="{{b.fill}}" stroke="{{b.c}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.icon}}"></path></svg>{{b.k}}</a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":412,"height":2060}}'>
+var A = {
+  light: {bg:'#F2F2F7',cell:'#FFFFFF',label:'#000000',label2:'#5C5C63',label3:'#8E8E93',sep:'#C6C6C8',fill:'#E5E5EA',tint:'#2E7D32',tintOn:'#FFFFFF',water:'#0B6488',onWater:'#FFFFFF',waterLine:'#0B6488',band:'rgba(11,100,136,0.20)',clay:'#A0522D',warn:'#7A5000',warnSoft:'#FFF1CC',tabBg:'rgba(249,249,249,0.88)',green:'#34A853',blue:'#0A84FF',grey:'#8E8E93'},
+  dark: {bg:'#000000',cell:'#1C1C1E',label:'#FFFFFF',label2:'#AEAEB2',label3:'#8E8E93',sep:'#38383A',fill:'#2C2C2E',tint:'#7BD17F',tintOn:'#00290A',water:'#0E4A63',onWater:'#FFFFFF',waterLine:'#64C8F0',band:'rgba(100,200,240,0.24)',clay:'#F0A57A',warn:'#FFD25E',warnSoft:'#3A2C00',tabBg:'rgba(22,22,24,0.88)',green:'#30D158',blue:'#0A84FF',grey:'#8E8E93'}
+};
+var ICON = {
+  hoy: 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  est: 'M3 5h18l-7 8v6l-4 2v-8z',
+  dat: 'M6 4h12a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM9 10h6M9 14h6M9 18h3',
+  dia: 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19V5',
+  lug: 'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 7.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5z'
+};
+function tabs(t, active) {
+  return [['hoy', 'Hoy', 'AHoy.dc.html'], ['est', 'Estrategia', 'AEstrategia.dc.html'], ['dat', 'Datos', 'ADatos.dc.html'], ['dia', 'Diario', 'ADiario.dc.html'], ['lug', 'Lugar', 'ALugar.dc.html']].map(function (x) {
+    var on = x[0] === active;
+    return { k: x[1], href: x[2], icon: ICON[x[0]], c: on ? t.tint : t.label3, fill: 'none' };
+  });
+}
+function src(t, k) {
+  if (k === 'M') return { s: 'M', sl: 'solid', sc: t.clay, sbg: 'transparent', sfg: t.clay };
+  if (k === 'A') return { s: 'A', sl: 'solid', sc: t.waterLine, sbg: t.waterLine, sfg: t.cell };
+  return { s: 'P', sl: 'dashed', sc: t.label2, sbg: 'transparent', sfg: t.label2 };
+}
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { off: {} }; }
+  renderVals() {
+    var t = (this.props.dark ?? false) ? A.dark : A.light;
+    var self = this;
+    var rows = [
+      { k: 'Aire', sub: 'Máx 26° · mín 13°', v: '23°', tile: '#E8833A', icon: 'M10 13.5V5a2 2 0 1 1 4 0v8.5a4 4 0 1 1-4 0z', s: 'A' },
+      { k: 'Viento NO', sub: '3 días seguidos · modelos 8–22', v: '14 km/h', tile: '#5E8E9E', icon: 'M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h7', s: 'P', warn: true },
+      { k: 'Lluvia 24 h', sub: '4,2 mm en 72 h', v: '0 mm', tile: '#3A7BD5', icon: 'M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z', s: 'A' },
+      { k: 'Embalse', sub: '3,92 hm³ · ↓ 0,12 en 7 días', v: '54 %', tile: '#2E7D6B', icon: 'M3 15c3-2 5-2 9 0s6 2 9 0M3 19c3-2 5-2 9 0s6 2 9 0M12 3v8', s: 'M' }
+    ];
+    var filas = rows.map(function (r, i) { return Object.assign({}, r, src(t, r.s), { sep: i === rows.length - 1 ? '0' : '0.5px solid ' + t.sep, subColor: r.warn ? t.warn : t.label2 }); });
+    var fs = [['M', 'Manual / importado'], ['A', 'AEMET'], ['P', 'Modelos (previsión)']];
+    var fuentes = fs.map(function (x, i) {
+      var on = !self.state.off[x[0]];
+      return Object.assign({ k: x[1], on: on ? 'true' : 'false', track: on ? t.green : t.fill, knob: on ? '22px' : '2px', sep: i === fs.length - 1 ? '0' : '0.5px solid ' + t.sep, toggle: function () { var o = Object.assign({}, self.state.off); o[x[0]] = !o[x[0]]; self.setState({ off: o }); } }, src(t, x[0]));
+    });
+    return { t: t, filas: filas, fuentes: fuentes, tabs: tabs(t, 'hoy') };
+  }
+}
+</script>
+</body>
+</html>

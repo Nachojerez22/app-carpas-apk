@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ubicación y Acerca de</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&amp;family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 412px; height: 1960px; box-sizing: border-box; background: {{t.bg}}; color: {{t.on}}; font-family: 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; font-variant-numeric: tabular-nums">
+
+  <header style="display: flex; flex-direction: column; gap: 2px; padding: 20px 20px 8px">
+    <h1 style="margin: 0; font-size: 30px; line-height: 36px; font-weight: 800">Lugar</h1>
+    <span style="font-size: 15px; color: {{t.onVar}}">Ubicación, fuentes y normativa</span>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 24px">
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Ubicación</h2>
+      <div role="group" aria-label="Cómo fijar la ubicación" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid {{t.outline}}; border-radius: 22px; overflow: hidden; height: 44px">
+        <button style="border: 0; background: transparent; color: {{t.on}}; font-family: inherit; font-size: 15px; font-weight: 600">GPS</button>
+        <button style="border: 0; border-left: 1px solid {{t.outline}}; background: {{t.primaryC}}; color: {{t.onPrimaryC}}; font-family: inherit; font-size: 15px; font-weight: 800">Pin</button>
+        <button style="border: 0; border-left: 1px solid {{t.outline}}; background: transparent; color: {{t.on}}; font-family: inherit; font-size: 15px; font-weight: 600">Coordenadas</button>
+      </div>
+      <div style="position: relative; height: 220px; border-radius: 14px; background: {{t.land}}; overflow: hidden">
+        <svg width="348" height="220" viewBox="0 0 348 220" style="position: absolute; inset: 0" aria-label="Mapa del embalse con el pin colocado" role="img">
+          <path d="M40 60C90 20 190 26 250 44C304 60 322 110 298 146C272 182 218 168 184 190C148 212 88 204 60 166C34 132 4 84 40 60z" fill="{{t.water}}"></path>
+          <path d="M0 200C80 186 120 214 200 204S320 196 348 206" fill="none" stroke="{{t.outlineVar}}" stroke-width="3"></path>
+          <path d="M174 64c-10 0-18 8-18 18 0 14 18 32 18 32s18-18 18-32c0-10-8-18-18-18z" fill="{{t.secondary}}" stroke="{{t.surface}}" stroke-width="2"></path>
+          <circle cx="174" cy="82" r="6" fill="{{t.surface}}"></circle>
+        </svg>
+        <span style="position: absolute; left: 10px; bottom: 10px; padding: 4px 8px; border-radius: 8px; background: {{t.surface}}; font-size: 12px; color: {{t.onVar}}">Mapa · arrastra el pin</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Latitud
+          <span style="display: flex; align-items: center; height: 52px; border: 1px solid {{t.outline}}; border-radius: 12px; padding: 0 12px"><input value="[latitud]" style="flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 17px; color: {{t.on}}"></span>
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: {{t.onVar}}">Longitud
+          <span style="display: flex; align-items: center; height: 52px; border: 1px solid {{t.outline}}; border-radius: 12px; padding: 0 12px"><input value="[longitud]" style="flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 17px; color: {{t.on}}"></span>
+        </label>
+      </div>
+      <button style="height: 48px; border-radius: 24px; border: 1.5px solid {{t.outline}}; background: transparent; color: {{t.primary}}; font-family: inherit; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.primary}}" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>Usar mi ubicación actual</button>
+      <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.onVar}}">La ubicación se guarda en el móvil y solo se usa para pedir el tiempo y calcular amanecer y anochecer.</p>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 0; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0 0 8px; font-size: 18px; font-weight: 800">Fuentes de datos</h2>
+      <div style="display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid {{t.outlineVar}}">
+        <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; box-sizing: border-box; border-radius: 7px; border: 1.5px dashed {{t.onVar}}; color: {{t.onVar}}; font-size: 13px; font-weight: 800; flex-shrink: 0">P</span>
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 700">Open-Meteo</span><span style="font-size: 14px; line-height: 20px; color: {{t.onVar}}">Previsiones de 3 modelos. Datos bajo licencia CC BY 4.0.</span><a href="https://open-meteo.com" style="font-size: 14px; font-weight: 700; color: {{t.primary}}">open-meteo.com</a></div>
+      </div>
+      <div style="display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid {{t.outlineVar}}">
+        <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; box-sizing: border-box; border-radius: 7px; background: {{t.tertiary}}; color: {{t.onTertiary}}; font-size: 13px; font-weight: 800; flex-shrink: 0">A</span>
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 700">AEMET</span><span style="font-size: 14px; line-height: 20px; color: {{t.onVar}}">Observaciones de la estación más cercana. Información elaborada por la Agencia Estatal de Meteorología.</span></div>
+      </div>
+      <div style="display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid {{t.outlineVar}}">
+        <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; box-sizing: border-box; border-radius: 7px; border: 1.5px solid {{t.secondary}}; color: {{t.secondary}}; font-size: 13px; font-weight: 800; flex-shrink: 0">M</span>
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 700">Tus datos</span><span style="font-size: 14px; line-height: 20px; color: {{t.onVar}}">Mediciones manuales e importadas. Solo en este móvil.</span></div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Etiquetas de evidencia</h2>
+      <sc-for list="{{evs}}" as="e" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 7px; border-radius: 12px; background: {{e.bg}}; color: {{e.fg}}; font-size: 12.5px; font-weight: 700; white-space: nowrap; flex-shrink: 0"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="none" stroke="{{e.ring}}" stroke-width="1.6"></circle><path d="{{e.d}}" fill="{{e.fill}}" stroke="{{e.stroke}}" stroke-width="1.6"></path></svg>{{e.label}}</span>
+          <span style="font-size: 14px; line-height: 20px; color: {{t.onVar}}">{{e.desc}}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Limitaciones</h2>
+      <p style="margin: 0; font-size: 15px; line-height: 22px">CarpStrategy no localiza peces. Valora si las condiciones son más o menos favorables según tus datos y unas reglas con evidencia desigual.</p>
+      <p style="margin: 0; font-size: 15px; line-height: 22px">La temperatura del agua estimada puede desviarse varios grados. Mídela cuando puedas.</p>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 20px; background: {{t.secondaryC}}; color: {{t.onSecondaryC}}">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">Normativa</h2>
+      <p style="margin: 0; font-size: 15px; line-height: 22px">Horario hábil: desde 1 h antes del amanecer hasta 1 h después del anochecer. La app nunca recomienda horas fuera de esa ventana.</p>
+      <p style="margin: 0; font-size: 15px; line-height: 22px">Comprueba siempre la orden de vedas vigente de la Junta de Extremadura.</p>
+      <span style="font-size: 14px; font-weight: 800">Última revisión: [fecha de revisión]</span>
+    </section>
+
+    <span style="text-align: center; font-size: 13px; color: {{t.onVar}}">CarpStrategy [versión] · uso personal</span>
+  </main>
+
+  <nav aria-label="Navegación principal" style="margin-top: auto; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 12px 4px 16px; background: {{t.navBg}}">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></span>Hoy</a>
+    <a href="Estrategia.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"></path></svg></span>Estrategia</a>
+    <a href="Datos.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"></path></svg></span>Datos</a>
+    <a href="Diario.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.onVar}}; font-size: 13px; font-weight: 600"><span style="width: 64px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19V5M9 8h6"></path></svg></span>Diario</a>
+    <a href="Mas.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.on}}; font-size: 13px; font-weight: 800"><span style="width: 64px; height: 32px; border-radius: 16px; background: {{t.navInd}}; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.onPrimaryC}}" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></span>Lugar</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":412,"height":1960}}'>
+var THEME = {
+  light: {bg:'#F2F4EC',surface:'#FFFFFF',s2:'#E8ECE0',s3:'#DCE0D4',on:'#191D16',onVar:'#42493D',outline:'#72796B',outlineVar:'#C6CBBD',primary:'#36652A',onPrimary:'#FFFFFF',primaryC:'#C9E7B2',onPrimaryC:'#0D2004',secondary:'#8A4A27',secondaryC:'#F7D9C5',onSecondaryC:'#331100',tertiary:'#1A5E7A',onTertiary:'#FFFFFF',navBg:'#E3E8DA',navInd:'#C9E7B2',land:'#E4E0CF',water:'#A9D3E6',evGbg:'#DDEFD5',evGfg:'#1B4D1F',evGdot:'#2E7D32',evYbg:'#FBEDC0',evYfg:'#5A4200',evYdot:'#A67C00',evRbg:'#F8DCD9',evRfg:'#7A1A14',evRdot:'#C62828',evPbg:'#ECDDF7',evPfg:'#4A2470',evPdot:'#7B4BB0',evBbg:'#D8E6F7',evBfg:'#123F73',evBdot:'#1E63B5'},
+  dark: {bg:'#10140E',surface:'#192017',s2:'#222A1F',s3:'#2D3529',on:'#E2E6DA',onVar:'#C3C8BA',outline:'#8D9385',outlineVar:'#3E463A',primary:'#A6D58C',onPrimary:'#123806',primaryC:'#285018',onPrimaryC:'#C9EFB0',secondary:'#F2B591',secondaryC:'#6B3416',onSecondaryC:'#FFDCC8',tertiary:'#8ED0EE',onTertiary:'#003546',navBg:'#1E251B',navInd:'#285018',land:'#262B20',water:'#123D50',evGbg:'#1F3A1F',evGfg:'#BDE7B4',evGdot:'#7BC67E',evYbg:'#3E3210',evYfg:'#F5DC8A',evYdot:'#E6B93A',evRbg:'#451B18',evRfg:'#F6C1BC',evRdot:'#EF7B73',evPbg:'#352548',evPfg:'#E1CDF5',evPdot:'#B992E3',evBbg:'#172F4A',evBfg:'#C3DBF7',evBdot:'#6FA8E8'}
+};
+function EV(k, t) {
+  var T = 'transparent';
+  var m = {
+    g: { bg: t.evGbg, fg: t.evGfg, c: t.evGdot, ring: T, d: 'M6 1a5 5 0 1 0 0.01 0z', f: 1, label: 'Fuerte', desc: 'Respaldo sólido en estudios.' },
+    y: { bg: t.evYbg, fg: t.evYfg, c: t.evYdot, ring: t.evYdot, d: 'M6 1.4a4.6 4.6 0 0 1 0 9.2z', f: 1, label: 'Moderada', desc: 'Indicios o hipótesis razonable.' },
+    r: { bg: t.evRbg, fg: t.evRfg, c: t.evRdot, ring: t.evRdot, d: 'M2.8 9.2L9.2 2.8', f: 0, label: 'Peso 0', desc: 'Sin evidencia: se muestra, no cuenta.' },
+    p: { bg: t.evPbg, fg: t.evPfg, c: t.evPdot, ring: T, d: 'M6 0.6L11.4 6L6 11.4L0.6 6z', f: 1, label: 'Hipótesis local', desc: 'Sale de tu diario en Brovales.' },
+    b: { bg: t.evBbg, fg: t.evBfg, c: t.evBdot, ring: T, d: 'M1 7c1.6-3.2 3.4-3.2 5 0s3.4 3.2 5 0', f: 0, label: 'Variabilidad', desc: 'Cambia mucho entre peces.' }
+  }[k];
+  return { bg: m.bg, fg: m.fg, ring: m.ring, d: m.d, fill: m.f ? m.c : 'none', stroke: m.f ? 'none' : m.c, label: m.label, desc: m.desc };
+}
+class Component extends DCLogic {
+  renderVals() {
+    var t = (this.props.dark ?? false) ? THEME.dark : THEME.light;
+    return { t: t, evs: ['g', 'y', 'r', 'p', 'b'].map(function (k) { return EV(k, t); }) };
+  }
+}
+</script>
+</body>
+</html>

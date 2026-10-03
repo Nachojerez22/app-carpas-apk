@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ficha de sesión</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&amp;family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 412px; height: 1760px; box-sizing: border-box; background: {{t.bg}}; color: {{t.on}}; font-family: 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; font-variant-numeric: tabular-nums">
+
+  <header style="display: flex; align-items: center; gap: 4px; padding: 12px 8px 12px 4px">
+    <a href="Diario.dc.html" aria-label="Volver al diario" style="width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.on}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>
+    </a>
+    <h1 style="margin: 0; flex: 1; font-size: 22px; font-weight: 800">Sesión del 27 sep</h1>
+    <button aria-label="Editar sesión" style="width: 48px; height: 48px; border-radius: 24px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{t.on}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg>
+    </button>
+  </header>
+
+  <main style="display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 32px">
+
+    <section style="display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <span style="font-size: 14px; font-weight: 700; color: {{t.onVar}}">Sábado 27 de septiembre de 2026</span>
+      <span style="font-size: 32px; line-height: 38px; font-weight: 800">07:20 – 12:40</span>
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+        <span style="font-size: 15px">5 h 20 min</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 13px; background: {{t.primaryC}}; color: {{t.onPrimaryC}}; font-size: 13px; font-weight: 800"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="{{t.onPrimaryC}}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>Dentro del horario legal</span>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">Resultado</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 12px 4px; border-radius: 14px; background: {{t.s2}}"><span style="font-size: 36px; font-weight: 800">4</span><span style="font-size: 13px; color: {{t.onVar}}">Picadas</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 12px 4px; border-radius: 14px; background: {{t.primaryC}}; color: {{t.onPrimaryC}}"><span style="font-size: 36px; font-weight: 800">2</span><span style="font-size: 13px">Capturas</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 12px 4px; border-radius: 14px; background: {{t.s2}}"><span style="font-size: 36px; font-weight: 800">1</span><span style="font-size: 13px; color: {{t.onVar}}">Pérdidas</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 4px; border-top: 1px solid {{t.outlineVar}}">
+        <div style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 16px; font-weight: 700">Bolo</span><span style="font-size: 13px; color: {{t.onVar}}">Márcalo aunque no hubiera picadas</span></div>
+        <div role="group" aria-label="¿Fue bolo?" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid {{t.outline}}; border-radius: 20px; overflow: hidden; height: 40px; width: 140px">
+          <button style="border: 0; background: transparent; color: {{t.on}}; font-family: inherit; font-size: 14px; font-weight: 600">Sí</button>
+          <button style="border: 0; border-left: 1px solid {{t.outline}}; background: {{t.primaryC}}; color: {{t.onPrimaryC}}; font-family: inherit; font-size: 14px; font-weight: 800">No</button>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 15px">
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid {{t.outlineVar}}"><span>08:05 · caña 2</span><span style="font-weight: 700">Carpa común · 8,4 kg</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid {{t.outlineVar}}"><span>10:50 · caña 1</span><span style="font-weight: 700">Carpa común · 6,1 kg</span></div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">Puesto</h2>
+      <div style="position: relative; height: 200px; border-radius: 14px; background: {{t.land}}; overflow: hidden">
+        <svg width="348" height="200" viewBox="0 0 348 200" style="position: absolute; inset: 0" aria-hidden="true"><path d="M60 40C110 10 200 18 260 36C310 52 320 96 296 128C270 162 220 150 186 172C150 194 92 186 66 150C40 116 20 64 60 40z" fill="{{t.water}}"></path></svg>
+        <sc-for list="{{zonas}}" as="z" hint-placeholder-count="4">
+          <button aria-pressed="{{z.sel}}" style="position: absolute; left: {{z.x}}; top: {{z.y}}; height: 44px; padding: 0 12px; border-radius: 22px; border: 2px solid {{z.border}}; background: {{z.bg}}; color: {{z.fg}}; font-family: inherit; font-size: 14px; font-weight: 800">{{z.n}}</button>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-direction: column; font-size: 15px">
+        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid {{t.outlineVar}}"><span style="color: {{t.onVar}}">Zona</span><span style="font-weight: 700">N · Carrizal norte</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid {{t.outlineVar}}"><span style="color: {{t.onVar}}">Profundidad</span><span style="font-weight: 700">2,5 m</span></div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 0; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0 0 8px; font-size: 17px; font-weight: 800">Equipo</h2>
+      <div style="display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid {{t.outlineVar}}; font-size: 15px"><span style="color: {{t.onVar}}">Cañas</span><span style="font-weight: 700">3</span></div>
+      <div style="display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid {{t.outlineVar}}; font-size: 15px"><span style="color: {{t.onVar}}">Horas-caña</span><span style="font-weight: 700">16,0 (calculado)</span></div>
+      <div style="display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid {{t.outlineVar}}; font-size: 15px"><span style="color: {{t.onVar}}">Cebo</span><span style="font-weight: 700; text-align: right">Boilie de pescado 20 mm</span></div>
+      <div style="display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid {{t.outlineVar}}; font-size: 15px"><span style="color: {{t.onVar}}">Montaje</span><span style="font-weight: 700; text-align: right">Pelo · plomo en línea</span></div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: {{t.s2}}">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.onVar}}" stroke-width="2" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"></path></svg>
+        <h2 style="margin: 0; font-size: 15px; font-weight: 800; color: {{t.onVar}}">Lo que dijo la app antes de salir</h2>
+      </div>
+      <span style="font-size: 22px; font-weight: 800">Favorables</span>
+      <span style="font-size: 14px; line-height: 20px; color: {{t.onVar}}">Calculado el 26 sep a las 21:40 · limitaba el nivel 3 (viento flojo). Copia fija: no cambia aunque cambien tus datos.</span>
+      <span style="font-size: 14px; font-weight: 700; padding-top: 6px">¿Se cumplió?</span>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <button style="height: 40px; padding: 0 16px; border-radius: 10px; border: 1.5px solid {{t.primary}}; background: {{t.primaryC}}; color: {{t.onPrimaryC}}; font-family: inherit; font-size: 14px; font-weight: 800">Sí</button>
+        <button style="height: 40px; padding: 0 16px; border-radius: 10px; border: 1.5px solid {{t.outline}}; background: transparent; color: {{t.on}}; font-family: inherit; font-size: 14px; font-weight: 600">En parte</button>
+        <button style="height: 40px; padding: 0 16px; border-radius: 10px; border: 1.5px solid {{t.outline}}; background: transparent; color: {{t.on}}; font-family: inherit; font-size: 14px; font-weight: 600">No</button>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 20px; background: {{t.surface}}; border: 1px solid {{t.outlineVar}}">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">Notas</h2>
+      <p style="margin: 0; font-size: 15px; line-height: 22px">Burbujeo en el borde del carrizo a primera hora. Viento flojo hasta las 11.</p>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":412,"height":1760}}'>
+var THEME = {
+  light: {bg:'#F2F4EC',surface:'#FFFFFF',s2:'#E8ECE0',s3:'#DCE0D4',on:'#191D16',onVar:'#42493D',outline:'#72796B',outlineVar:'#C6CBBD',primary:'#36652A',onPrimary:'#FFFFFF',primaryC:'#C9E7B2',onPrimaryC:'#0D2004',land:'#E4E0CF',water:'#A9D3E6'},
+  dark: {bg:'#10140E',surface:'#192017',s2:'#222A1F',s3:'#2D3529',on:'#E2E6DA',onVar:'#C3C8BA',outline:'#8D9385',outlineVar:'#3E463A',primary:'#A6D58C',onPrimary:'#123806',primaryC:'#285018',onPrimaryC:'#C9EFB0',land:'#262B20',water:'#123D50'}
+};
+class Component extends DCLogic {
+  renderVals() {
+    var t = (this.props.dark ?? false) ? THEME.dark : THEME.light;
+    var zonas = [
+      { n: 'N · Carrizal', x: '120px', y: '10px', sel: 'true' },
+      { n: 'E · Presa', x: '250px', y: '78px', sel: 'false' },
+      { n: 'S · Cola', x: '140px', y: '146px', sel: 'false' },
+      { n: 'O · Orilla', x: '10px', y: '86px', sel: 'false' }
+    ].map(function (z) {
+      var on = z.sel === 'true';
+      return Object.assign({}, z, { bg: on ? t.primary : t.surface, fg: on ? t.onPrimary : t.on, border: on ? t.primary : t.outline });
+    });
+    return { t: t, zonas: zonas };
+  }
+}
+</script>
+</body>
+</html>
