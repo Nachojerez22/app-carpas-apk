@@ -12,7 +12,7 @@ El conocimiento del dominio (biología de la carpa, datos de Brovales, normativa
 diseño del modelo) está en [`docs/CONOCIMIENTO.md`](docs/CONOCIMIENTO.md), que es la fuente de
 verdad del proyecto.
 
-> Estado: **Fase 3** (parámetros derivados). La pestaña *Condiciones* muestra los parámetros del día (agua, tendencias, viento, lluvia, nivel, horario legal…), los datos en bruto y la serie combinada; *Estrategia* sigue siendo provisional.
+> Estado: **Fase 4** (motor de reglas). *Estrategia* muestra la valoración por cadena de filtros, la demanda esperada, ventanas horarias legales, la estrategia por campos y el porqué de cada regla. *Condiciones* muestra los parámetros del día y los datos en bruto.
 
 ## Fuentes de datos
 
@@ -71,6 +71,16 @@ prioridad de fuentes. Cada una se muestra con su etiqueta de evidencia.
 | Escorrentía probable | (72 h ≥ 20 mm **y** lluvia previa ≥ 10 mm) o 24 h ≥ 40 mm. "20 mm sobre suelo seco no cuentan" | 🟣 hipótesis local |
 | Nivel del embalse | Última lectura manual/importada y variación respecto a la de hace ~7 días (±3); % ↔ hm³ con la capacidad oficial 6,98 hm³ | Dato del usuario |
 | Presión (Δ3/24/72 h, σ 48 h), nubosidad, luna | Se calculan y se muestran **con peso 0** | 🔴 |
+
+### Estrategia (fase 4)
+
+Las reglas viven en [`app/src/main/assets/rules.json`](app/src/main/assets/rules.json) (formato
+documentado en [`docs/REGLAS.md`](docs/REGLAS.md)), traducidas de `CONOCIMIENTO.md` §4.1, §5 y
+§5.8 con su etiqueta de evidencia. El motor es una **cadena de filtros y multiplicadores por
+niveles** (0 legalidad → 1 hábitat → 2 temperatura → 3 modificadores físicos → 4 capturabilidad):
+no suma puntos, un nivel bajo no se compensa con otro alto y se muestra el nivel que limita.
+Luna, presión y nubosidad aparecen con peso 0. Las ventanas horarias se sugieren siempre dentro
+del horario legal. El JSON se valida al cargarlo y los errores se muestran en la app.
 
 ### Limitaciones (importante)
 
@@ -133,7 +143,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 1**: capa de datos (Open-Meteo multimodelo + AEMET + Room) y pantalla de datos en bruto
 - [x] **Fase 2**: datos manuales e importación JSON, prioridad de fuentes elegible y serie combinada
 - [x] **Fase 3**: parámetros derivados (presión, temperatura, agua estimada/medida, viento, lluvia, sesgo con AEMET, sol/luna y ventana legal)
-- [ ] **Fase 4**: motor de filtros/multiplicadores por niveles (reglas JSON con etiqueta de evidencia) y pantalla de estrategia
+- [x] **Fase 4**: motor de filtros/multiplicadores por niveles (reglas JSON con etiqueta de evidencia) y pantalla de estrategia
 - [ ] **Fase 5**: UI completa, GPS y gráficas
 - [ ] **Fase 6**: diario de sesiones (horas-caña, bolos, valoración previa) y aprendizaje con datos propios
 
