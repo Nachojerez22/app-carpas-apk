@@ -191,7 +191,7 @@ object GuidedEngine {
             if (winter && checks.isNotEmpty()) messages += GuidedMessage.WINTER_PATIENCE
             return Evaluation(null, messages)
         }
-        val kind = nextNoSignalStep(log, ctx, th, noZone, forced, messages) ?: return Evaluation(null, messages)
+        val kind = nextNoSignalStep(log, ctx, th, noZone, forced, messages, proposedHere) ?: return Evaluation(null, messages)
         return result(noSignalProposal(kind, ctx, segment, forced))
     }
 
@@ -203,11 +203,13 @@ object GuidedEngine {
         noZone: Boolean,
         forced: Boolean,
         messages: MutableSet<GuidedMessage>,
+        proposedHere: Set<StepKind>,
     ): StepKind? {
         val sinceZone = log.segments.indexOfLast { it.kind == StepKind.ZONE }.let { if (it < 0) 0 else it }
-        val tried = log.segments.drop(sinceZone).map { it.kind }.toSet() - StepKind.ZONE
+        // Lo ya probado o rechazado en este tramo no se vuelve a proponer.
+        val tried = log.segments.drop(sinceZone).map { it.kind }.toSet() - StepKind.ZONE + (proposedHere - StepKind.ZONE)
         val zoneStart = log.segments[sinceZone].start
-        val zoneAllowed = !noZone && log.zoneChanges < th.maxZoneChanges &&
+        val zoneAllowed = !noZone && log.zoneChanges < th.maxZoneChanges && StepKind.ZONE !in proposedHere &&
             (forced || Duration.between(zoneStart, ctx.now) >= th.step2)
         if (log.zoneChanges >= th.maxZoneChanges) messages += GuidedMessage.ZONE_LIMIT_REACHED
         val ladder = NO_SIGNAL_LADDER.getValue(ctx.phase)
@@ -283,8 +285,9 @@ object GuidedEngine {
      * Próximo aviso (§5.9.7): cada 30 min (45 en invierno), 15 min más tras tres respuestas
      * seguidas sin nada, pausa de 20 min tras una captura, contado desde lo último registrado
      * (si registraste algo hace poco, se salta) y nunca después del aviso de fin legal.
+     * [lastAlarm] es el último aviso mostrado: si no se contestó, el siguiente cuenta desde él.
      */
-    fun nextCheckIn(log: GuidedLog, phase: FishingPhase, now: Instant, legalEnd: Instant?): Instant? {
+    fun nextCheckIn(log: GuidedLog, phase: FishingPhase, now: Instant, legalEnd: Instant?, lastAlarm: Instant? = null): Instant? {
         var interval = THRESHOLDS.getValue(phase).checkInEvery
         val checks = log.allCheckIns
         val quiet = checks.takeLast(3).let { last3 ->
@@ -293,7 +296,7 @@ object GuidedEngine {
         if (quiet) interval = interval.plusMinutes(15)
         val lastEvent = checks.lastOrNull()
         if (lastEvent?.activity == HookActivity.CATCH) interval = interval.plus(CATCH_PAUSE)
-        val from = lastEvent?.time ?: log.current.start
+        val from = listOfNotNull(lastEvent?.time ?: log.current.start, lastAlarm).max()
         var next = maxOf(from.plus(interval), now.plusSeconds(60))
         if (legalEnd != null) {
             val reminder = legalEnd.minus(LEGAL_END_WARNING)
