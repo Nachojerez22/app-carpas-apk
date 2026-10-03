@@ -1,0 +1,430 @@
+{
+  "formato": "carpstrategy-reglas",
+  "version": 1,
+  "revision_normativa": "2026-03-18",
+  "fuente": "docs/CONOCIMIENTO.md (§4.1, §5 y §5.8). Umbrales iniciales a calibrar con tus datos.",
+  "reglas": [
+    {
+      "id": "horario_legal",
+      "nivel": 0,
+      "tipo": "filtro_duro",
+      "evidencia": "normativa",
+      "peso": "alto",
+      "descripcion": "Solo se puede pescar desde 1 h antes del orto hasta 1 h después del ocaso. Brovales no tiene horario libre.",
+      "fuente": "Orden de Vedas de 7/11/2022 y resoluciones posteriores",
+      "condiciones": { "ventana_legal_disponible": { "es": false } },
+      "estrategia": [
+        { "campo": "cuando", "texto": "No se puede calcular el horario legal de hoy: no se recomienda ninguna sesión." }
+      ]
+    },
+    {
+      "id": "fuera_de_horario_ahora",
+      "nivel": 0,
+      "tipo": "aviso",
+      "evidencia": "normativa",
+      "peso": "0",
+      "descripcion": "Ahora mismo estás fuera del horario legal.",
+      "condiciones": { "en_horario_legal": { "es": false } },
+      "estrategia": [
+        { "campo": "cuando", "texto": "Ahora es fuera del horario legal: la recomendación es para las ventanas legales de hoy." }
+      ]
+    },
+    {
+      "id": "max_canas",
+      "nivel": 0,
+      "tipo": "aviso",
+      "evidencia": "normativa",
+      "peso": "0",
+      "descripcion": "Máximo 3 cañas por persona en 10 m de orilla, con 3 señuelos por caña como máximo.",
+      "condiciones": {},
+      "estrategia": [
+        { "campo": "presentacion", "texto": "Máximo 3 cañas en 10 m de orilla (3 señuelos por caña)." }
+      ]
+    },
+    {
+      "id": "cebado_y_cebos_normativa",
+      "nivel": 0,
+      "tipo": "aviso",
+      "evidencia": "normativa",
+      "peso": "0",
+      "descripcion": "Cebado previo permitido con productos no tóxicos (Ley 11/2010, art. 40). Prohibido cebar en embalses de abastecimiento (probable en Valuengo, confirmar). Cangrejo rojo: prohibido poseerlo o transportarlo vivo. Prohibido el clonk.",
+      "condiciones": {},
+      "estrategia": [
+        { "campo": "cebado", "texto": "Cebado solo con productos no tóxicos. Nada de cangrejo rojo vivo ni clonk. En embalses de abastecimiento (probablemente Valuengo) no se puede cebar: confírmalo." }
+      ]
+    },
+    {
+      "id": "nivel_bajando_rapido",
+      "nivel": 1,
+      "tipo": "multiplicador",
+      "evidencia": "morado",
+      "peso": "medio",
+      "factor": 0.8,
+      "descripcion": "Bajada rápida del nivel (≈ −1 hm³/semana en verano): las reculas someras pierden agua y el litoral cambia cada semana.",
+      "condiciones": { "nivel_delta_7d_hm3": { "max": -0.8 } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Mover las cañas a la primera caída o cambio de pendiente donde antes había litoral." },
+        { "campo": "evitar", "texto": "Cebar zonas someras que se están quedando sin agua." }
+      ]
+    },
+    {
+      "id": "nivel_subiendo",
+      "nivel": 1,
+      "tipo": "consejo",
+      "evidencia": "amarillo",
+      "peso": "bajo",
+      "descripcion": "Nivel subiendo e inundando pasto: litoral nuevo con comida terrestre.",
+      "condiciones": { "nivel_delta_7d_hm3": { "min": 0.3 } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Cañas someras junto a la nueva orilla y la entrada de agua." },
+        { "campo": "cebado", "texto": "Cebado pequeño: el litoral recién inundado ya aporta alimento." }
+      ]
+    },
+    {
+      "id": "temp_agua_demanda",
+      "nivel": 2,
+      "tipo": "pertenencia",
+      "evidencia": "verde",
+      "peso": "alto",
+      "descripcion": "La demanda alimentaria sube con la temperatura del agua: tránsito digestivo de 6 %/h a 9 °C a 32,7 %/h a 26,5 °C; consumo de 0,4 % a 4,1 % del peso al día. Curva suavizada a calibrar.",
+      "fuente": "Garcia y Adelman 1985",
+      "pertenencia": {
+        "parametro": "temp_agua_c",
+        "puntos": [[5, 0.05], [9, 0.15], [14, 0.3], [20, 0.6], [24, 0.9], [26.5, 1.0], [28, 1.0], [30, 0.75], [33, 0.6]]
+      },
+      "condiciones": {},
+      "estrategia": []
+    },
+    {
+      "id": "agua_estimada",
+      "nivel": 2,
+      "tipo": "aviso",
+      "evidencia": "amarillo",
+      "peso": "0",
+      "descripcion": "La temperatura del agua es una estimación a partir del aire, no una medida.",
+      "condiciones": { "agua_medida": { "es": false } },
+      "estrategia": [
+        { "campo": "notas", "texto": "Mide el agua a 0,5 m (y a 3–5 m si puedes): es el dato que más mejora la recomendación." }
+      ]
+    },
+    {
+      "id": "temp_subiendo",
+      "nivel": 2,
+      "tipo": "consejo",
+      "evidencia": "verde",
+      "peso": "medio",
+      "descripcion": "Agua calentándose varios días seguidos (p. ej. de 15 a 19 °C).",
+      "condiciones": { "tendencia_agua_3d_c": { "min": 1.0 } },
+      "estrategia": [
+        { "campo": "cebado", "texto": "Subir el cebado de forma progresiva." },
+        { "campo": "donde", "texto": "Buscar someras que se calientan antes." }
+      ]
+    },
+    {
+      "id": "temp_bajando",
+      "nivel": 2,
+      "tipo": "multiplicador",
+      "evidencia": "amarillo",
+      "peso": "medio",
+      "factor": 0.85,
+      "descripcion": "Agua enfriándose varios días seguidos (p. ej. de 21 a 17 °C).",
+      "condiciones": { "tendencia_agua_3d_c": { "max": -1.5 } },
+      "estrategia": [
+        { "campo": "cebado", "texto": "Reducir el cebado." },
+        { "campo": "donde", "texto": "Volver a zonas estables y dejar que el agua se estabilice." }
+      ]
+    },
+    {
+      "id": "desove_17_21",
+      "nivel": 2,
+      "tipo": "multiplicador",
+      "evidencia": "verde",
+      "peso": "medio",
+      "factor": 0.85,
+      "descripcion": "Entre 17 y 21 °C en primavera: posible desove (inicio 17–18 °C, óptimo 18–22 °C). Concentración en someros con vegetación y posible menor alimentación (variable).",
+      "fuente": "FAO",
+      "condiciones": { "temp_agua_c": { "min": 17, "max": 21 }, "estacion": { "en": ["primavera"] } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Someros con vegetación, sin molestar las zonas de freza.", "evidencia": "amarillo" },
+        { "campo": "cebado", "texto": "No sobrecebar: pueden comer menos durante el desove." }
+      ]
+    },
+    {
+      "id": "calor_extremo_oxigeno",
+      "nivel": 2,
+      "tipo": "multiplicador",
+      "evidencia": "amarillo",
+      "peso": "bajo",
+      "factor": 0.8,
+      "descripcion": "Agua > 28 °C con calma: bajar la confianza de cualquier predicción. La carpa tolera la hipoxia: no descartar el fondo por \"anóxico\".",
+      "condiciones": { "temp_agua_c": { "min": 28 }, "viento_24h_kmh": { "max": 8 } },
+      "estrategia": [
+        { "campo": "cuando", "texto": "Sesión corta al amanecer legal." },
+        { "campo": "notas", "texto": "Mide la temperatura y anota la profundidad de cada caña." },
+        { "campo": "evitar", "texto": "Descartar el fondo solo por \"poco oxígeno\".", "evidencia": "verde" }
+      ]
+    },
+    {
+      "id": "estacion_invierno",
+      "nivel": 2,
+      "tipo": "consejo",
+      "evidencia": "amarillo",
+      "peso": "medio",
+      "descripcion": "Invierno por temperatura del agua (< 10 °C): ingesta muy baja.",
+      "condiciones": { "estacion": { "en": ["invierno"] } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Zonas estables algo más profundas junto a caída o antiguo cauce, o someras protegidas del viento frío y con sol a mediodía." },
+        { "campo": "cuando", "texto": "Franja central del día legal, tras 2–3 días estables y con horas de sol.", "evidencia": "morado" },
+        { "campo": "cebado", "texto": "Mínimo: un puñado o PVA, cebos pequeños y muy atractivos (tránsito ~6 %/h a 9 °C).", "evidencia": "verde" },
+        { "campo": "presentacion", "texto": "1–2 cañas fijas en la misma zona, con paciencia." },
+        { "campo": "evitar", "texto": "Cebaderos grandes, cambiar de puesto cada hora, entradas de agua fría tras lluvia fuerte." }
+      ]
+    },
+    {
+      "id": "estacion_primavera",
+      "nivel": 2,
+      "tipo": "consejo",
+      "evidencia": "amarillo",
+      "peso": "medio",
+      "descripcion": "Primavera por temperatura del agua (10 → 20 °C, subiendo): la ingesta crece rápido.",
+      "condiciones": { "estacion": { "en": ["primavera"] } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Someras con vegetación o pasto inundado y reculas que se calientan antes; la boca de la recula como paso.", "evidencia": "amarillo" },
+        { "campo": "cuando", "texto": "Tarde y anochecer legal; también amanecer si la temperatura asciende." },
+        { "campo": "cebado", "texto": "Progresivo al subir la temperatura; entre 17 y 21 °C no sobrecebar.", "evidencia": "verde" },
+        { "campo": "presentacion", "texto": "Cañas repartidas entre orilla somera y boca de recula; mover la que no dé señales tras varias horas.", "evidencia": "morado" },
+        { "campo": "evitar", "texto": "Sobrecebar tras una bajada brusca de temperatura; zonas que se enfrían con viento frío." }
+      ]
+    },
+    {
+      "id": "estacion_verano",
+      "nivel": 2,
+      "tipo": "consejo",
+      "evidencia": "amarillo",
+      "peso": "medio",
+      "descripcion": "Verano por temperatura del agua (> 22 °C): demanda máxima (hasta ~4 % del peso al día). En Brovales, vaciado por riego.",
+      "condiciones": { "estacion": { "en": ["verano"] } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Seguir el nivel: primera caída o cambio de pendiente donde antes había litoral; sombra, vegetación y entradas si llevan agua.", "evidencia": "morado" },
+        { "campo": "cuando", "texto": "Amanecer y anochecer legales; evitar el mediodía con calor y calma." },
+        { "campo": "cebado", "texto": "Abundante pero repartido, repuesto en las ventanas de actividad.", "evidencia": "verde" },
+        { "campo": "presentacion", "texto": "Con carpas en superficie o media agua: flotantes o zig rig; si no, fondo junto a la caída. Anota la profundidad." },
+        { "campo": "evitar", "texto": "Descartar el fondo solo por \"poco oxígeno\" (la carpa lo tolera); cebar zonas someras que se secan.", "evidencia": "verde" }
+      ]
+    },
+    {
+      "id": "estacion_otono",
+      "nivel": 2,
+      "tipo": "consejo",
+      "evidencia": "amarillo",
+      "peso": "medio",
+      "descripcion": "Otoño por temperatura del agua (20 → 10 °C, bajando). Que el otoño sea siempre buena época es experiencia de pescadores, no ciencia.",
+      "condiciones": { "estacion": { "en": ["otono"] } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Litoral recién inundado, reculas y entradas con escorrentía real; fondos duros si hay cangrejo (sin datos en Brovales).", "evidencia": "morado" },
+        { "campo": "cuando", "texto": "Horas centrales templadas y atardecer legal; tras un frente frío esperar 1–2 días." },
+        { "campo": "cebado", "texto": "Bajarlo a medida que baja la temperatura; si cae de golpe (21 → 17 °C), reducir más.", "evidencia": "verde" },
+        { "campo": "presentacion", "texto": "Una caña en el litoral nuevo y otra en la caída próxima; registrar cuál recibe picadas.", "evidencia": "morado" },
+        { "campo": "evitar", "texto": "Dar por hecho que el otoño siempre es buena época; ignorar la tendencia térmica." }
+      ]
+    },
+    {
+      "id": "lluvia_sin_escorrentia",
+      "nivel": 3,
+      "tipo": "consejo",
+      "evidencia": "amarillo",
+      "peso": "bajo",
+      "descripcion": "Ha llovido pero sin escorrentía probable (suelo seco): 20 mm sobre suelo seco no alteran el agua.",
+      "condiciones": { "lluvia_72h_mm": { "min": 1 }, "escorrentia": { "es": false } },
+      "estrategia": [
+        { "campo": "notas", "texto": "No cambiar el plan por la lluvia; anota la lluvia y cómo estaba el suelo." }
+      ]
+    },
+    {
+      "id": "escorrentia_invierno",
+      "nivel": 3,
+      "tipo": "multiplicador",
+      "evidencia": "amarillo",
+      "peso": "bajo",
+      "factor": 0.8,
+      "descripcion": "Lluvia fría fuerte con escorrentía en invierno: la entrada aporta agua helada.",
+      "condiciones": { "escorrentia": { "es": true }, "estacion": { "en": ["invierno"] } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Zonas estables y protegidas." },
+        { "campo": "cebado", "texto": "Mínimo." },
+        { "campo": "evitar", "texto": "La cola y la entrada de agua fría." }
+      ]
+    },
+    {
+      "id": "escorrentia_turbia",
+      "nivel": 3,
+      "tipo": "consejo",
+      "evidencia": "morado",
+      "peso": "bajo",
+      "descripcion": "Lluvia fuerte con escorrentía real: la cola puede enturbiarse y la entrada trae alimento.",
+      "condiciones": { "escorrentia": { "es": true }, "estacion": { "en": ["primavera", "verano", "otono"] } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Cola y borde de la pluma turbia, no el centro del barro." },
+        { "campo": "cebado", "texto": "Pequeño: el agua ya trae comida." }
+      ]
+    },
+    {
+      "id": "tormenta_verano_entrada_fresca",
+      "nivel": 3,
+      "tipo": "consejo",
+      "evidencia": "morado",
+      "peso": "bajo",
+      "descripcion": "Verano con escorrentía: la entrada fría y oxigenada se hunde por el cauce (física 🟢; efecto en la carpa sin demostrar).",
+      "condiciones": { "escorrentia": { "es": true }, "estacion": { "en": ["verano"] } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Una caña en la caída frente a la desembocadura." }
+      ]
+    },
+    {
+      "id": "viento_calido_sotavento",
+      "nivel": 3,
+      "tipo": "consejo",
+      "evidencia": "amarillo",
+      "peso": "bajo",
+      "descripcion": "Viento sostenido 24 h sin enfriamiento: el agua calentada se acumula a sotavento (física). En Brovales el fetch es corto: úsalo como desempate.",
+      "condiciones": { "viento_24h_kmh": { "min": 10 }, "viento_persistencia_24h": { "min": 0.7 }, "tendencia_aire_c": { "min": 0 } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Desempate: orilla a sotavento, hacia donde sopla el viento (sopla del {viento_desde}, empuja hacia el {viento_hacia})." }
+      ]
+    },
+    {
+      "id": "frente_frio",
+      "nivel": 3,
+      "tipo": "multiplicador",
+      "evidencia": "amarillo",
+      "peso": "medio",
+      "factor": 0.85,
+      "descripcion": "Frente frío o viento frío súbito: la demanda cae con el agua más fría.",
+      "condiciones": { "tendencia_aire_c": { "max": -3 } },
+      "estrategia": [
+        { "campo": "cebado", "texto": "Bajar el cebado." },
+        { "campo": "donde", "texto": "Zonas protegidas y soleadas." },
+        { "campo": "cuando", "texto": "Si puedes, esperar 1–2 días a que se estabilice." }
+      ]
+    },
+    {
+      "id": "viento_fuerte_oleaje",
+      "nivel": 3,
+      "tipo": "consejo",
+      "evidencia": "morado",
+      "peso": "bajo",
+      "descripcion": "Viento fuerte con oleaje en la orilla expuesta.",
+      "condiciones": { "racha_max_24h_kmh": { "min": 35 } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Probar la orilla batida con fondo blando (remueve alimento) o una recula protegida si no hay señales." }
+      ]
+    },
+    {
+      "id": "verano_calma_calor",
+      "nivel": 3,
+      "tipo": "consejo",
+      "evidencia": "amarillo",
+      "peso": "bajo",
+      "descripcion": "Verano con calma y calor.",
+      "condiciones": { "estacion": { "en": ["verano"] }, "viento_24h_kmh": { "max": 8 }, "temp_aire_24h_c": { "min": 24 } },
+      "estrategia": [
+        { "campo": "cuando", "texto": "Amanecer y anochecer legales; no insistir a mediodía." },
+        { "campo": "donde", "texto": "Sombra y vegetación; cebos a media agua si hay actividad." }
+      ]
+    },
+    {
+      "id": "viento_incierto",
+      "nivel": 3,
+      "tipo": "aviso",
+      "evidencia": "amarillo",
+      "peso": "0",
+      "descripcion": "Los modelos discrepan en el viento previsto: la parte de viento de esta recomendación es poco fiable.",
+      "condiciones": { "horas_viento_incierto": { "min": 6 } },
+      "estrategia": [
+        { "campo": "notas", "texto": "Viento previsto incierto: decide la orilla con el viento que encuentres al llegar." }
+      ]
+    },
+    {
+      "id": "hora_amanecer_anochecer",
+      "nivel": 4,
+      "tipo": "consejo",
+      "evidencia": "amarillo",
+      "peso": "medio",
+      "descripcion": "Las ventanas útiles son el amanecer y el anochecer legales. El pico nocturno de las competiciones (Žák 2021) no es aplicable en Brovales.",
+      "condiciones": { "ventana_legal_disponible": { "es": true } },
+      "estrategia": [
+        { "campo": "cuando", "texto": "Mira las ventanas horarias sugeridas: siempre dentro del horario legal." }
+      ]
+    },
+    {
+      "id": "presion_pesca_fin_de_semana",
+      "nivel": 4,
+      "tipo": "multiplicador",
+      "evidencia": "verde",
+      "peso": "bajo",
+      "factor": 0.9,
+      "descripcion": "Más presión de pesca en fin de semana o festivo (otros pescadores, ruido, barcas).",
+      "condiciones": { "fin_de_semana": { "es": true } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Evitar el puesto evidente; zonas menos obvias." },
+        { "campo": "presentacion", "texto": "Cebado discreto y presentaciones distintas." }
+      ]
+    },
+    {
+      "id": "presion_pesca_puesto",
+      "nivel": 4,
+      "tipo": "consejo",
+      "evidencia": "verde",
+      "peso": "medio",
+      "descripcion": "Las capturas repetidas en un puesto bajan la capturabilidad durante semanas o meses (sin evidencia de más de 7 meses).",
+      "fuente": "Lovén Wallerius et al. 2020; Czapla et al. 2023",
+      "condiciones": {},
+      "estrategia": [
+        { "campo": "presentacion", "texto": "Si capturaste en este puesto hace poco, rota puesto y montaje; usa bajos menos visibles." }
+      ]
+    },
+    {
+      "id": "senales_de_campo",
+      "nivel": 4,
+      "tipo": "consejo",
+      "evidencia": "amarillo",
+      "peso": "medio",
+      "descripcion": "Burbujas, saltos, nubes de sedimento o carpas en movimiento son la mejor señal del día, por encima de cualquier predicción.",
+      "condiciones": {},
+      "estrategia": [
+        { "campo": "notas", "texto": "Si ves burbujas, saltos o nubes de sedimento, mueve las cañas hacia esa zona y anótalo." },
+        { "campo": "notas", "texto": "Tras horas sin señales, cambia de zona por función (calentamiento, paso, entrada) y registra el bolo con sus horas-caña." }
+      ]
+    },
+    {
+      "id": "luna",
+      "nivel": "exploratoria",
+      "tipo": "registro",
+      "evidencia": "rojo",
+      "peso": "0",
+      "descripcion": "Fase lunar: sin estudios en carpa. Se registra para comprobarlo con tus datos.",
+      "condiciones": {},
+      "estrategia": []
+    },
+    {
+      "id": "presion_barometrica",
+      "nivel": "exploratoria",
+      "tipo": "registro",
+      "evidencia": "rojo",
+      "peso": "0",
+      "descripcion": "Presión y su tendencia: solo como indicador de cambio de tiempo, nunca \"X hPa = bueno\". La carpa es fisóstoma.",
+      "condiciones": {},
+      "estrategia": []
+    },
+    {
+      "id": "nubosidad",
+      "nivel": "exploratoria",
+      "tipo": "registro",
+      "evidencia": "rojo",
+      "peso": "0",
+      "descripcion": "Nubosidad: sin evidencia en carpa. Se registra con peso 0.",
+      "condiciones": {},
+      "estrategia": []
+    }
+  ]
+}
