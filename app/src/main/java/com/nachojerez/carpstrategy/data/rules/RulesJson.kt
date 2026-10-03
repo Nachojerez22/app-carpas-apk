@@ -37,7 +37,7 @@ object RulesJson {
     const val VERSION = 1
 
     private val ID = Regex("^[a-z0-9_]+$")
-    private val PLACEHOLDER = Regex("""\{([a-z_]+)}""")
+    private val PLACEHOLDER = Regex("""\{([a-z_]+)\}""")
 
     private val LEVELS = mapOf(
         "0" to RuleLevel.LEGALITY, "1" to RuleLevel.HABITAT, "2" to RuleLevel.TEMPERATURE,

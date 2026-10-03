@@ -165,7 +165,7 @@ object RuleEngine {
             .groupBy({ it.first }, { it.second })
             .mapValues { (_, items) -> items.distinctBy { it.text } }
 
-    private val PLACEHOLDER = Regex("""\{([a-z_]+)}""")
+    private val PLACEHOLDER = Regex("""\{([a-z_]+)\}""")
 
     fun fill(text: String, context: RuleContext): String =
         PLACEHOLDER.replace(text) { m -> context.placeholders[m.groupValues[1]] ?: "?" }
