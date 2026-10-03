@@ -26,6 +26,8 @@ class GuidedEngineTest {
         return log.accept(t0)
     }
 
+    private fun rec(log: GuidedLog) = GuidedRecord(listOf(RodTrack(1, "", log)))
+
     private fun GuidedLog.check(minutes: Long, signals: SignalLevel = SignalLevel.NONE, activity: HookActivity = HookActivity.NOTHING, bait: BaitState = BaitState.NOT_CHECKED, notWorking: Boolean = false) =
         withCheckIn(CheckIn(t0.plus(Duration.ofMinutes(minutes)), signals, activity, bait, notWorking))
 
@@ -160,16 +162,56 @@ class GuidedEngineTest {
     @Test
     fun `proximo aviso - 30 min, pausa tras captura, mas largo si todo esta tranquilo y antes del fin legal`() {
         val log = started(FishingPhase.SUMMER)
-        assertEquals(t0.plus(Duration.ofMinutes(30)), GuidedEngine.nextCheckIn(log, FishingPhase.SUMMER, t0, legalEnd))
+        assertEquals(t0.plus(Duration.ofMinutes(30)), GuidedEngine.nextCheckIn(rec(log), FishingPhase.SUMMER, t0, legalEnd))
         val caught = log.check(40, activity = HookActivity.CATCH)
-        assertEquals(t0.plus(Duration.ofMinutes(90)), GuidedEngine.nextCheckIn(caught, FishingPhase.SUMMER, t0.plus(Duration.ofMinutes(40)), legalEnd))
+        assertEquals(t0.plus(Duration.ofMinutes(90)), GuidedEngine.nextCheckIn(rec(caught), FishingPhase.SUMMER, t0.plus(Duration.ofMinutes(40)), legalEnd))
         val quiet = log.check(30).check(60).check(90)
-        assertEquals(t0.plus(Duration.ofMinutes(135)), GuidedEngine.nextCheckIn(quiet, FishingPhase.SUMMER, t0.plus(Duration.ofMinutes(90)), legalEnd))
+        assertEquals(t0.plus(Duration.ofMinutes(135)), GuidedEngine.nextCheckIn(rec(quiet), FishingPhase.SUMMER, t0.plus(Duration.ofMinutes(90)), legalEnd))
         val nearEnd = legalEnd.minus(Duration.ofMinutes(20))
-        assertEquals(legalEnd.minus(Duration.ofMinutes(15)), GuidedEngine.nextCheckIn(log.check(1000), FishingPhase.SUMMER, nearEnd, legalEnd))
-        assertNull(GuidedEngine.nextCheckIn(log, FishingPhase.SUMMER, legalEnd.plusSeconds(1), legalEnd))
-        assertNotNull(GuidedEngine.nextCheckIn(log, FishingPhase.WINTER, t0, null))
+        assertEquals(legalEnd.minus(Duration.ofMinutes(15)), GuidedEngine.nextCheckIn(rec(log.check(1000)), FishingPhase.SUMMER, nearEnd, legalEnd))
+        assertNull(GuidedEngine.nextCheckIn(rec(log), FishingPhase.SUMMER, legalEnd.plusSeconds(1), legalEnd))
+        assertNotNull(GuidedEngine.nextCheckIn(rec(log), FishingPhase.WINTER, t0, null))
         // Aviso sin contestar: el siguiente cuenta desde él, no se repite al minuto.
-        assertEquals(t0.plus(Duration.ofMinutes(60)), GuidedEngine.nextCheckIn(log.withAlarm(t0.plus(Duration.ofMinutes(30))), FishingPhase.SUMMER, t0.plus(Duration.ofMinutes(31)), legalEnd))
+        assertEquals(t0.plus(Duration.ofMinutes(60)), GuidedEngine.nextCheckIn(rec(log).withAlarm(t0.plus(Duration.ofMinutes(30))), FishingPhase.SUMMER, t0.plus(Duration.ofMinutes(31)), legalEnd))
+    }
+
+    @Test
+    fun `pequenos u otras especies - cebo selectivo y, con mucho cebado, cebar menos`() {
+        val log = started(FishingPhase.SUMMER)
+            .withCheckIn(CheckIn(t0.plus(Duration.ofMinutes(20)), activity = HookActivity.CATCH, species = Species.BARBEL))
+        val one = GuidedEngine.evaluate(log, ctx(FishingPhase.SUMMER, 20).copy(groundbait = GroundbaitLevel.HIGH))
+        assertNull(one.proposal)
+        assertTrue(GuidedMessage.REDUCE_GROUNDBAIT in one.messages)
+        // Un barbo no es «captura»: no se dice «no cambies nada».
+        assertFalse(GuidedMessage.KEEP_AFTER_CATCH in one.messages)
+        val two = log.check(40, bait = BaitState.NIBBLED)
+        val eval = GuidedEngine.evaluate(two, ctx(FishingPhase.SUMMER, 40).copy(groundbait = GroundbaitLevel.HIGH))
+        assertEquals(StepKind.SELECTIVE, eval.proposal!!.kind)
+        assertEquals(BaitType.TIGERNUT, eval.proposal!!.bait)
+        assertEquals(0, two.current.catches)
+        assertEquals(1, two.current.bycatch)
+    }
+
+    @Test
+    fun `cebado abundante en invierno y cambio de viento avisan`() {
+        val log = started(FishingPhase.WINTER)
+        val eval = GuidedEngine.evaluate(log, ctx(FishingPhase.WINTER, 10).copy(groundbait = GroundbaitLevel.HIGH, lastWindChange = t0))
+        assertTrue(GuidedMessage.WINTER_GROUNDBAIT in eval.messages)
+        assertTrue(GuidedMessage.WIND_CHANGED in eval.messages)
+        assertFalse(GuidedMessage.WIND_CHANGED in GuidedEngine.evaluate(log, ctx(FishingPhase.WINTER, 200).copy(lastWindChange = t0)).messages)
+    }
+
+    @Test
+    fun `segunda cana empieza por otro cebo de la fase`() {
+        assertEquals(BaitType.BOILIE, GuidedEngine.initialProposal(ctx(FishingPhase.SUMMER, 0)).bait)
+        assertEquals(BaitType.MAIZE, GuidedEngine.initialProposal(ctx(FishingPhase.SUMMER, 0), variant = 1).bait)
+    }
+
+    @Test
+    fun `nada en todas cuenta como un momento para espaciar avisos`() {
+        val a = started(FishingPhase.SUMMER).check(30).check(60).check(90)
+        val b = started(FishingPhase.SUMMER).check(30).check(60).check(90)
+        val record = GuidedRecord(listOf(RodTrack(1, "fija", a), RodTrack(2, "carrete", b)))
+        assertEquals(t0.plus(Duration.ofMinutes(135)), GuidedEngine.nextCheckIn(record, FishingPhase.SUMMER, t0.plus(Duration.ofMinutes(90)), legalEnd))
     }
 }

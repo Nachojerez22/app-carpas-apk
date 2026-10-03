@@ -17,6 +17,16 @@ enum class BaitState { NOT_CHECKED, INTACT, NIBBLED, GONE }
 enum class ChangedVariable { BAIT, RIG, COLUMN, DISTANCE, ZONE }
 
 /**
+ * Especie de una captura. En Brovales, según fuentes divulgativas: carpa, barbo, boga y black
+ * bass (§6). Solo la carpa cuenta como captura de la sesión; las demás indican que otros peces
+ * se comen el cebo antes que la carpa.
+ */
+enum class Species { CARP, BARBEL, NASE, BLACK_BASS, SMALL }
+
+/** Cantidad de cebado o recebado, sin gramos (§5.5: no hay datos para fijarlos). */
+enum class GroundbaitLevel { LOW, NORMAL, HIGH }
+
+/**
  * Respuesta a un aviso (cada 30 min o cuando el usuario quiera). [notWorking] es el botón
  * «No funciona»: dos en 30 min fuerzan la siguiente propuesta (§5.9.3).
  */
@@ -27,13 +37,22 @@ data class CheckIn(
     val baitState: BaitState = BaitState.NOT_CHECKED,
     val notWorking: Boolean = false,
     val userChange: ChangedVariable? = null,
-)
+    /** Especie si [activity] es CATCH; null = carpa. */
+    val species: Species? = null,
+    /** Recebado anotado en este momento. */
+    val rebait: GroundbaitLevel? = null,
+) {
+    val isCarpCatch: Boolean get() = activity == HookActivity.CATCH && (species == null || species == Species.CARP)
+
+    /** Captura de otra especie (o pequeño sin identificar). */
+    val isBycatch: Boolean get() = activity == HookActivity.CATCH && species != null && species != Species.CARP
+}
 
 /** Tipo de paso de la escalera (§5.9.1–§5.9.2). */
-enum class StepKind { INITIAL, PRESENTATION, RIG, COLUMN, DISTANCE, ZONE, ANTI_CRAB }
+enum class StepKind { INITIAL, PRESENTATION, RIG, COLUMN, DISTANCE, ZONE, ANTI_CRAB, SELECTIVE }
 
 /** Por qué se propone el paso: la situación diagnosticada. */
-enum class Situation { START, NO_SIGNALS, SIGNALS_NO_BITES, TOUCHES, CRAB_OR_SMALL_FISH }
+enum class Situation { START, NO_SIGNALS, SIGNALS_NO_BITES, TOUCHES, CRAB_OR_SMALL_FISH, OTHER_FISH }
 
 /** Qué propone la app. Los textos salen de [kind], [bait] y [column] en la UI. */
 data class Proposal(
@@ -77,19 +96,21 @@ data class Segment(
     val column: Column? = null,
     val forced: Boolean = false,
     val checkIns: List<CheckIn> = emptyList(),
+    /** Montaje del equipo propuesto al empezar el tramo. */
+    val rigName: String? = null,
 ) {
     fun duration(now: Instant): Duration = Duration.between(start, end ?: now)
 
-    val bites: Int get() = checkIns.count { it.activity == HookActivity.MISSED || it.activity == HookActivity.CATCH }
-    val catches: Int get() = checkIns.count { it.activity == HookActivity.CATCH }
+    /** Picadas de carpa (falladas o capturadas). */
+    val bites: Int get() = checkIns.count { it.activity == HookActivity.MISSED || it.isCarpCatch }
+    val catches: Int get() = checkIns.count { it.isCarpCatch }
+    val bycatch: Int get() = checkIns.count { it.isBycatch }
 }
 
-/** Registro completo de una sesión guiada; va guardado con la sesión. */
+/** Registro de una caña en la sesión guiada (§5.9.2: una variable por caña). */
 data class GuidedLog(
     val segments: List<Segment>,
     val proposals: List<ProposalRecord> = emptyList(),
-    /** Avisos que mostró la app (contestados o no): la falta de respuesta también es un dato. */
-    val alarms: List<Instant> = emptyList(),
 ) {
     val current: Segment get() = segments.last()
 
@@ -103,8 +124,6 @@ data class GuidedLog(
     fun withCheckIn(checkIn: CheckIn): GuidedLog =
         copy(segments = segments.dropLast(1) + current.copy(checkIns = current.checkIns + checkIn))
 
-    fun withAlarm(at: Instant): GuidedLog = copy(alarms = alarms + at)
-
     fun withProposal(proposal: Proposal): GuidedLog = copy(proposals = proposals + ProposalRecord(proposal))
 
     /** Aceptar la propuesta pendiente: cierra el tramo actual y abre uno nuevo. */
@@ -114,7 +133,7 @@ data class GuidedLog(
         val accepted = proposals.dropLast(1) + record.copy(decision = Decision.ACCEPTED, decidedAt = at)
         // El plan inicial (o su sustituto) configura el primer tramo sin abrir otro.
         if (p.kind == StepKind.INITIAL) {
-            val first = current.copy(bait = p.bait, baitName = p.baitName, column = p.column)
+            val first = current.copy(bait = p.bait, baitName = p.baitName, column = p.column, rigName = p.rigName ?: current.rigName)
             return copy(segments = segments.dropLast(1) + first, proposals = accepted)
         }
         val closed = segments.dropLast(1) + current.copy(end = at)
@@ -125,6 +144,7 @@ data class GuidedLog(
             baitName = if (p.bait != null) p.baitName else current.baitName,
             column = p.column ?: current.column,
             forced = p.forced,
+            rigName = p.rigName ?: current.rigName,
         )
         return copy(segments = closed + next, proposals = accepted)
     }
@@ -144,8 +164,43 @@ data class GuidedLog(
     companion object {
         /** Empieza con el plan A pendiente de aceptar o rechazar. */
         fun start(at: Instant, initial: Proposal): GuidedLog = GuidedLog(
-            segments = listOf(Segment(start = at, kind = StepKind.INITIAL, bait = initial.bait, baitName = initial.baitName, column = initial.column)),
+            segments = listOf(Segment(start = at, kind = StepKind.INITIAL, bait = initial.bait, baitName = initial.baitName, column = initial.column, rigName = initial.rigName)),
             proposals = listOf(ProposalRecord(initial)),
         )
     }
+}
+
+/** Una caña con nombre («fija», «carrete») y su registro. */
+data class RodTrack(val id: Int, val name: String, val log: GuidedLog)
+
+/**
+ * Registro completo de una sesión guiada: una pista por caña, los avisos mostrados (contestados o
+ * no: la falta de respuesta también es un dato), los cambios de viento que anotó el usuario y el
+ * cebado inicial. Va guardado con la sesión.
+ */
+data class GuidedRecord(
+    val rods: List<RodTrack>,
+    val alarms: List<Instant> = emptyList(),
+    val windChanges: List<Instant> = emptyList(),
+    val groundbait: GroundbaitLevel? = null,
+) {
+    fun rod(id: Int): RodTrack? = rods.firstOrNull { it.id == id }
+
+    fun updateRod(id: Int, transform: (GuidedLog) -> GuidedLog): GuidedRecord =
+        copy(rods = rods.map { if (it.id == id) it.copy(log = transform(it.log)) else it })
+
+    val allCheckIns: List<CheckIn> get() = rods.flatMap { it.log.allCheckIns }.sortedBy { it.time }
+
+    /** Cebos que el usuario ha dicho no tener, en cualquier caña. */
+    val missingBaits: Set<BaitType> get() = rods.flatMap { it.log.missingBaits }.toSet()
+
+    /** Recebado vigente en una caña: el último anotado o el inicial. */
+    fun groundbaitOf(id: Int): GroundbaitLevel? =
+        rod(id)?.log?.allCheckIns?.lastOrNull { it.rebait != null }?.rebait ?: groundbait
+
+    fun withAlarm(at: Instant): GuidedRecord = copy(alarms = alarms + at)
+
+    fun withWindChange(at: Instant): GuidedRecord = copy(windChanges = windChanges + at)
+
+    fun finish(at: Instant): GuidedRecord = copy(rods = rods.map { it.copy(log = it.log.finish(at)) })
 }

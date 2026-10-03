@@ -45,6 +45,15 @@ enum class GuidedMessage {
 
     /** 🟡 Chufa o legumbres: siempre preparadas (remojo ≥ 24 h y hervor ≥ 30 min). */
     PREPARE_BAIT,
+
+    /** 🟡 + 🟣 Entran pequeños u otras especies con cebado abundante: cebar menos y más selectivo. */
+    REDUCE_GROUNDBAIT,
+
+    /** 🟢 En frío, cebado mínimo (§5.5): mucho cebo no se come y atrae a otros peces. */
+    WINTER_GROUNDBAIT,
+
+    /** 🟡 El viento ha cambiado: valorar la orilla que recibe el viento (§5.9.1). */
+    WIND_CHANGED,
 }
 
 data class GuidedContext(
@@ -55,6 +64,12 @@ data class GuidedContext(
     val inventory: List<GearItem>,
     /** Fin de semana u otros pescadores cerca: la presentación se adelanta 30 min. */
     val highPressure: Boolean = false,
+    /** Cebos que el usuario no tiene, dichos en cualquier caña. */
+    val missingBaits: Set<BaitType> = emptySet(),
+    /** Cebado o recebado vigente en la caña. */
+    val groundbait: GroundbaitLevel? = null,
+    /** Último cambio de viento anotado por el usuario. */
+    val lastWindChange: Instant? = null,
 )
 
 data class Evaluation(val proposal: Proposal?, val messages: Set<GuidedMessage>)
@@ -72,6 +87,10 @@ object GuidedEngine {
     val CATCH_PAUSE: Duration = Duration.ofMinutes(20)
     val WINTER_RECENT_ACTIVITY: Duration = Duration.ofHours(2)
     const val HEAT_THRESHOLD_C = 28.0
+
+    /** 🟣 Capturas de otras especies o cebos mordisqueados en el tramo que piden cebo selectivo. */
+    const val OTHER_FISH_COUNT = 2
+    val WIND_MESSAGE_FOR: Duration = Duration.ofHours(2)
 
     val THRESHOLDS: Map<FishingPhase, PhaseThresholds> = mapOf(
         FishingPhase.WINTER to PhaseThresholds(Duration.ofMinutes(150), Duration.ofMinutes(240), Duration.ofMinutes(120), 1, Duration.ofMinutes(45)),
@@ -103,9 +122,13 @@ object GuidedEngine {
         else -> FishingPhase.SPRING
     }
 
-    /** Plan A: cebo de partida de la fase que lleve el usuario, a fondo. */
-    fun initialProposal(ctx: GuidedContext, excluded: Set<BaitType> = emptySet()): Proposal {
-        val preferred = BaitCatalog.initialBaits(ctx.phase).filterNot { it in excluded }.ifEmpty { BaitCatalog.initialBaits(ctx.phase) }
+    /**
+     * Plan A: cebo de partida de la fase que lleve el usuario, a fondo. [variant] reparte los
+     * cebos entre cañas (la segunda empieza por el segundo cebo de la fase) para comparar (🟣).
+     */
+    fun initialProposal(ctx: GuidedContext, excluded: Set<BaitType> = emptySet(), variant: Int = 0): Proposal {
+        val base = BaitCatalog.initialBaits(ctx.phase).let { list -> val k = variant.mod(list.size); list.drop(k) + list.take(k) }
+        val preferred = base.filterNot { it in excluded }.ifEmpty { base }
         val bait = BaitCatalog.choose(preferred, ctx.inventory.filterNot { it.baitType in excluded }, ctx.phase)
         return Proposal(
             kind = StepKind.INITIAL,
@@ -127,8 +150,13 @@ object GuidedEngine {
         return log.allCheckIns.count { it.notWorking && !it.time.isBefore(from) && !it.time.isAfter(now) } >= FORCE_COUNT
     }
 
-    fun evaluate(log: GuidedLog, ctx: GuidedContext): Evaluation {
+    fun evaluate(log: GuidedLog, ctx: GuidedContext, variant: Int = 0): Evaluation {
         val messages = mutableSetOf<GuidedMessage>()
+        val missing = log.missingBaits + ctx.missingBaits
+        if (ctx.phase == FishingPhase.WINTER && ctx.groundbait == GroundbaitLevel.HIGH) messages += GuidedMessage.WINTER_GROUNDBAIT
+        if (ctx.lastWindChange != null && !ctx.lastWindChange.isAfter(ctx.now) && Duration.between(ctx.lastWindChange, ctx.now) <= WIND_MESSAGE_FOR) {
+            messages += GuidedMessage.WIND_CHANGED
+        }
         val toEnd = ctx.legalEnd?.let { Duration.between(ctx.now, it) }
         if (toEnd != null && toEnd <= LEGAL_END_WARNING) messages += GuidedMessage.LEGAL_END_SOON
         val noZone = toEnd != null && toEnd <= LEGAL_NO_ZONE
@@ -139,7 +167,7 @@ object GuidedEngine {
         val last = log.proposals.lastOrNull()
         if (last != null && last.proposal.kind == StepKind.INITIAL && last.decision == Decision.REJECTED) {
             val excluded = log.proposals.filter { it.proposal.kind == StepKind.INITIAL && it.decision == Decision.REJECTED }.mapNotNull { it.proposal.bait }.toSet()
-            val proposal = initialProposal(ctx, excluded + log.missingBaits)
+            val proposal = initialProposal(ctx, excluded + missing, variant)
             return Evaluation(proposal, messages + baitMessages(proposal))
         }
 
@@ -157,27 +185,36 @@ object GuidedEngine {
             return Evaluation(proposal, messages + (proposal?.let(::baitMessages) ?: emptySet()))
         }
 
-        // D. Captura: no cambiar nada (salvo que el usuario lo fuerce).
-        if (lastCheck?.activity == HookActivity.CATCH && !forced) {
+        val otherFish = checks.count { it.isBycatch || it.baitState == BaitState.NIBBLED }
+        if (otherFish > 0 && ctx.groundbait == GroundbaitLevel.HIGH) messages += GuidedMessage.REDUCE_GROUNDBAIT
+
+        // D. Captura de carpa: no cambiar nada (salvo que el usuario lo fuerce).
+        if (lastCheck?.isCarpCatch == true && !forced) {
             messages += GuidedMessage.KEEP_AFTER_CATCH
             return Evaluation(null, messages)
         }
 
         // Cebo desaparecido en ≥ 2 revisiones: cangrejo, tortuga o peces pequeños.
         if (checks.count { it.baitState == BaitState.GONE } >= 2 && segment.kind != StepKind.ANTI_CRAB && StepKind.ANTI_CRAB !in proposedHere) {
-            return result(antiCrab(ctx, log, forced))
+            return result(antiCrab(ctx, missing, forced))
+        }
+
+        // E. Pequeños u otras especies (barbo, boga, black bass) o cebo mordisqueado: cebo de
+        // anzuelo más grande o selectivo (🟡 §5.9.1) y, si se cebó mucho, cebar menos.
+        if (otherFish >= OTHER_FISH_COUNT && segment.kind != StepKind.SELECTIVE && StepKind.SELECTIVE !in proposedHere) {
+            return result(selective(ctx, missing, segment, forced))
         }
 
         // C. Toques o picadas falladas en dos avisos seguidos: cambiar montaje o sabor.
         val lastTwo = checks.takeLast(2)
         if (lastTwo.size == 2 && lastTwo.all { it.activity == HookActivity.TOUCHES || it.activity == HookActivity.MISSED } && StepKind.RIG !in proposedHere) {
-            return result(rigChange(ctx, log, segment, forced))
+            return result(rigChange(ctx, missing, segment, forced))
         }
 
         // B. Señales sin actividad: cambiar presentación, no de zona.
         if (lastCheck != null && lastCheck.signals != SignalLevel.NONE && lastCheck.activity == HookActivity.NOTHING) {
             val wait = if (ctx.highPressure) th.presentation.minus(HIGH_PRESSURE_ADVANCE) else th.presentation
-            if ((since >= wait || forced) && StepKind.PRESENTATION !in proposedHere) return result(presentation(ctx, log, segment, forced))
+            if ((since >= wait || forced) && StepKind.PRESENTATION !in proposedHere) return result(presentation(ctx, missing, segment, forced))
             if (winter) messages += GuidedMessage.WINTER_PATIENCE
             return Evaluation(null, messages)
         }
@@ -241,28 +278,36 @@ object GuidedEngine {
     }
 
     /** B: cebo de anzuelo de alta atracción o contraste (maíz o pop-up), distinto del actual. */
-    private fun presentation(ctx: GuidedContext, log: GuidedLog, segment: Segment, forced: Boolean): Proposal {
-        val preferred = listOf(BaitType.MAIZE, BaitType.POPUP, BaitType.BOILIE, BaitType.PASTE).filterNot { it == segment.bait || it in log.missingBaits }
+    private fun presentation(ctx: GuidedContext, missing: Set<BaitType>, segment: Segment, forced: Boolean): Proposal {
+        val preferred = listOf(BaitType.MAIZE, BaitType.POPUP, BaitType.BOILIE, BaitType.PASTE).filterNot { it == segment.bait || it in missing }
         val bait = BaitCatalog.choose(preferred.ifEmpty { listOf(BaitType.MAIZE) }, ctx.inventory, ctx.phase)
         return Proposal(StepKind.PRESENTATION, Situation.SIGNALS_NO_BITES, bait.type, bait.item?.name, bait.fallback, forced = forced, evidence = Evidence.GREEN, createdAt = ctx.now)
     }
 
     /** C: otro montaje y otro sabor o textura en el anzuelo; el cebado se mantiene. */
-    private fun rigChange(ctx: GuidedContext, log: GuidedLog, segment: Segment, forced: Boolean): Proposal {
-        val preferred = listOf(BaitType.MAIZE, BaitType.TIGERNUT, BaitType.BOILIE, BaitType.PASTE).filterNot { it == segment.bait || it in log.missingBaits || ctx.phase !in it.phases }
+    private fun rigChange(ctx: GuidedContext, missing: Set<BaitType>, segment: Segment, forced: Boolean): Proposal {
+        val preferred = listOf(BaitType.MAIZE, BaitType.TIGERNUT, BaitType.BOILIE, BaitType.PASTE).filterNot { it == segment.bait || it in missing || ctx.phase !in it.phases }
         val bait = BaitCatalog.choose(preferred.ifEmpty { listOf(BaitType.MAIZE) }, ctx.inventory, ctx.phase)
         return Proposal(StepKind.RIG, Situation.TOUCHES, bait.type, bait.item?.name, bait.fallback, forced = forced, evidence = Evidence.YELLOW, createdAt = ctx.now)
     }
 
     /** Cebo duro o separado del fondo (§5.9.1, 🟡). */
-    private fun antiCrab(ctx: GuidedContext, log: GuidedLog, forced: Boolean): Proposal {
-        val preferred = listOf(BaitType.TIGERNUT, BaitType.BOILIE_HARD, BaitType.POPUP).filterNot { it in log.missingBaits }
+    private fun antiCrab(ctx: GuidedContext, missing: Set<BaitType>, forced: Boolean): Proposal {
+        val preferred = listOf(BaitType.TIGERNUT, BaitType.BOILIE_HARD, BaitType.POPUP).filterNot { it in missing }
         val bait = BaitCatalog.choose(preferred.ifEmpty { listOf(BaitType.POPUP) }, ctx.inventory, ctx.phase, crab = true)
         return Proposal(
             StepKind.ANTI_CRAB, Situation.CRAB_OR_SMALL_FISH, bait.type, bait.item?.name, bait.fallback,
             column = Column.POPUP, rigName = BaitCatalog.rigFor(Column.POPUP, ctx.inventory)?.name,
             forced = forced, evidence = Evidence.YELLOW, createdAt = ctx.now,
         )
+    }
+
+    /** E: cebo de anzuelo más grande o selectivo, distinto del actual; el más selectivo que lleve. */
+    private fun selective(ctx: GuidedContext, missing: Set<BaitType>, segment: Segment, forced: Boolean): Proposal {
+        val preferred = listOf(BaitType.TIGERNUT, BaitType.BOILIE_HARD, BaitType.BOILIE)
+            .filterNot { it == segment.bait || it in missing || ctx.phase !in it.phases }
+        val bait = BaitCatalog.choose(preferred.ifEmpty { listOf(BaitType.BOILIE) }, ctx.inventory, ctx.phase)
+        return Proposal(StepKind.SELECTIVE, Situation.OTHER_FISH, bait.type, bait.item?.name, bait.fallback, forced = forced, evidence = Evidence.YELLOW, createdAt = ctx.now)
     }
 
     /** Fondo → pop-up → zig → superficie; zig y superficie solo con calor (§5.6). */
@@ -287,16 +332,21 @@ object GuidedEngine {
      * (si registraste algo hace poco, se salta) y nunca después del aviso de fin legal.
      * Si el último aviso mostrado no se contestó, el siguiente cuenta desde él.
      */
-    fun nextCheckIn(log: GuidedLog, phase: FishingPhase, now: Instant, legalEnd: Instant?): Instant? {
+    fun nextCheckIn(record: GuidedRecord, phase: FishingPhase, now: Instant, legalEnd: Instant?): Instant? {
         var interval = THRESHOLDS.getValue(phase).checkInEvery
-        val checks = log.allCheckIns
-        val quiet = checks.takeLast(3).let { last3 ->
-            last3.size == 3 && last3.all { it.signals == SignalLevel.NONE && it.activity == HookActivity.NOTHING && it.userChange == null }
+        val checks = record.allCheckIns
+        // «Nada en todas» anota un aviso por caña a la misma hora: se cuentan momentos, no avisos.
+        val moments = checks.groupBy { it.time }.toSortedMap().values.toList()
+        val quiet = moments.takeLast(3).let { last3 ->
+            last3.size == 3 && last3.all { moment ->
+                moment.all { it.signals == SignalLevel.NONE && it.activity == HookActivity.NOTHING && it.userChange == null && it.rebait == null }
+            }
         }
         if (quiet) interval = interval.plusMinutes(15)
         val lastEvent = checks.lastOrNull()
-        if (lastEvent?.activity == HookActivity.CATCH) interval = interval.plus(CATCH_PAUSE)
-        val from = listOfNotNull(lastEvent?.time ?: log.current.start, log.alarms.lastOrNull()).max()
+        if (moments.lastOrNull()?.any { it.isCarpCatch } == true) interval = interval.plus(CATCH_PAUSE)
+        val start = record.rods.maxOfOrNull { it.log.current.start } ?: now
+        val from = listOfNotNull(lastEvent?.time ?: start, record.alarms.lastOrNull()).max()
         var next = maxOf(from.plus(interval), now.plusSeconds(60))
         if (legalEnd != null) {
             val reminder = legalEnd.minus(LEGAL_END_WARNING)

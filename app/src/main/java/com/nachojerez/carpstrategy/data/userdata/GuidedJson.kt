@@ -8,14 +8,18 @@ import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.Decision
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedLog
+import com.nachojerez.carpstrategy.domain.guided.GuidedRecord
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.ProposalRecord
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.RigType
+import com.nachojerez.carpstrategy.domain.guided.RodTrack
 import com.nachojerez.carpstrategy.domain.guided.Segment
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
+import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.guided.Situation
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
@@ -37,6 +41,8 @@ object GuidedJson {
         @SerialName("estado_cebo") val baitState: String,
         @SerialName("no_funciona") val notWorking: Boolean = false,
         @SerialName("cambio_usuario") val userChange: String? = null,
+        @SerialName("especie") val species: String? = null,
+        @SerialName("recebado") val rebait: String? = null,
     )
 
     @Serializable
@@ -72,13 +78,26 @@ object GuidedJson {
         @SerialName("columna") val column: String? = null,
         @SerialName("forzado") val forced: Boolean = false,
         @SerialName("avisos") val checkIns: List<CheckInDto> = emptyList(),
+        @SerialName("montaje") val rigName: String? = null,
     )
 
     @Serializable
-    data class GuidedDto(
+    data class RodDto(
+        @SerialName("id") val id: Int,
+        @SerialName("nombre") val name: String = "",
         @SerialName("tramos") val segments: List<SegmentDto>,
         @SerialName("propuestas") val proposals: List<ProposalRecordDto> = emptyList(),
+    )
+
+    /** `tramos` y `propuestas` sueltos: formato de prueba anterior a las cañas (una sola caña). */
+    @Serializable
+    data class GuidedDto(
+        @SerialName("canas") val rods: List<RodDto> = emptyList(),
         @SerialName("avisos_mostrados") val alarms: List<String> = emptyList(),
+        @SerialName("cambios_viento") val windChanges: List<String> = emptyList(),
+        @SerialName("cebado_inicial") val groundbait: String? = null,
+        @SerialName("tramos") val legacySegments: List<SegmentDto>? = null,
+        @SerialName("propuestas") val legacyProposals: List<ProposalRecordDto>? = null,
     )
 
     @Serializable
@@ -94,7 +113,7 @@ object GuidedJson {
 
     private fun instant(text: String?): Instant? = text?.let { runCatching { Instant.parse(it) }.getOrNull() }
 
-    fun CheckIn.toDto() = CheckInDto(time.toString(), signals.name, activity.name, baitState.name, notWorking, userChange?.name)
+    fun CheckIn.toDto() = CheckInDto(time.toString(), signals.name, activity.name, baitState.name, notWorking, userChange?.name, species?.name, rebait?.name)
 
     fun CheckInDto.toDomain(): CheckIn? = CheckIn(
         time = instant(time) ?: return null,
@@ -103,6 +122,8 @@ object GuidedJson {
         baitState = enumOf<BaitState>(baitState) ?: BaitState.NOT_CHECKED,
         notWorking = notWorking,
         userChange = enumOf<ChangedVariable>(userChange),
+        species = enumOf<Species>(species),
+        rebait = enumOf<GroundbaitLevel>(rebait),
     )
 
     fun Proposal.toDto() = ProposalDto(
@@ -122,43 +143,64 @@ object GuidedJson {
         createdAt = instant(createdAt) ?: return null,
     )
 
-    fun GuidedLog.toDto() = GuidedDto(
-        segments = segments.map { s ->
-            SegmentDto(s.start.toString(), s.end?.toString(), s.kind.name, s.bait?.name, s.baitName, s.column?.name, s.forced, s.checkIns.map { it.toDto() })
-        },
-        proposals = proposals.map { r -> ProposalRecordDto(r.proposal.toDto(), r.decision.name, r.reason?.name, r.comment, r.decidedAt?.toString()) },
-        alarms = alarms.map { it.toString() },
+    private fun Segment.toDto() =
+        SegmentDto(start.toString(), end?.toString(), kind.name, bait?.name, baitName, column?.name, forced, checkIns.map { it.toDto() }, rigName)
+
+    private fun SegmentDto.toDomain(): Segment? = Segment(
+        start = instant(start) ?: return null,
+        end = instant(end),
+        kind = enumOf<StepKind>(kind) ?: StepKind.INITIAL,
+        bait = enumOf<BaitType>(bait),
+        baitName = baitName,
+        column = enumOf<Column>(column),
+        forced = forced,
+        checkIns = checkIns.mapNotNull { it.toDomain() },
+        rigName = rigName,
     )
 
-    fun GuidedDto.toDomain(): GuidedLog? {
-        val segs = segments.mapNotNull { s ->
-            Segment(
-                start = instant(s.start) ?: return@mapNotNull null,
-                end = instant(s.end),
-                kind = enumOf<StepKind>(s.kind) ?: StepKind.INITIAL,
-                bait = enumOf<BaitType>(s.bait),
-                baitName = s.baitName,
-                column = enumOf<Column>(s.column),
-                forced = s.forced,
-                checkIns = s.checkIns.mapNotNull { it.toDomain() },
-            )
-        }
+    private fun ProposalRecordDto.toDomain(): ProposalRecord? = ProposalRecord(
+        proposal = proposal.toDomain() ?: return null,
+        decision = enumOf<Decision>(decision) ?: Decision.PENDING,
+        reason = enumOf<RejectReason>(reason),
+        comment = comment,
+        decidedAt = instant(decidedAt),
+    )
+
+    private fun rodLog(segments: List<SegmentDto>, proposals: List<ProposalRecordDto>): GuidedLog? {
+        val segs = segments.mapNotNull { it.toDomain() }
         if (segs.isEmpty()) return null
-        val records = proposals.mapNotNull { r ->
-            ProposalRecord(
-                proposal = r.proposal.toDomain() ?: return@mapNotNull null,
-                decision = enumOf<Decision>(r.decision) ?: Decision.PENDING,
-                reason = enumOf<RejectReason>(r.reason),
-                comment = r.comment,
-                decidedAt = instant(r.decidedAt),
-            )
-        }
-        return GuidedLog(segs, records, alarms.mapNotNull { instant(it) })
+        return GuidedLog(segs, proposals.mapNotNull { it.toDomain() })
     }
 
-    fun encode(log: GuidedLog): String = JournalJson.json.encodeToString(GuidedDto.serializer(), log.toDto())
+    fun GuidedRecord.toDto() = GuidedDto(
+        rods = rods.map { r ->
+            RodDto(
+                id = r.id,
+                name = r.name,
+                segments = r.log.segments.map { it.toDto() },
+                proposals = r.log.proposals.map { p -> ProposalRecordDto(p.proposal.toDto(), p.decision.name, p.reason?.name, p.comment, p.decidedAt?.toString()) },
+            )
+        },
+        alarms = alarms.map { it.toString() },
+        windChanges = windChanges.map { it.toString() },
+        groundbait = groundbait?.name,
+    )
 
-    fun decode(text: String?): GuidedLog? =
+    fun GuidedDto.toDomain(): GuidedRecord? {
+        val tracks = rods.mapNotNull { r -> rodLog(r.segments, r.proposals)?.let { RodTrack(r.id, r.name, it) } }
+            .ifEmpty { listOfNotNull(legacySegments?.let { rodLog(it, legacyProposals.orEmpty()) }?.let { RodTrack(1, "", it) }) }
+        if (tracks.isEmpty()) return null
+        return GuidedRecord(
+            rods = tracks,
+            alarms = alarms.mapNotNull { instant(it) },
+            windChanges = windChanges.mapNotNull { instant(it) },
+            groundbait = enumOf<GroundbaitLevel>(groundbait),
+        )
+    }
+
+    fun encode(record: GuidedRecord): String = JournalJson.json.encodeToString(GuidedDto.serializer(), record.toDto())
+
+    fun decode(text: String?): GuidedRecord? =
         text?.let { runCatching { JournalJson.json.decodeFromString(GuidedDto.serializer(), it) }.getOrNull() }?.toDomain()
 
     fun GearItem.toDto() = GearDto(id, category.name, name, baitType?.name, rigType?.name)

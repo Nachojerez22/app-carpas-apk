@@ -31,10 +31,15 @@ class GuidedSessionsTest {
 
     private fun at(minutes: Long) = t0.plus(Duration.ofMinutes(minutes))
 
-    private fun ctx(session: Session, minutes: Long) = GuidedSessions.context(session, at(minutes), inventory, madrid)
+    private fun env(minutes: Long) = GuidedEnv(at(minutes), inventory, madrid)
+
+    private fun started(names: List<String> = listOf("fija"), groundbait: GroundbaitLevel? = null): Session {
+        val s = GuidedSessions.start(summer, names, groundbait, env(0)).session
+        return s.guided!!.rods.fold(s) { acc, rod -> GuidedSessions.accept(acc, rod.id, env(0)).session }
+    }
 
     @Test
-    fun `fase, fin legal y presión por fin de semana`() {
+    fun `fase, fin legal y presion por fin de semana`() {
         assertEquals(FishingPhase.SUMMER, GuidedSessions.phaseOf(summer))
         assertEquals(FishingPhase.SPRING, GuidedSessions.phaseOf(summer.copy(context = null)))
         val end = GuidedSessions.legalEnd(summer, madrid)!!
@@ -47,46 +52,74 @@ class GuidedSessionsTest {
 
     @Test
     fun `aceptar el plan A pasa cebo y montaje a la ficha`() {
-        val started = GuidedSessions.start(summer, ctx(summer, 0))
-        assertEquals(StepKind.INITIAL, started.newProposal?.kind)
-        val accepted = GuidedSessions.accept(started.session, ctx(started.session, 1)).session
+        val started = GuidedSessions.start(summer, listOf("fija"), null, env(0))
+        assertEquals(StepKind.INITIAL, started.newProposals[1]?.kind)
+        val accepted = GuidedSessions.accept(started.session, 1, env(1)).session
         assertEquals("Boilie fresa 20", accepted.bait)
         assertEquals("Pelo 25 lb", accepted.rig)
-        assertNull(accepted.guided!!.pending)
-        assertEquals(1, accepted.guided!!.segments.size)
+        assertNull(accepted.guided!!.rod(1)!!.log.pending)
+        assertEquals(1, accepted.rods)
+    }
+
+    @Test
+    fun `dos canas con nombre - cada una con su plan y su registro`() {
+        val s = started(listOf("fija", "carrete"), GroundbaitLevel.HIGH)
+        assertEquals(2, s.rods)
+        assertEquals(listOf("fija", "carrete"), s.guided!!.rods.map { it.name })
+        assertEquals("fija: Boilie fresa 20 · carrete: Boilie fresa 20", s.bait)
+        var after = GuidedSessions.checkIn(s, 2, CheckIn(at(30), activity = HookActivity.CATCH), env(30)).session
+        after = GuidedSessions.checkIn(after, 1, CheckIn(at(31), activity = HookActivity.CATCH, species = Species.SMALL), env(31)).session
+        assertEquals(1, after.guided!!.rod(2)!!.log.current.catches)
+        assertEquals(0, after.guided!!.rod(1)!!.log.current.catches)
+        // Solo la carpa cuenta en la ficha (con su caña); el pequeño queda en el registro.
+        assertEquals(listOf(2), after.catches.map { it.rod })
+        assertEquals(1, after.bites)
+        assertEquals(GroundbaitLevel.HIGH, after.guided!!.groundbaitOf(1))
+        val rebait = GuidedSessions.checkIn(after, 1, CheckIn(at(40), rebait = GroundbaitLevel.LOW), env(40)).session
+        assertEquals(GroundbaitLevel.LOW, rebait.guided!!.groundbaitOf(1))
+        assertEquals(GroundbaitLevel.HIGH, rebait.guided!!.groundbaitOf(2))
+    }
+
+    @Test
+    fun `nada en todas y cambio de viento`() {
+        val s = started(listOf("fija", "carrete"))
+        val nothing = GuidedSessions.nothingEverywhere(s, env(30)).session
+        assertEquals(listOf(1, 1), nothing.guided!!.rods.map { it.log.allCheckIns.size })
+        val wind = GuidedSessions.windChanged(nothing, env(35))
+        assertEquals(listOf(at(35)), wind.session.guided!!.windChanges)
+        assertTrue(wind.messages.values.all { GuidedMessage.WIND_CHANGED in it })
     }
 
     @Test
     fun `picada fallada y captura cuentan en la ficha`() {
-        var s = GuidedSessions.accept(GuidedSessions.start(summer, ctx(summer, 0)).session, ctx(summer, 0)).session
-        s = GuidedSessions.checkIn(s, CheckIn(at(30), activity = HookActivity.MISSED), ctx(s, 30)).session
-        s = GuidedSessions.checkIn(s, CheckIn(at(45), activity = HookActivity.CATCH), ctx(s, 45)).session
-        s = GuidedSessions.checkIn(s, CheckIn(at(60), activity = HookActivity.TOUCHES), ctx(s, 60)).session
+        var s = started()
+        s = GuidedSessions.checkIn(s, 1, CheckIn(at(30), activity = HookActivity.MISSED), env(30)).session
+        s = GuidedSessions.checkIn(s, 1, CheckIn(at(45), activity = HookActivity.CATCH), env(45)).session
+        s = GuidedSessions.checkIn(s, 1, CheckIn(at(60), activity = HookActivity.TOUCHES), env(60)).session
         assertEquals(2, s.bites)
         assertEquals(listOf(at(45)), s.catches.map { it.time })
     }
 
     @Test
     fun `dos no funciona en media hora proponen ya y rechazar no repite el paso`() {
-        var s = GuidedSessions.accept(GuidedSessions.start(summer, ctx(summer, 0)).session, ctx(summer, 0)).session
-        s = GuidedSessions.checkIn(s, CheckIn(at(10), notWorking = true), ctx(s, 10)).session
-        assertNull(s.guided!!.pending)
-        val forced = GuidedSessions.checkIn(s, CheckIn(at(20), notWorking = true), ctx(s, 20))
-        val first = forced.newProposal!!
+        var s = started()
+        s = GuidedSessions.checkIn(s, 1, CheckIn(at(10), notWorking = true), env(10)).session
+        assertNull(s.guided!!.rod(1)!!.log.pending)
+        val forced = GuidedSessions.checkIn(s, 1, CheckIn(at(20), notWorking = true), env(20))
+        val first = forced.newProposals[1]!!
         assertTrue(first.forced)
-        val rejected = GuidedSessions.reject(forced.session, RejectReason.ALREADY_TRIED, "ya lo hice", ctx(forced.session, 21))
-        // Tras rechazar, no se vuelve a proponer lo mismo de inmediato.
-        assertTrue(rejected.newProposal == null || rejected.newProposal!!.kind != first.kind)
-        assertEquals(Decision.REJECTED, rejected.session.guided!!.proposals.first { it.proposal == first }.decision)
+        val rejected = GuidedSessions.reject(forced.session, 1, RejectReason.ALREADY_TRIED, "ya lo hice", env(21))
+        assertTrue(rejected.newProposals[1] == null || rejected.newProposals[1]!!.kind != first.kind)
+        assertEquals(Decision.REJECTED, rejected.session.guided!!.rod(1)!!.log.proposals.first { it.proposal == first }.decision)
     }
 
     @Test
-    fun `terminar cierra el tramo y deja de proponer`() {
-        val s = GuidedSessions.accept(GuidedSessions.start(summer, ctx(summer, 0)).session, ctx(summer, 0)).session
+    fun `terminar cierra los tramos y deja de proponer`() {
+        val s = started(listOf("fija", "carrete"))
         val done = GuidedSessions.finish(s, at(300))
         assertEquals(at(300), done.end)
-        assertEquals(at(300), done.guided!!.current.end)
-        assertNull(GuidedSessions.refresh(done, ctx(done, 400)).newProposal)
+        assertTrue(done.guided!!.rods.all { it.log.current.end == at(300) })
+        assertTrue(GuidedSessions.refresh(done, env(400)).newProposals.isEmpty())
         assertNull(GuidedSessions.active(listOf(done)))
         assertEquals(s, GuidedSessions.active(listOf(done, s)))
     }

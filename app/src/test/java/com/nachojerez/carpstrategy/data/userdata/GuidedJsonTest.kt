@@ -7,13 +7,17 @@ import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedLog
+import com.nachojerez.carpstrategy.domain.guided.GuidedRecord
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.RigType
+import com.nachojerez.carpstrategy.domain.guided.RodTrack
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Situation
+import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import java.time.Instant
@@ -32,13 +36,27 @@ class GuidedJsonTest {
         val log = GuidedLog.start(t0, a).accept(t0)
             .withCheckIn(CheckIn(t0.plusSeconds(1800), SignalLevel.INDIRECT, HookActivity.TOUCHES, BaitState.NIBBLED, notWorking = true, userChange = ChangedVariable.BAIT))
             .withProposal(b).reject(t0.plusSeconds(3700), RejectReason.NO_BAIT, " no llevo ")
-            .withAlarm(t0.plusSeconds(3600))
             .withProposal(b).accept(t0.plusSeconds(3800))
             .withCheckIn(CheckIn(t0.plusSeconds(5400), activity = HookActivity.CATCH))
-            .finish(t0.plusSeconds(7200))
-        val back = GuidedJson.decode(GuidedJson.encode(log))
-        assertEquals(log, back)
-        assertTrue(GuidedJson.encode(log).contains("\"tramos\""))
+            .withCheckIn(CheckIn(t0.plusSeconds(5500), activity = HookActivity.CATCH, species = Species.BLACK_BASS, rebait = GroundbaitLevel.LOW))
+        val record = GuidedRecord(
+            rods = listOf(RodTrack(1, "fija", log), RodTrack(2, "carrete", GuidedLog.start(t0, a))),
+            alarms = listOf(t0.plusSeconds(3600)),
+            windChanges = listOf(t0.plusSeconds(4000)),
+            groundbait = GroundbaitLevel.HIGH,
+        ).finish(t0.plusSeconds(7200))
+        val text = GuidedJson.encode(record)
+        assertEquals(record, GuidedJson.decode(text))
+        assertTrue(text.contains("\"canas\""))
+        assertTrue(text.contains("\"BLACK_BASS\""))
+    }
+
+    @Test
+    fun `formato anterior de una sola cana se sigue leyendo`() {
+        val old = """{"tramos":[{"inicio":"2026-07-15T05:00:00Z","paso":"INITIAL","cebo":"MAIZE"}],"propuestas":[]}"""
+        val record = GuidedJson.decode(old)!!
+        assertEquals(1, record.rods.size)
+        assertEquals(BaitType.MAIZE, record.rods.single().log.current.bait)
     }
 
     @Test

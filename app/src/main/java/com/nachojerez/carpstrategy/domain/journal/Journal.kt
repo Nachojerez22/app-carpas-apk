@@ -1,6 +1,6 @@
 package com.nachojerez.carpstrategy.domain.journal
 
-import com.nachojerez.carpstrategy.domain.guided.GuidedLog
+import com.nachojerez.carpstrategy.domain.guided.GuidedRecord
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
 import com.nachojerez.carpstrategy.domain.rules.FeedingDemand
@@ -119,7 +119,7 @@ data class Session(
     val notes: String = "",
     val createdAt: Instant,
     /** Registro de la sesión guiada (tramos, avisos y decisiones); null si se anotó sin guiar. */
-    val guided: GuidedLog? = null,
+    val guided: GuidedRecord? = null,
 ) {
     val isOngoing: Boolean get() = end == null
 
