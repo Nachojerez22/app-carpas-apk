@@ -1,0 +1,80 @@
+package com.nachojerez.carpstrategy.ui.conditions
+
+import com.nachojerez.carpstrategy.domain.derived.EnsembleHour
+import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
+import com.nachojerez.carpstrategy.domain.model.Cached
+import com.nachojerez.carpstrategy.domain.model.DataError
+import com.nachojerez.carpstrategy.domain.model.GeoPoint
+import com.nachojerez.carpstrategy.domain.model.MultiModelForecast
+import com.nachojerez.carpstrategy.domain.model.NearbyObservations
+import com.nachojerez.carpstrategy.domain.model.RefreshOutcome
+import com.nachojerez.carpstrategy.domain.model.WeatherStation
+import com.nachojerez.carpstrategy.domain.usecase.RawWeather
+import com.nachojerez.carpstrategy.domain.usecase.WeatherRefreshResult
+import java.time.Duration
+import java.time.Instant
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
+class ConditionsUiStateTest {
+    private val now = Instant.parse("2026-10-03T10:00:00Z")
+    private val point = GeoPoint(38.35, -6.70)
+    private val forecast = MultiModelForecast(point, point, 305.0, "Europe/Madrid", emptyMap())
+
+    private fun ensembleHour(time: Instant, divergent: Boolean) =
+        EnsembleHour(time, null, null, null, null, null, null, null, null, windDivergent = divergent)
+
+    @Test
+    fun `cuenta solo las horas futuras con viento divergente`() {
+        val raw = RawWeather(
+            forecast = Cached(forecast, now.minus(Duration.ofHours(5))),
+            ensemble = listOf(
+                ensembleHour(now.minus(Duration.ofHours(1)), divergent = true),
+                ensembleHour(now, divergent = true),
+                ensembleHour(now.plus(Duration.ofHours(1)), divergent = false),
+                ensembleHour(now.plus(Duration.ofHours(2)), divergent = true),
+            ),
+            observations = null,
+        )
+        val state = buildConditionsState("Brovales", raw, refreshing = false, lastRefresh = null, now = now)
+
+        assertEquals(2, state.divergentForecastHours)
+        assertFalse(state.isLoading)
+        assertEquals(FreshnessLevel.AGING, state.forecastFreshness!!.level)
+        assertNull(state.observationsFreshness)
+    }
+
+    @Test
+    fun `muestra los errores del ultimo refresco`() {
+        val raw = RawWeather(null, emptyList(), null)
+        val result = WeatherRefreshResult(
+            forecast = RefreshOutcome.Success,
+            observations = RefreshOutcome.Failure(DataError.MISSING_API_KEY),
+        )
+        val state = buildConditionsState("Brovales", raw, refreshing = true, lastRefresh = result, now = now)
+        assertNull(state.forecastError)
+        assertEquals(DataError.MISSING_API_KEY, state.observationsError)
+        assertTrue(state.isRefreshing)
+    }
+
+    @Test
+    fun `se refresca si falta algun dato o tiene mas de una hora`() {
+        val recent = Cached(forecast, now.minus(Duration.ofMinutes(30)))
+        val old = Cached(forecast, now.minus(Duration.ofMinutes(61)))
+        val obsRecent = Cached(
+            NearbyObservations(
+                WeatherStation("X", "X", null, point, null),
+                5.0,
+                emptyList(),
+            ),
+            now.minus(Duration.ofMinutes(10)),
+        )
+        assertTrue(needsRefresh(RawWeather(null, emptyList(), null), now))
+        assertTrue(needsRefresh(RawWeather(recent, emptyList(), null), now))
+        assertTrue(needsRefresh(RawWeather(old, emptyList(), obsRecent), now))
+        assertFalse(needsRefresh(RawWeather(recent, emptyList(), obsRecent), now))
+    }
+}
