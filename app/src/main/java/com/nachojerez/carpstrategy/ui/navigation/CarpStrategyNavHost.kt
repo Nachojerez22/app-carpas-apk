@@ -13,6 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,6 +31,8 @@ import androidx.navigation.toRoute
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.ui.conditions.ConditionsScreen
 import com.nachojerez.carpstrategy.ui.diary.DiaryScreen
+import com.nachojerez.carpstrategy.ui.guided.GearScreen
+import com.nachojerez.carpstrategy.ui.guided.GuidedScreen
 import com.nachojerez.carpstrategy.ui.manual.DataScreen
 import com.nachojerez.carpstrategy.ui.place.PlaceScreen
 import com.nachojerez.carpstrategy.ui.strategy.StrategyScreen
@@ -43,11 +46,17 @@ import kotlinx.serialization.Serializable
 
 /** [newRecord]: abrir directamente el formulario de un registro nuevo (desde «Añadir medición»). */
 @Serializable data class DataRoute(val newRecord: Boolean = false)
-@Serializable data object DiaryRoute
+
+/** [openSessionId]: abrir la ficha de esa sesión (al terminar una sesión guiada). */
+@Serializable data class DiaryRoute(val openSessionId: Long = 0L)
 @Serializable data object PlaceRoute
 
 /** Datos en bruto por fuente (la antigua pantalla Condiciones). */
 @Serializable data object RawDataRoute
+
+/** Sesión guiada (fase 7) y el equipo del usuario. */
+@Serializable data object GuidedRoute
+@Serializable data object GearRoute
 
 private enum class TopLevelDestination(
     val route: Any,
@@ -58,7 +67,7 @@ private enum class TopLevelDestination(
     Today(TodayRoute, TodayRoute::class, R.string.nav_today, R.drawable.ic_nav_today),
     Strategy(StrategyRoute, StrategyRoute::class, R.string.nav_strategy, R.drawable.ic_nav_strategy),
     Data(DataRoute(), DataRoute::class, R.string.nav_data, R.drawable.ic_nav_data),
-    Diary(DiaryRoute, DiaryRoute::class, R.string.nav_diary, R.drawable.ic_nav_diary),
+    Diary(DiaryRoute(), DiaryRoute::class, R.string.nav_diary, R.drawable.ic_nav_diary),
     Place(PlaceRoute, PlaceRoute::class, R.string.nav_place, R.drawable.ic_nav_location),
 }
 
@@ -68,8 +77,9 @@ private fun NavHostController.navigateToTab(route: Any) = navigate(route) {
     restoreState = true
 }
 
+/** [openGuided]: se ha tocado la notificación de la sesión guiada; [onGuidedOpened] lo consume. */
 @Composable
-fun CarpStrategyNavHost() {
+fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit = {}) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -126,13 +136,38 @@ fun CarpStrategyNavHost() {
             composable<DataRoute> { entry ->
                 DataScreen(startWithNewRecord = entry.toRoute<DataRoute>().newRecord)
             }
-            composable<DiaryRoute> { DiaryScreen() }
+            composable<DiaryRoute> { entry ->
+                DiaryScreen(
+                    openSessionId = entry.toRoute<DiaryRoute>().openSessionId,
+                    onOpenGuided = { navController.navigate(GuidedRoute) { launchSingleTop = true } },
+                )
+            }
+            composable<GuidedRoute> {
+                GuidedScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenGear = { navController.navigate(GearRoute) },
+                    onFinished = { id ->
+                        navController.navigate(DiaryRoute(openSessionId = id)) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                        }
+                    },
+                )
+            }
+            composable<GearRoute> { GearScreen(onBack = { navController.popBackStack() }) }
             composable<PlaceRoute> { PlaceScreen() }
             composable<RawDataRoute> {
                 Column {
                     TextButton(onClick = { navController.popBackStack() }) { Text(stringResource(R.string.action_back)) }
                     ConditionsScreen(onOpenManualData = { navController.navigateToTab(DataRoute()) })
                 }
+            }
+        }
+        // Tras crear el grafo: abrir la sesión guiada si se tocó su notificación.
+        LaunchedEffect(openGuided) {
+            if (openGuided) {
+                navController.navigate(GuidedRoute) { launchSingleTop = true }
+                onGuidedOpened()
             }
         }
     }

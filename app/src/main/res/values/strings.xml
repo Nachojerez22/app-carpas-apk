@@ -615,4 +615,177 @@
     <string name="crash_text">Copia este informe y pégaselo a Claude para corregirlo. Solo está en tu móvil.</string>
     <string name="crash_copy">Copiar informe</string>
     <string name="action_close_dialog">Cerrar</string>
+
+    <!-- Fase 7: sesión guiada (CONOCIMIENTO.md §5.9) -->
+    <string name="guided_title">Sesión guiada</string>
+    <string name="guided_overline">Te propone, tú decides</string>
+    <string name="guided_intro">La app te propone un plan y, cada 30 min, te pregunta cómo va. Si no funciona, te da alternativas según lo que llevas. Todo queda en el diario para aprender de tus sesiones.</string>
+    <string name="guided_rods">Cañas</string>
+    <string name="guided_zone">Zona (opcional)</string>
+    <string name="guided_start">Empezar a pescar</string>
+    <string name="guided_starting">Preparando el plan…</string>
+    <string name="guided_open">Abrir sesión guiada</string>
+    <string name="guided_start_from_diary">Pescar ahora (guiado)</string>
+    <string name="guided_gear_summary">Mi equipo: %1$d cebos y %2$d montajes</string>
+    <string name="guided_gear_empty">Añade tus cebos y montajes para que las propuestas usen lo que llevas.</string>
+    <string name="guided_gear_open">Mi equipo</string>
+    <string name="guided_notifications_off">Las notificaciones están desactivadas: no te llegarán los avisos. Puedes anotar desde esta pantalla.</string>
+    <string name="guided_exact_alarms">Los avisos pueden llegar con unos minutos de retraso. Para que lleguen a su hora, permite las alarmas exactas.</string>
+    <string name="guided_exact_alarms_action">Permitir alarmas exactas</string>
+    <string name="guided_elapsed">Pescando desde las %1$s · %2$s</string>
+    <string name="guided_phase">Fase: %1$s</string>
+    <string name="guided_next_check">Próximo aviso: %1$s</string>
+    <string name="guided_next_none">Sin más avisos hoy (fin del horario legal).</string>
+    <string name="guided_proposal_title">Propuesta</string>
+    <string name="guided_plan_title">Plan actual</string>
+    <string name="guided_plan_since">Desde las %1$s · picadas %2$d · capturas %3$d</string>
+    <string name="guided_plan_bait">Cebo: %1$s</string>
+    <string name="guided_plan_rig">Montaje: %1$s</string>
+    <string name="guided_plan_column">Capa: %1$s</string>
+    <string name="guided_forced">Pedido por ti (dos «No funciona» en 30 min)</string>
+    <string name="guided_accept">Aceptar</string>
+    <string name="guided_reject">Rechazar</string>
+    <string name="guided_reject_title">¿Por qué la rechazas?</string>
+    <string name="guided_reject_comment">Comentario (opcional)</string>
+    <string name="guided_register_title">¿Cómo va?</string>
+    <string name="guided_signals">Señales de carpa</string>
+    <string name="guided_bait_state">Estado del cebo</string>
+    <string name="guided_activity">En las cañas (pulsa para anotar)</string>
+    <string name="guided_not_working">No funciona</string>
+    <string name="guided_not_working_hint">Pulsa «No funciona» dos veces en 30 min y te propone ya el siguiente paso.</string>
+    <string name="guided_changed">He cambiado…</string>
+    <string name="guided_changed_title">¿Qué has cambiado por tu cuenta?</string>
+    <string name="guided_saved">Anotado a las %1$s</string>
+    <string name="guided_messages_title">Avisos</string>
+    <string name="guided_history_title">Lo que has probado</string>
+    <string name="guided_history_segment">%1$s–%2$s · %3$s · picadas %4$d · capturas %5$d</string>
+    <string name="guided_history_proposal">%1$s %2$s · %3$s</string>
+    <string name="guided_history_reason">Motivo: %1$s</string>
+    <string name="guided_finish">Terminar sesión</string>
+    <string name="guided_finish_confirm">¿Terminar la sesión? Después anotas el resultado en su ficha.</string>
+    <string name="guided_warnings_title">Antes de fiarte</string>
+    <string name="guided_warning_times">Los tiempos de cambio son hipótesis: no hay estudios que los fijen.</string>
+    <string name="guided_warning_bathymetry">La batimetría de Brovales no está verificada.</string>
+    <string name="guided_warning_no_data">Sin datos de oxígeno, estratificación ni cangrejo rojo en Brovales.</string>
+    <string name="guided_warning_regulation">Normativa revisada hasta marzo de 2026; confirma con el Servicio de Pesca y con los carteles del embalse.</string>
+    <string name="guided_warning_no_guarantee">La app no garantiza capturas; las carpas aprenden a evitar los montajes.</string>
+
+    <string name="guided_phase_winter">invierno (agua por debajo de 10 °C)</string>
+    <string name="guided_phase_spring">primavera (agua subiendo)</string>
+    <string name="guided_phase_summer">verano (agua por encima de 22 °C)</string>
+    <string name="guided_phase_heat">calor extremo (agua por encima de 28 °C)</string>
+    <string name="guided_phase_autumn">otoño (agua bajando)</string>
+
+    <string name="guided_step_initial">Plan A: %1$s, a fondo</string>
+    <string name="guided_step_presentation">Cambia la presentación: %1$s en el anzuelo, justo donde ves la actividad. No cambies de zona.</string>
+    <string name="guided_step_rig">Cambia montaje o sabor: pelo más corto, otro anzuelo o cebo más pequeño o flotante; prueba %1$s. Mantén el cebado.</string>
+    <string name="guided_step_column">Cambia de capa: %1$s.</string>
+    <string name="guided_step_distance_winter">Prueba más hondo: otra distancia o la caída, en el mismo puesto.</string>
+    <string name="guided_step_distance_spring">Prueba más somero o una zona que se calienta antes, sobre la misma estructura.</string>
+    <string name="guided_step_distance_summer">Prueba otra distancia sobre la misma estructura.</string>
+    <string name="guided_step_distance_autumn">Prueba otra distancia o la primera caída.</string>
+    <string name="guided_step_zone_winter">Cambia de zona: refugio profundo o zona soleada.</string>
+    <string name="guided_step_zone_spring">Cambia de zona: colas o ensenadas orientadas al sur.</string>
+    <string name="guided_step_zone_summer">Cambia de zona: sombra, orilla que recibe el viento o primera caída.</string>
+    <string name="guided_step_zone_heat">Cambia a una zona más fresca u oxigenada: viento, entrada de agua o profundidad media.</string>
+    <string name="guided_step_zone_autumn">Cambia de zona: zona de paso o refugio.</string>
+    <string name="guided_step_anti_crab">Usa %1$s separado del fondo (pop-up) o un cebo duro.</string>
+    <string name="guided_step_rig_name">Montaje de tu equipo: %1$s</string>
+    <string name="guided_step_no_gear">No lo tienes en tu equipo: añádelo si lo llevas.</string>
+
+    <string name="guided_situation_start">Plan de partida para %1$s.</string>
+    <string name="guided_situation_no_signals">Sin señales ni actividad: probablemente no hay peces en esa zona o capa.</string>
+    <string name="guided_situation_signals">Hay señales, pero no comen en tu punto o desconfían.</string>
+    <string name="guided_situation_touches">Toques o picadas falladas: inspeccionan el cebo.</string>
+    <string name="guided_situation_crab">El cebo desaparece: probable cangrejo, tortuga o peces pequeños.</string>
+
+    <string name="guided_msg_keep">Captura: no cambies nada, receba poco y repite. Tras varias capturas la zona puede rendir menos.</string>
+    <string name="guided_msg_winter">En frío comen poco y en pocos puntos: paciencia antes de cambiar.</string>
+    <string name="guided_msg_forced_winter">Has pedido cambiar en invierno: te lo propongo, pero cambiar pronto puede sacarte del único punto con peces.</string>
+    <string name="guided_msg_legal_end">Quedan 15 min o menos de horario legal: ve recogiendo.</string>
+    <string name="guided_msg_no_zone">Quedan menos de 45 min de horario legal: solo cambios de presentación, no de zona.</string>
+    <string name="guided_msg_zone_limit">Ya has hecho los cambios de zona razonables para esta fase.</string>
+    <string name="guided_msg_no_equivalent">Sin equivalente en tu equipo: te propongo otro cebo de anzuelo; espera menos selectividad.</string>
+    <string name="guided_msg_prepare">Chufa y legumbres siempre preparadas: remojo de 24 h o más y hervor de 30 min o más.</string>
+
+    <string name="guided_reason_no_bait">No tengo ese cebo</string>
+    <string name="guided_reason_not_convinced">No me convence</string>
+    <string name="guided_reason_already_tried">Ya lo probé</string>
+    <string name="guided_reason_conditions">Las condiciones son otras</string>
+    <string name="guided_reason_other">Otro motivo</string>
+
+    <string name="guided_decision_pending">⏳</string>
+    <string name="guided_decision_accepted">✓</string>
+    <string name="guided_decision_rejected">✗</string>
+
+    <string name="guided_signal_none">Ninguna</string>
+    <string name="guided_signal_indirect">Indirectas</string>
+    <string name="guided_signal_direct">Directas</string>
+    <string name="guided_signal_hint">Indirectas: burbujas o agua turbia. Directas: saltos o carpas vistas.</string>
+    <string name="guided_activity_nothing">Nada</string>
+    <string name="guided_activity_touches">Toques</string>
+    <string name="guided_activity_missed">Picada fallada</string>
+    <string name="guided_activity_catch">Captura</string>
+    <string name="guided_bait_not_checked">Sin revisar</string>
+    <string name="guided_bait_intact">Intacto</string>
+    <string name="guided_bait_nibbled">Mordisqueado</string>
+    <string name="guided_bait_gone">Desaparecido</string>
+    <string name="guided_change_bait">Cebo</string>
+    <string name="guided_change_rig">Montaje</string>
+    <string name="guided_change_column">Capa</string>
+    <string name="guided_change_distance">Distancia</string>
+    <string name="guided_change_zone">Zona</string>
+
+    <string name="column_bottom">a fondo</string>
+    <string name="column_popup">pop-up, separado del fondo</string>
+    <string name="column_zig">zig, a media agua</string>
+    <string name="column_surface">en superficie</string>
+
+    <string name="bait_boilie">Boilie</string>
+    <string name="bait_boilie_hard">Boilie duro o grande</string>
+    <string name="bait_pellet">Pellet (cebado)</string>
+    <string name="bait_maize">Maíz</string>
+    <string name="bait_hemp">Cañamón (cebado)</string>
+    <string name="bait_tigernut">Chufa</string>
+    <string name="bait_paste">Pasta o masilla</string>
+    <string name="bait_bread">Pan</string>
+    <string name="bait_popup">Pop-up</string>
+    <string name="bait_pva">Bolsa de PVA</string>
+    <string name="bait_worm">Lombriz</string>
+    <string name="bait_other">Otro cebo</string>
+
+    <string name="rig_hair_bottom">Pelo a fondo</string>
+    <string name="rig_popup">Pop-up</string>
+    <string name="rig_zig">Zig</string>
+    <string name="rig_surface">Superficie</string>
+    <string name="rig_method">Method feeder</string>
+    <string name="rig_other">Otro montaje</string>
+
+    <!-- Mi equipo -->
+    <string name="gear_title">Mi equipo</string>
+    <string name="gear_overline">Lo que llevas: las propuestas usan esto</string>
+    <string name="gear_baits">Cebos</string>
+    <string name="gear_rigs">Montajes</string>
+    <string name="gear_none">Aún no has añadido nada.</string>
+    <string name="gear_add_bait">Añadir cebo</string>
+    <string name="gear_add_rig">Añadir montaje</string>
+    <string name="gear_name">Nombre (p. ej. «Boilie fresa 20 mm»)</string>
+    <string name="gear_type">Tipo</string>
+    <string name="gear_name_required">Pon un nombre.</string>
+    <string name="gear_hint">El tipo sirve para buscar sustitutos con la misma función (§5.9.5). Todos los tipos están permitidos en Extremadura.</string>
+
+    <!-- Notificación -->
+    <string name="guided_channel_name">Sesión guiada</string>
+    <string name="guided_channel_description">Avisos para anotar picadas y capturas. Solo vibración.</string>
+    <string name="guided_notif_title">Sesión guiada · %1$s</string>
+    <string name="guided_notif_plan">Plan: %1$s</string>
+    <string name="guided_notif_next">Próximo aviso a las %1$s</string>
+    <string name="guided_notif_check">¿Cómo va? Anota picadas y capturas.</string>
+    <string name="guided_notif_proposal">Nueva propuesta: %1$s Abre la app para rechazarla con un motivo.</string>
+    <string name="guided_notif_legal_end">Horario legal terminado: recoge y termina la sesión en la app.</string>
+    <string name="guided_notif_nothing">Nada</string>
+    <string name="guided_notif_missed">Picada</string>
+    <string name="guided_notif_catch">Captura</string>
+    <string name="guided_notif_not_working">No funciona</string>
+    <string name="guided_notif_accept">Aceptar</string>
 </resources>
