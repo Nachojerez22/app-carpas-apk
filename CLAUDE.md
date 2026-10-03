@@ -35,6 +35,20 @@ Léelo antes de tocar reglas, textos de estrategia o el diario. Resumen de las r
 ./gradlew testDebugUnitTest --tests "*GeoPointTest"   # un test concreto
 ```
 
+Los fixtures de tests están en `app/src/test/resources/` (`openmeteo/` es un recorte de una
+respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
+
+## Capa de datos (fase 1)
+
+- `data/remote/openmeteo`: la respuesta multimodelo se lee como `JsonObject` (claves con sufijo
+  de modelo). Siempre `timeformat=unixtime`.
+- `data/remote/aemet`: dos pasos (sobre con `datos` → descarga). Las respuestas se leen como
+  `ResponseBody` y se decodifican con el charset de la cabecera o ISO-8859-15.
+- Los errores remotos se clasifican en `DataError` mediante `DataSourceException`; el
+  repositorio devuelve `RefreshOutcome` y nunca borra la caché si falla.
+- La BD (`CarpStrategyDatabase`) es caché re-descargable con migración destructiva. El diario
+  (fase 5) necesitará esquema exportado y migraciones reales.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.
