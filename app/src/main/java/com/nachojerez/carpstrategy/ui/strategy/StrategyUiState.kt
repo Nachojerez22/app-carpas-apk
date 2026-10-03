@@ -2,12 +2,15 @@ package com.nachojerez.carpstrategy.ui.strategy
 
 import com.nachojerez.carpstrategy.domain.derived.DerivedCalculator
 import com.nachojerez.carpstrategy.domain.derived.DerivedConditions
+import com.nachojerez.carpstrategy.domain.derived.Freshness
+import com.nachojerez.carpstrategy.domain.derived.FreshnessPolicy
 import com.nachojerez.carpstrategy.domain.manual.DataSource
 import com.nachojerez.carpstrategy.domain.model.DefaultLocation
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.rules.RuleContextBuilder
 import com.nachojerez.carpstrategy.domain.rules.RuleEngine
 import com.nachojerez.carpstrategy.domain.rules.RuleIssue
+import com.nachojerez.carpstrategy.domain.rules.RuleLevel
 import com.nachojerez.carpstrategy.domain.rules.RuleLoadResult
 import com.nachojerez.carpstrategy.domain.rules.SessionWindows
 import com.nachojerez.carpstrategy.domain.rules.StrategyResult
@@ -25,6 +28,8 @@ data class StrategyUiState(
     val windows: List<TimeWindow> = emptyList(),
     val derived: DerivedConditions? = null,
     val regulationReviewed: String? = null,
+    /** Antigüedad de la previsión usada; con datos antiguos se avisa en la pantalla. */
+    val forecastFreshness: Freshness? = null,
 )
 
 /** Horas de previsión (próximas 24 h) en las que el viento de los modelos es incierto. */
@@ -66,5 +71,37 @@ fun buildStrategyState(
         windows = if (result.blocked) emptyList() else SessionWindows.suggest(derived.legalToday, derived.sunToday, derived.season?.season, derived.water?.trend3dC),
         derived = derived,
         regulationReviewed = ruleSet.regulationReviewed,
+        forecastFreshness = raw.forecast?.let { FreshnessPolicy.evaluate(it.fetchedAt, now) },
     )
+}
+
+/** Estado de un nivel de la cadena de filtros, tal y como se muestra en la pantalla. */
+enum class LevelStatus { PASSED, LIMITS, REDUCES, NEUTRAL, BLOCKS }
+
+/** Una fila de la cadena 0 → 4 con el porqué (descripción de la regla que más resta). */
+data class ChainRow(val level: RuleLevel, val status: LevelStatus, val why: String?)
+
+/**
+ * Cadena de filtros para la pantalla. Nivel 0: bloquea si hay un filtro duro activo. Niveles
+ * 1–4: «limita» el nivel más bajo (el que fija la valoración), «resta» los demás por debajo
+ * de 1, «superado» si hay reglas que se cumplen sin restar y «neutro» si no aplica ninguna.
+ */
+fun chainRows(result: StrategyResult): List<ChainRow> {
+    val legality = ChainRow(
+        level = RuleLevel.LEGALITY,
+        status = if (result.blocked) LevelStatus.BLOCKS else LevelStatus.PASSED,
+        why = result.blockingRules.firstOrNull()?.rule?.description,
+    )
+    val chained = result.levels.map { level ->
+        val reducing = level.rules.filter { it.appliedFactor < 1.0 }.minByOrNull { it.appliedFactor }
+        val status = when {
+            result.blocked -> LevelStatus.NEUTRAL
+            level.level == result.limitingLevel -> LevelStatus.LIMITS
+            level.value < 1.0 -> LevelStatus.REDUCES
+            level.rules.isEmpty() -> LevelStatus.NEUTRAL
+            else -> LevelStatus.PASSED
+        }
+        ChainRow(level.level, status, reducing?.rule?.description)
+    }
+    return listOf(legality) + chained
 }
