@@ -7,6 +7,13 @@ import com.nachojerez.carpstrategy.data.local.ForecastDao
 import com.nachojerez.carpstrategy.data.local.ObservationDao
 import com.nachojerez.carpstrategy.data.local.StationDao
 import com.nachojerez.carpstrategy.data.repository.WeatherRepositoryImpl
+import com.nachojerez.carpstrategy.data.userdata.ManualDataRepositoryImpl
+import com.nachojerez.carpstrategy.data.userdata.ManualRecordDao
+import com.nachojerez.carpstrategy.data.userdata.SettingDao
+import com.nachojerez.carpstrategy.data.userdata.SettingsRepositoryImpl
+import com.nachojerez.carpstrategy.data.userdata.UserDataDatabase
+import com.nachojerez.carpstrategy.domain.repository.ManualDataRepository
+import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.repository.WeatherRepository
 import dagger.Binds
 import dagger.Module
@@ -42,4 +49,30 @@ object DatabaseModule {
 abstract class RepositoryModule {
     @Binds
     abstract fun bindWeatherRepository(impl: WeatherRepositoryImpl): WeatherRepository
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object UserDataModule {
+    /** Sin migración destructiva: son datos del usuario (ver UserDataDatabase). */
+    @Provides
+    @Singleton
+    fun provideUserDataDatabase(@ApplicationContext context: Context): UserDataDatabase =
+        Room.databaseBuilder(context, UserDataDatabase::class.java, UserDataDatabase.NAME).build()
+
+    @Provides
+    fun provideManualRecordDao(db: UserDataDatabase): ManualRecordDao = db.manualRecordDao()
+
+    @Provides
+    fun provideSettingDao(db: UserDataDatabase): SettingDao = db.settingDao()
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class UserDataRepositoryModule {
+    @Binds
+    abstract fun bindManualDataRepository(impl: ManualDataRepositoryImpl): ManualDataRepository
+
+    @Binds
+    abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
 }
