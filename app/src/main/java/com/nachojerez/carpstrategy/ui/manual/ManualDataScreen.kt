@@ -1,6 +1,8 @@
 package com.nachojerez.carpstrategy.ui.manual
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,6 +67,11 @@ fun DataScreen(
     startWithNewRecord: Boolean = false,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val exportResult by viewModel.exportResult.collectAsStateWithLifecycle()
+    val exportName = stringResource(R.string.data_export_file_name)
+    val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        uri?.let(viewModel::exportTo)
+    }
     var showImport by rememberSaveable { mutableStateOf(false) }
     var newRecordHandled by rememberSaveable { mutableStateOf(false) }
     if (startWithNewRecord && !newRecordHandled) {
@@ -99,10 +106,23 @@ fun DataScreen(
             records = state.records,
             onNew = viewModel::newRecord,
             onImport = { showImport = true },
+            onExport = { exporter.launch(exportName) },
             onEdit = viewModel::edit,
         )
     }
 
+    exportResult?.let { result ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissExport,
+            text = {
+                Text(
+                    result.error?.let { stringResource(R.string.diary_export_failed, it) }
+                        ?: stringResource(R.string.data_export_done, result.count),
+                )
+            },
+            confirmButton = { TextButton(onClick = viewModel::dismissExport) { Text(stringResource(R.string.action_ok)) } },
+        )
+    }
     state.pendingDelete?.let {
         AlertDialog(
             onDismissRequest = viewModel::cancelDelete,
@@ -124,6 +144,7 @@ private fun RecordList(
     records: List<ManualRecord>,
     onNew: () -> Unit,
     onImport: () -> Unit,
+    onExport: () -> Unit,
     onEdit: (ManualRecord) -> Unit,
 ) {
     var filter by rememberSaveable { mutableStateOf(RecordFilter.ALL) }
@@ -156,6 +177,9 @@ private fun RecordList(
             item {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                     OutlinedButton(onClick = onImport) { Text(stringResource(R.string.action_import)) }
+                    if (records.isNotEmpty()) {
+                        OutlinedButton(onClick = onExport) { Text(stringResource(R.string.data_export)) }
+                    }
                 }
             }
             if (imported > 0) {

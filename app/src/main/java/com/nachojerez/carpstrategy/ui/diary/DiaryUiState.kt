@@ -8,6 +8,7 @@ import com.nachojerez.carpstrategy.domain.journal.JournalSummary
 import com.nachojerez.carpstrategy.domain.journal.PredictionSnapshot
 import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.journal.SessionIssue
+import com.nachojerez.carpstrategy.domain.manual.ManualIssue
 import com.nachojerez.carpstrategy.domain.manual.WeatherVariable
 import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
 import com.nachojerez.carpstrategy.domain.rules.RuleLoadResult
@@ -27,6 +28,8 @@ data class SessionEditor(
     val issues: List<SessionIssue> = emptyList(),
     /** True tras un primer intento de guardar con solo avisos: el segundo guarda. */
     val warningsAcknowledged: Boolean = false,
+    /** Errores de las mediciones (agua, turbidez, nivel), con los textos de Datos. */
+    val measurementIssues: List<ManualIssue> = emptyList(),
 )
 
 data class DiaryUiState(
@@ -90,7 +93,8 @@ fun completeSession(
     if (isNew && result.prediction == null) {
         val startsNow = !result.start.isBefore(now.minus(START_NOW_TOLERANCE))
         val fresh = if (startsNow && raw != null && rules != null) {
-            buildStrategyState(raw, rules, now, result.location).result?.let { JournalStats.snapshotOf(it, result.location) }
+            val state = buildStrategyState(raw, rules, now, result.location)
+            state.result?.let { JournalStats.snapshotOf(it, result.location, state.ruleContext, state.rulesFingerprint) }
         } else {
             null
         }
@@ -98,9 +102,10 @@ fun completeSession(
     }
     val covered = !result.start.isAfter(now) && !result.start.isBefore(now.minus(CONTEXT_MAX_AGE))
     if (raw != null && rules != null && covered) {
-        buildStrategyState(raw, rules, result.start, result.location).derived?.let { derived ->
+        val state = buildStrategyState(raw, rules, result.start, result.location)
+        state.derived?.let { derived ->
             val pressure = raw.merged.lastOrNull { !it.time.isAfter(result.start) }?.get(WeatherVariable.PRESSURE_MSL)?.value
-            result = result.copy(context = JournalStats.contextOf(derived, pressure))
+            result = result.copy(context = JournalStats.contextOf(derived, pressure, state.ruleContext))
         }
     }
     return result

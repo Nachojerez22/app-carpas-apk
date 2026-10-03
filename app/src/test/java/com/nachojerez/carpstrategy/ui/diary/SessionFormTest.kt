@@ -70,6 +70,26 @@ class SessionFormTest {
     }
 
     @Test
+    fun `las mediciones de la sesion van a Datos a la hora de inicio`() {
+        val raw = form.copy(waterSurface = "18,4", turbidity = 2, reservoirPercent = "61").measurementRecord()!!
+        assertEquals("2026-09-27 07:20", raw.time)
+        assertEquals(SessionForm.MEASUREMENT_SOURCE, raw.source)
+        assertEquals(setOf("temp_agua_superficie_c", "turbidez", "nivel_embalse_pct"), raw.values.keys)
+        assertNull(form.measurementRecord())
+
+        val start = Instant.parse("2026-09-27T05:20:00Z")
+        val record = ManualRecord(
+            period = RecordPeriod.At(start), location = brovales, source = SessionForm.MEASUREMENT_SOURCE, origin = ManualOrigin.Typed,
+            values = mapOf(ManualField.WATER_TEMP_SURFACE to 18.4, ManualField.TURBIDITY to 2.0), createdAt = start,
+        )
+        val other = record.copy(source = "termómetro", values = mapOf(ManualField.WATER_TEMP_SURFACE to 10.0))
+        val filled = form.withMeasurementsFrom(listOf(other, record), start)
+        assertEquals("18,4", filled.waterSurface)
+        assertEquals(2, filled.turbidity)
+        assertEquals("", filled.reservoirPercent)
+    }
+
+    @Test
     fun `sesion que empieza ahora queda en curso`() {
         val start = SessionForm.startingNow(Instant.parse("2026-10-03T16:31:40Z"))
         assertEquals("2026-10-03", start.date)
@@ -112,6 +132,12 @@ class SessionFormTest {
         val prediction = completed.prediction!!
         assertEquals(start.plusSeconds(30), prediction.computedAt)
         assertNotNull(prediction.band)
+        // Foto completa para la fase 7: parámetros, niveles, reglas activadas y huella de rules.json.
+        assertEquals(18.0, prediction.features!!.numbers["temp_agua_c"])
+        assertEquals(4, prediction.levels.size)
+        assertTrue(prediction.activeRules.isNotEmpty())
+        assertEquals(12, prediction.rulesFingerprint!!.length)
+        assertEquals(18.0, completed.context!!.features!!.numbers["temp_agua_c"])
         assertEquals(18.0, completed.context?.waterTempC)
         assertTrue(completed.context!!.waterMeasured)
     }

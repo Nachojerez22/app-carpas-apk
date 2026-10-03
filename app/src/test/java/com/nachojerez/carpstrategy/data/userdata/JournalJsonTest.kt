@@ -3,6 +3,7 @@ package com.nachojerez.carpstrategy.data.userdata
 import com.nachojerez.carpstrategy.data.userdata.JournalRepositoryImpl.Companion.toDomain
 import com.nachojerez.carpstrategy.data.userdata.JournalRepositoryImpl.Companion.toEntity
 import com.nachojerez.carpstrategy.domain.journal.Catch
+import com.nachojerez.carpstrategy.domain.journal.FeatureSnapshot
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Fulfilled
 import com.nachojerez.carpstrategy.domain.journal.PredictionSnapshot
@@ -41,8 +42,15 @@ class JournalJsonTest {
         blank = false,
         prediction = PredictionSnapshot(
             Instant.parse("2026-09-26T19:40:00Z"), point, false, 0.72, FavorabilityBand.FAVORABLE, RuleLevel.PHYSICAL, FeedingDemand.MEDIUM,
+            features = FeatureSnapshot(mapOf("temp_agua_c" to 18.1), mapOf("agua_medida" to true), mapOf("estacion" to "otono")),
+            levels = mapOf(RuleLevel.TEMPERATURE to 1.0, RuleLevel.PHYSICAL to 0.72),
+            activeRules = mapOf("viento_flojo" to 0.72),
+            rulesFingerprint = "abc123def456",
         ),
-        context = SessionContext(waterTempC = 18.1, waterMeasured = true, moonIllumination = 0.3),
+        context = SessionContext(
+            waterTempC = 18.1, waterMeasured = true, moonIllumination = 0.3,
+            features = FeatureSnapshot(mapOf("viento_24h_kmh" to 6.0)),
+        ),
         fulfilled = Fulfilled.PARTLY,
         notes = "Burbujeo en el borde del carrizo",
         createdAt = Instant.parse("2026-09-27T11:00:00Z"),
@@ -60,7 +68,14 @@ class JournalJsonTest {
         val text = JournalJson.export(listOf(session), Instant.parse("2026-10-03T10:00:00Z"))
         assertTrue(text.contains("\"formato\": \"carpstrategy-diario\""))
         assertTrue(text.contains("\"horas_cana\": 16.0"))
+        assertTrue(text.contains("\"huella_reglas\": \"abc123def456\""))
         assertEquals(listOf(session.copy(id = 0)), JournalJson.parseExport(text))
+    }
+
+    @Test
+    fun `restaurar no duplica sesiones que ya estan`() {
+        val other = session.copy(id = 0, start = start.plusSeconds(86_400), end = null)
+        assertEquals(listOf(other), JournalJson.newSessions(listOf(session), listOf(session.copy(id = 0), other, other)))
     }
 
     @Test

@@ -4,8 +4,14 @@ import com.nachojerez.carpstrategy.domain.journal.Catch
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Fulfilled
 import com.nachojerez.carpstrategy.domain.journal.Session
+import com.nachojerez.carpstrategy.domain.manual.ManualField
+import com.nachojerez.carpstrategy.domain.manual.ManualRecord
+import com.nachojerez.carpstrategy.domain.manual.RawRecord
+import com.nachojerez.carpstrategy.domain.manual.RawValue
+import com.nachojerez.carpstrategy.domain.manual.RecordPeriod
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
+import com.nachojerez.carpstrategy.ui.manual.format
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -49,7 +55,36 @@ data class SessionForm(
     val blank: Boolean? = null,
     val fulfilled: Fulfilled? = null,
     val notes: String = "",
+    /** Mediciones que se guardan también en Datos (calibran la estimación del agua). */
+    val waterSurface: String = "",
+    val turbidity: Int? = null,
+    val reservoirPercent: String = "",
 ) {
+    /**
+     * Registro manual con las mediciones de la sesión a la hora de inicio, o null si no hay
+     * ninguna. Se valida con el mismo validador que el formulario de Datos.
+     */
+    fun measurementRecord(): RawRecord? {
+        val values = buildMap<String, RawValue> {
+            if (waterSurface.isNotBlank()) put(ManualField.WATER_TEMP_SURFACE.key, RawValue.Text(waterSurface.trim()))
+            turbidity?.let { put(ManualField.TURBIDITY.key, RawValue.Number(it.toDouble())) }
+            if (reservoirPercent.isNotBlank()) put(ManualField.RESERVOIR_PERCENT.key, RawValue.Text(reservoirPercent.trim()))
+        }
+        if (values.isEmpty()) return null
+        val start = parseTime(startTime)?.let { TIME.format(it) } ?: startTime.trim()
+        return RawRecord(time = "${date.trim()} $start", source = MEASUREMENT_SOURCE, values = values, notes = null)
+    }
+
+    /** Rellena las mediciones con el registro de Datos que guardó esta sesión, si existe. */
+    fun withMeasurementsFrom(records: List<ManualRecord>, start: Instant): SessionForm {
+        val record = records.firstOrNull { it.source == MEASUREMENT_SOURCE && (it.period as? RecordPeriod.At)?.time == start } ?: return this
+        return copy(
+            waterSurface = record.values[ManualField.WATER_TEMP_SURFACE]?.let { ManualField.WATER_TEMP_SURFACE.format(it) }.orEmpty(),
+            turbidity = record.values[ManualField.TURBIDITY]?.toInt(),
+            reservoirPercent = record.values[ManualField.RESERVOIR_PERCENT]?.let { ManualField.RESERVOIR_PERCENT.format(it) }.orEmpty(),
+        )
+    }
+
     data class Result(val session: Session?, val fieldErrors: Set<FormField>)
 
     /** Convierte el formulario en sesión. Si algún campo no se entiende, [Result.session] es null. */
@@ -120,6 +155,9 @@ data class SessionForm(
     }
 
     companion object {
+        /** Fuente de los registros de Datos creados desde el diario. */
+        const val MEASUREMENT_SOURCE = "Diario de sesiones"
+
         private val DATE: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
         private val TIME: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 

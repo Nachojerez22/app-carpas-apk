@@ -3,6 +3,7 @@ package com.nachojerez.carpstrategy.domain.journal
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
 import com.nachojerez.carpstrategy.domain.rules.FeedingDemand
+import com.nachojerez.carpstrategy.domain.rules.RuleContext
 import com.nachojerez.carpstrategy.domain.rules.RuleLevel
 import java.time.Duration
 import java.time.Instant
@@ -36,7 +37,34 @@ data class PredictionSnapshot(
     val band: FavorabilityBand?,
     val limitingLevel: RuleLevel?,
     val demand: FeedingDemand?,
+    /** Parámetros que vieron las reglas (para el aprendizaje con datos propios, §10). */
+    val features: FeatureSnapshot? = null,
+    /** Valor de cada nivel de la cadena (0–1). */
+    val levels: Map<RuleLevel, Double> = emptyMap(),
+    /** Reglas activadas: id → factor efectivo aplicado. */
+    val activeRules: Map<String, Double> = emptyMap(),
+    /** Huella de rules.json con la que se calculó. */
+    val rulesFingerprint: String? = null,
 )
+
+/**
+ * Foto fija de los parámetros del motor de reglas, con las claves de rules.json
+ * (`temp_agua_c`, `estacion`…). Sirve para comprobar después, con tus sesiones, qué variables
+ * predicen de verdad (§10: no añadir una variable hasta que mejore fuera de muestra).
+ */
+data class FeatureSnapshot(
+    val numbers: Map<String, Double> = emptyMap(),
+    val booleans: Map<String, Boolean> = emptyMap(),
+    val texts: Map<String, String> = emptyMap(),
+) {
+    companion object {
+        fun of(context: RuleContext) = FeatureSnapshot(
+            numbers = context.numbers.mapKeys { it.key.key },
+            booleans = context.booleans.mapKeys { it.key.key },
+            texts = context.texts.mapKeys { it.key.key },
+        )
+    }
+}
 
 /**
  * Contexto rellenado automáticamente al guardar (§9): agua, aire, viento, lluvia, nivel,
@@ -56,6 +84,8 @@ data class SessionContext(
     val moonIllumination: Double? = null,
     /** 🔴 peso 0. */
     val pressureHpa: Double? = null,
+    /** Todos los parámetros de las reglas calculados para el inicio de la sesión. */
+    val features: FeatureSnapshot? = null,
 )
 
 /**

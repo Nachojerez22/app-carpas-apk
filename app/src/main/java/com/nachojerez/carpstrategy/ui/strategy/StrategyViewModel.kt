@@ -50,7 +50,7 @@ class StrategyViewModel @Inject constructor(
         }.onEach { (place, state) ->
             // Cada valoración se guarda (una por hora) para copiarla en el diario como
             // "lo que dijo la app antes de salir", sin sesgo retrospectivo.
-            state.result?.let { result -> viewModelScope.launch { journal.recordPrediction(JournalStats.snapshotOf(result, place.point)) } }
+            state.result?.let { result -> viewModelScope.launch { journal.recordPrediction(JournalStats.snapshotOf(result, place.point, state.ruleContext, state.rulesFingerprint)) } }
         }.map { it.second }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StrategyUiState())
 }

@@ -13,6 +13,15 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 
 class RulesJsonTest {
+    @Test
+    fun `la huella identifica el contenido de las reglas`() {
+        val text = File("src/main/assets/rules.json").readText()
+        val loaded = RulesJson.parse(text) as RuleLoadResult.Loaded
+        assertEquals(12, loaded.ruleSet.fingerprint!!.length)
+        assertEquals(RulesJson.fingerprint(text), loaded.ruleSet.fingerprint)
+        assertTrue(RulesJson.fingerprint(text + " ") != loaded.ruleSet.fingerprint)
+    }
+
     private fun issues(text: String) = (RulesJson.parse(text) as? RuleLoadResult.Invalid)?.issues
         ?: fail("Se esperaban errores")
 

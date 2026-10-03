@@ -45,6 +45,7 @@ import com.nachojerez.carpstrategy.ui.components.EvidenceBadge
 import com.nachojerez.carpstrategy.ui.components.Pill
 import com.nachojerez.carpstrategy.ui.components.SectionTitle
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
+import com.nachojerez.carpstrategy.ui.manual.issueText
 import com.nachojerez.carpstrategy.ui.strategy.labelRes
 import com.nachojerez.carpstrategy.ui.strategy.titleRes
 import com.nachojerez.carpstrategy.domain.rules.Evidence
@@ -130,6 +131,30 @@ fun SessionEditorScreen(
                         shape = SegmentedButtonDefaults.itemShape(1, 2),
                     ) { Text(stringResource(R.string.fulfilled_no)) }
                 }
+            }
+        }
+
+        // Mediciones: se guardan también en Datos y calibran la estimación del agua.
+        SectionTitle(stringResource(R.string.session_measurements_title), subtitle = stringResource(R.string.session_measurements_subtitle))
+        CarpCard {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                TextField(form.waterSurface, stringResource(R.string.session_water_surface), false, Modifier.weight(1f), KeyboardType.Decimal) { v -> onChange { it.copy(waterSurface = v) } }
+                TextField(form.reservoirPercent, stringResource(R.string.session_reservoir_percent), false, Modifier.weight(1f), KeyboardType.Decimal) { v -> onChange { it.copy(reservoirPercent = v) } }
+            }
+            Text(stringResource(R.string.field_turbidez), style = MaterialTheme.typography.labelLarge)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                (1..5).forEach { level ->
+                    val selected = form.turbidity == level
+                    FilterChip(
+                        selected = selected,
+                        onClick = { onChange { it.copy(turbidity = if (selected) null else level) } },
+                        label = { Text("$level") },
+                    )
+                }
+            }
+            Caption(stringResource(R.string.editor_turbidity_hint))
+            editor.measurementIssues.forEach { issue ->
+                Text(issueText(issue), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
         }
 

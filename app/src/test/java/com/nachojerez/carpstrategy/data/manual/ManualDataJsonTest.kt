@@ -3,7 +3,9 @@ package com.nachojerez.carpstrategy.data.manual
 import com.nachojerez.carpstrategy.domain.manual.IssueCode
 import com.nachojerez.carpstrategy.domain.manual.ManualField
 import com.nachojerez.carpstrategy.domain.manual.ManualOrigin
+import com.nachojerez.carpstrategy.domain.manual.ManualRecord
 import com.nachojerez.carpstrategy.domain.manual.RecordPeriod
+import com.nachojerez.carpstrategy.domain.model.FishingLocation
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import java.io.File
 import java.time.Instant
@@ -14,6 +16,30 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class ManualDataJsonTest {
+    @Test
+    fun `la copia de seguridad se vuelve a importar con los mismos valores`() {
+        val point = GeoPoint(38.35, -6.70)
+        val now = Instant.parse("2026-10-03T10:00:00Z")
+        val records = listOf(
+            ManualRecord(
+                period = RecordPeriod.At(Instant.parse("2026-10-02T06:00:00Z")), location = point, source = "termómetro",
+                origin = ManualOrigin.Typed, values = mapOf(ManualField.WATER_TEMP_SURFACE to 19.5, ManualField.TURBIDITY to 2.0),
+                notes = "orilla norte", createdAt = now,
+            ),
+            ManualRecord(
+                period = RecordPeriod.Day(LocalDate.parse("2026-09-28")), location = point, source = "Boletín",
+                origin = ManualOrigin.Typed, values = mapOf(ManualField.RESERVOIR_PERCENT to 57.1), createdAt = now,
+            ),
+        )
+        val text = ManualDataJson.export(records, FishingLocation("Embalse de Brovales", point))
+        assertTrue(text.contains("\"hora\": \"2026-10-02T08:00\""))
+        assertTrue(text.contains("\"turbidez\": 2,"))
+        val preview = ManualDataJson.parse(text, "copia.json", point, now)
+        assertTrue(preview.canImport, preview.issues.toString())
+        // Orden cronológico: primero el registro diario del 28/9.
+        assertEquals(records.reversed().map { Triple(it.period, it.values, it.notes) }, preview.records.map { Triple(it.period, it.values, it.notes) })
+    }
+
     private val now = Instant.parse("2026-10-03T10:00:00Z")
     private val brovales = GeoPoint(38.35, -6.70)
 

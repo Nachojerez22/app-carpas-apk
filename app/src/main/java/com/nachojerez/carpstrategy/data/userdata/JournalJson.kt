@@ -1,6 +1,7 @@
 package com.nachojerez.carpstrategy.data.userdata
 
 import com.nachojerez.carpstrategy.domain.journal.Catch
+import com.nachojerez.carpstrategy.domain.journal.FeatureSnapshot
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Fulfilled
 import com.nachojerez.carpstrategy.domain.journal.PredictionSnapshot
@@ -41,6 +42,13 @@ object JournalJson {
     )
 
     @Serializable
+    data class FeaturesDto(
+        @SerialName("numeros") val numbers: Map<String, Double> = emptyMap(),
+        @SerialName("booleanos") val booleans: Map<String, Boolean> = emptyMap(),
+        @SerialName("textos") val texts: Map<String, String> = emptyMap(),
+    )
+
+    @Serializable
     data class PredictionDto(
         @SerialName("calculada") val computedAt: String,
         @SerialName("lat") val latitude: Double,
@@ -50,6 +58,10 @@ object JournalJson {
         @SerialName("tramo") val band: String? = null,
         @SerialName("nivel_limitante") val limitingLevel: String? = null,
         @SerialName("demanda") val demand: String? = null,
+        @SerialName("parametros") val features: FeaturesDto? = null,
+        @SerialName("niveles") val levels: Map<String, Double> = emptyMap(),
+        @SerialName("reglas_activas") val activeRules: Map<String, Double> = emptyMap(),
+        @SerialName("huella_reglas") val rulesFingerprint: String? = null,
     )
 
     @Serializable
@@ -65,6 +77,7 @@ object JournalJson {
         @SerialName("nivel_embalse_pct") val reservoirPercent: Double? = null,
         @SerialName("luna_iluminacion") val moonIllumination: Double? = null,
         @SerialName("presion_hpa") val pressureHpa: Double? = null,
+        @SerialName("parametros") val features: FeaturesDto? = null,
     )
 
     @Serializable
@@ -109,8 +122,12 @@ object JournalJson {
     fun Catch.toDto() = CatchDto(time?.toString(), weightKg, rod, species)
     fun CatchDto.toDomain() = Catch(instant(time), weightKg, rod, species?.takeIf { it.isNotBlank() })
 
+    fun FeatureSnapshot.toDto() = FeaturesDto(numbers, booleans, texts)
+    fun FeaturesDto.toDomain() = FeatureSnapshot(numbers, booleans, texts)
+
     fun PredictionSnapshot.toDto() = PredictionDto(
         computedAt.toString(), location.latitude, location.longitude, blocked, favorability, band?.name, limitingLevel?.name, demand?.name,
+        features?.toDto(), levels.mapKeys { it.key.name }, activeRules, rulesFingerprint,
     )
 
     fun PredictionDto.toDomain(): PredictionSnapshot? = PredictionSnapshot(
@@ -121,16 +138,20 @@ object JournalJson {
         band = enumOrNull<FavorabilityBand>(band),
         limitingLevel = enumOrNull<RuleLevel>(limitingLevel),
         demand = enumOrNull<FeedingDemand>(demand),
+        features = features?.toDomain(),
+        levels = levels.mapNotNull { (k, v) -> enumOrNull<RuleLevel>(k)?.let { it to v } }.toMap(),
+        activeRules = activeRules,
+        rulesFingerprint = rulesFingerprint,
     )
 
     fun SessionContext.toDto() = ContextDto(
         legalStart?.toString(), legalEnd?.toString(), waterTempC, waterMeasured, airTemp24hC, windKmh, windDirectionDeg,
-        rain72hMm, reservoirPercent, moonIllumination, pressureHpa,
+        rain72hMm, reservoirPercent, moonIllumination, pressureHpa, features?.toDto(),
     )
 
     fun ContextDto.toDomain() = SessionContext(
         instant(legalStart), instant(legalEnd), waterTempC, waterMeasured, airTemp24hC, windKmh, windDirectionDeg,
-        rain72hMm, reservoirPercent, moonIllumination, pressureHpa,
+        rain72hMm, reservoirPercent, moonIllumination, pressureHpa, features?.toDomain(),
     )
 
     fun encodeCatches(catches: List<Catch>): String = json.encodeToString(catches.map { it.toDto() })
@@ -201,6 +222,12 @@ object JournalJson {
     /** Copia de seguridad legible del diario (la app no usa la copia en la nube de Android). */
     fun export(sessions: List<Session>, now: Instant): String =
         pretty.encodeToString(ExportDto(exportedAt = now.toString(), sessions = sessions.sortedBy { it.start }.map { it.toDto() }))
+
+    /** Sesiones de [incoming] que no están ya en [existing] (misma hora de inicio). */
+    fun newSessions(existing: List<Session>, incoming: List<Session>): List<Session> {
+        val starts = existing.map { it.start }.toMutableSet()
+        return incoming.filter { starts.add(it.start) }
+    }
 
     /** Lee una exportación. Null si no es un archivo `carpstrategy-diario` válido. */
     fun parseExport(text: String): List<Session>? {

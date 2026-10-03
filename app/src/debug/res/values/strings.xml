@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Nombre de la versión de prueba (se instala aparte de la de producción). -->
+    <string name="app_name">CarpStrategy (prueba)</string>
+</resources>

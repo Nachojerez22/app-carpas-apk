@@ -86,4 +86,6 @@ data class RuleSet(
     /** Fecha de la última revisión de la normativa (se muestra en la app). */
     val regulationReviewed: String?,
     val source: String?,
+    /** Huella del contenido de rules.json: identifica con qué reglas se hizo cada valoración. */
+    val fingerprint: String? = null,
 )

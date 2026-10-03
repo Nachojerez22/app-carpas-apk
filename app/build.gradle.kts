@@ -18,6 +18,18 @@ val localProperties = Properties().apply {
 val aemetApiKey: String =
     localProperties.getProperty("AEMET_API_KEY") ?: System.getenv("AEMET_API_KEY") ?: ""
 
+// Firma de la versión de producción (release). Siempre la MISMA clave: Android solo actualiza una
+// app firmada con la misma clave, y desinstalar borra los datos del usuario. La clave nunca se
+// versiona: se lee de local.properties o de variables de entorno (secretos de GitHub en la CI).
+// Sin clave, el APK release sale sin firmar (no instalable) y el de prueba sigue funcionando.
+fun secret(name: String): String? =
+    (localProperties.getProperty(name) ?: System.getenv(name))?.takeIf { it.isNotBlank() }
+
+val releaseKeystore: java.io.File? = secret("CARP_KEYSTORE_FILE")?.let { file(it) }?.takeIf { it.exists() }
+
+// En la CI el número de versión es el número de ejecución, para que cada APK actualice al anterior.
+val ciVersionCode: Int = System.getenv("CARP_VERSION_CODE")?.toIntOrNull() ?: 1
+
 android {
     namespace = "com.nachojerez.carpstrategy"
     compileSdk = 37
@@ -26,21 +38,42 @@ android {
         applicationId = "com.nachojerez.carpstrategy"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = ciVersionCode
+        versionName = "0.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "AEMET_API_KEY", "\"$aemetApiKey\"")
     }
 
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = secret("CARP_KEYSTORE_PASSWORD")
+                keyAlias = secret("CARP_KEY_ALIAS")
+                keyPassword = secret("CARP_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            // La versión de prueba se instala junto a la de producción sin pisar sus datos.
+            applicationIdSuffix = ".prueba"
+            versionNameSuffix = "-prueba"
+            // Con la clave fija, también la versión de prueba se puede actualizar sin desinstalar.
+            signingConfigs.findByName("release")?.let { signingConfig = it }
+        }
         release {
-            isMinifyEnabled = true
+            // Sin R8: app personal; evita fallos en tiempo de ejecución que la CI no detectaría
+            // (reflexión de Room, Hilt y Kotlinx Serialization).
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
 
