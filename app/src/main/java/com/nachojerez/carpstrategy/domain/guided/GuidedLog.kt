@@ -88,6 +88,8 @@ data class Segment(
 data class GuidedLog(
     val segments: List<Segment>,
     val proposals: List<ProposalRecord> = emptyList(),
+    /** Avisos que mostró la app (contestados o no): la falta de respuesta también es un dato. */
+    val alarms: List<Instant> = emptyList(),
 ) {
     val current: Segment get() = segments.last()
 
@@ -100,6 +102,8 @@ data class GuidedLog(
 
     fun withCheckIn(checkIn: CheckIn): GuidedLog =
         copy(segments = segments.dropLast(1) + current.copy(checkIns = current.checkIns + checkIn))
+
+    fun withAlarm(at: Instant): GuidedLog = copy(alarms = alarms + at)
 
     fun withProposal(proposal: Proposal): GuidedLog = copy(proposals = proposals + ProposalRecord(proposal))
 

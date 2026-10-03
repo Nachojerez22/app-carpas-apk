@@ -78,6 +78,7 @@ object GuidedJson {
     data class GuidedDto(
         @SerialName("tramos") val segments: List<SegmentDto>,
         @SerialName("propuestas") val proposals: List<ProposalRecordDto> = emptyList(),
+        @SerialName("avisos_mostrados") val alarms: List<String> = emptyList(),
     )
 
     @Serializable
@@ -126,6 +127,7 @@ object GuidedJson {
             SegmentDto(s.start.toString(), s.end?.toString(), s.kind.name, s.bait?.name, s.baitName, s.column?.name, s.forced, s.checkIns.map { it.toDto() })
         },
         proposals = proposals.map { r -> ProposalRecordDto(r.proposal.toDto(), r.decision.name, r.reason?.name, r.comment, r.decidedAt?.toString()) },
+        alarms = alarms.map { it.toString() },
     )
 
     fun GuidedDto.toDomain(): GuidedLog? {
@@ -151,7 +153,7 @@ object GuidedJson {
                 decidedAt = instant(r.decidedAt),
             )
         }
-        return GuidedLog(segs, records)
+        return GuidedLog(segs, records, alarms.mapNotNull { instant(it) })
     }
 
     fun encode(log: GuidedLog): String = JournalJson.json.encodeToString(GuidedDto.serializer(), log.toDto())

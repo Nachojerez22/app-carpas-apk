@@ -32,6 +32,7 @@ class GuidedJsonTest {
         val log = GuidedLog.start(t0, a).accept(t0)
             .withCheckIn(CheckIn(t0.plusSeconds(1800), SignalLevel.INDIRECT, HookActivity.TOUCHES, BaitState.NIBBLED, notWorking = true, userChange = ChangedVariable.BAIT))
             .withProposal(b).reject(t0.plusSeconds(3700), RejectReason.NO_BAIT, " no llevo ")
+            .withAlarm(t0.plusSeconds(3600))
             .withProposal(b).accept(t0.plusSeconds(3800))
             .withCheckIn(CheckIn(t0.plusSeconds(5400), activity = HookActivity.CATCH))
             .finish(t0.plusSeconds(7200))

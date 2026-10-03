@@ -169,5 +169,7 @@ class GuidedEngineTest {
         assertEquals(legalEnd.minus(Duration.ofMinutes(15)), GuidedEngine.nextCheckIn(log.check(1000), FishingPhase.SUMMER, nearEnd, legalEnd))
         assertNull(GuidedEngine.nextCheckIn(log, FishingPhase.SUMMER, legalEnd.plusSeconds(1), legalEnd))
         assertNotNull(GuidedEngine.nextCheckIn(log, FishingPhase.WINTER, t0, null))
+        // Aviso sin contestar: el siguiente cuenta desde él, no se repite al minuto.
+        assertEquals(t0.plus(Duration.ofMinutes(60)), GuidedEngine.nextCheckIn(log.withAlarm(t0.plus(Duration.ofMinutes(30))), FishingPhase.SUMMER, t0.plus(Duration.ofMinutes(31)), legalEnd))
     }
 }
