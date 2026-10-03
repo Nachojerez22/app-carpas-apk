@@ -5,6 +5,11 @@
     <!-- Ubicación solo mientras se usa la app (botón "Usar mi ubicación"); nunca en segundo plano. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Sesión guiada: avisos cada 30 min (solo vibración) mientras dura la sesión. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Opcional: si no se concede, los avisos pueden retrasarse unos minutos. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
         android:name=".CarpStrategyApp"
@@ -22,6 +27,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".ui.guided.GuidedAlarmReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".ui.guided.GuidedActionReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>
