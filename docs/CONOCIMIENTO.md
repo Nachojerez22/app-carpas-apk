@@ -236,6 +236,74 @@ Reglas de diseño:
 ### 5.7 Presión de pesca
 - Las capturas repetidas en un puesto reducen la capturabilidad durante semanas o meses. La app registra capturas por zona y sugiere rotar.
 
+### 5.8 Playbook por estación y por condiciones (SI → ENTONCES)
+
+> Punto de partida operativo. **Casi todo es experiencia de pescadores o hipótesis local**: la app lo muestra con su etiqueta (Respaldado 🟢 · Experiencia/moderada 🟡 · Hipótesis local 🟣 · Sin evidencia, peso 0 🔴) y lo sustituye por los datos del propio usuario cuando haya 20–40 sesiones. Las estaciones se deciden por la **temperatura del agua**, no por el calendario. Todo respeta el filtro legal (§7): solo horas legales, máx. 3 cañas.
+
+#### Por estación (disparador: temperatura del agua y tendencia)
+
+| | **Invierno** (agua <10 °C) | **Primavera** (10→20 °C, subiendo) | **Verano** (>22 °C) | **Otoño** (20→10 °C, bajando) |
+|---|---|---|---|---|
+| **Contexto Brovales** | Nivel semanal; puede recuperarse con lluvias tras el riego | Nivel alto (≈86 % a finales de junio): litoral disponible antes del vaciado | Vaciado por riego (≈ −30 puntos de junio a septiembre); arroyos con estiaje | Primeras lluvias pueden frenar el vaciado y subir nivel; vigilar escorrentía |
+| **Dónde** 🟡 | Zonas estables algo más profundas junto a caída/antiguo cauce, o someras protegidas del viento frío y con sol a mediodía | Someras con vegetación/pasto inundado y reculas que se calientan antes; boca de recula como paso (🟣) | 🟣 Seguir el nivel: primera caída o cambio de pendiente donde antes había litoral; sombra, vegetación, entradas si llevan agua | 🟣 Litoral recién inundado, reculas y entradas con escorrentía real; fondos duros si hay cangrejo (sin datos en Brovales) |
+| **Cuándo** | 🟣 Franja central del día legal, tras 2–3 días estables y horas de sol | 🟡 Tarde y anochecer legal; amanecer si la temperatura asciende | 🟡 Amanecer y anochecer legales; evitar mediodía con calor y calma | 🟡 Horas centrales templadas y atardecer legal; tras frente frío esperar 1–2 días |
+| **Cebado** 🟢 | Mínimo: puñado o PVA, cebos pequeños y muy atractivos (6 %/h a 9 °C) | Progresivo al subir la temperatura; 17–21 °C pueden comer menos por el desove: no sobrecebar | Demanda máxima (~4 % del peso/día): abundante pero repartido, repuesto en ventanas de actividad | Bajar a medida que baja la temperatura; si cae de golpe (21→17 °C) reducir más |
+| **Presentación** | 🟡 1–2 cañas fijas en la misma zona, paciencia | 🟣 Cañas repartidas entre orilla somera y boca de recula; mover la que no dé señales tras varias horas | 🟡 Con carpas en superficie/media agua: flotantes o zig rig; si no, fondo junto a la caída; anotar profundidad | 🟣 Una caña en litoral nuevo y otra en la caída próxima; registrar cuál recibe picadas |
+| **Evita** | Cebaderos grandes, cambiar de puesto cada hora, entradas de agua fría tras lluvia fuerte | Sobrecebar tras bajada brusca de temperatura; zonas que se enfrían con viento frío | 🟢 Descartar el fondo solo por "poco oxígeno" (la carpa lo tolera); cebar zonas someras que se secan | Dar por hecho que el otoño siempre es buena época (experiencia, no ciencia); ignorar la tendencia térmica |
+
+#### Por condición (disparadores del motor de reglas)
+
+| SI (parámetros) | ENTONCES | Evidencia |
+|---|---|---|
+| **Lluvia** ligera, suelo seco, sin entrada visible | No cambiar el plan (20 mm sobre suelo seco no alteran el agua); registrar lluvia y humedad del suelo | 🟡 |
+| **Lluvia** fuerte con escorrentía real y cola turbia | Probar cola y borde de la pluma turbia (no el centro del barro); cebado pequeño: el agua ya trae comida | 🟣 |
+| Verano + tormenta con entrada más fresca | Entrada fría y oxigenada se hunde por el cauce: una caña en la caída frente a la desembocadura | 🟣 (física 🟢, efecto en carpa sin demostrar) |
+| Invierno + lluvia fría fuerte | Evitar entrada y cola (agua helada); zonas estables y protegidas, cebado mínimo | 🟡 |
+| Primavera/otoño + lluvia templada + nivel subiendo | Litoral recién inundado: cañas someras junto a nueva orilla y entrada, cebado pequeño | 🟡 |
+| **Viento** cálido sostenido 24–48 h hacia orilla con fetch | Priorizar orilla a sotavento (acumula agua cálida y alimento); en Brovales el fetch es corto: desempate | 🟡 |
+| Frente frío o viento frío súbito | Bajar cebado, zonas protegidas y soleadas, esperar (la demanda cae con el agua más fría) | 🟡 |
+| Verano + calma + sol + calor | Amanecer y anochecer, sombra y vegetación, cebos a media agua si hay actividad; no insistir a mediodía | 🟡 |
+| Nublado o presión bajando | No usar la presión como regla; registrar nubosidad y presión con **peso 0** | 🔴 |
+| Viento fuerte con oleaje en orilla expuesta | Probar orilla batida con fondo blando (remueve alimento) o recula protegida si no hay señales | 🟣 |
+| **Temperatura** subiendo 3 días (15→19 °C) | Subir cebado progresivamente, buscar someras que se calientan; 17–21 °C vigilar desove | 🟢 |
+| Temperatura bajando 3 días (21→17 °C) | Reducir cebado, volver a zonas estables, dejar que el agua se estabilice | 🟡 |
+| Agua >28 °C y calma | Bajar confianza de cualquier predicción; sesión corta en el amanecer; medir temperatura y registrar profundidad | 🟡 |
+| **Nivel** bajando rápido (≈ −1 hm³/semana) | Mover cañas a la primera caída o cambio de pendiente; no cebar zona somera que se queda sin agua | 🟣 |
+| Nivel subiendo e inundando pasto | Cañas someras junto a la nueva orilla, cebado pequeño (litoral nuevo con comida terrestre) | 🟡 |
+| **Campo**: burbujas, saltos, nubes de sedimento, carpas en movimiento | Cañas hacia esa zona: mejor señal del día, por encima de cualquier predicción; anotarla | 🟡 |
+| Mucha presión (fin de semana, otros pescadores, ruido, barcas) | Evitar el puesto evidente; zonas menos obvias, cebado discreto, presentaciones distintas | 🟢 |
+| Ya capturaste en el puesto hace pocos días | Rotar puesto y montaje (evitación del anzuelo: semanas o meses, ≤7 meses) | 🟢 |
+| Horas sin señales ni picadas | Cambiar de zona por función (calentamiento, paso, entrada); registrar el bolo con sus horas-caña | 🟡 |
+| Historial propio en esas condiciones | Repetir lo que funcionó; con 20–40 sesiones los datos propios pasan por delante de este playbook | 🟣 |
+
+**Notas de implementación:**
+- Las condiciones se evalúan en este orden: legalidad → temperatura/tendencia → nivel → entradas/lluvia con escorrentía → viento → señales de campo → presión de pesca. Varias pueden activarse a la vez; mostrar al usuario **todas las reglas activas con su etiqueta** y la que domina (la de nivel inferior en la cadena de §4).
+- "Lluvia con escorrentía real" exige lluvia acumulada, humedad del suelo y tiempo desde la última lluvia (no basta un valor de precipitación).
+- Las cantidades de cebo se expresan como **demanda esperada (muy baja → muy alta)**, nunca como gramos fijos: no hay datos para fijar gramos por temperatura.
+- Zig rig, flotantes, PVA y similares son técnicas de pescadores sin estudios comparativos en carpa (🟡).
+
+```yaml
+# Ejemplo de regla del playbook (formato sugerido)
+- id: pb_nivel_bajando_rapido
+  cuando:
+    nivel_delta_7d_hm3: "<= -0.8"      # umbral inicial a calibrar
+    estacion_por_temp: "verano"
+  entonces:
+    recomendar: "Mover cañas a primera caída / cambio de pendiente cercano al litoral anterior"
+    evitar: "Cebar zona somera que se queda sin agua"
+  evidencia: morado        # hipótesis local
+  peso_inicial: bajo
+- id: pb_lluvia_escorrentia_invierno
+  cuando:
+    escorrentia_real: true
+    temp_agua_c: "< 10"
+  entonces:
+    recomendar: "Zonas estables y protegidas, cebado mínimo"
+    evitar: "Cola y entrada de agua fría"
+  evidencia: amarillo
+  peso_inicial: bajo
+```
+
 ---
 
 ## 6. Brovales

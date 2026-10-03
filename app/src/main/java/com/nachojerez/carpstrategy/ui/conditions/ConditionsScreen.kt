@@ -119,6 +119,8 @@ fun ConditionsContent(
         state.latestReservoir?.let { record -> item { ReservoirLine(record) } }
         raw?.let { item { PriorityCard(it.priority, priorityActions) } }
 
+        item { DerivedCard(state.derived) }
+
         item { ObservationsCard(state) }
 
         item { ForecastCard(state) }

@@ -95,4 +95,19 @@ class ConditionsUiStateTest {
         val raw = RawWeather(null, emptyList(), null, manualRecords = listOf(older, noLevel, newer))
         assertEquals(newer, buildConditionsState("Brovales", raw, false, null, now).latestReservoir)
     }
+
+    @Test
+    fun `sin ningun dato no hay parametros derivados, con datos manuales si`() {
+        assertNull(buildConditionsState("Brovales", RawWeather(null, emptyList(), null), false, null, now).derived)
+
+        val water = ManualRecord(
+            period = RecordPeriod.At(now.minus(Duration.ofHours(2))), location = point, source = "termómetro",
+            origin = ManualOrigin.Typed, values = mapOf(ManualField.WATER_TEMP_SURFACE to 19.0), createdAt = now,
+        )
+        val derived = buildConditionsState(
+            "Brovales", RawWeather(null, emptyList(), null, manualRecords = listOf(water)), false, null, now,
+        ).derived!!
+        assertEquals(19.0, derived.water!!.valueC, 1e-9)
+        assertTrue(derived.legalToday != null)
+    }
 }

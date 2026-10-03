@@ -12,7 +12,7 @@ El conocimiento del dominio (biología de la carpa, datos de Brovales, normativa
 diseño del modelo) está en [`docs/CONOCIMIENTO.md`](docs/CONOCIMIENTO.md), que es la fuente de
 verdad del proyecto.
 
-> Estado: **Fase 2** (datos manuales e importación JSON). La pestaña *Condiciones* muestra los datos en bruto y la serie combinada según tu prioridad de fuentes; el resto de pantallas siguen siendo provisionales.
+> Estado: **Fase 3** (parámetros derivados). La pestaña *Condiciones* muestra los parámetros del día (agua, tendencias, viento, lluvia, nivel, horario legal…), los datos en bruto y la serie combinada; *Estrategia* sigue siendo provisional.
 
 ## Fuentes de datos
 
@@ -53,16 +53,37 @@ Ambas fuentes se citan en la pantalla **Acerca de** y junto a los datos.
   copia y su antigüedad (aviso a partir de 3 h y de 24 h). Al abrir la pantalla se actualiza si
   los datos tienen más de 1 h.
 
+### Parámetros derivados (fase 3)
+
+Funciones puras con tests (`domain/derived`), calculadas sobre la serie combinada según tu
+prioridad de fuentes. Cada una se muestra con su etiqueta de evidencia.
+
+| Parámetro | Cálculo | Evidencia |
+|---|---|---|
+| Horario legal | Orto/ocaso (algoritmo NOAA, ±1–2 min) − 1 h / + 1 h | Normativa (filtro duro) |
+| Temperatura del agua | Tu medida de superficie si es de las últimas 48 h; si no, **estimación**: media ponderada del aire de los 7 bloques de 24 h previos, pesos 7…1 (el más reciente pesa más), calibrada con el desfase medio de tus medidas de los últimos 30 días (máx. ±5 °C). Tendencia: estimación ahora − hace 3 días | 🟢 (la relación con la demanda); la estimación es solo orientativa |
+| Estación por el agua | < 10 °C invierno, > 22 °C verano, entre medias según tendencia (±0,5 °C/3 días); plana → calendario | 🟡 |
+| Tendencia del aire | Media 24 h frente a los 3 días previos | — |
+| Sesgo modelos vs AEMET | Media (modelo − estación) en las horas comunes de las últimas 48 h (mín. 6), con la estación llevada a la altitud de la rejilla (−6,5 °C/km); se resta a las temperaturas de los modelos (máx. ±5 °C) | — |
+| Rachas | Días completos seguidos hasta ayer con máxima ≥ 30 °C o media ≤ 8 °C (umbrales de trabajo) | — |
+| Viento 24/48 h | Dirección dominante (media vectorial ponderada), velocidad media, persistencia (0–100 %), racha máxima | 🟡 |
+| Lluvia | 24 h, 72 h, índice de lluvia previa (7 bloques de 24 h antes de las 72 h, factor 0,9/día) y horas desde la última | — |
+| Escorrentía probable | (72 h ≥ 20 mm **y** lluvia previa ≥ 10 mm) o 24 h ≥ 40 mm. "20 mm sobre suelo seco no cuentan" | 🟣 hipótesis local |
+| Nivel del embalse | Última lectura manual/importada y variación respecto a la de hace ~7 días (±3); % ↔ hm³ con la capacidad oficial 6,98 hm³ | Dato del usuario |
+| Presión (Δ3/24/72 h, σ 48 h), nubosidad, luna | Se calculan y se muestran **con peso 0** | 🔴 |
+
 ### Limitaciones (importante)
 
 - **La app no mide la temperatura del agua**: lo recomendable es introducir tu propia medición
   (termómetro a 0,5 m y, si se puede, a 3–5 m). Si no la hay, se *estima* con una media móvil
   ponderada de la temperatura del aire de los últimos días, que puede desviarse varios grados y
   se calibra con tus mediciones.
-- AEMET solo ofrece unas 24 h de observación horaria, así que la corrección de sesgo (fase 2)
+- AEMET solo ofrece unas 24 h de observación horaria, así que la corrección de sesgo
   será aproximada. La estación más cercana puede estar a varios km y a otra altitud que el embalse.
 - ECMWF IFS 0,25° tiene paso de 3 h: Open-Meteo rellena las horas intermedias (la lluvia aparece
-  repetida en bloques de 3 h). Hay que tenerlo en cuenta antes de sumar lluvia por modelo (fase 2).
+  repetida en bloques de 3 h). Se asume que reparte el total entre las 3 horas (la suma se
+  conserva); no se ha podido comprobar en la documentación oficial desde el entorno de desarrollo.
+- La fase lunar usa el mes sinódico medio (error < 1 día): suficiente para un dato con peso 0.
 - La rejilla de los modelos no coincide con el embalse: Open-Meteo devuelve el punto de rejilla
   usado (p. ej. 38,375 N, 6,688 O a 305 m), que se muestra en pantalla.
 - Cada regla lleva una etiqueta de evidencia (🟢 fuerte, 🟡 moderada, 🔴 mito/insuficiente,
@@ -111,7 +132,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 0**: proyecto, estructura, CI, documentación
 - [x] **Fase 1**: capa de datos (Open-Meteo multimodelo + AEMET + Room) y pantalla de datos en bruto
 - [x] **Fase 2**: datos manuales e importación JSON, prioridad de fuentes elegible y serie combinada
-- [ ] **Fase 3**: parámetros derivados (presión, temperatura, agua estimada/medida, viento, lluvia, sesgo con AEMET, sol/luna y ventana legal)
+- [x] **Fase 3**: parámetros derivados (presión, temperatura, agua estimada/medida, viento, lluvia, sesgo con AEMET, sol/luna y ventana legal)
 - [ ] **Fase 4**: motor de filtros/multiplicadores por niveles (reglas JSON con etiqueta de evidencia) y pantalla de estrategia
 - [ ] **Fase 5**: UI completa, GPS y gráficas
 - [ ] **Fase 6**: diario de sesiones (horas-caña, bolos, valoración previa) y aprendizaje con datos propios

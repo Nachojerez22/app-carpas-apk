@@ -16,6 +16,7 @@ object Formatting {
     val MADRID: ZoneId = ZoneId.of("Europe/Madrid")
     private const val MISSING = "—"
     private val HOUR_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE d HH:mm", SPANISH)
+    private val CLOCK_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", SPANISH)
     private val COMPASS = listOf("N", "NE", "E", "SE", "S", "SO", "O", "NO")
 
     private fun decimals(digits: Int) = DecimalFormat(
@@ -41,6 +42,16 @@ object Formatting {
     fun direction(stats: DirectionStats?): String = compass(stats?.meanDeg)
 
     fun hour(time: Instant, zone: ZoneId = MADRID): String = HOUR_FORMAT.format(time.atZone(zone))
+
+    /** Solo la hora local ("08:24"). */
+    fun clock(time: Instant?, zone: ZoneId = MADRID): String = time?.let { CLOCK_FORMAT.format(it.atZone(zone)) } ?: MISSING
+
+    /** Número con signo explícito ("+1,2", "−0,5"). */
+    fun signed(value: Double?, digits: Int = 1): String = when {
+        value == null -> MISSING
+        value > 0 -> "+" + number(value, digits)
+        else -> number(value, digits)
+    }
 
     /** Edad en la unidad más útil. Devuelve (unidad, valor) para elegir el texto traducible. */
     fun ageParts(age: Duration): Pair<AgeUnit, Long> = when {
