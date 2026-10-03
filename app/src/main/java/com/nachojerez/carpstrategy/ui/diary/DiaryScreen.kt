@@ -69,6 +69,9 @@ fun DiaryScreen(viewModel: DiaryViewModel = hiltViewModel()) {
     val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         uri?.let(viewModel::exportTo)
     }
+    val restorer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(viewModel::restoreFrom)
+    }
 
     val editor = state.editor
     if (editor != null) {
@@ -89,6 +92,7 @@ fun DiaryScreen(viewModel: DiaryViewModel = hiltViewModel()) {
             onOpen = viewModel::open,
             onFinish = viewModel::finish,
             onExport = { exporter.launch(exportName) },
+            onRestore = { restorer.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
         )
     }
 
@@ -107,6 +111,16 @@ fun DiaryScreen(viewModel: DiaryViewModel = hiltViewModel()) {
             text = { Text(stringResource(R.string.diary_export_done, status.count)) },
             confirmButton = { TextButton(onClick = viewModel::dismissExport) { Text(stringResource(R.string.action_ok)) } },
         )
+        is ExportStatus.Restored -> AlertDialog(
+            onDismissRequest = viewModel::dismissExport,
+            text = { Text(stringResource(R.string.diary_restore_done, status.added, status.total)) },
+            confirmButton = { TextButton(onClick = viewModel::dismissExport) { Text(stringResource(R.string.action_ok)) } },
+        )
+        ExportStatus.NotADiary -> AlertDialog(
+            onDismissRequest = viewModel::dismissExport,
+            text = { Text(stringResource(R.string.diary_restore_invalid)) },
+            confirmButton = { TextButton(onClick = viewModel::dismissExport) { Text(stringResource(R.string.action_ok)) } },
+        )
         is ExportStatus.Failed -> AlertDialog(
             onDismissRequest = viewModel::dismissExport,
             text = { Text(stringResource(R.string.diary_export_failed, status.message)) },
@@ -122,6 +136,7 @@ private fun DiaryList(
     onOpen: (Session) -> Unit,
     onFinish: (Session) -> Unit,
     onExport: () -> Unit,
+    onRestore: () -> Unit,
 ) {
     val year = state.now.atZone(Formatting.MADRID).year
     Box(Modifier.fillMaxSize()) {
@@ -160,6 +175,7 @@ private fun DiaryList(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.diary_export)) }
+                    TextButton(onClick = onRestore, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.diary_restore)) }
                     Caption(stringResource(R.string.diary_export_hint))
                 }
             }

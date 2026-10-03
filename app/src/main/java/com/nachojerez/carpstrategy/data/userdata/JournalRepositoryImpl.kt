@@ -13,6 +13,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 @Singleton
@@ -31,6 +32,13 @@ class JournalRepositoryImpl @Inject constructor(
     }
 
     override suspend fun delete(id: Long) = sessions.delete(id)
+
+    override suspend fun restore(sessions: List<Session>): Int {
+        val existing = this.sessions.observeAll().first().map { it.toDomain() }
+        val added = JournalJson.newSessions(existing, sessions)
+        added.forEach { this.sessions.upsert(it.copy(id = 0).toEntity()) }
+        return added.size
+    }
 
     override suspend fun recordPrediction(snapshot: PredictionSnapshot) {
         val second = snapshot.computedAt.epochSecond

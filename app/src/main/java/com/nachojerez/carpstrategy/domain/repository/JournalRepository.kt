@@ -15,6 +15,9 @@ interface JournalRepository {
 
     suspend fun delete(id: Long)
 
+    /** Restaura sesiones de una copia; las que ya existen (mismo inicio) se omiten. Devuelve cuántas añade. */
+    suspend fun restore(sessions: List<Session>): Int
+
     /** Guarda la valoración de la app (una por hora y lugar: la última de la hora sustituye). */
     suspend fun recordPrediction(snapshot: PredictionSnapshot)
 
