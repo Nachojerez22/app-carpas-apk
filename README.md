@@ -120,7 +120,9 @@ fin del horario legal. Cada tramo, aviso y decisión queda en el diario para apr
 Cada caña lleva su nombre («fija», «carrete») y su propio plan y registro. En cada aviso puedes
 anotar la especie (carpa, barbo, boga, black bass o pequeño): solo la carpa cuenta como captura;
 si entran otras especies o mordisquean, propone un cebo más selectivo y, si cebaste mucho, cebar
-menos. Anota también el cebado (poco, normal, mucho), los recebados y si cambia el viento.
+menos. Anota también el cebado (poco, normal, mucho), los recebados, si cambia el viento y, en
+**Tiempo y agua**, la lluvia (ligera o fuerte), la tormenta y si entra agua turbia, juntas o por
+separado y con su hora. Con tormenta la app te recuerda ponerte a salvo y no propone cambios.
 Para que los avisos lleguen a su hora, permite las notificaciones y las alarmas exactas.
 
 ### Limitaciones (importante)

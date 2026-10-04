@@ -122,7 +122,7 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - `domain/guided` (puro, CONOCIMIENTO.md §5.9): `Gear` (tipos de cebo con sus funciones,
   `BaitCatalog` para elegir sustituto del equipo), `GuidedLog` (registro de **una caña**: tramos,
   avisos, propuestas y decisiones), `GuidedRecord` (una `RodTrack` por caña con nombre, avisos
-  mostrados, cambios de viento y cebado inicial), `GuidedEngine` (diagnóstico A/B/C/D y E «otras
+  mostrados, cambios de viento, cebado inicial y condiciones de lluvia/tormenta/agua turbia con su hora), `GuidedEngine` (diagnóstico A/B/C/D y E «otras
   especies» (solo la carpa es captura), escalera por fase, tiempos 🟣 en
   `THRESHOLDS`, dos «No funciona» en 30 min ⇒ propuesta forzada, límites ⚖ del fin legal,
   `nextCheckIn`) y `GuidedSessions` (aplica cada acción a la `Session` caña a caña: picadas y
