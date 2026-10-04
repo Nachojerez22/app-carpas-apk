@@ -21,9 +21,13 @@ import com.nachojerez.carpstrategy.domain.guided.RigType
 import com.nachojerez.carpstrategy.domain.guided.RodTrack
 import com.nachojerez.carpstrategy.domain.guided.Segment
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
-import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.guided.Situation
+import com.nachojerez.carpstrategy.domain.guided.Species
+import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.guided.StepKind
+import com.nachojerez.carpstrategy.domain.guided.WeatherSnapshot
+import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import java.time.Instant
 import kotlinx.serialization.SerialName
@@ -31,7 +35,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * JSON de la sesión guiada (columna `guidedJson` de [SessionEntity] y campo `guiado` de la
- * exportación del diario) y del equipo del usuario (ajuste `gear`). Enums por nombre;
+ * exportación del diario), del equipo del usuario (ajuste `gear`) y de sus puestos (ajuste `spots`). Enums por nombre;
  * los valores desconocidos se ignoran al leer.
  */
 object GuidedJson {
@@ -98,6 +102,38 @@ object GuidedJson {
         @SerialName("activa") val active: Boolean,
     )
 
+    @Serializable
+    data class SpotDto(
+        @SerialName("id") val id: Long,
+        @SerialName("nombre") val name: String,
+        @SerialName("zona") val zone: String? = null,
+        @SerialName("estructura") val structure: String? = null,
+        @SerialName("profundidad_m") val depthM: Double? = null,
+        @SerialName("distancia_m") val distanceM: Double? = null,
+        @SerialName("orientacion_grados") val facingDeg: Int? = null,
+        @SerialName("notas") val notes: String = "",
+    )
+
+    /** El tiempo en un aviso: previsión de la hora en curso y respuestas del usuario. */
+    @Serializable
+    data class WeatherDto(
+        @SerialName("hora") val time: String,
+        @SerialName("aire_c") val airC: Double? = null,
+        @SerialName("viento_kmh") val windKmh: Double? = null,
+        @SerialName("viento_dir_grados") val windFromDeg: Double? = null,
+        @SerialName("rachas_kmh") val gustKmh: Double? = null,
+        @SerialName("nubosidad_pct") val cloudPct: Double? = null,
+        @SerialName("precipitacion_mm") val precipitationMm: Double? = null,
+        @SerialName("codigo_tiempo") val weatherCode: Int? = null,
+        @SerialName("presion_hpa") val pressureHpa: Double? = null,
+        @SerialName("agua_c") val waterC: Double? = null,
+        @SerialName("agua_medida") val waterMeasured: Boolean = false,
+        @SerialName("ocaso") val sunset: String? = null,
+        @SerialName("fin_legal") val legalEnd: String? = null,
+        @SerialName("llueve_usuario") val rainAnswer: Boolean? = null,
+        @SerialName("tormenta_usuario") val stormAnswer: Boolean? = null,
+    )
+
     /** `tramos` y `propuestas` sueltos: formato de prueba anterior a las cañas (una sola caña). */
     @Serializable
     data class GuidedDto(
@@ -106,6 +142,8 @@ object GuidedJson {
         @SerialName("cambios_viento") val windChanges: List<String> = emptyList(),
         @SerialName("cebado_inicial") val groundbait: String? = null,
         @SerialName("condiciones") val conditions: List<ConditionDto> = emptyList(),
+        @SerialName("puesto") val spot: SpotDto? = null,
+        @SerialName("tiempo") val weather: List<WeatherDto> = emptyList(),
         @SerialName("tramos") val legacySegments: List<SegmentDto>? = null,
         @SerialName("propuestas") val legacyProposals: List<ProposalRecordDto>? = null,
     )
@@ -195,6 +233,8 @@ object GuidedJson {
         windChanges = windChanges.map { it.toString() },
         groundbait = groundbait?.name,
         conditions = conditions.map { ConditionDto(it.time.toString(), it.condition.name, it.active) },
+        spot = spot?.toDto(),
+        weather = weather.map { it.toDto() },
     )
 
     fun GuidedDto.toDomain(): GuidedRecord? {
@@ -209,6 +249,8 @@ object GuidedJson {
             conditions = conditions.mapNotNull { c ->
                 ConditionChange(instant(c.time) ?: return@mapNotNull null, enumOf<FieldCondition>(c.condition) ?: return@mapNotNull null, c.active)
             },
+            spot = spot?.toDomain(),
+            weather = weather.mapNotNull { it.toDomain() },
         )
     }
 
@@ -216,6 +258,51 @@ object GuidedJson {
 
     fun decode(text: String?): GuidedRecord? =
         text?.let { runCatching { JournalJson.json.decodeFromString(GuidedDto.serializer(), it) }.getOrNull() }?.toDomain()
+
+    fun Spot.toDto() = SpotDto(id, name, zone?.name, structure.name, depthM, distanceM, facingDeg, notes)
+
+    fun SpotDto.toDomain(): Spot? = name.takeIf { it.isNotBlank() }?.let {
+        Spot(
+            id = id,
+            name = name,
+            zone = enumOf<FishingZone>(zone),
+            structure = enumOf<SpotStructure>(structure) ?: SpotStructure.OTHER,
+            depthM = depthM,
+            distanceM = distanceM,
+            facingDeg = facingDeg?.let { d -> ((d % 360) + 360) % 360 },
+            notes = notes,
+        )
+    }
+
+    private fun WeatherSnapshot.toDto() = WeatherDto(
+        time.toString(), airC, windKmh, windFromDeg, gustKmh, cloudPct, precipitationMm, weatherCode, pressureHpa,
+        waterC, waterMeasured, sunset?.toString(), legalEnd?.toString(), rainAnswer, stormAnswer,
+    )
+
+    private fun WeatherDto.toDomain(): WeatherSnapshot? = WeatherSnapshot(
+        time = instant(time) ?: return null,
+        airC = airC,
+        windKmh = windKmh,
+        windFromDeg = windFromDeg,
+        gustKmh = gustKmh,
+        cloudPct = cloudPct,
+        precipitationMm = precipitationMm,
+        weatherCode = weatherCode,
+        pressureHpa = pressureHpa,
+        waterC = waterC,
+        waterMeasured = waterMeasured,
+        sunset = instant(sunset),
+        legalEnd = instant(legalEnd),
+        rainAnswer = rainAnswer,
+        stormAnswer = stormAnswer,
+    )
+
+    fun encodeSpots(spots: List<Spot>): String =
+        JournalJson.json.encodeToString(kotlinx.serialization.builtins.ListSerializer(SpotDto.serializer()), spots.map { it.toDto() })
+
+    fun decodeSpots(text: String?): List<Spot> = text?.let {
+        runCatching { JournalJson.json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(SpotDto.serializer()), it) }.getOrNull()
+    }.orEmpty().mapNotNull { it.toDomain() }
 
     fun GearItem.toDto() = GearDto(id, category.name, name, baitType?.name, rigType?.name)
 
