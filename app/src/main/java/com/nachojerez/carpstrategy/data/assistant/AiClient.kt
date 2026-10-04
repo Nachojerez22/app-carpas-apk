@@ -77,6 +77,31 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
         }
     }
 
+    /**
+     * Modelos que admite tu clave y sirven para generar texto (Gemini: `generateContent`).
+     * Así el usuario elige uno que existe en lugar de adivinar el nombre.
+     */
+    fun listModels(config: AiConfig, apiKey: String): List<String> {
+        if (apiKey.isBlank()) throw AiException.NotConfigured()
+        return when (config.provider) {
+            AiProvider.GEMINI -> {
+                val url = geminiBase.toHttpUrlOrNull()?.newBuilder()?.addPathSegment("models")
+                    ?.addQueryParameter("pageSize", "200")?.build() ?: throw AiException.NotConfigured()
+                val response = execute(Request.Builder().url(url).header("x-goog-api-key", apiKey.trim()).get().build())
+                response["models"]?.jsonArray.orEmpty().mapNotNull { e ->
+                    val m = e.jsonObject
+                    val methods = m["supportedGenerationMethods"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }.orEmpty()
+                    m["name"]?.jsonPrimitive?.contentOrNull?.removePrefix("models/")?.takeIf { "generateContent" in methods }
+                }
+            }
+            AiProvider.OPENAI_COMPATIBLE -> {
+                val url = "${config.baseUrl.trim().trimEnd('/')}/models".toHttpUrlOrNull() ?: throw AiException.NotConfigured()
+                val response = execute(Request.Builder().url(url).header("Authorization", "Bearer ${apiKey.trim()}").get().build())
+                response["data"]?.jsonArray.orEmpty().mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.contentOrNull }
+            }
+        }.distinct().sortedWith(compareBy({ !it.contains("flash") }, { it }))
+    }
+
     private fun gemini(config: AiConfig, apiKey: String, system: String, user: String): String {
         val url = geminiBase.toHttpUrlOrNull()?.newBuilder()
             ?.addPathSegment("models")

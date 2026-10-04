@@ -32,6 +32,13 @@ class Assistant(private val client: AiClient) {
         e
     }
 
+    /** Modelos disponibles con tu clave (o el error). */
+    fun models(config: AiConfig, apiKey: String): Result<List<String>> = try {
+        Result.success(client.listModels(config, apiKey))
+    } catch (e: AiException) {
+        Result.failure(e)
+    }
+
     private fun <T> run(
         config: AiConfig,
         apiKey: String,

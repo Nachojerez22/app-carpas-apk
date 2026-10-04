@@ -31,7 +31,13 @@ data class AssistantUiState(
     /** «••••1234» si hay clave; la clave nunca llega a la pantalla. */
     val keyHint: String? = null,
     val test: TestState = TestState.Idle,
+    /** Modelos disponibles con tu clave (null = aún no se han pedido). */
+    val models: List<String>? = null,
+    val loadingModels: Boolean = false,
+    val modelsError: AiException? = null,
 )
+
+private data class ModelsState(val list: List<String>? = null, val loading: Boolean = false, val error: AiException? = null)
 
 @HiltViewModel
 class AssistantViewModel @Inject constructor(
@@ -40,9 +46,12 @@ class AssistantViewModel @Inject constructor(
     @param:IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
     private val test = MutableStateFlow<TestState>(TestState.Idle)
+    private val models = MutableStateFlow(ModelsState())
 
     val uiState: StateFlow<AssistantUiState> =
-        combine(settings.observeConfig(), settings.observeKeyHint(), test) { config, hint, t -> AssistantUiState(config, hint, t) }
+        combine(settings.observeConfig(), settings.observeKeyHint(), test, models) { config, hint, t, m ->
+            AssistantUiState(config, hint, t, m.list, m.loading, m.error)
+        }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AssistantUiState())
 
     fun saveConfig(config: AiConfig) {
@@ -58,6 +67,29 @@ class AssistantViewModel @Inject constructor(
     fun deleteKey() {
         test.value = TestState.Idle
         viewModelScope.launch { settings.setApiKey(null) }
+    }
+
+    /** Pide al proveedor la lista de modelos que admite tu clave. */
+    fun loadModels() {
+        if (models.value.loading) return
+        models.value = ModelsState(loading = true)
+        viewModelScope.launch {
+            val key = settings.apiKey()
+            val config = settings.config()
+            val result = if (key == null) Result.failure(AiException.NotConfigured()) else withContext(io) { assistant.models(config, key) }
+            models.value = ModelsState(
+                list = result.getOrNull(),
+                error = result.exceptionOrNull() as? AiException,
+            )
+        }
+    }
+
+    /** Elegir un modelo de la lista: se guarda y se vuelve a probar. */
+    fun useModel(model: String) {
+        viewModelScope.launch {
+            settings.setConfig(settings.config().copy(model = model))
+            test()
+        }
     }
 
     fun test() {

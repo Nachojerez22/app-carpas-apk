@@ -68,4 +68,27 @@ class AiClientTest {
         assertThrows<AiException.Empty> { client.complete(gemini, "k", "s", "u") }
         assertThrows<AiException.NotConfigured> { client.complete(gemini, " ", "s", "u") }
     }
+
+    @Test
+    fun `lista los modelos de texto de tu clave, primero los flash`() {
+        server.enqueue(
+            MockResponse(
+                body = """{"models":[
+                    {"name":"models/gemini-pro-x","supportedGenerationMethods":["generateContent","countTokens"]},
+                    {"name":"models/text-embedding-x","supportedGenerationMethods":["embedContent"]},
+                    {"name":"models/gemini-flash-x","supportedGenerationMethods":["generateContent"]}
+                ]}""",
+            ),
+        )
+        assertEquals(listOf("gemini-flash-x", "gemini-pro-x"), client.listModels(gemini, "k"))
+        val request = server.takeRequest()
+        assertEquals("/v1beta/models", request.url.encodedPath)
+        assertEquals("k", request.headers["x-goog-api-key"])
+        server.enqueue(MockResponse(body = """{"data":[{"id":"modelo-b"},{"id":"modelo-a"}]}"""))
+        val openAi = AiConfig(AiProvider.OPENAI_COMPATIBLE, "x", server.url("/v1").toString())
+        assertEquals(listOf("modelo-a", "modelo-b"), client.listModels(openAi, "k"))
+        assertEquals("/v1/models", server.takeRequest().url.encodedPath)
+        server.enqueue(MockResponse(code = 403, body = "{}"))
+        assertThrows<AiException.Unauthorized> { client.listModels(gemini, "k") }
+    }
 }
