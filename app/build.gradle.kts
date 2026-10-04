@@ -39,7 +39,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = ciVersionCode
-        versionName = "0.8.1"
+        versionName = "0.8.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -135,6 +135,8 @@ dependencies {
     implementation(libs.okhttp)
 
     implementation(libs.play.services.location)
+    implementation(libs.play.services.auth)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)

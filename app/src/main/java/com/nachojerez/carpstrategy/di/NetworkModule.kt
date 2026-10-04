@@ -5,6 +5,8 @@ import com.nachojerez.carpstrategy.data.remote.aemet.AemetApi
 import com.nachojerez.carpstrategy.data.remote.aemet.AemetApiKeyInterceptor
 import com.nachojerez.carpstrategy.data.remote.aemet.AemetDataSource
 import com.nachojerez.carpstrategy.data.remote.openmeteo.OpenMeteoApi
+import com.nachojerez.carpstrategy.data.sync.DriveClient
+import com.nachojerez.carpstrategy.data.update.UpdateChecker
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -61,4 +63,12 @@ object NetworkModule {
         .client(client.newBuilder().addInterceptor(AemetApiKeyInterceptor(apiKey)).build())
         .build()
         .create()
+
+    @Provides
+    @Singleton
+    fun provideDriveClient(client: OkHttpClient): DriveClient = DriveClient(client)
+
+    @Provides
+    @Singleton
+    fun provideUpdateChecker(client: OkHttpClient): UpdateChecker = UpdateChecker(client)
 }
