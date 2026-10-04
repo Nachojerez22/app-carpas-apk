@@ -7,6 +7,7 @@ import java.time.Clock
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 enum class SyncStatus { OFF, SYNCING, SYNCED, PENDING_OFFLINE, NEEDS_SIGN_IN, ERROR }
 
@@ -76,7 +78,7 @@ class SyncManager @Inject constructor(
     }
 
     /** Tras iniciar sesión: guarda la cuenta y hace la primera sincronización (une si ya hay datos). */
-    suspend fun connect(token: String) {
+    suspend fun connect(token: String) = withContext(io) {
         val email = runCatching { drive.accountEmail(token) }.getOrNull()
         local.put(KEY_ENABLED, "1")
         local.put(KEY_EMAIL, email)
@@ -85,7 +87,7 @@ class SyncManager @Inject constructor(
     }
 
     /** Deja de sincronizar. Los datos siguen en el móvil y en Drive: no se borra nada. */
-    suspend fun disconnect() {
+    suspend fun disconnect() = withContext(io) {
         local.put(KEY_ENABLED, null)
         local.put(KEY_HASH, null)
         _state.value = SyncState()
@@ -95,7 +97,10 @@ class SyncManager @Inject constructor(
         _state.update { it.copy(status = SyncStatus.ERROR, errorCode = code) }
     }
 
-    private suspend fun sync(token: String? = null): Unit = mutex.withLock {
+    /** Siempre fuera del hilo principal: Drive se llama con OkHttp bloqueante. */
+    private suspend fun sync(token: String? = null): Unit = withContext(io) { syncLocked(token) }
+
+    private suspend fun syncLocked(token: String?): Unit = mutex.withLock {
         if (local.get(KEY_ENABLED) != "1") return@withLock
         _state.update { it.copy(status = SyncStatus.SYNCING) }
         val accessToken = token ?: when (val step = auth.authorize()) {
@@ -121,6 +126,11 @@ class SyncManager @Inject constructor(
         } catch (e: DriveException.Failed) {
             _state.update { it.copy(status = SyncStatus.ERROR, errorCode = e.code) }
         } catch (_: InvalidRemoteFile) {
+            _state.update { it.copy(status = SyncStatus.ERROR, errorCode = null) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // Nada de la sincronización debe cerrar la app: se muestra como error y se reintenta.
             _state.update { it.copy(status = SyncStatus.ERROR, errorCode = null) }
         }
     }
