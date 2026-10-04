@@ -6,9 +6,12 @@ import com.nachojerez.carpstrategy.domain.manual.ManualOrigin
 import com.nachojerez.carpstrategy.domain.manual.ManualRecord
 import com.nachojerez.carpstrategy.domain.manual.RecordPeriod
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
+import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.domain.rules.RuleIssue
 import com.nachojerez.carpstrategy.domain.rules.RuleIssueCode
 import com.nachojerez.carpstrategy.domain.rules.RuleLoadResult
+import com.nachojerez.carpstrategy.domain.rules.TimeWindow
+import com.nachojerez.carpstrategy.domain.rules.WindowKind
 import com.nachojerez.carpstrategy.domain.usecase.RawWeather
 import java.io.File
 import java.time.Duration
@@ -53,5 +56,17 @@ class StrategyUiStateTest {
         assertTrue(state.windows.isNotEmpty())
         val legal = state.derived!!.legalToday!!
         assertTrue(state.windows.all { it.start in legal && it.end in legal })
+    }
+
+    @Test
+    fun `proxima ventana sugerida en curso o siguiente`() {
+        val base = Instant.parse("2026-10-04T06:00:00Z")
+        val dawn = TimeWindow(base, base.plus(Duration.ofHours(2)), WindowKind.DAWN, Evidence.YELLOW)
+        val dusk = TimeWindow(base.plus(Duration.ofHours(10)), base.plus(Duration.ofHours(12)), WindowKind.DUSK, Evidence.YELLOW)
+        val windows = listOf(dusk, dawn)
+        assertEquals(dawn, nextWindow(windows, base.plus(Duration.ofHours(1))))
+        assertEquals(dusk, nextWindow(windows, base.plus(Duration.ofHours(3))))
+        assertNull(nextWindow(windows, base.plus(Duration.ofHours(13))))
+        assertNull(nextWindow(emptyList(), base))
     }
 }

@@ -52,5 +52,6 @@ class StrategyViewModel @Inject constructor(
             // "lo que dijo la app antes de salir", sin sesgo retrospectivo.
             state.result?.let { result -> viewModelScope.launch { journal.recordPrediction(JournalStats.snapshotOf(result, place.point, state.ruleContext, state.rulesFingerprint)) } }
         }.map { it.second }
+            .combine(settings.observeSpots()) { state, spots -> state.copy(spots = spots) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StrategyUiState())
 }

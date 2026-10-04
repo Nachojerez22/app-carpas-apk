@@ -4,22 +4,28 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -29,6 +35,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
+import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.rules.ActiveRule
 import com.nachojerez.carpstrategy.domain.rules.AdviceItem
 import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
@@ -40,6 +47,7 @@ import com.nachojerez.carpstrategy.ui.components.Caption
 import com.nachojerez.carpstrategy.ui.components.CarpCard
 import com.nachojerez.carpstrategy.ui.components.ChainStatus
 import com.nachojerez.carpstrategy.ui.components.DemandMeter
+import com.nachojerez.carpstrategy.ui.components.EvidenceBadge
 import com.nachojerez.carpstrategy.ui.components.FilterChainStep
 import com.nachojerez.carpstrategy.ui.components.LegalWindowBar
 import com.nachojerez.carpstrategy.ui.components.Pill
@@ -49,21 +57,31 @@ import com.nachojerez.carpstrategy.ui.components.WarningChip
 import com.nachojerez.carpstrategy.ui.components.WarningType
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.zoneLabelRes
-import com.nachojerez.carpstrategy.ui.components.EvidenceBadge
+import com.nachojerez.carpstrategy.ui.guided.shortRes
+import com.nachojerez.carpstrategy.ui.guided.spotSummary
 import com.nachojerez.carpstrategy.ui.theme.CarpTheme
 import com.nachojerez.carpstrategy.ui.theme.EvidenceKind
 import com.nachojerez.carpstrategy.ui.theme.Spacing
 import java.time.Duration
 
 @Composable
-fun StrategyScreen(viewModel: StrategyViewModel = hiltViewModel()) {
+fun StrategyScreen(
+    onStartGuided: () -> Unit = {},
+    onOpenSpots: () -> Unit = {},
+    viewModel: StrategyViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    StrategyContent(state)
+    StrategyContent(state, onStartGuided, onOpenSpots)
 }
 
+/**
+ * Orden pensado para decidir en el puesto: resumen → qué hacer → cuándo → avisos → por qué
+ * (plegado, para quien quiera ver la cadena de filtros y las reglas).
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StrategyContent(state: StrategyUiState) {
+fun StrategyContent(state: StrategyUiState, onStartGuided: () -> Unit = {}, onOpenSpots: () -> Unit = {}) {
+    var whyOpen by rememberSaveable { mutableStateOf(false) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = Spacing.screen, vertical = Spacing.sm),
@@ -100,93 +118,160 @@ fun StrategyContent(state: StrategyUiState) {
                         }
                     }
                 }
+                // 1. Resumen: valoración, próxima ventana legal y empezar la sesión guiada.
                 item { ResultCard(result) }
-                if (state.recentCatchZones.isNotEmpty() && !result.blocked) {
-                    item { RotateCard(state) }
-                }
-
-                item { SectionTitle(stringResource(R.string.strategy_chain_title), subtitle = stringResource(R.string.strategy_chain_subtitle)) }
-                item {
-                    CarpCard(contentPadding = Spacing.sm) {
-                        chainRows(result).forEach { row ->
-                            FilterChainStep(
-                                number = row.level.order,
-                                title = stringResource(row.level.titleRes()),
-                                status = row.status.toChainStatus(),
-                                why = row.why,
-                            )
-                        }
-                    }
-                }
-
                 if (!result.blocked) {
-                    item { SectionTitle(stringResource(R.string.strategy_demand_title), subtitle = stringResource(R.string.strategy_demand_subtitle)) }
-                    item {
-                        CarpCard {
-                            Text(
-                                result.demand?.let { stringResource(it.labelRes()) } ?: stringResource(R.string.strategy_demand_unknown),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            DemandMeter(result.demand)
+                    item { SummaryActions(state, onStartGuided) }
+
+                    // 2. Qué hacer: dónde (y tus puestos), presentación, cebado y notas.
+                    item { SectionTitle(stringResource(R.string.strategy_what_title), subtitle = stringResource(R.string.strategy_what_subtitle)) }
+                    WHAT_FIELDS.forEach { field ->
+                        val advice = result.advice[field].orEmpty()
+                        if (advice.isNotEmpty()) {
+                            item { AdviceCard(stringResource(field.labelRes()), advice, avoid = false) }
                         }
+                        if (field == StrategyField.WHERE) item { SpotsCard(state, onOpenSpots) }
                     }
 
+                    // 3. Cuándo.
                     item { SectionTitle(stringResource(R.string.field_when), subtitle = stringResource(R.string.strategy_windows_subtitle)) }
                     item { WhenCard(state) }
 
-                    ADVICE_FIELDS.forEach { field ->
-                        val advice = result.advice[field].orEmpty()
-                        if (advice.isNotEmpty()) {
-                            item { SectionTitle(stringResource(field.labelRes())) }
-                            item { AdviceCard(advice, avoid = field == StrategyField.AVOID) }
-                        }
+                    // 4. Avisos: rotar puesto y qué evitar.
+                    val avoid = result.advice[StrategyField.AVOID].orEmpty()
+                    if (state.recentCatchZones.isNotEmpty() || avoid.isNotEmpty()) {
+                        item { SectionTitle(stringResource(R.string.strategy_warnings_title)) }
+                        if (state.recentCatchZones.isNotEmpty()) item { RotateCard(state) }
+                        if (avoid.isNotEmpty()) item { AdviceCard(stringResource(StrategyField.AVOID.labelRes()), avoid, avoid = true) }
                     }
                 }
 
-                item { SectionTitle(stringResource(R.string.strategy_why_title), subtitle = stringResource(R.string.strategy_why_subtitle)) }
+                // 5. Por qué (plegado): cadena de filtros, demanda, reglas y datos con peso 0.
                 item {
-                    CarpCard {
-                        val rules = result.activeRules.filter { it.rule.type != RuleType.RECORD }
-                        if (rules.isEmpty()) Caption(stringResource(R.string.strategy_no_rules))
-                        rules.forEachIndexed { i, rule ->
-                            if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                            RuleRow(rule)
-                        }
+                    TextButton(onClick = { whyOpen = !whyOpen }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(if (whyOpen) R.string.strategy_why_hide else R.string.strategy_why_show))
                     }
                 }
-                val recorded = result.activeRules.filter { it.rule.type == RuleType.RECORD }
-                if (recorded.isNotEmpty()) {
-                    item { SectionTitle(stringResource(R.string.strategy_recorded_title), subtitle = stringResource(R.string.strategy_recorded_subtitle)) }
-                    item {
-                        CarpCard {
-                            recorded.forEachIndexed { i, rule ->
-                                if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                                RuleRow(rule)
-                            }
-                        }
-                    }
-                }
-                if (result.notEvaluable.isNotEmpty()) {
-                    item { SectionTitle(stringResource(R.string.strategy_not_evaluable_title)) }
-                    item {
-                        CarpCard {
-                            result.notEvaluable.forEach { (rule, missing) ->
-                                Caption(
-                                    stringResource(
-                                        R.string.strategy_not_evaluable,
-                                        rule.id,
-                                        missing.map { stringResource(it.labelRes()) }.joinToString(", "),
-                                    ),
-                                )
-                            }
-                        }
-                    }
-                }
+                if (whyOpen) whyItems(result)
             }
         }
         state.regulationReviewed?.let { date ->
             item { Caption(stringResource(R.string.strategy_regulation, date)) }
         }
+    }
+}
+
+/** La parte «Por qué»: cadena de filtros, demanda de alimento, reglas activas y datos con peso 0. */
+private fun LazyListScope.whyItems(result: StrategyResult) {
+    item { SectionTitle(stringResource(R.string.strategy_chain_title), subtitle = stringResource(R.string.strategy_chain_subtitle)) }
+    item {
+        CarpCard(contentPadding = Spacing.sm) {
+            chainRows(result).forEach { row ->
+                FilterChainStep(
+                    number = row.level.order,
+                    title = stringResource(row.level.titleRes()),
+                    status = row.status.toChainStatus(),
+                    why = row.why,
+                )
+            }
+        }
+    }
+    if (!result.blocked) {
+        item { SectionTitle(stringResource(R.string.strategy_demand_title), subtitle = stringResource(R.string.strategy_demand_subtitle)) }
+        item {
+            CarpCard {
+                Text(
+                    result.demand?.let { stringResource(it.labelRes()) } ?: stringResource(R.string.strategy_demand_unknown),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                DemandMeter(result.demand)
+            }
+        }
+    }
+    item { SectionTitle(stringResource(R.string.strategy_why_title), subtitle = stringResource(R.string.strategy_why_subtitle)) }
+    item {
+        CarpCard {
+            val rules = result.activeRules.filter { it.rule.type != RuleType.RECORD }
+            if (rules.isEmpty()) Caption(stringResource(R.string.strategy_no_rules))
+            rules.forEachIndexed { i, rule ->
+                if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                RuleRow(rule)
+            }
+        }
+    }
+    val recorded = result.activeRules.filter { it.rule.type == RuleType.RECORD }
+    if (recorded.isNotEmpty()) {
+        item { SectionTitle(stringResource(R.string.strategy_recorded_title), subtitle = stringResource(R.string.strategy_recorded_subtitle)) }
+        item {
+            CarpCard {
+                recorded.forEachIndexed { i, rule ->
+                    if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    RuleRow(rule)
+                }
+            }
+        }
+    }
+    if (result.notEvaluable.isNotEmpty()) {
+        item { SectionTitle(stringResource(R.string.strategy_not_evaluable_title)) }
+        item {
+            CarpCard {
+                result.notEvaluable.forEach { (rule, missing) ->
+                    Caption(
+                        stringResource(
+                            R.string.strategy_not_evaluable,
+                            rule.id,
+                            missing.map { stringResource(it.labelRes()) }.joinToString(", "),
+                        ),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Próxima ventana legal sugerida y el botón para empezar la sesión guiada. */
+@Composable
+private fun SummaryActions(state: StrategyUiState, onStartGuided: () -> Unit) {
+    val now = state.result?.evaluatedAt ?: return
+    CarpCard {
+        val window = nextWindow(state.windows, now)
+        if (window != null) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                Column(Modifier.weight(1f)) {
+                    Caption(stringResource(R.string.strategy_next_window))
+                    Text("${Formatting.clock(window.start)} – ${Formatting.clock(window.end)}", style = MaterialTheme.typography.titleLarge)
+                    Caption(stringResource(window.kind.labelRes()))
+                }
+                AnyEvidenceBadge(window.evidence)
+            }
+        } else {
+            Caption(stringResource(R.string.strategy_windows_none))
+        }
+        Button(onClick = onStartGuided, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.strategy_start_guided)) }
+        Caption(stringResource(R.string.strategy_start_guided_hint))
+    }
+}
+
+/** Tus puestos y cómo les da el viento dominante de las últimas 24 h (desempate, §5.4 🟡). */
+@Composable
+private fun SpotsCard(state: StrategyUiState, onOpenSpots: () -> Unit) {
+    val wind = state.derived?.wind24h
+    CarpCard {
+        Text(stringResource(R.string.strategy_spots_title), style = MaterialTheme.typography.titleSmall)
+        if (state.spots.isEmpty()) {
+            Caption(stringResource(R.string.strategy_spots_empty))
+        } else {
+            wind?.let { Caption(stringResource(R.string.strategy_spots_wind, Formatting.compass(it.dominantDirectionDeg), Formatting.number(it.meanSpeedKmh, 0))) }
+            state.spots.forEach { spot ->
+                val relation = Spots.windRelation(spot.facingDeg, wind?.dominantDirectionDeg, wind?.meanSpeedKmh)
+                Column {
+                    Text(spot.name, style = MaterialTheme.typography.bodyLarge)
+                    Caption(spotSummary(spot))
+                    relation?.let { Caption(stringResource(it.shortRes())) }
+                }
+            }
+        }
+        TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
     }
 }
 
@@ -214,8 +299,8 @@ private fun RotateCard(state: StrategyUiState) {
     }
 }
 
-/** Orden de las secciones de consejo (Cuándo va aparte, con la barra de horario legal). */
-private val ADVICE_FIELDS = listOf(StrategyField.WHERE, StrategyField.BAIT, StrategyField.PRESENTATION, StrategyField.AVOID, StrategyField.NOTES)
+/** «Qué hacer», en este orden (Cuándo va aparte, con la barra de horario legal; Evitar, en Avisos). */
+private val WHAT_FIELDS = listOf(StrategyField.WHERE, StrategyField.PRESENTATION, StrategyField.BAIT, StrategyField.NOTES)
 
 private fun LevelStatus.toChainStatus(): ChainStatus = when (this) {
     LevelStatus.PASSED -> ChainStatus.Passed
@@ -301,11 +386,12 @@ private fun WhenCard(state: StrategyUiState) {
 }
 
 @Composable
-private fun AdviceCard(advice: List<AdviceItem>, avoid: Boolean) {
+private fun AdviceCard(title: String, advice: List<AdviceItem>, avoid: Boolean) {
     val cs = MaterialTheme.colorScheme
     val container = if (avoid) cs.errorContainer else cs.surface
     val content = if (avoid) cs.onErrorContainer else cs.onSurface
     CarpCard(containerColor = container) {
+        Text(title, style = MaterialTheme.typography.titleSmall, color = content)
         advice.forEachIndexed { i, item ->
             if (i > 0) HorizontalDivider(color = if (avoid) content.copy(alpha = 0.2f) else cs.outlineVariant)
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {

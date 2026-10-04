@@ -36,6 +36,7 @@ data class ForecastHourEntity(
     val cloudCoverPct: Double?,
     val precipitationMm: Double?,
     val shortwaveRadiationWm2: Double?,
+    val weatherCode: Int? = null,
 )
 
 data class ForecastWithHours(

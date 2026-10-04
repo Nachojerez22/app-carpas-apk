@@ -4,6 +4,7 @@ import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
+import com.nachojerez.carpstrategy.domain.guided.FieldWeather
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
@@ -16,6 +17,8 @@ import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Species
+import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.domain.guided.WeatherReport
 import com.nachojerez.carpstrategy.domain.journal.Session
 import java.time.Instant
 import java.time.ZoneId
@@ -47,15 +50,20 @@ data class GuidedUiState(
     val exactAlarms: Boolean = true,
     /** Lluvia, tormenta o entrada de agua activas ahora. */
     val conditions: Set<FieldCondition> = emptySet(),
+    /** El tiempo del último aviso con sus cambios (previsión; null si aún no hay). */
+    val weather: WeatherReport? = null,
+    /** Mis puestos, para elegir uno al empezar. */
+    val spots: List<Spot> = emptyList(),
 ) {
     /** Avisos de toda la sesión (sin repetir los comunes a varias cañas). */
     val messages: Set<GuidedMessage> get() = rods.flatMap { it.messages }.toSet()
 }
 
 /** Estado de la pantalla. Función pura: los avisos salen de evaluar cada caña ahora. */
-fun buildGuidedState(session: Session?, gear: List<GearItem>, now: Instant, nextCheckIn: Instant?, zone: ZoneId): GuidedUiState {
+fun buildGuidedState(session: Session?, gear: List<GearItem>, now: Instant, nextCheckIn: Instant?, zone: ZoneId, spots: List<Spot> = emptyList()): GuidedUiState {
     val base = GuidedUiState(
         isLoading = false,
+        spots = spots,
         baits = gear.count { it.category == GearCategory.BAIT },
         rigs = gear.count { it.category == GearCategory.RIG },
         now = now,
@@ -73,6 +81,7 @@ fun buildGuidedState(session: Session?, gear: List<GearItem>, now: Instant, next
         rods = rods,
         nextCheckIn = nextCheckIn,
         conditions = record.activeConditions(now),
+        weather = FieldWeather.report(record, now),
     )
 }
 

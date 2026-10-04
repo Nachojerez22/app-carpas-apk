@@ -1,6 +1,7 @@
 package com.nachojerez.carpstrategy.domain.repository
 
 import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.manual.ManualRecord
 import com.nachojerez.carpstrategy.domain.manual.SourcePriority
 import com.nachojerez.carpstrategy.domain.model.AppearanceSettings
@@ -40,4 +41,8 @@ interface SettingsRepository {
     /** Equipo del usuario (cebos y montajes) para la sesión guiada. */
     fun observeGear(): Flow<List<GearItem>>
     suspend fun setGear(items: List<GearItem>)
+
+    /** Mis puestos (ajuste `spots`, se sincroniza). */
+    fun observeSpots(): Flow<List<Spot>>
+    suspend fun setSpots(spots: List<Spot>)
 }

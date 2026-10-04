@@ -147,6 +147,20 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - `data/userdata/LocalSettings`: ajustes del móvil (`local_…`) que no se sincronizan.
 - Configuración de Google Cloud: docs/CUENTA_GOOGLE.md (sin secretos en el repositorio).
 
+## Puestos, tiempo por aviso y Estrategia (fase 7.3)
+
+- `domain/guided/Spot.kt`: `Spot` (ajuste `spots`, se sincroniza; JSON en `GuidedJson`),
+  `Spots.windRelation` (orilla mirando a `facingDeg` + viento DE dónde viene → de cara/espaldas/lateral).
+- `domain/guided/FieldWeather.kt`: `WeatherSnapshot` (previsión de la hora + respuestas «¿Llueve?»),
+  `FieldWeather.changes`/`report` con umbrales 🟣 (nubes y presión con peso 0). `GuidedRecord`
+  guarda `spot` y `weather`; un giro claro del viento cuenta como cambio de viento.
+- Open-Meteo pide `weather_code` (`HourlyWeather.weatherCode`; caché v2, destructiva).
+  `ui/guided/weatherSnapshotAt` toma la hora más cercana de la serie combinada y el código más severo.
+- `GuidedSessionManager.onAlarm` refresca el tiempo (máx. 7 s, si no, caché) fuera del cerrojo;
+  la notificación añade las líneas de `weatherLines`.
+- Estrategia: resumen (+ `nextWindow` y botón a la sesión guiada) → qué hacer (+ tus puestos) →
+  cuándo → avisos → «Por qué» plegado.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

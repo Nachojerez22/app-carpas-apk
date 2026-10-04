@@ -125,6 +125,19 @@ menos. Anota también el cebado (poco, normal, mucho), los recebados, si cambia 
 separado y con su hora. Con tormenta la app te recuerda ponerte a salvo y no propone cambios.
 Para que los avisos lleguen a su hora, permite las notificaciones y las alarmas exactas.
 
+### Mis puestos, el tiempo en cada aviso y Estrategia (fase 7.3)
+
+En **Lugar → Mis puestos** guardas tus puestos con lo que mediste tú: estructura (borde somero,
+primera caída, antiguo cauce, recula, punta, llano), profundidad, distancia del lance y hacia
+dónde mira la orilla. Al empezar la sesión guiada eliges el puesto y cada aviso trae el tiempo:
+la previsión de la hora (aire, viento y rachas, lluvia, tormenta, agua medida o estimada), qué ha
+cambiado desde el aviso anterior y desde el inicio, si el viento te da de cara, de espaldas o de
+lado, y cuánto queda para el ocaso y el fin legal. Es una **previsión**: si no cuadra, la app
+pregunta «¿Llueve?» y lo que contestas manda. Nubes y presión se muestran con peso 0. La pestaña
+**Estrategia** va en orden de uso: resumen con la próxima ventana legal y **Pescar ahora
+(sesión guiada)**, qué hacer (dónde y tus puestos, presentación, cebado), cuándo, avisos y, plegado,
+el porqué (cadena de filtros, demanda y reglas).
+
 ### Cuenta de Google y versiones nuevas (fase 7.2)
 
 En **Lugar → Cuenta de Google** inicias sesión una vez y tus datos (diario, datos manuales,

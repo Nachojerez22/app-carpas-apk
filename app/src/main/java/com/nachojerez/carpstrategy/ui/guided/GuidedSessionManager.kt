@@ -9,18 +9,25 @@ import com.nachojerez.carpstrategy.domain.guided.GuidedEnv
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.GuidedUpdate
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
+import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.domain.guided.WeatherQuestion
+import com.nachojerez.carpstrategy.domain.guided.WeatherSnapshot
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Session
+import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.repository.JournalRepository
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
+import com.nachojerez.carpstrategy.domain.usecase.RefreshWeatherUseCase
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.completeSession
+import com.nachojerez.carpstrategy.ui.strategy.buildStrategyState
 import java.time.Clock
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -32,6 +39,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Sesión guiada en curso (§5.9): aplica cada acción con [GuidedSessions], la guarda en el diario,
@@ -43,6 +51,7 @@ class GuidedSessionManager @Inject constructor(
     private val journal: JournalRepository,
     private val settings: SettingsRepository,
     private val observeRawWeather: ObserveRawWeatherUseCase,
+    private val refreshWeather: RefreshWeatherUseCase,
     private val rulesRepository: RulesRepository,
     private val scheduler: CheckInScheduler,
     private val notifier: GuidedNotifier,
@@ -65,17 +74,21 @@ class GuidedSessionManager @Inject constructor(
     fun canNotify(): Boolean = notifier.canNotify()
 
     /** Empieza ahora: valoración previa y contexto como cualquier sesión, y plan A pendiente en cada caña. */
-    suspend fun start(rodNames: List<String>, zone: FishingZone?, groundbait: GroundbaitLevel?): Long = mutex.withLock {
+    suspend fun start(rodNames: List<String>, zone: FishingZone?, groundbait: GroundbaitLevel?, spot: Spot? = null): Long = mutex.withLock {
         GuidedSessions.active(journal.observeSessions().first())?.let { return it.id }
         val now = clock.instant()
         val location = settings.observeLocation().first().point
-        val base = withContext(io) {
+        val (base, weather) = withContext(io) {
             val raw = observeRawWeather(location).first()
             val rules = rulesRepository.load()
             val snapshots = journal.predictionsBetween(now.minusSeconds(86_400), now)
-            completeSession(Session(start = now, location = location, rods = rodNames.size, zone = zone, createdAt = now), true, now, raw, rules, snapshots)
+            val session = completeSession(Session(start = now, location = location, rods = rodNames.size, zone = zone, createdAt = now), true, now, raw, rules, snapshots)
+            session to weatherSnapshotAt(raw, buildStrategyState(raw, rules, now, location).derived, now)
         }
-        val update = GuidedSessions.start(base, rodNames, groundbait, env(now))
+        val env = env(now)
+        val started = GuidedSessions.start(base, rodNames, groundbait, env, spot)
+        // El primer tiempo se guarda sin reevaluar: el plan A de cada caña sigue pendiente.
+        val update = weather?.let { w -> started.copy(session = started.session.copy(guided = started.session.guided?.withWeather(w))) } ?: started
         val id = journal.save(update.session)
         afterChange(update.copy(session = update.session.copy(id = id)), now, alert = false)
         id
@@ -92,6 +105,10 @@ class GuidedSessionManager @Inject constructor(
 
     suspend fun conditionChanged(condition: FieldCondition, active: Boolean): Unit =
         change { s, env -> GuidedSessions.conditionChanged(s, condition, active, env) }
+
+    /** «¿Llueve?» / «¿Hay tormenta?»: lo que dice el usuario manda sobre la previsión. */
+    suspend fun answerWeather(question: WeatherQuestion, answer: Boolean, heavy: Boolean = false): Unit =
+        change { s, env -> GuidedSessions.answerWeather(s, question, answer, env, heavy) }
 
     suspend fun accept(rodId: Int?): Unit = change { s, env ->
         val id = rodId ?: s.guided?.rods?.firstOrNull { it.log.pending != null }?.id ?: 1
@@ -113,8 +130,18 @@ class GuidedSessionManager @Inject constructor(
         session.id
     }
 
-    /** Ha saltado la alarma: se anota el aviso, se avisa con vibración y se programa el siguiente. */
-    suspend fun onAlarm(): Unit = mutex.withLock {
+    /**
+     * Ha saltado la alarma: se actualiza el tiempo (como mucho [ALARM_REFRESH_TIMEOUT_MS]; sin
+     * cobertura se usa la caché), se anota el aviso con su tiempo, se avisa con vibración y se
+     * programa el siguiente.
+     */
+    suspend fun onAlarm() {
+        val location = active()?.location
+        val weather = location?.let { fieldWeather(it, refresh = true) }
+        onAlarmLocked(weather)
+    }
+
+    private suspend fun onAlarmLocked(weather: WeatherSnapshot?): Unit = mutex.withLock {
         val session = active()
         if (session == null) {
             scheduler.cancel()
@@ -123,8 +150,9 @@ class GuidedSessionManager @Inject constructor(
         }
         val now = clock.instant()
         val record = session.guided ?: return@withLock
-        val withAlarm = session.copy(guided = record.withAlarm(now))
-        val update = GuidedSessions.refresh(withAlarm, env(now))
+        // Un giro claro del viento cuenta como cambio de viento antes de evaluar (una sola vez).
+        val withAlarm = record.withAlarm(now).let { r -> weather?.let { r.withWeather(it.copy(time = now)) } ?: r }
+        val update = GuidedSessions.refresh(session.copy(guided = withAlarm), env(now))
         journal.save(update.session)
         afterChange(update, now, alert = true, checkIn = true)
     }
@@ -138,6 +166,20 @@ class GuidedSessionManager @Inject constructor(
         }
         val now = clock.instant()
         afterChange(GuidedUpdate(session), now, alert = false, reschedule = !scheduler.isScheduled())
+    }
+
+    /** El tiempo de ahora para la sesión; null si no hay datos (nunca rompe el aviso). */
+    private suspend fun fieldWeather(location: GeoPoint, refresh: Boolean): WeatherSnapshot? = withContext(io) {
+        try {
+            if (refresh) withTimeoutOrNull(ALARM_REFRESH_TIMEOUT_MS) { refreshWeather(location) }
+            val now = clock.instant()
+            val raw = observeRawWeather(location).first()
+            weatherSnapshotAt(raw, buildStrategyState(raw, rulesRepository.load(), now, location).derived, now)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private suspend fun active(): Session? = GuidedSessions.active(journal.observeSessions().first())
@@ -164,5 +206,10 @@ class GuidedSessionManager @Inject constructor(
         }
         next.value = at
         notifier.show(session, phase, legalEnd, at, now, alert = alert, checkIn = checkIn)
+    }
+
+    private companion object {
+        /** El receptor de la alarma tiene poco tiempo: si la descarga tarda más, vale la caché. */
+        const val ALARM_REFRESH_TIMEOUT_MS = 7_000L
     }
 }

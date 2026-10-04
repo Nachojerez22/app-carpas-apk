@@ -17,7 +17,8 @@ import androidx.room.RoomDatabase
         ObservationMetaEntity::class,
         SyncStateEntity::class,
     ],
-    version = 1,
+    // v2: weather_code en forecast_hour (fase 7.3).
+    version = 2,
     exportSchema = false,
 )
 abstract class CarpStrategyDatabase : RoomDatabase() {

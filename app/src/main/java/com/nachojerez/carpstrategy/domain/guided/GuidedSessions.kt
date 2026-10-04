@@ -66,9 +66,13 @@ object GuidedSessions {
      * Empieza con una caña por nombre («fija», «carrete»), cada una con su plan A pendiente.
      * La segunda caña empieza por otro cebo de la fase si lo llevas, para comparar (🟣).
      */
-    fun start(session: Session, rodNames: List<String>, groundbait: GroundbaitLevel?, env: GuidedEnv): GuidedUpdate {
+    fun start(session: Session, rodNames: List<String>, groundbait: GroundbaitLevel?, env: GuidedEnv, spot: Spot? = null): GuidedUpdate {
         val names = rodNames.map { it.trim() }.take(MAX_RODS).ifEmpty { listOf("") }
-        val base = session.copy(rods = names.size, guided = GuidedRecord(rods = emptyList(), groundbait = groundbait))
+        val base = session.copy(
+            rods = names.size,
+            zone = spot?.zone ?: session.zone,
+            guided = GuidedRecord(rods = emptyList(), groundbait = groundbait, spot = spot),
+        )
         val rods = names.mapIndexed { index, name ->
             val ctx = context(base, index + 1, env)
             RodTrack(index + 1, name, GuidedLog.start(env.now, GuidedEngine.initialProposal(ctx, variant = index)))
@@ -112,6 +116,31 @@ object GuidedSessions {
     fun conditionChanged(session: Session, condition: FieldCondition, active: Boolean, env: GuidedEnv): GuidedUpdate {
         val record = session.guided ?: return GuidedUpdate(session)
         return refresh(session.copy(guided = record.withCondition(env.now, condition, active)), env)
+    }
+
+    /** El tiempo de un aviso (previsión de la hora en curso); un cambio claro de viento cuenta como tal. */
+    fun weather(session: Session, snapshot: WeatherSnapshot, env: GuidedEnv): GuidedUpdate {
+        val record = session.guided ?: return GuidedUpdate(session)
+        return refresh(session.copy(guided = record.withWeather(snapshot)), env)
+    }
+
+    /**
+     * Respuesta a «¿Llueve?» o «¿Hay tormenta?». Lo que dices manda sobre la previsión: «sí»
+     * activa la condición (lluvia fuerte si [heavy]) y «no» termina la lluvia anotada.
+     */
+    fun answerWeather(session: Session, question: WeatherQuestion, answer: Boolean, env: GuidedEnv, heavy: Boolean = false): GuidedUpdate {
+        var record = session.guided?.withWeatherAnswer(question, answer) ?: return GuidedUpdate(session)
+        val active = record.activeConditions(env.now)
+        record = when (question) {
+            WeatherQuestion.RAIN -> when {
+                answer && FieldCondition.LIGHT_RAIN !in active && FieldCondition.HEAVY_RAIN !in active ->
+                    record.withCondition(env.now, if (heavy) FieldCondition.HEAVY_RAIN else FieldCondition.LIGHT_RAIN, true)
+                !answer -> record.withCondition(env.now, FieldCondition.LIGHT_RAIN, false).withCondition(env.now, FieldCondition.HEAVY_RAIN, false)
+                else -> record
+            }
+            WeatherQuestion.STORM -> if (answer) record.withCondition(env.now, FieldCondition.STORM, true) else record
+        }
+        return refresh(session.copy(guided = record), env)
     }
 
     /** Acepta la propuesta pendiente de una caña; cebo y montaje pasan a la ficha. */

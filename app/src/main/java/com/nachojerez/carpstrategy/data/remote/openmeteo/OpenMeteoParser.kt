@@ -6,6 +6,7 @@ import com.nachojerez.carpstrategy.data.remote.openmeteo.OpenMeteoRequest.PRECIP
 import com.nachojerez.carpstrategy.data.remote.openmeteo.OpenMeteoRequest.PRESSURE_MSL
 import com.nachojerez.carpstrategy.data.remote.openmeteo.OpenMeteoRequest.SHORTWAVE_RADIATION
 import com.nachojerez.carpstrategy.data.remote.openmeteo.OpenMeteoRequest.TEMPERATURE
+import com.nachojerez.carpstrategy.data.remote.openmeteo.OpenMeteoRequest.WEATHER_CODE
 import com.nachojerez.carpstrategy.data.remote.openmeteo.OpenMeteoRequest.WIND_DIRECTION
 import com.nachojerez.carpstrategy.data.remote.openmeteo.OpenMeteoRequest.WIND_GUSTS
 import com.nachojerez.carpstrategy.data.remote.openmeteo.OpenMeteoRequest.WIND_SPEED
@@ -53,6 +54,7 @@ object OpenMeteoParser {
                     cloudCoverPct = columns.value(CLOUD_COVER, i),
                     precipitationMm = columns.value(PRECIPITATION, i),
                     shortwaveRadiationWm2 = columns.value(SHORTWAVE_RADIATION, i),
+                    weatherCode = columns.value(WEATHER_CODE, i)?.toInt(),
                 )
             }.filterNot { it.isEmpty() }
             model to hours
@@ -96,7 +98,7 @@ object OpenMeteoParser {
 
     private fun HourlyWeather.isEmpty() = listOf(
         temperatureC, pressureMslHpa, windSpeedKmh, windDirectionDeg, windGustsKmh,
-        cloudCoverPct, precipitationMm, shortwaveRadiationWm2,
+        cloudCoverPct, precipitationMm, shortwaveRadiationWm2, weatherCode?.toDouble(),
     ).all { it == null }
 
     private fun JsonObject.double(key: String): Double? = this[key]?.jsonPrimitive?.doubleOrNull

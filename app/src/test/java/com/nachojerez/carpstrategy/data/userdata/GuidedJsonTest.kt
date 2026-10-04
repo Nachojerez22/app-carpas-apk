@@ -5,9 +5,9 @@ import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.Column
+import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
-import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedLog
 import com.nachojerez.carpstrategy.domain.guided.GuidedRecord
@@ -19,7 +19,12 @@ import com.nachojerez.carpstrategy.domain.guided.RodTrack
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Situation
 import com.nachojerez.carpstrategy.domain.guided.Species
+import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.guided.StepKind
+import com.nachojerez.carpstrategy.domain.guided.WeatherQuestion
+import com.nachojerez.carpstrategy.domain.guided.WeatherSnapshot
+import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -53,6 +58,39 @@ class GuidedJsonTest {
         assertEquals(record, GuidedJson.decode(text))
         assertTrue(text.contains("\"canas\""))
         assertTrue(text.contains("\"BLACK_BASS\""))
+    }
+
+    @Test
+    fun `puesto y tiempo de cada aviso van con la sesion`() {
+        val a = Proposal(StepKind.INITIAL, Situation.START, BaitType.MAIZE, evidence = Evidence.YELLOW, createdAt = t0)
+        val spot = Spot(3, "Punta del cauce", FishingZone.WEST, SpotStructure.OLD_CHANNEL, 4.5, 60.0, 270, "fondo duro")
+        val weather = WeatherSnapshot(
+            time = t0, airC = 21.5, windKmh = 12.0, windFromDeg = 250.0, gustKmh = 30.0, cloudPct = 80.0, precipitationMm = 0.4,
+            weatherCode = 95, pressureHpa = 1012.0, waterC = 22.1, waterMeasured = true,
+            sunset = t0.plusSeconds(50_000), legalEnd = t0.plusSeconds(53_600),
+        )
+        val record = GuidedRecord(rods = listOf(RodTrack(1, "", GuidedLog.start(t0, a))), spot = spot)
+            .withWeather(weather)
+            .withWeatherAnswer(WeatherQuestion.STORM, false)
+            .withWeather(WeatherSnapshot(time = t0.plusSeconds(1800)))
+        val text = GuidedJson.encode(record)
+        assertEquals(record, GuidedJson.decode(text))
+        assertTrue(text.contains("\"puesto\""))
+        assertTrue(text.contains("\"codigo_tiempo\":95"))
+        assertTrue(text.contains("\"tormenta_usuario\":false"))
+    }
+
+    @Test
+    fun `mis puestos ida y vuelta y los invalidos se descartan`() {
+        val spots = listOf(
+            Spot(1, "Recula norte", FishingZone.NORTH, SpotStructure.INLET_BAY, 1.5, 30.0, 180, ""),
+            Spot(2, "Llano", structure = SpotStructure.FLAT),
+        )
+        assertEquals(spots, GuidedJson.decodeSpots(GuidedJson.encodeSpots(spots)))
+        val text = """[{"id":1,"nombre":"  "},{"id":2,"nombre":"Punta","estructura":"DESCONOCIDA","orientacion_grados":-90}]"""
+        assertEquals(listOf(Spot(2, "Punta", facingDeg = 270)), GuidedJson.decodeSpots(text))
+        assertEquals(emptyList<Spot>(), GuidedJson.decodeSpots("no es json"))
+        assertEquals(emptyList<Spot>(), GuidedJson.decodeSpots(null))
     }
 
     @Test

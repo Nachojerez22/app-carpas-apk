@@ -195,6 +195,10 @@ data class GuidedRecord(
     val groundbait: GroundbaitLevel? = null,
     /** Lluvia, tormenta y entrada de agua turbia anotadas, en orden. */
     val conditions: List<ConditionChange> = emptyList(),
+    /** Copia del puesto elegido al empezar (si luego lo editas, la sesión guarda cómo era). */
+    val spot: Spot? = null,
+    /** El tiempo en cada aviso (previsión + respuestas del usuario), en orden. */
+    val weather: List<WeatherSnapshot> = emptyList(),
 ) {
     fun rod(id: Int): RodTrack? = rods.firstOrNull { it.id == id }
 
@@ -230,6 +234,26 @@ data class GuidedRecord(
         }
         val closeOther = other?.takeIf { active && it in current }?.let { ConditionChange(at, it, false) }
         return copy(conditions = conditions + listOfNotNull(closeOther) + ConditionChange(at, condition, active))
+    }
+
+    /**
+     * Añade el tiempo de un aviso. Si el viento gira o sube claramente respecto al aviso anterior,
+     * cuenta como cambio de viento (como si lo anotaras tú; queda el dato en [weather]).
+     */
+    fun withWeather(snapshot: WeatherSnapshot): GuidedRecord {
+        val changed = FieldWeather.windChangedSince(weather.lastOrNull(), snapshot)
+        val next = copy(weather = weather + snapshot)
+        return if (changed) next.withWindChange(snapshot.time) else next
+    }
+
+    /** Guarda la respuesta a «¿Llueve?» o «¿Hay tormenta?» en el último aviso. */
+    fun withWeatherAnswer(question: WeatherQuestion, answer: Boolean): GuidedRecord {
+        val last = weather.lastOrNull() ?: return this
+        val answered = when (question) {
+            WeatherQuestion.RAIN -> last.copy(rainAnswer = answer)
+            WeatherQuestion.STORM -> last.copy(stormAnswer = answer)
+        }
+        return copy(weather = weather.dropLast(1) + answered)
     }
 
     fun finish(at: Instant): GuidedRecord = copy(rods = rods.map { it.copy(log = it.log.finish(at)) })

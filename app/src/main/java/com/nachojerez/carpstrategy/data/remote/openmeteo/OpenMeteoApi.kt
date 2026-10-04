@@ -38,10 +38,11 @@ object OpenMeteoRequest {
     const val CLOUD_COVER = "cloud_cover"
     const val PRECIPITATION = "precipitation"
     const val SHORTWAVE_RADIATION = "shortwave_radiation"
+    const val WEATHER_CODE = "weather_code"
 
     val HOURLY_VARIABLES = listOf(
         TEMPERATURE, PRESSURE_MSL, WIND_SPEED, WIND_DIRECTION, WIND_GUSTS,
-        CLOUD_COVER, PRECIPITATION, SHORTWAVE_RADIATION,
+        CLOUD_COVER, PRECIPITATION, SHORTWAVE_RADIATION, WEATHER_CODE,
     )
 
     const val PAST_DAYS = 7

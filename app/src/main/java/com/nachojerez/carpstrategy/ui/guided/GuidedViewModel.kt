@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
+import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.domain.guided.WeatherQuestion
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
@@ -49,8 +51,14 @@ class GuidedViewModel @Inject constructor(
     }
 
     val uiState: StateFlow<GuidedUiState> =
-        combine(manager.observeActive(), settings.observeGear(), manager.nextCheckIn, ticker, combine(starting, saved, permissions, ::Triple)) { session, gear, next, now, (isStarting, lastSaved, perms) ->
-            buildGuidedState(session, gear, now, next, Formatting.MADRID).copy(
+        combine(
+            manager.observeActive(),
+            combine(settings.observeGear(), settings.observeSpots(), ::Pair),
+            manager.nextCheckIn,
+            ticker,
+            combine(starting, saved, permissions, ::Triple),
+        ) { session, (gear, spots), next, now, (isStarting, lastSaved, perms) ->
+            buildGuidedState(session, gear, now, next, Formatting.MADRID, spots).copy(
                 starting = isStarting,
                 lastSaved = lastSaved,
                 canNotify = perms.first,
@@ -63,12 +71,12 @@ class GuidedViewModel @Inject constructor(
         permissions.value = manager.canNotify() to manager.canScheduleExact()
     }
 
-    fun start(rodNames: List<String>, zone: FishingZone?, groundbait: GroundbaitLevel?) {
+    fun start(rodNames: List<String>, zone: FishingZone?, groundbait: GroundbaitLevel?, spot: Spot?) {
         if (starting.value) return
         starting.value = true
         viewModelScope.launch {
             try {
-                manager.start(rodNames, zone, groundbait)
+                manager.start(rodNames, zone, groundbait, spot)
             } finally {
                 starting.value = false
             }
@@ -99,6 +107,13 @@ class GuidedViewModel @Inject constructor(
     fun conditionChanged(condition: FieldCondition, active: Boolean) {
         viewModelScope.launch {
             manager.conditionChanged(condition, active)
+            saved.value = clock.instant()
+        }
+    }
+
+    fun answerWeather(question: WeatherQuestion, answer: Boolean, heavy: Boolean = false) {
+        viewModelScope.launch {
+            manager.answerWeather(question, answer, heavy)
             saved.value = clock.instant()
         }
     }

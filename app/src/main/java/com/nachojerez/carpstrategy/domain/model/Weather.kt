@@ -28,6 +28,11 @@ data class HourlyWeather(
     val cloudCoverPct: Double?,
     val precipitationMm: Double?,
     val shortwaveRadiationWm2: Double?,
+    /**
+     * Código WMO del tiempo presente (Open-Meteo `weather_code`): 95–99 = tormenta. Es una
+     * previsión del modelo; lo que diga el usuario en el puesto manda.
+     */
+    val weatherCode: Int? = null,
 )
 
 /** Serie horaria de varios modelos para una ubicación. */

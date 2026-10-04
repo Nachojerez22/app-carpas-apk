@@ -40,10 +40,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.BuildConfig
 import com.nachojerez.carpstrategy.R
-import com.nachojerez.carpstrategy.ui.account.AccountCard
 import com.nachojerez.carpstrategy.domain.model.AppStyle
 import com.nachojerez.carpstrategy.domain.model.AppThemeMode
 import com.nachojerez.carpstrategy.domain.model.DefaultLocation
+import com.nachojerez.carpstrategy.ui.account.AccountCard
 import com.nachojerez.carpstrategy.ui.components.Caption
 import com.nachojerez.carpstrategy.ui.components.CarpCard
 import com.nachojerez.carpstrategy.ui.components.EvidenceBadge
@@ -58,7 +58,7 @@ import com.nachojerez.carpstrategy.ui.theme.Spacing
 
 /** Pestaña Lugar: ubicación, apariencia, fuentes, leyenda, limitaciones y normativa. */
 @Composable
-fun PlaceScreen(viewModel: PlaceViewModel = hiltViewModel()) {
+fun PlaceScreen(onOpenSpots: () -> Unit = {}, viewModel: PlaceViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val myLocationName = stringResource(R.string.place_my_location)
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
@@ -85,6 +85,14 @@ fun PlaceScreen(viewModel: PlaceViewModel = hiltViewModel()) {
                 onSave = viewModel::saveCoordinates,
                 onReset = viewModel::resetToDefault,
             )
+        }
+
+        item { SectionTitle(stringResource(R.string.spots_title), subtitle = stringResource(R.string.spots_open_detail)) }
+        item {
+            CarpCard {
+                Caption(stringResource(R.string.spots_intro))
+                OutlinedButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+            }
         }
 
         item { SectionTitle(stringResource(R.string.place_appearance_title)) }
