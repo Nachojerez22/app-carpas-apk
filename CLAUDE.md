@@ -161,6 +161,18 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - Estrategia: resumen (+ `nextWindow` y botón a la sesión guiada) → qué hacer (+ tus puestos) →
   cuándo → avisos → «Por qué» plegado.
 
+## Asistente de IA (fase 7.4)
+
+- `domain/assistant`: `AiDecision`/`AiPlan`, `AiValidator` (todo o nada: pasos, equipo y puestos por
+  nombre, sin %, sin gramos, sin noche, sin promesas, evidencia, ⚖ zona < 45 min, tormenta) y
+  `toProposal` (propuesta con `ProposalSource.AI`). `GuidedSessions.applyAi`/`aiContext`.
+- `data/assistant`: `AiClient` (OkHttp; Gemini `generateContent` con `x-goog-api-key` y
+  OpenAI-compatible), `AssistantPrompts` (normas + estado; **nunca** la ubicación), `AssistantJson`,
+  `Assistant` (consulta + validación → `AiOutcome`) y `AssistantSettings` (`local_ai_config`,
+  `local_ai_key`: nunca se sincronizan).
+- `GuidedSessionManager.consultAi` (tras cada alarma, en `scope`, y a demanda); el último plan de
+  Estrategia (`local_ai_last_plan`) se copia en la sesión si empieza en < 3 h. Todo queda en `GuidedRecord.ai`.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.
