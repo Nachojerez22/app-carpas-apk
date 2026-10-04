@@ -440,6 +440,16 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - Escalera: con agua turbia entrando (no en invierno), el peldaño «boca de recula o arroyo» va antes del cambio de zona (§5.9.2, 🟣) y cuenta como un cambio de zona.
 - **Seguridad (🟢)**: con tormenta, las cañas de carbono conducen la electricidad; dejar las cañas, alejarse del agua y ponerse a cubierto. Mientras dure la tormenta la app no propone cambios. El efecto de la tormenta en la carpa no está demostrado (🔴): solo se registra.
 
+#### 5.9.10 Puestos del usuario y el tiempo en cada aviso (oct. 2026, petición del usuario)
+
+> Añadido para que cada aviso diga qué ha cambiado y para usar puestos reales en lugar de suponer la batimetría (§6.3).
+
+- **Mis puestos**: nombre, zona, estructura (borde somero, primera caída, antiguo cauce, recula o entrada, punta, llano, otra), profundidad y distancia **medidas por el usuario**, orientación de la orilla (hacia dónde mira, rumbo al agua) y notas. La app no inventa profundidades ni zonas.
+- **Viento respecto al puesto**: si el viento viene de la dirección a la que mira la orilla, sopla desde el agua hacia ti: *de cara*, tu orilla lo recibe (sotavento, §5.4 🟡: desempate, no regla principal); de espaldas, orilla resguardada; lateral; flojo por debajo de 6 km/h (🟣).
+- **Tiempo en cada aviso**: al empezar y en cada aviso se guarda la previsión de la hora en curso (serie combinada según tu prioridad de fuentes; aire corregido con el sesgo frente a AEMET), el código de tiempo de Open-Meteo (tormenta = 95–99; se usa el más severo de los modelos), el agua (medida o estimada), el ocaso y el fin legal. Se muestran los cambios desde el aviso anterior y desde el inicio con umbrales 🟣: aire ±1,5 °C, viento ±8 km/h, giro ≥ 60° (con viento ≥ 6 km/h), rachas ≥ 40 km/h, lluvia ≥ 0,2 mm/h, agua ±0,3 °C. **Nubosidad (±40 %) y presión (±2 hPa) se muestran con peso 0 (🔴)**.
+- **Lo que ves manda**: es una previsión; si no cuadra con lo anotado (o da tormenta), la app pregunta «¿Llueve?» / «¿Hay tormenta?» y la respuesta activa o termina la condición (§5.9.9). Un giro o subida clara del viento previsto cuenta como cambio de viento (§5.9.8, 🟡).
+- Todo queda con la sesión para aprender después (§9). Ningún dato de tiempo cambia la valoración de las reglas durante la sesión.
+
 ## 6. Brovales
 
 ### 6.1 Verificado (oficial / inventario de presas MITECO)

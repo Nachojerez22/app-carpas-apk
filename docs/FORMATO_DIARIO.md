@@ -83,7 +83,15 @@ de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "te
   "cebado_inicial": "HIGH",
   "condiciones": [ { "hora": "…", "tipo": "STORM", "activa": true }, { "hora": "…", "tipo": "STORM", "activa": false } ],
   "cambios_viento": ["…"],
-  "avisos_mostrados": ["…"]
+  "avisos_mostrados": ["…"],
+  "puesto": { "id": 3, "nombre": "Punta del cauce", "zona": "WEST", "estructura": "OLD_CHANNEL",
+              "profundidad_m": 4.5, "distancia_m": 60, "orientacion_grados": 270, "notas": "fondo duro" },
+  "tiempo": [
+    { "hora": "…", "aire_c": 21.5, "viento_kmh": 12, "viento_dir_grados": 250, "rachas_kmh": 30,
+      "nubosidad_pct": 80, "precipitacion_mm": 0.4, "codigo_tiempo": 95, "presion_hpa": 1012,
+      "agua_c": 22.1, "agua_medida": false, "ocaso": "…", "fin_legal": "…",
+      "llueve_usuario": true, "tormenta_usuario": false }
+  ]
 }
 ```
 
@@ -107,6 +115,14 @@ de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "te
 - `condiciones`: lluvia, tormenta y agua turbia que empiezan (`activa: true`) o terminan
   (`false`). `tipo`: `LIGHT_RAIN`, `HEAVY_RAIN`, `STORM`, `MUDDY_INFLOW`. Desde 0.8.1.
 - `paso` también puede ser `INFLOW` (boca de la recula o del arroyo, con agua turbia entrando).
+- `puesto` (desde 0.9.0): copia del puesto de **Mis puestos** elegido al empezar. `zona`: `NORTH`,
+  `EAST`, `SOUTH`, `WEST` · `estructura`: `SHALLOW_EDGE`, `FIRST_DROP`, `OLD_CHANNEL`,
+  `INLET_BAY`, `POINT`, `FLAT`, `OTHER` · `orientacion_grados`: hacia dónde mira la orilla (0 = N).
+- `tiempo` (desde 0.9.0): previsión de la hora en curso al empezar y en cada aviso. `codigo_tiempo`
+  es el código WMO de Open-Meteo (95–99 = tormenta). `nubosidad_pct` y `presion_hpa` tienen peso 0.
+  `llueve_usuario` y `tormenta_usuario`: respuesta a «¿Llueve?» / «¿Hay tormenta?» en ese aviso
+  (ausente = sin contestar). Mis puestos se guardan en el ajuste `spots` con el mismo formato que
+  `puesto`.
 
 Los campos sin valor se omiten. Las claves desconocidas se ignoran al leer. **Diario →
 Restaurar una copia del diario** lee este formato y omite las sesiones que ya existen (misma
