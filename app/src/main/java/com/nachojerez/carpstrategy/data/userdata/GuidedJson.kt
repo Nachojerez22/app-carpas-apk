@@ -1,5 +1,9 @@
 package com.nachojerez.carpstrategy.data.userdata
 
+import com.nachojerez.carpstrategy.domain.assistant.AiExchange
+import com.nachojerez.carpstrategy.domain.assistant.AiIssue
+import com.nachojerez.carpstrategy.domain.assistant.AiKind
+import com.nachojerez.carpstrategy.domain.guided.ActivityPlace
 import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
@@ -14,8 +18,10 @@ import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedLog
 import com.nachojerez.carpstrategy.domain.guided.GuidedRecord
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
+import com.nachojerez.carpstrategy.domain.guided.JumpCount
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.ProposalRecord
+import com.nachojerez.carpstrategy.domain.guided.ProposalSource
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.RigType
 import com.nachojerez.carpstrategy.domain.guided.RodTrack
@@ -49,6 +55,8 @@ object GuidedJson {
         @SerialName("cambio_usuario") val userChange: String? = null,
         @SerialName("especie") val species: String? = null,
         @SerialName("recebado") val rebait: String? = null,
+        @SerialName("actividad_en") val seenAt: String? = null,
+        @SerialName("saltos") val jumps: String? = null,
     )
 
     @Serializable
@@ -63,6 +71,9 @@ object GuidedJson {
         @SerialName("forzada") val forced: Boolean = false,
         @SerialName("evidencia") val evidence: String,
         @SerialName("creada") val createdAt: String,
+        @SerialName("origen") val source: String? = null,
+        @SerialName("nota") val note: String? = null,
+        @SerialName("puesto") val spotName: String? = null,
     )
 
     @Serializable
@@ -114,6 +125,21 @@ object GuidedJson {
         @SerialName("notas") val notes: String = "",
     )
 
+    /** Una consulta a la IA (la clave nunca se guarda aquí). */
+    @Serializable
+    data class AiDto(
+        @SerialName("hora") val time: String,
+        @SerialName("tipo") val kind: String,
+        @SerialName("proveedor") val provider: String,
+        @SerialName("modelo") val model: String,
+        @SerialName("respuesta") val response: String? = null,
+        @SerialName("valida") val valid: Boolean = false,
+        @SerialName("problemas") val issues: List<String> = emptyList(),
+        @SerialName("error") val error: String? = null,
+        @SerialName("resumen") val summary: String? = null,
+        @SerialName("nota") val note: String? = null,
+    )
+
     /** El tiempo en un aviso: previsión de la hora en curso y respuestas del usuario. */
     @Serializable
     data class WeatherDto(
@@ -144,6 +170,7 @@ object GuidedJson {
         @SerialName("condiciones") val conditions: List<ConditionDto> = emptyList(),
         @SerialName("puesto") val spot: SpotDto? = null,
         @SerialName("tiempo") val weather: List<WeatherDto> = emptyList(),
+        @SerialName("ia") val ai: List<AiDto> = emptyList(),
         @SerialName("tramos") val legacySegments: List<SegmentDto>? = null,
         @SerialName("propuestas") val legacyProposals: List<ProposalRecordDto>? = null,
     )
@@ -161,7 +188,9 @@ object GuidedJson {
 
     private fun instant(text: String?): Instant? = text?.let { runCatching { Instant.parse(it) }.getOrNull() }
 
-    fun CheckIn.toDto() = CheckInDto(time.toString(), signals.name, activity.name, baitState.name, notWorking, userChange?.name, species?.name, rebait?.name)
+    fun CheckIn.toDto() = CheckInDto(
+        time.toString(), signals.name, activity.name, baitState.name, notWorking, userChange?.name, species?.name, rebait?.name, seenAt?.name, jumps?.name,
+    )
 
     fun CheckInDto.toDomain(): CheckIn? = CheckIn(
         time = instant(time) ?: return null,
@@ -172,10 +201,13 @@ object GuidedJson {
         userChange = enumOf<ChangedVariable>(userChange),
         species = enumOf<Species>(species),
         rebait = enumOf<GroundbaitLevel>(rebait),
+        seenAt = enumOf<ActivityPlace>(seenAt),
+        jumps = enumOf<JumpCount>(jumps),
     )
 
     fun Proposal.toDto() = ProposalDto(
         kind.name, situation.name, bait?.name, baitName, baitFallback, column?.name, rigName, forced, evidence.name, createdAt.toString(),
+        source.takeIf { it != ProposalSource.RULES }?.name, note, spotName,
     )
 
     fun ProposalDto.toDomain(): Proposal? = Proposal(
@@ -189,6 +221,9 @@ object GuidedJson {
         forced = forced,
         evidence = enumOf<Evidence>(evidence) ?: Evidence.PURPLE,
         createdAt = instant(createdAt) ?: return null,
+        source = enumOf<ProposalSource>(source) ?: ProposalSource.RULES,
+        note = note,
+        spotName = spotName,
     )
 
     private fun Segment.toDto() =
@@ -235,6 +270,7 @@ object GuidedJson {
         conditions = conditions.map { ConditionDto(it.time.toString(), it.condition.name, it.active) },
         spot = spot?.toDto(),
         weather = weather.map { it.toDto() },
+        ai = ai.map { it.toDto() },
     )
 
     fun GuidedDto.toDomain(): GuidedRecord? {
@@ -251,6 +287,7 @@ object GuidedJson {
             },
             spot = spot?.toDomain(),
             weather = weather.mapNotNull { it.toDomain() },
+            ai = ai.mapNotNull { it.toDomain() },
         )
     }
 
@@ -296,6 +333,27 @@ object GuidedJson {
         rainAnswer = rainAnswer,
         stormAnswer = stormAnswer,
     )
+
+    private fun AiExchange.toDto() = AiDto(time.toString(), kind.name, provider, model, response, valid, issues.map { it.name }, error, summary, note)
+
+    private fun AiDto.toDomain(): AiExchange? = AiExchange(
+        time = instant(time) ?: return null,
+        kind = enumOf<AiKind>(kind) ?: return null,
+        provider = provider,
+        model = model,
+        response = response,
+        valid = valid,
+        issues = issues.mapNotNull { enumOf<AiIssue>(it) },
+        error = error,
+        summary = summary,
+        note = note,
+    )
+
+    /** Una consulta suelta (el último plan de Estrategia, hasta que empieza la sesión). */
+    fun encodeAi(exchange: AiExchange): String = JournalJson.json.encodeToString(AiDto.serializer(), exchange.toDto())
+
+    fun decodeAi(text: String?): AiExchange? =
+        text?.let { runCatching { JournalJson.json.decodeFromString(AiDto.serializer(), it) }.getOrNull() }?.toDomain()
 
     fun encodeSpots(spots: List<Spot>): String =
         JournalJson.json.encodeToString(kotlinx.serialization.builtins.ListSerializer(SpotDto.serializer()), spots.map { it.toDto() })
