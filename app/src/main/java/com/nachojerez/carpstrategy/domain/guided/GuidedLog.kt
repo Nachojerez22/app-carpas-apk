@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.domain.guided
 
+import com.nachojerez.carpstrategy.domain.assistant.AiExchange
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import java.time.Duration
 import java.time.Instant
@@ -33,6 +34,12 @@ enum class GroundbaitLevel { LOW, NORMAL, HIGH }
  */
 enum class FieldCondition { LIGHT_RAIN, HEAVY_RAIN, STORM, MUDDY_INFLOW }
 
+/** Dónde se vio actividad de carpa (para la IA y el aprendizaje, §9). */
+enum class ActivityPlace { SHORE, SURFACE, MIDWATER, BOTTOM }
+
+/** Saltos de carpa vistos desde el aviso anterior. */
+enum class JumpCount { NONE, FEW, MANY }
+
 /** Una condición empieza ([active] true) o termina en [time]. */
 data class ConditionChange(val time: Instant, val condition: FieldCondition, val active: Boolean)
 
@@ -51,6 +58,10 @@ data class CheckIn(
     val species: Species? = null,
     /** Recebado anotado en este momento. */
     val rebait: GroundbaitLevel? = null,
+    /** Dónde se vio actividad (orilla, superficie, media agua, fondo). */
+    val seenAt: ActivityPlace? = null,
+    /** Saltos vistos: ninguno, 1–2 o muchos. */
+    val jumps: JumpCount? = null,
 ) {
     val isCarpCatch: Boolean get() = activity == HookActivity.CATCH && (species == null || species == Species.CARP)
 
@@ -62,7 +73,10 @@ data class CheckIn(
 enum class StepKind { INITIAL, PRESENTATION, RIG, COLUMN, DISTANCE, ZONE, ANTI_CRAB, SELECTIVE, INFLOW }
 
 /** Por qué se propone el paso: la situación diagnosticada. */
-enum class Situation { START, NO_SIGNALS, SIGNALS_NO_BITES, TOUCHES, CRAB_OR_SMALL_FISH, OTHER_FISH }
+enum class Situation { START, NO_SIGNALS, SIGNALS_NO_BITES, TOUCHES, CRAB_OR_SMALL_FISH, OTHER_FISH, ASSISTANT }
+
+/** Quién propone: el motor de reglas o el asistente de IA (fase 8: «¿IA o reglas?»). */
+enum class ProposalSource { RULES, AI }
 
 /** Qué propone la app. Los textos salen de [kind], [bait] y [column] en la UI. */
 data class Proposal(
@@ -78,6 +92,11 @@ data class Proposal(
     val forced: Boolean = false,
     val evidence: Evidence,
     val createdAt: Instant,
+    val source: ProposalSource = ProposalSource.RULES,
+    /** Qué hacer y por qué, en palabras de la IA (ya validado). */
+    val note: String? = null,
+    /** Puesto de «Mis puestos» al que propone ir (solo cambios de zona). */
+    val spotName: String? = null,
 )
 
 enum class Decision { PENDING, ACCEPTED, REJECTED }
@@ -199,6 +218,8 @@ data class GuidedRecord(
     val spot: Spot? = null,
     /** El tiempo en cada aviso (previsión + respuestas del usuario), en orden. */
     val weather: List<WeatherSnapshot> = emptyList(),
+    /** Consultas al asistente de IA (válidas o no), en orden. */
+    val ai: List<AiExchange> = emptyList(),
 ) {
     fun rod(id: Int): RodTrack? = rods.firstOrNull { it.id == id }
 

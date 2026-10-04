@@ -1,5 +1,8 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import com.nachojerez.carpstrategy.domain.assistant.AiExchange
+import com.nachojerez.carpstrategy.domain.assistant.AiKind
+import com.nachojerez.carpstrategy.domain.guided.ActivityPlace
 import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
@@ -15,6 +18,7 @@ import com.nachojerez.carpstrategy.domain.guided.GuidedLog
 import com.nachojerez.carpstrategy.domain.guided.GuidedMessage
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
+import com.nachojerez.carpstrategy.domain.guided.JumpCount
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.guided.Spot
@@ -54,7 +58,13 @@ data class GuidedUiState(
     val weather: WeatherReport? = null,
     /** Mis puestos, para elegir uno al empezar. */
     val spots: List<Spot> = emptyList(),
+    /** Hay clave del asistente de IA en este móvil. */
+    val aiConfigured: Boolean = false,
+    val aiBusy: Boolean = false,
 ) {
+    /** Última consulta a la IA en un aviso. */
+    val lastAi: AiExchange? get() = session?.guided?.ai?.lastOrNull { it.kind == AiKind.CHECK_IN }
+
     /** Avisos de toda la sesión (sin repetir los comunes a varias cañas). */
     val messages: Set<GuidedMessage> get() = rods.flatMap { it.messages }.toSet()
 }
@@ -94,6 +104,8 @@ data class CheckInDraft(
     val change: ChangedVariable? = null,
     val species: Species? = null,
     val rebait: GroundbaitLevel? = null,
+    val seenAt: ActivityPlace? = null,
+    val jumps: JumpCount? = null,
 ) {
     fun toCheckIn(now: Instant) = CheckIn(
         time = now,
@@ -104,6 +116,8 @@ data class CheckInDraft(
         userChange = change,
         species = species.takeIf { activity == HookActivity.CATCH && it != Species.CARP },
         rebait = rebait,
+        seenAt = seenAt,
+        jumps = jumps,
     )
 }
 

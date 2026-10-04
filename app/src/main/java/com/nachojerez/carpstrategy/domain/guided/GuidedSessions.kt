@@ -1,5 +1,9 @@
 package com.nachojerez.carpstrategy.domain.guided
 
+import com.nachojerez.carpstrategy.domain.assistant.AiContext
+import com.nachojerez.carpstrategy.domain.assistant.AiDecision
+import com.nachojerez.carpstrategy.domain.assistant.AiExchange
+import com.nachojerez.carpstrategy.domain.assistant.AiValidator
 import com.nachojerez.carpstrategy.domain.derived.LegalWindow
 import com.nachojerez.carpstrategy.domain.derived.SolarCalculator
 import com.nachojerez.carpstrategy.domain.journal.Catch
@@ -141,6 +145,45 @@ object GuidedSessions {
             WeatherQuestion.STORM -> if (answer) record.withCondition(env.now, FieldCondition.STORM, true) else record
         }
         return refresh(session.copy(guided = record), env)
+    }
+
+    /** Lo que hace falta para validar una respuesta de la IA en esta sesión. */
+    fun aiContext(session: Session, env: GuidedEnv, spots: List<Spot>): AiContext {
+        val record = session.guided
+        val phase = phaseOf(session)
+        val maxZones = GuidedEngine.THRESHOLDS.getValue(phase).maxZoneChanges
+        return AiContext(
+            now = env.now,
+            legalEnd = legalEnd(session, env.zone),
+            rodIds = record?.rods?.map { it.id }?.toSet().orEmpty(),
+            gear = env.inventory,
+            spots = spots,
+            storm = record?.activeConditions(env.now)?.contains(FieldCondition.STORM) == true,
+            zoneLimitReached = record?.rods?.filter { it.log.zoneChanges >= maxZones }?.map { it.id }?.toSet().orEmpty(),
+            legalStart = LegalWindow.of(SolarCalculator.sunTimes(env.now.atZone(env.zone).toLocalDate(), session.location))?.start,
+            zone = env.zone,
+        )
+    }
+
+    /**
+     * Anota una consulta a la IA. Si [decision] es válida y dice CAMBIAR, cada cambio queda como
+     * propuesta pendiente de su caña (origen IA), salvo en cañas que ya tienen una pendiente
+     * (manda la que está). Si no es válida, solo se registra: siguen mandando las reglas.
+     */
+    fun applyAi(session: Session, exchange: AiExchange, decision: AiDecision?, env: GuidedEnv): GuidedUpdate {
+        var record = session.guided?.copy(ai = session.guided.ai + exchange) ?: return GuidedUpdate(session)
+        val proposals = mutableMapOf<Int, Proposal>()
+        if (exchange.valid && decision?.keep == false && session.isOngoing) {
+            decision.changes.forEach { change ->
+                val rod = record.rod(change.rod) ?: return@forEach
+                if (rod.log.pending != null) return@forEach
+                val proposal = AiValidator.toProposal(change, env.inventory, env.now)
+                record = record.updateRod(rod.id) { it.withProposal(proposal) }
+                proposals[rod.id] = proposal
+            }
+        }
+        val update = refresh(session.copy(guided = record), env)
+        return update.copy(newProposals = proposals + update.newProposals)
     }
 
     /** Acepta la propuesta pendiente de una caña; cebo y montaje pasan a la ficha. */

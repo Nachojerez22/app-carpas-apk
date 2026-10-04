@@ -86,6 +86,11 @@ de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "te
   "avisos_mostrados": ["…"],
   "puesto": { "id": 3, "nombre": "Punta del cauce", "zona": "WEST", "estructura": "OLD_CHANNEL",
               "profundidad_m": 4.5, "distancia_m": 60, "orientacion_grados": 270, "notas": "fondo duro" },
+  "ia": [
+    { "hora": "…", "tipo": "CHECK_IN", "proveedor": "GEMINI", "modelo": "gemini-2.5-flash",
+      "respuesta": "{…}", "valida": true, "problemas": [], "resumen": "CAMBIAR 2:COLUMN",
+      "nota": "Saltos en superficie" }
+  ],
   "tiempo": [
     { "hora": "…", "aire_c": 21.5, "viento_kmh": 12, "viento_dir_grados": 250, "rachas_kmh": 30,
       "nubosidad_pct": 80, "precipitacion_mm": 0.4, "codigo_tiempo": 95, "presion_hpa": 1012,
@@ -118,6 +123,12 @@ de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "te
 - `puesto` (desde 0.9.0): copia del puesto de **Mis puestos** elegido al empezar. `zona`: `NORTH`,
   `EAST`, `SOUTH`, `WEST` · `estructura`: `SHALLOW_EDGE`, `FIRST_DROP`, `OLD_CHANNEL`,
   `INLET_BAY`, `POINT`, `FLAT`, `OTHER` · `orientacion_grados`: hacia dónde mira la orilla (0 = N).
+- `ia` (desde 0.10.0): consultas al asistente. `tipo`: `CHECK_IN` (aviso) o `PLAN` (plan de
+  Estrategia copiado al empezar). `valida: false` con `problemas` (`PROBABILITY`, `GRAMS`, `NIGHT`,
+  `UNKNOWN_BAIT`…) o `error` (`Quota`, `Unauthorized`, `Offline`…): entonces mandaron las reglas.
+  La clave nunca se guarda. Las propuestas llevan `origen` (`AI`; ausente = reglas), `nota` y
+  `puesto`; `situacion` puede ser `ASSISTANT`. Los avisos pueden llevar `actividad_en`
+  (`SHORE`, `SURFACE`, `MIDWATER`, `BOTTOM`) y `saltos` (`NONE`, `FEW`, `MANY`).
 - `tiempo` (desde 0.9.0): previsión de la hora en curso al empezar y en cada aviso. `codigo_tiempo`
   es el código WMO de Open-Meteo (95–99 = tormenta). `nubosidad_pct` y `presion_hpa` tienen peso 0.
   `llueve_usuario` y `tormenta_usuario`: respuesta a «¿Llueve?» / «¿Hay tormenta?» en ese aviso

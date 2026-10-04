@@ -29,6 +29,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.ui.assistant.AssistantScreen
 import com.nachojerez.carpstrategy.ui.conditions.ConditionsScreen
 import com.nachojerez.carpstrategy.ui.diary.DiaryScreen
 import com.nachojerez.carpstrategy.ui.guided.GearScreen
@@ -61,6 +62,9 @@ import kotlinx.serialization.Serializable
 
 /** Mis puestos (fase 7.3). */
 @Serializable data object SpotsRoute
+
+/** Asistente de IA (fase 7.4). */
+@Serializable data object AssistantRoute
 
 private enum class TopLevelDestination(
     val route: Any,
@@ -140,6 +144,7 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                 StrategyScreen(
                     onStartGuided = { navController.navigate(GuidedRoute) { launchSingleTop = true } },
                     onOpenSpots = { navController.navigate(SpotsRoute) },
+                    onOpenAssistant = { navController.navigate(AssistantRoute) },
                 )
             }
             composable<DataRoute> { entry ->
@@ -166,7 +171,13 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
             }
             composable<GearRoute> { GearScreen(onBack = { navController.popBackStack() }) }
             composable<SpotsRoute> { SpotsScreen(onBack = { navController.popBackStack() }) }
-            composable<PlaceRoute> { PlaceScreen(onOpenSpots = { navController.navigate(SpotsRoute) }) }
+            composable<AssistantRoute> { AssistantScreen(onBack = { navController.popBackStack() }) }
+            composable<PlaceRoute> {
+                PlaceScreen(
+                    onOpenSpots = { navController.navigate(SpotsRoute) },
+                    onOpenAssistant = { navController.navigate(AssistantRoute) },
+                )
+            }
             composable<RawDataRoute> {
                 Column {
                     TextButton(onClick = { navController.popBackStack() }) { Text(stringResource(R.string.action_back)) }

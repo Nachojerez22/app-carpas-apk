@@ -13,11 +13,13 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.nachojerez.carpstrategy.MainActivity
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import com.nachojerez.carpstrategy.domain.guided.FieldWeather
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -66,7 +68,11 @@ class GuidedNotifier @Inject constructor(@param:ApplicationContext private val c
         }
         // En cada aviso, el tiempo: qué ha cambiado, viento en tu puesto, luz y «¿Llueve?».
         val weather = if (checkIn && !ended) FieldWeather.report(record, now)?.let { res.weatherLines(it) }.orEmpty() else emptyList()
-        val big = (listOf(text) + weather).joinToString("\n")
+        // La última opinión de la IA en este aviso (o por qué se descartó).
+        val ai = record.ai.lastOrNull()
+            ?.takeIf { it.kind == AiKind.CHECK_IN && !ended && Duration.between(it.time, now) <= AI_LINE_MAX_AGE }
+            ?.let { res.aiLine(it) }
+        val big = (listOf(text) + weather + listOfNotNull(ai)).joinToString("\n")
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_nav_diary)
             .setContentTitle(res.getString(R.string.guided_notif_title, res.getString(phase.titleRes())))
@@ -127,5 +133,6 @@ class GuidedNotifier @Inject constructor(@param:ApplicationContext private val c
         private const val REQUEST_OPEN = 7100
         private const val REQUEST_ANSWER = 7200
         private val VIBRATION = longArrayOf(0, 250, 150, 250)
+        private val AI_LINE_MAX_AGE: Duration = Duration.ofMinutes(10)
     }
 }

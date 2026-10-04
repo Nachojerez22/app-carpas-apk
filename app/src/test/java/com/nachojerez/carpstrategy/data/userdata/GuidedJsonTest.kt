@@ -1,5 +1,9 @@
 package com.nachojerez.carpstrategy.data.userdata
 
+import com.nachojerez.carpstrategy.domain.assistant.AiExchange
+import com.nachojerez.carpstrategy.domain.assistant.AiIssue
+import com.nachojerez.carpstrategy.domain.assistant.AiKind
+import com.nachojerez.carpstrategy.domain.guided.ActivityPlace
 import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
@@ -12,7 +16,9 @@ import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedLog
 import com.nachojerez.carpstrategy.domain.guided.GuidedRecord
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
+import com.nachojerez.carpstrategy.domain.guided.JumpCount
 import com.nachojerez.carpstrategy.domain.guided.Proposal
+import com.nachojerez.carpstrategy.domain.guided.ProposalSource
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.RigType
 import com.nachojerez.carpstrategy.domain.guided.RodTrack
@@ -78,6 +84,32 @@ class GuidedJsonTest {
         assertTrue(text.contains("\"puesto\""))
         assertTrue(text.contains("\"codigo_tiempo\":95"))
         assertTrue(text.contains("\"tormenta_usuario\":false"))
+    }
+
+    @Test
+    fun `consultas a la IA, propuestas de la IA y nuevas preguntas del aviso`() {
+        val a = Proposal(StepKind.INITIAL, Situation.START, BaitType.MAIZE, evidence = Evidence.YELLOW, createdAt = t0)
+        val ai = Proposal(
+            StepKind.ZONE, Situation.ASSISTANT, evidence = Evidence.PURPLE, createdAt = t0.plusSeconds(1800),
+            source = ProposalSource.AI, note = "Cambia a la punta — viento de cara", spotName = "Punta",
+        )
+        val log = GuidedLog.start(t0, a).accept(t0)
+            .withCheckIn(CheckIn(t0.plusSeconds(1700), SignalLevel.DIRECT, seenAt = ActivityPlace.SURFACE, jumps = JumpCount.FEW))
+            .withProposal(ai)
+        val record = GuidedRecord(
+            rods = listOf(RodTrack(1, "", log)),
+            ai = listOf(
+                AiExchange(t0.plusSeconds(1800), AiKind.CHECK_IN, "GEMINI", "gemini-x", "{…}", true, emptyList(), null, "CAMBIAR 1:ZONE", "viento de cara"),
+                AiExchange(t0.plusSeconds(3600), AiKind.CHECK_IN, "GEMINI", "gemini-x", "{…}", false, listOf(AiIssue.GRAMS, AiIssue.NIGHT)),
+                AiExchange(t0.plusSeconds(5400), AiKind.CHECK_IN, "GEMINI", "gemini-x", error = "Quota"),
+            ),
+        )
+        val text = GuidedJson.encode(record)
+        assertEquals(record, GuidedJson.decode(text))
+        assertTrue(text.contains("\"origen\":\"AI\""))
+        assertTrue(text.contains("\"saltos\":\"FEW\""))
+        assertTrue(text.contains("\"problemas\":[\"GRAMS\",\"NIGHT\"]"))
+        assertEquals(record.ai.first(), GuidedJson.decodeAi(GuidedJson.encodeAi(record.ai.first())))
     }
 
     @Test

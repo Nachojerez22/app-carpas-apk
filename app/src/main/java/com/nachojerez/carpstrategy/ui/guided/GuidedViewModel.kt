@@ -2,6 +2,7 @@ package com.nachojerez.carpstrategy.ui.guided
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nachojerez.carpstrategy.data.assistant.AssistantSettings
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
@@ -27,6 +28,7 @@ import kotlinx.coroutines.launch
 class GuidedViewModel @Inject constructor(
     private val manager: GuidedSessionManager,
     settings: SettingsRepository,
+    assistantSettings: AssistantSettings,
     private val clock: Clock,
 ) : ViewModel() {
     private val starting = MutableStateFlow(false)
@@ -56,9 +58,12 @@ class GuidedViewModel @Inject constructor(
             combine(settings.observeGear(), settings.observeSpots(), ::Pair),
             manager.nextCheckIn,
             ticker,
-            combine(starting, saved, permissions, ::Triple),
-        ) { session, (gear, spots), next, now, (isStarting, lastSaved, perms) ->
+            combine(starting, saved, permissions, assistantSettings.observeKeyHint(), manager.aiBusy, ::AuxState),
+        ) { session, (gear, spots), next, now, aux ->
+            val (isStarting, lastSaved, perms) = Triple(aux.starting, aux.saved, aux.permissions)
             buildGuidedState(session, gear, now, next, Formatting.MADRID, spots).copy(
+                aiConfigured = aux.aiKeyHint != null,
+                aiBusy = aux.aiBusy,
                 starting = isStarting,
                 lastSaved = lastSaved,
                 canNotify = perms.first,
@@ -118,6 +123,10 @@ class GuidedViewModel @Inject constructor(
         }
     }
 
+    fun askAi() {
+        viewModelScope.launch { manager.consultAi() }
+    }
+
     fun accept(rodId: Int) {
         viewModelScope.launch { manager.accept(rodId) }
     }
@@ -130,3 +139,11 @@ class GuidedViewModel @Inject constructor(
         viewModelScope.launch { manager.finish()?.let(onFinished) }
     }
 }
+
+private data class AuxState(
+    val starting: Boolean,
+    val saved: Instant?,
+    val permissions: Pair<Boolean, Boolean>,
+    val aiKeyHint: String?,
+    val aiBusy: Boolean,
+)

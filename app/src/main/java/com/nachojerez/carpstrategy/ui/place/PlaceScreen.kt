@@ -58,7 +58,7 @@ import com.nachojerez.carpstrategy.ui.theme.Spacing
 
 /** Pestaña Lugar: ubicación, apariencia, fuentes, leyenda, limitaciones y normativa. */
 @Composable
-fun PlaceScreen(onOpenSpots: () -> Unit = {}, viewModel: PlaceViewModel = hiltViewModel()) {
+fun PlaceScreen(onOpenSpots: () -> Unit = {}, onOpenAssistant: () -> Unit = {}, viewModel: PlaceViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val myLocationName = stringResource(R.string.place_my_location)
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
@@ -92,6 +92,13 @@ fun PlaceScreen(onOpenSpots: () -> Unit = {}, viewModel: PlaceViewModel = hiltVi
             CarpCard {
                 Caption(stringResource(R.string.spots_intro))
                 OutlinedButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+            }
+        }
+
+        item { SectionTitle(stringResource(R.string.ai_settings_title), subtitle = stringResource(R.string.ai_settings_subtitle)) }
+        item {
+            CarpCard {
+                OutlinedButton(onClick = onOpenAssistant) { Text(stringResource(R.string.ai_settings_open)) }
             }
         }
 

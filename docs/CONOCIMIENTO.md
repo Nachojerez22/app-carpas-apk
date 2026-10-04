@@ -450,6 +450,16 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - **Lo que ves manda**: es una previsión; si no cuadra con lo anotado (o da tormenta), la app pregunta «¿Llueve?» / «¿Hay tormenta?» y la respuesta activa o termina la condición (§5.9.9). Un giro o subida clara del viento previsto cuenta como cambio de viento (§5.9.8, 🟡).
 - Todo queda con la sesión para aprender después (§9). Ningún dato de tiempo cambia la valoración de las reglas durante la sesión.
 
+#### 5.9.11 Asistente de IA (oct. 2026, petición del usuario)
+
+> Opcional. El usuario pone su propia clave (Gemini de Google AI Studio u otro proveedor compatible con OpenAI). La IA **no sustituye** a estas normas: la app las comprueba en cada respuesta y, si no se cumplen, la descarta y siguen mandando las reglas.
+
+- **En cada aviso** la IA recibe el estado de la sesión (fase, tiempo previsto y sus cambios, condiciones anotadas, puesto y Mis puestos, equipo, configuración de cada caña, últimos avisos con dónde se vio actividad y saltos) y responde MANTENER o CAMBIAR (un cambio por caña, tipos de la escalera §5.9.2). Un CAMBIAR válido queda como propuesta pendiente de esa caña, marcada «IA», que el usuario acepta o rechaza como las demás.
+- **En Estrategia** tiene su apartado: un plan por caña y **consejos por apartado** (dónde, cuándo, cebado, presentación, qué evitar, notas; como mucho 2 por apartado), cada uno con su etiqueta de evidencia, partiendo de la valoración, las ventanas legales y los consejos de las reglas. Si contradice a las reglas, lo debe decir; decide el usuario. El último plan válido del día se vuelve a mostrar sin repetir la consulta.
+- **Validación (todo o nada)**: solo pasos permitidos; solo cebos y montajes del equipo y puestos de Mis puestos (por nombre); sin probabilidades ni porcentajes; sin gramos ni kilos; sin hablar de pescar de noche; sin prometer peces; etiqueta de evidencia en la decisión y en cada cambio; nada de cambios de zona a menos de 45 min del fin legal (⚖) ni por encima del límite de la fase; ningún cambio con tormenta ni fuera del horario legal; ninguna hora citada («07:30», «7h30») fuera del horario legal de hoy (⚖); consejos con apartado conocido; distancias ≤ 250 m.
+- **Nunca se envía** la ubicación GPS, la cuenta ni la clave. La clave se guarda solo en el móvil (no se sincroniza ni se exporta).
+- Cada consulta queda en la sesión (respuesta, validez, motivos de descarte o error) y cada propuesta lleva su origen (reglas o IA) con la decisión del usuario: base de la comparación «¿IA o reglas?» de la fase 8. Lo que diga la IA es 🟣 hasta que tus datos lo respalden.
+
 ## 6. Brovales
 
 ### 6.1 Verificado (oficial / inventario de presas MITECO)
