@@ -7,6 +7,7 @@ import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedLog
 import com.nachojerez.carpstrategy.domain.guided.GuidedRecord
@@ -44,7 +45,10 @@ class GuidedJsonTest {
             alarms = listOf(t0.plusSeconds(3600)),
             windChanges = listOf(t0.plusSeconds(4000)),
             groundbait = GroundbaitLevel.HIGH,
-        ).finish(t0.plusSeconds(7200))
+        ).withCondition(t0.plusSeconds(4100), FieldCondition.STORM, true)
+            .withCondition(t0.plusSeconds(4200), FieldCondition.HEAVY_RAIN, true)
+            .withCondition(t0.plusSeconds(6000), FieldCondition.STORM, false)
+            .finish(t0.plusSeconds(7200))
         val text = GuidedJson.encode(record)
         assertEquals(record, GuidedJson.decode(text))
         assertTrue(text.contains("\"canas\""))

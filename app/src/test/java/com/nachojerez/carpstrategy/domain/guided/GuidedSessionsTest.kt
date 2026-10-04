@@ -123,4 +123,22 @@ class GuidedSessionsTest {
         assertNull(GuidedSessions.active(listOf(done)))
         assertEquals(s, GuidedSessions.active(listOf(done, s)))
     }
+
+    @Test
+    fun `condiciones juntas o por separado, con su hora`() {
+        var s = started(listOf("fija", "carrete"))
+        s = GuidedSessions.conditionChanged(s, FieldCondition.LIGHT_RAIN, true, env(30)).session
+        s = GuidedSessions.conditionChanged(s, FieldCondition.STORM, true, env(40)).session
+        // Pasar a lluvia fuerte termina la ligera; la tormenta sigue.
+        s = GuidedSessions.conditionChanged(s, FieldCondition.HEAVY_RAIN, true, env(45)).session
+        val record = s.guided!!
+        assertEquals(setOf(FieldCondition.HEAVY_RAIN, FieldCondition.STORM), record.activeConditions(at(50)))
+        assertEquals(setOf(FieldCondition.LIGHT_RAIN), record.activeConditions(at(35)))
+        s = GuidedSessions.conditionChanged(s, FieldCondition.STORM, false, env(70)).session
+        assertEquals(setOf(FieldCondition.HEAVY_RAIN), s.guided!!.activeConditions(at(75)))
+        // Marcar lo que ya está activo no duplica.
+        val again = GuidedSessions.conditionChanged(s, FieldCondition.HEAVY_RAIN, true, env(80)).session
+        assertEquals(s.guided!!.conditions.size, again.guided!!.conditions.size)
+        assertTrue(GuidedSessions.context(s, 1, env(75)).conditions == setOf(FieldCondition.HEAVY_RAIN))
+    }
 }

@@ -81,6 +81,7 @@ de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "te
       ] }
   ],
   "cebado_inicial": "HIGH",
+  "condiciones": [ { "hora": "…", "tipo": "STORM", "activa": true }, { "hora": "…", "tipo": "STORM", "activa": false } ],
   "cambios_viento": ["…"],
   "avisos_mostrados": ["…"]
 }
@@ -103,6 +104,9 @@ de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "te
 - Las picadas falladas y las carpas anotadas en la sesión guiada también suman en `picadas` y
   `capturas` de la sesión (la captura lleva la caña). Las otras especies solo quedan en `guiado`.
 - `cambios_viento`: momentos en que el usuario anotó que el viento cambió.
+- `condiciones`: lluvia, tormenta y agua turbia que empiezan (`activa: true`) o terminan
+  (`false`). `tipo`: `LIGHT_RAIN`, `HEAVY_RAIN`, `STORM`, `MUDDY_INFLOW`. Desde 0.8.1.
+- `paso` también puede ser `INFLOW` (boca de la recula o del arroyo, con agua turbia entrando).
 
 Los campos sin valor se omiten. Las claves desconocidas se ignoran al leer. **Diario →
 Restaurar una copia del diario** lee este formato y omite las sesiones que ya existen (misma

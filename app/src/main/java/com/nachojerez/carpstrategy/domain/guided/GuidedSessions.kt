@@ -58,6 +58,7 @@ object GuidedSessions {
             missingBaits = record?.missingBaits.orEmpty(),
             groundbait = record?.groundbaitOf(rodId),
             lastWindChange = record?.windChanges?.lastOrNull(),
+            conditions = record?.activeConditions(env.now).orEmpty(),
         )
     }
 
@@ -105,6 +106,12 @@ object GuidedSessions {
     fun windChanged(session: Session, env: GuidedEnv): GuidedUpdate {
         val record = session.guided ?: return GuidedUpdate(session)
         return refresh(session.copy(guided = record.withWindChange(env.now)), env)
+    }
+
+    /** Lluvia, tormenta o entrada de agua turbia empiezan ([active]) o terminan. */
+    fun conditionChanged(session: Session, condition: FieldCondition, active: Boolean, env: GuidedEnv): GuidedUpdate {
+        val record = session.guided ?: return GuidedUpdate(session)
+        return refresh(session.copy(guided = record.withCondition(env.now, condition, active)), env)
     }
 
     /** Acepta la propuesta pendiente de una caña; cebo y montaje pasan a la ficha. */

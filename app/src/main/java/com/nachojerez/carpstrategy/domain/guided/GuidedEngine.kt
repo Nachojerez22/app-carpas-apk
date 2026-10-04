@@ -54,6 +54,24 @@ enum class GuidedMessage {
 
     /** 🟡 El viento ha cambiado: valorar la orilla que recibe el viento (§5.9.1). */
     WIND_CHANGED,
+
+    /** 🟢 Seguridad: tormenta. Las cañas de carbono conducen la electricidad; a cubierto. */
+    STORM_SAFETY,
+
+    /** 🟡 Lluvia ligera sin entrada de agua: no cambiar el plan, solo anotarla (§5.6). */
+    LIGHT_RAIN_KEEP,
+
+    /** 🟡 Lluvia fuerte: vigilar si empieza a entrar agua turbia por arroyos y colas. */
+    HEAVY_RAIN_WATCH,
+
+    /** 🟣 Entra agua turbia: cola y borde de la pluma, no el centro; cebado pequeño (§5.6, §5.9.1). */
+    INFLOW_EDGE,
+
+    /** 🟣 Verano y tormenta con entrada: una caña en la caída frente a la desembocadura (§5.6). */
+    INFLOW_SUMMER_STORM,
+
+    /** 🟡 Invierno con lluvia fuerte o entrada: evitar entrada y cola, cebado mínimo (§5.6). */
+    INFLOW_WINTER_AVOID,
 }
 
 data class GuidedContext(
@@ -70,6 +88,8 @@ data class GuidedContext(
     val groundbait: GroundbaitLevel? = null,
     /** Último cambio de viento anotado por el usuario. */
     val lastWindChange: Instant? = null,
+    /** Lluvia, tormenta o entrada de agua turbia activas ahora. */
+    val conditions: Set<FieldCondition> = emptySet(),
 )
 
 data class Evaluation(val proposal: Proposal?, val messages: Set<GuidedMessage>)
@@ -157,11 +177,14 @@ object GuidedEngine {
         if (ctx.lastWindChange != null && !ctx.lastWindChange.isAfter(ctx.now) && Duration.between(ctx.lastWindChange, ctx.now) <= WIND_MESSAGE_FOR) {
             messages += GuidedMessage.WIND_CHANGED
         }
+        messages += conditionMessages(ctx)
         val toEnd = ctx.legalEnd?.let { Duration.between(ctx.now, it) }
         if (toEnd != null && toEnd <= LEGAL_END_WARNING) messages += GuidedMessage.LEGAL_END_SOON
         val noZone = toEnd != null && toEnd <= LEGAL_NO_ZONE
         if (noZone) messages += GuidedMessage.NO_ZONE_CHANGES_LEGAL
         log.pending?.let { return Evaluation(null, messages + baitMessages(it.proposal)) }
+        // Con tormenta no se propone nada: primero, ponerse a salvo.
+        if (FieldCondition.STORM in ctx.conditions) return Evaluation(null, messages)
 
         // Plan A rechazado: otro plan A sin ese cebo.
         val last = log.proposals.lastOrNull()
@@ -242,22 +265,45 @@ object GuidedEngine {
         messages: MutableSet<GuidedMessage>,
         proposedHere: Set<StepKind>,
     ): StepKind? {
-        val sinceZone = log.segments.indexOfLast { it.kind == StepKind.ZONE }.let { if (it < 0) 0 else it }
+        val moved = setOf(StepKind.ZONE, StepKind.INFLOW)
+        val sinceZone = log.segments.indexOfLast { it.kind in moved }.let { if (it < 0) 0 else it }
         // Lo ya probado o rechazado en este tramo no se vuelve a proponer.
         val tried = log.segments.drop(sinceZone).map { it.kind }.toSet() - StepKind.ZONE + (proposedHere - StepKind.ZONE)
         val zoneStart = log.segments[sinceZone].start
         val zoneAllowed = !noZone && log.zoneChanges < th.maxZoneChanges && StepKind.ZONE !in proposedHere &&
             (forced || Duration.between(zoneStart, ctx.now) >= th.step2)
         if (log.zoneChanges >= th.maxZoneChanges) messages += GuidedMessage.ZONE_LIMIT_REACHED
+        // Con entrada de agua turbia (no en invierno) hay un peldaño extra antes de la zona:
+        // la boca de la recula o del arroyo (§5.9.2, 🟣).
+        val inflow = FieldCondition.MUDDY_INFLOW in ctx.conditions && ctx.phase != FishingPhase.WINTER &&
+            StepKind.INFLOW !in tried && StepKind.INFLOW !in proposedHere
+        val zoneStep = if (inflow) StepKind.INFLOW else StepKind.ZONE
         val ladder = NO_SIGNAL_LADDER.getValue(ctx.phase)
         ladder.firstOrNull { it != StepKind.ZONE && it !in tried }?.let { candidate ->
             // En calor extremo la zona va primero si está permitida.
-            if (ladder.first() == StepKind.ZONE && zoneAllowed) return StepKind.ZONE
+            if (ladder.first() == StepKind.ZONE && zoneAllowed) return zoneStep
             return candidate
         }
-        if (zoneAllowed) return StepKind.ZONE
+        if (zoneAllowed) return zoneStep
         // Todo probado y sin zona disponible: otra distancia sobre la misma estructura.
         return if (forced) StepKind.DISTANCE else null
+    }
+
+    /** Avisos por lluvia, tormenta y entrada de agua (CONOCIMIENTO.md §5.6 «Por condición»). */
+    private fun conditionMessages(ctx: GuidedContext): Set<GuidedMessage> = buildSet {
+        val c = ctx.conditions
+        val winter = ctx.phase == FishingPhase.WINTER
+        val inflow = FieldCondition.MUDDY_INFLOW in c
+        if (FieldCondition.STORM in c) add(GuidedMessage.STORM_SAFETY)
+        if (FieldCondition.LIGHT_RAIN in c && !inflow) add(GuidedMessage.LIGHT_RAIN_KEEP)
+        if (winter && (inflow || FieldCondition.HEAVY_RAIN in c)) {
+            add(GuidedMessage.INFLOW_WINTER_AVOID)
+        } else {
+            if (FieldCondition.HEAVY_RAIN in c && !inflow) add(GuidedMessage.HEAVY_RAIN_WATCH)
+            if (inflow) add(GuidedMessage.INFLOW_EDGE)
+            val warm = ctx.phase == FishingPhase.SUMMER || ctx.phase == FishingPhase.HEAT
+            if (inflow && warm && FieldCondition.STORM in c) add(GuidedMessage.INFLOW_SUMMER_STORM)
+        }
     }
 
     private fun hadActivity(log: GuidedLog, since: Instant): Boolean = log.allCheckIns.any {

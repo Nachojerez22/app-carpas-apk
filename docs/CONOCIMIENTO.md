@@ -431,6 +431,15 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - **Viento**: el usuario anota «ha cambiado el viento»; durante 2 h la app recuerda valorar la orilla que lo recibe (🟡, §5.9.1; las 2 h son 🟣).
 - Black bass: **no hay normativa verificada** en este documento sobre su captura o devolución en Brovales; la app no dice nada legal sobre él hasta verificarlo (§6.3).
 
+#### 5.9.9 Lluvia, tormenta y entrada de agua durante la sesión (oct. 2026, sesión del usuario)
+
+> Añadido tras una sesión con lluvia y tormenta que no se pudieron anotar. El usuario marca lo que empieza y lo desmarca al parar; pueden coincidir (lluvia fuerte + tormenta + agua turbia entrando) y quedan con su hora para comparar después qué cambió en cada caña.
+
+- Condiciones: **lluvia ligera**, **lluvia fuerte** (se excluyen entre sí), **tormenta**, **entra agua turbia** (escorrentía observada por el usuario, que es la «escorrentía real» que exige §5.6).
+- Avisos (aplicando la tabla «Por condición» de §5.6): lluvia ligera sin entrada → no cambiar el plan (🟡) · lluvia fuerte → vigilar si entra agua turbia y marcarlo (🟡) · agua turbia entrando → cola y borde de la pluma, no el centro, cebado pequeño (🟣) · verano o calor + tormenta + entrada → una caña en la caída frente a la desembocadura (🟣) · invierno + lluvia fuerte o entrada → evitar entrada y cola, cebado mínimo (🟡).
+- Escalera: con agua turbia entrando (no en invierno), el peldaño «boca de recula o arroyo» va antes del cambio de zona (§5.9.2, 🟣) y cuenta como un cambio de zona.
+- **Seguridad (🟢)**: con tormenta, las cañas de carbono conducen la electricidad; dejar las cañas, alejarse del agua y ponerse a cubierto. Mientras dure la tormenta la app no propone cambios. El efecto de la tormenta en la carpa no está demostrado (🔴): solo se registra.
+
 ## 6. Brovales
 
 ### 6.1 Verificado (oficial / inventario de presas MITECO)
