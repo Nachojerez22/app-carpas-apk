@@ -44,6 +44,7 @@ import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
 import com.nachojerez.carpstrategy.domain.guided.Decision
+import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
@@ -124,7 +125,7 @@ fun GuidedScreen(
         } else {
             val rods = state.rods
             val rod = rods.firstOrNull { it.id == selectedRod } ?: rods.firstOrNull()
-            item { HeaderCard(state, session, phase, rods.size > 1, viewModel::nothingEverywhere, viewModel::windChanged) }
+            item { HeaderCard(state, session, phase, rods.size > 1, viewModel::nothingEverywhere, viewModel::windChanged, viewModel::conditionChanged) }
             rods.forEach { r ->
                 r.log.pending?.let { record ->
                     item(key = "propuesta-${r.id}") {
@@ -231,8 +232,17 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onStart: (Li
 }
 
 @Composable
-private fun HeaderCard(state: GuidedUiState, session: Session, phase: FishingPhase, severalRods: Boolean, onNothingAll: () -> Unit, onWind: () -> Unit) {
+private fun HeaderCard(
+    state: GuidedUiState,
+    session: Session,
+    phase: FishingPhase,
+    severalRods: Boolean,
+    onNothingAll: () -> Unit,
+    onWind: () -> Unit,
+    onCondition: (FieldCondition, Boolean) -> Unit,
+) {
     val cs = MaterialTheme.colorScheme
+    var conditionsOpen by rememberSaveable { mutableStateOf(false) }
     val elapsed = Duration.between(session.start, state.now).coerceAtLeast(Duration.ZERO)
     CarpCard(containerColor = cs.primaryContainer) {
         Text(
@@ -246,11 +256,49 @@ private fun HeaderCard(state: GuidedUiState, session: Session, phase: FishingPha
             color = cs.onPrimaryContainer,
         )
         state.lastSaved?.let { Caption(stringResource(R.string.guided_saved, Formatting.clock(it)), color = cs.onPrimaryContainer) }
+        if (state.conditions.isNotEmpty()) {
+            val names = FieldCondition.entries.filter { it in state.conditions }.map { stringResource(it.titleRes()) }
+            Text(stringResource(R.string.guided_conditions_active, names.joinToString(" · ")), color = cs.onPrimaryContainer)
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             if (severalRods) OutlinedButton(onClick = onNothingAll) { Text(stringResource(R.string.guided_nothing_all)) }
-            OutlinedButton(onClick = onWind) { Text(stringResource(R.string.guided_wind_changed)) }
+            OutlinedButton(onClick = { conditionsOpen = true }) { Text(stringResource(R.string.guided_conditions)) }
         }
     }
+    if (conditionsOpen) {
+        ConditionsDialog(
+            active = state.conditions,
+            onToggle = onCondition,
+            onWind = {
+                onWind()
+                conditionsOpen = false
+            },
+            onDismiss = { conditionsOpen = false },
+        )
+    }
+}
+
+/** Lluvia, tormenta y entrada de agua: se marcan al empezar y se desmarcan al parar. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ConditionsDialog(active: Set<FieldCondition>, onToggle: (FieldCondition, Boolean) -> Unit, onWind: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.guided_conditions_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                Caption(stringResource(R.string.guided_conditions_hint))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    FieldCondition.entries.forEach { c ->
+                        val on = c in active
+                        FilterChip(selected = on, onClick = { onToggle(c, !on) }, label = { Text(stringResource(c.titleRes())) })
+                    }
+                }
+                OutlinedButton(onClick = onWind) { Text(stringResource(R.string.guided_wind_changed)) }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_ok)) } },
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)

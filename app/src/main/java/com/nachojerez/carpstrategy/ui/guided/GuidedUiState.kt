@@ -3,6 +3,7 @@ package com.nachojerez.carpstrategy.ui.guided
 import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
+import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
@@ -44,6 +45,8 @@ data class GuidedUiState(
     val lastSaved: Instant? = null,
     val canNotify: Boolean = true,
     val exactAlarms: Boolean = true,
+    /** Lluvia, tormenta o entrada de agua activas ahora. */
+    val conditions: Set<FieldCondition> = emptySet(),
 ) {
     /** Avisos de toda la sesión (sin repetir los comunes a varias cañas). */
     val messages: Set<GuidedMessage> get() = rods.flatMap { it.messages }.toSet()
@@ -69,6 +72,7 @@ fun buildGuidedState(session: Session?, gear: List<GearItem>, now: Instant, next
         legalEnd = GuidedSessions.legalEnd(session, zone),
         rods = rods,
         nextCheckIn = nextCheckIn,
+        conditions = record.activeConditions(now),
     )
 }
 

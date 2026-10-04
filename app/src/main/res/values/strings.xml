@@ -818,4 +818,21 @@
     <string name="groundbait_low">Poco</string>
     <string name="groundbait_normal">Normal</string>
     <string name="groundbait_high">Mucho</string>
+
+    <!-- Fase 7.1: lluvia, tormenta y entrada de agua durante la sesión -->
+    <string name="guided_conditions">Tiempo y agua</string>
+    <string name="guided_conditions_title">¿Qué está pasando ahora?</string>
+    <string name="guided_conditions_hint">Marca lo que empieza y desmárcalo cuando pare. Pueden coincidir varias cosas.</string>
+    <string name="guided_conditions_active">Ahora: %1$s</string>
+    <string name="condition_light_rain">Lluvia ligera</string>
+    <string name="condition_heavy_rain">Lluvia fuerte</string>
+    <string name="condition_storm">Tormenta</string>
+    <string name="condition_muddy_inflow">Entra agua turbia</string>
+    <string name="guided_step_inflow">Prueba la boca de la recula o del arroyo (Brovales, Rubiales): el borde del agua turbia, no el centro del barro.</string>
+    <string name="guided_msg_storm">Tormenta: las cañas de carbono conducen la electricidad. Deja las cañas, aléjate del agua y ponte a cubierto. Mientras dure no se propone nada.</string>
+    <string name="guided_msg_light_rain">Lluvia ligera sin entrada de agua: no cambies el plan; queda anotada.</string>
+    <string name="guided_msg_heavy_rain">Lluvia fuerte: vigila si empieza a entrar agua turbia por arroyos y colas, y márcalo.</string>
+    <string name="guided_msg_inflow_edge">Entra agua turbia: prueba la cola y el borde de la mancha, no el centro; ceba poco, el agua ya trae comida.</string>
+    <string name="guided_msg_inflow_summer_storm">Con calor y tormenta, el agua que entra es más fresca y se hunde por el cauce: una caña en la caída frente a la desembocadura.</string>
+    <string name="guided_msg_inflow_winter">En invierno, con lluvia fuerte o agua entrando, evita la entrada y la cola (agua muy fría): zonas estables y cebado mínimo.</string>
 </resources>

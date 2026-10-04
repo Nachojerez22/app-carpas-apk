@@ -2,6 +2,7 @@ package com.nachojerez.carpstrategy.ui.guided
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
@@ -91,6 +92,13 @@ class GuidedViewModel @Inject constructor(
     fun windChanged() {
         viewModelScope.launch {
             manager.windChanged()
+            saved.value = clock.instant()
+        }
+    }
+
+    fun conditionChanged(condition: FieldCondition, active: Boolean) {
+        viewModelScope.launch {
+            manager.conditionChanged(condition, active)
             saved.value = clock.instant()
         }
     }

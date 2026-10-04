@@ -8,6 +8,7 @@ import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.Decision
+import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedMessage
@@ -153,15 +154,31 @@ fun GuidedMessage.titleRes(): Int = when (this) {
     GuidedMessage.REDUCE_GROUNDBAIT -> R.string.guided_msg_reduce_groundbait
     GuidedMessage.WINTER_GROUNDBAIT -> R.string.guided_msg_winter_groundbait
     GuidedMessage.WIND_CHANGED -> R.string.guided_msg_wind
+    GuidedMessage.STORM_SAFETY -> R.string.guided_msg_storm
+    GuidedMessage.LIGHT_RAIN_KEEP -> R.string.guided_msg_light_rain
+    GuidedMessage.HEAVY_RAIN_WATCH -> R.string.guided_msg_heavy_rain
+    GuidedMessage.INFLOW_EDGE -> R.string.guided_msg_inflow_edge
+    GuidedMessage.INFLOW_SUMMER_STORM -> R.string.guided_msg_inflow_summer_storm
+    GuidedMessage.INFLOW_WINTER_AVOID -> R.string.guided_msg_inflow_winter
+}
+
+@StringRes
+fun FieldCondition.titleRes(): Int = when (this) {
+    FieldCondition.LIGHT_RAIN -> R.string.condition_light_rain
+    FieldCondition.HEAVY_RAIN -> R.string.condition_heavy_rain
+    FieldCondition.STORM -> R.string.condition_storm
+    FieldCondition.MUDDY_INFLOW -> R.string.condition_muddy_inflow
 }
 
 /** Etiqueta de evidencia de cada aviso (§5.9). */
 val GuidedMessage.evidence: Evidence
     get() = when (this) {
-        GuidedMessage.KEEP_AFTER_CATCH, GuidedMessage.WINTER_GROUNDBAIT -> Evidence.GREEN
-        GuidedMessage.WINTER_PATIENCE, GuidedMessage.FORCED_IN_WINTER, GuidedMessage.ZONE_LIMIT_REACHED, GuidedMessage.NO_EQUIVALENT_BAIT -> Evidence.PURPLE
+        GuidedMessage.KEEP_AFTER_CATCH, GuidedMessage.WINTER_GROUNDBAIT, GuidedMessage.STORM_SAFETY -> Evidence.GREEN
+        GuidedMessage.WINTER_PATIENCE, GuidedMessage.FORCED_IN_WINTER, GuidedMessage.ZONE_LIMIT_REACHED, GuidedMessage.NO_EQUIVALENT_BAIT,
+        GuidedMessage.INFLOW_EDGE, GuidedMessage.INFLOW_SUMMER_STORM -> Evidence.PURPLE
         GuidedMessage.LEGAL_END_SOON, GuidedMessage.NO_ZONE_CHANGES_LEGAL -> Evidence.REGULATION
-        GuidedMessage.PREPARE_BAIT, GuidedMessage.REDUCE_GROUNDBAIT, GuidedMessage.WIND_CHANGED -> Evidence.YELLOW
+        GuidedMessage.PREPARE_BAIT, GuidedMessage.REDUCE_GROUNDBAIT, GuidedMessage.WIND_CHANGED,
+        GuidedMessage.LIGHT_RAIN_KEEP, GuidedMessage.HEAVY_RAIN_WATCH, GuidedMessage.INFLOW_WINTER_AVOID -> Evidence.YELLOW
     }
 
 /** «Boilie fresa 20 (boilie)» si es del equipo; si no, solo el tipo. */
@@ -183,6 +200,7 @@ fun Resources.proposalText(p: Proposal, phase: FishingPhase): String {
         StepKind.COLUMN -> getString(R.string.guided_step_column, getString((p.column ?: Column.POPUP).titleRes()))
         StepKind.ANTI_CRAB -> getString(R.string.guided_step_anti_crab, bait)
         StepKind.SELECTIVE -> getString(R.string.guided_step_selective, bait)
+        StepKind.INFLOW -> getString(R.string.guided_step_inflow)
         StepKind.DISTANCE -> getString(
             when (phase) {
                 FishingPhase.WINTER -> R.string.guided_step_distance_winter
@@ -215,7 +233,7 @@ fun Resources.stepShort(kind: StepKind): String = getString(
         StepKind.RIG -> R.string.guided_change_rig
         StepKind.COLUMN -> R.string.guided_change_column
         StepKind.DISTANCE -> R.string.guided_change_distance
-        StepKind.ZONE -> R.string.guided_change_zone
+        StepKind.ZONE, StepKind.INFLOW -> R.string.guided_change_zone
     },
 )
 

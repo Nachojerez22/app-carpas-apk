@@ -2,6 +2,7 @@ package com.nachojerez.carpstrategy.ui.guided
 
 import com.nachojerez.carpstrategy.di.IoDispatcher
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
+import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.GuidedEnv
@@ -88,6 +89,9 @@ class GuidedSessionManager @Inject constructor(
     suspend fun nothingEverywhere(): Unit = change { s, env -> GuidedSessions.nothingEverywhere(s, env) }
 
     suspend fun windChanged(): Unit = change { s, env -> GuidedSessions.windChanged(s, env) }
+
+    suspend fun conditionChanged(condition: FieldCondition, active: Boolean): Unit =
+        change { s, env -> GuidedSessions.conditionChanged(s, condition, active, env) }
 
     suspend fun accept(rodId: Int?): Unit = change { s, env ->
         val id = rodId ?: s.guided?.rods?.firstOrNull { it.log.pending != null }?.id ?: 1
