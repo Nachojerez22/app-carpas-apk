@@ -56,6 +56,13 @@ workflow** sobre `main`) genera el APK de producción.
 
 ## 2. Descargar e instalar
 
+**Lo más fácil (desde la 0.8.2):** en el móvil abre
+<https://github.com/Nachojerez22/app-carpas-apk/releases/latest> y pulsa **CarpStrategy.apk**
+(descarga directa, sin zip ni sesión de GitHub). La app avisa sola cuando hay una versión nueva.
+Instálala siempre **encima** de la actual, sin desinstalar.
+
+También desde los artefactos de la CI (la versión de prueba solo está aquí):
+
 1. En GitHub: **Actions → CI →** la última ejecución en verde.
 2. Abajo, en **Artifacts**: `CarpStrategy-N` (producción) o `CarpStrategy-prueba-N` (prueba).
    Se descarga un `.zip` con el `.apk` dentro (los artefactos se guardan 90 días).

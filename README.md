@@ -125,6 +125,15 @@ menos. Anota también el cebado (poco, normal, mucho), los recebados, si cambia 
 separado y con su hora. Con tormenta la app te recuerda ponerte a salvo y no propone cambios.
 Para que los avisos lleguen a su hora, permite las notificaciones y las alarmas exactas.
 
+### Cuenta de Google y versiones nuevas (fase 7.2)
+
+En **Lugar → Cuenta de Google** inicias sesión una vez y tus datos (diario, datos manuales,
+equipo y ajustes) quedan en una carpeta privada de tu Google Drive que solo ve la app. La app
+tira de ahí al abrirse y sube cada cambio; sin cobertura funciona igual y sincroniza después.
+Requiere configurar una vez un proyecto en Google Cloud: [docs/CUENTA_GOOGLE.md](docs/CUENTA_GOOGLE.md).
+Cada versión se publica en **Releases** (`CarpStrategy.apk`, descarga directa) y la app avisa
+cuando hay una nueva.
+
 ### Limitaciones (importante)
 
 - **La app no mide la temperatura del agua**: lo recomendable es introducir tu propia medición
@@ -197,6 +206,8 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 6**: diario de sesiones (horas-caña, bolos, valoración previa sin sesgo, exportación)
 - [x] **Fase 6.1**: preparar producción (APK firmado en la CI, foto completa de parámetros para la fase 7, copias de seguridad)
 - [x] **Fase 7**: sesión guiada (plan A, avisos cada 30 min, alternativas y sustitutos de cebo, «Mi equipo»)
+- [x] **Fase 7.1**: lluvia, tormenta y entrada de agua durante la sesión
+- [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [ ] **Fase 8**: aprendizaje con datos propios cuando haya 20–40 sesiones (CONOCIMIENTO.md §10)
 
 ## CI
