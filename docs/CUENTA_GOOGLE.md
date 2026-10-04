@@ -29,11 +29,14 @@ Android se reconoce por el nombre del paquete y la huella SHA-1 de la firma.
    - Si lo dejas en «Prueba», Google puede pedirte volver a dar permiso cada cierto tiempo;
      la app lo avisa («Volver a iniciar sesión»). Publicarlo («En producción») lo evita; para
      este permiso no debería hacer falta revisión de Google, pero compruébalo en la consola.
-4. **Credenciales → Crear credenciales → ID de cliente de OAuth → Android**, dos veces:
-   - Producción: paquete `com.nachojerez.carpstrategy`.
-   - Prueba: paquete `com.nachojerez.carpstrategy.prueba`.
-   - En las dos, la **huella SHA-1** que imprime la CI en el paso «Huella SHA-1 de la clave de
-     firma» (es la misma para las dos: se firman con la misma clave). La huella no es secreta.
+4. **Credenciales → Crear credenciales → ID de cliente de OAuth → Android**:
+   - Paquete `com.nachojerez.carpstrategy` (producción).
+   - **Huella SHA-1** que imprime la CI en el paso «Huella SHA-1 de la clave de firma»:
+     `A9:71:06:03:EE:CA:27:4E:D8:57:5B:F9:3F:1E:86:17:F4:F0:7B:2B`. No es secreta.
+   - El ID de cliente que muestra Google **no hace falta en la app** (no se copia en el código).
+   - Opcional: otra credencial igual con el paquete `com.nachojerez.carpstrategy.prueba` si
+     quieres iniciar sesión también en la versión de prueba (sin ella, en la de prueba no se
+     puede).
 5. Listo: en la app, **Lugar → Cuenta de Google → Iniciar sesión con Google**.
 
 Si la app dice «Google no reconoce esta app», revisa el paquete y la huella SHA-1 de la
