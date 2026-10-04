@@ -1022,7 +1022,7 @@
     <string name="ai_error_unauthorized">La clave no es válida o no tiene permiso.</string>
     <string name="ai_error_quota">Cuota agotada o demasiadas consultas. Prueba más tarde.</string>
     <string name="ai_error_offline">Sin conexión.</string>
-    <string name="ai_error_failed">El proveedor respondió con un error (%1$d). Revisa el modelo.</string>
+    <string name="ai_error_failed">El proveedor respondió con un error (%1$d). Si es 404, el modelo no existe para tu clave: pulsa «Ver modelos disponibles» y elige uno.</string>
     <string name="ai_error_empty">Respuesta vacía o no válida.</string>
     <string name="ai_error_not_configured">Falta la clave o el modelo.</string>
 
@@ -1042,4 +1042,9 @@
     <string name="strategy_ai_advice_note">Son una ayuda que parte de tus datos y de las reglas: no prometen peces. Si contradicen a las reglas, decides tú.</string>
     <string name="ai_issue_field">consejo sin apartado</string>
     <string name="ai_issue_hours">cita horas fuera del horario legal ⚖</string>
+    <string name="ai_models_title">Modelos disponibles</string>
+    <string name="ai_models_hint">Lista los modelos que admite tu clave. Toca uno para usarlo; se guarda y se prueba la conexión. Los «flash» son rápidos y entran en el nivel gratuito.</string>
+    <string name="ai_models_load">Ver modelos disponibles</string>
+    <string name="ai_models_loading">Buscando modelos…</string>
+    <string name="ai_models_empty">Tu clave no tiene modelos de texto disponibles.</string>
 </resources>

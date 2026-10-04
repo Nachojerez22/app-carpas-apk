@@ -151,6 +151,31 @@ fun AssistantScreen(onBack: () -> Unit, viewModel: AssistantViewModel = hiltView
                 }
             }
         }
+        item {
+            CarpCard {
+                Text(stringResource(R.string.ai_models_title), style = MaterialTheme.typography.titleSmall)
+                Caption(stringResource(R.string.ai_models_hint))
+                OutlinedButton(onClick = viewModel::loadModels, enabled = state.keyHint != null && !state.loadingModels) {
+                    Text(stringResource(if (state.loadingModels) R.string.ai_models_loading else R.string.ai_models_load))
+                }
+                state.modelsError?.let { Text(aiErrorText(it), color = MaterialTheme.colorScheme.error) }
+                state.models?.let { list ->
+                    if (list.isEmpty()) Caption(stringResource(R.string.ai_models_empty))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        list.forEach { name ->
+                            FilterChip(
+                                selected = name == state.config.model,
+                                onClick = {
+                                    model = name
+                                    viewModel.useModel(name)
+                                },
+                                label = { Text(name) },
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
