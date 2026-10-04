@@ -47,13 +47,16 @@ import com.nachojerez.carpstrategy.domain.guided.Decision
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
-import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.GuidedMessage
+import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Species
+import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.domain.guided.WeatherQuestion
+import com.nachojerez.carpstrategy.domain.guided.WeatherReport
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.rules.Evidence
@@ -79,6 +82,7 @@ fun GuidedScreen(
     onBack: () -> Unit,
     onOpenGear: () -> Unit,
     onFinished: (Long) -> Unit,
+    onOpenSpots: () -> Unit = {},
     viewModel: GuidedViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -116,9 +120,9 @@ fun GuidedScreen(
         if (session == null || phase == null) {
             if (!state.isLoading) {
                 item {
-                    StartCard(state, onOpenGear) { names, zone, groundbait ->
+                    StartCard(state, onOpenGear, onOpenSpots) { names, zone, groundbait, spot ->
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) permission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        viewModel.start(names, zone, groundbait)
+                        viewModel.start(names, zone, groundbait, spot)
                     }
                 }
             }
@@ -126,6 +130,7 @@ fun GuidedScreen(
             val rods = state.rods
             val rod = rods.firstOrNull { it.id == selectedRod } ?: rods.firstOrNull()
             item { HeaderCard(state, session, phase, rods.size > 1, viewModel::nothingEverywhere, viewModel::windChanged, viewModel::conditionChanged) }
+            item { WeatherCard(session.guided?.spot, state.weather, viewModel::answerWeather) }
             rods.forEach { r ->
                 r.log.pending?.let { record ->
                     item(key = "propuesta-${r.id}") {
@@ -186,10 +191,12 @@ private fun PermissionCard(text: String, action: String?, onAction: (() -> Unit)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onStart: (List<String>, FishingZone?, GroundbaitLevel?) -> Unit) {
+private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots: () -> Unit, onStart: (List<String>, FishingZone?, GroundbaitLevel?, Spot?) -> Unit) {
     var rods by rememberSaveable { mutableStateOf(2) }
     var names by rememberSaveable { mutableStateOf(listOf("", "", "")) }
     var zone by rememberSaveable { mutableStateOf<FishingZone?>(null) }
+    var spotId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val spot = state.spots.firstOrNull { it.id == spotId }
     var groundbait by rememberSaveable { mutableStateOf<GroundbaitLevel?>(null) }
     CarpCard {
         Text(stringResource(R.string.guided_intro))
@@ -208,6 +215,24 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onStart: (Li
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+        Text(stringResource(R.string.guided_start_spot), style = MaterialTheme.typography.titleSmall)
+        if (state.spots.isEmpty()) {
+            Caption(stringResource(R.string.guided_start_spot_none))
+        } else {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                state.spots.forEach { s ->
+                    FilterChip(
+                        selected = spotId == s.id,
+                        onClick = {
+                            spotId = if (spotId == s.id) null else s.id
+                            if (spotId != null) s.zone?.let { zone = it }
+                        },
+                        label = { Text(s.name) },
+                    )
+                }
+            }
+        }
+        TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
         Text(stringResource(R.string.guided_zone), style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             FishingZone.entries.forEach { z ->
@@ -225,7 +250,7 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onStart: (Li
             if (state.baits + state.rigs == 0) stringResource(R.string.guided_gear_empty) else stringResource(R.string.guided_gear_summary, state.baits, state.rigs),
         )
         OutlinedButton(onClick = onOpenGear) { Text(stringResource(R.string.guided_gear_open)) }
-        Button(onClick = { onStart(rodNamesFor(rods, names), zone, groundbait) }, enabled = !state.starting, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = { onStart(rodNamesFor(rods, names), zone, groundbait, spot) }, enabled = !state.starting, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(if (state.starting) R.string.guided_starting else R.string.guided_start))
         }
     }
@@ -275,6 +300,45 @@ private fun HeaderCard(
             },
             onDismiss = { conditionsOpen = false },
         )
+    }
+}
+
+/**
+ * El tiempo durante la sesión: previsión de la hora en curso, cambios desde el último aviso y
+ * desde el inicio, viento respecto a tu puesto, luz que queda y «¿Llueve?» si no cuadra.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun WeatherCard(spot: Spot?, report: WeatherReport?, onAnswer: (WeatherQuestion, Boolean, Boolean) -> Unit) {
+    val res = LocalContext.current.resources
+    CarpCard {
+        SectionTitle(stringResource(R.string.guided_weather_title))
+        spot?.let { Text(stringResource(R.string.guided_spot_label, it.name), style = MaterialTheme.typography.titleSmall) }
+        if (report == null) {
+            Caption(stringResource(R.string.guided_weather_none))
+        } else {
+            val lines = res.weatherLines(report.copy(question = null))
+            lines.forEach { Text(it) }
+            when (report.question) {
+                WeatherQuestion.RAIN -> {
+                    Text(stringResource(R.string.guided_weather_ask_rain_short), style = MaterialTheme.typography.titleSmall)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        OutlinedButton(onClick = { onAnswer(WeatherQuestion.RAIN, true, false) }) { Text(stringResource(R.string.guided_weather_rain_yes_light)) }
+                        OutlinedButton(onClick = { onAnswer(WeatherQuestion.RAIN, true, true) }) { Text(stringResource(R.string.guided_weather_rain_yes_heavy)) }
+                        OutlinedButton(onClick = { onAnswer(WeatherQuestion.RAIN, false, false) }) { Text(stringResource(R.string.guided_weather_no)) }
+                    }
+                }
+                WeatherQuestion.STORM -> {
+                    Text(stringResource(R.string.guided_weather_ask_storm_short), style = MaterialTheme.typography.titleSmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        OutlinedButton(onClick = { onAnswer(WeatherQuestion.STORM, true, false) }) { Text(stringResource(R.string.guided_weather_yes)) }
+                        OutlinedButton(onClick = { onAnswer(WeatherQuestion.STORM, false, false) }) { Text(stringResource(R.string.guided_weather_no)) }
+                    }
+                }
+                null -> Unit
+            }
+            Caption(stringResource(R.string.guided_weather_forecast_note))
+        }
     }
 }
 

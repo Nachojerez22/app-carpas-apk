@@ -4,6 +4,7 @@ import com.nachojerez.carpstrategy.domain.derived.DerivedCalculator
 import com.nachojerez.carpstrategy.domain.derived.DerivedConditions
 import com.nachojerez.carpstrategy.domain.derived.Freshness
 import com.nachojerez.carpstrategy.domain.derived.FreshnessPolicy
+import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.JournalStats
 import com.nachojerez.carpstrategy.domain.journal.Session
@@ -39,7 +40,16 @@ data class StrategyUiState(
     /** Parámetros con los que se evaluaron las reglas (se guardan con la valoración, §10). */
     val ruleContext: RuleContext? = null,
     val rulesFingerprint: String? = null,
+    /** Mis puestos, para ver cómo les da el viento (desempate, §5.4 🟡). */
+    val spots: List<Spot> = emptyList(),
 )
+
+/**
+ * Próxima ventana sugerida (la que está en curso o la siguiente que empieza); si ya han pasado
+ * todas, null. Las ventanas ya vienen recortadas al horario legal.
+ */
+fun nextWindow(windows: List<TimeWindow>, now: Instant): TimeWindow? =
+    windows.filter { it.end.isAfter(now) }.minByOrNull { it.start }
 
 /** Horas de previsión (próximas 24 h) en las que el viento de los modelos es incierto. */
 private val UNCERTAIN_WIND_HORIZON: Duration = Duration.ofHours(24)

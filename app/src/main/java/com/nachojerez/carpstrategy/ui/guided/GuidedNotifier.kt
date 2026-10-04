@@ -13,6 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.nachojerez.carpstrategy.MainActivity
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.domain.guided.FieldWeather
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
@@ -63,11 +64,14 @@ class GuidedNotifier @Inject constructor(@param:ApplicationContext private val c
             checkIn -> res.getString(R.string.guided_notif_check)
             else -> listOfNotNull(plan, next?.let { res.getString(R.string.guided_notif_next, Formatting.clock(it)) }).joinToString(" · ")
         }
+        // En cada aviso, el tiempo: qué ha cambiado, viento en tu puesto, luz y «¿Llueve?».
+        val weather = if (checkIn && !ended) FieldWeather.report(record, now)?.let { res.weatherLines(it) }.orEmpty() else emptyList()
+        val big = (listOf(text) + weather).joinToString("\n")
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_nav_diary)
             .setContentTitle(res.getString(R.string.guided_notif_title, res.getString(phase.titleRes())))
             .setContentText(text)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(big))
             .setOngoing(!ended)
             .setWhen(session.start.toEpochMilli())
             .setUsesChronometer(!ended)
