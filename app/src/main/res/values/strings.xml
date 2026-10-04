@@ -1026,13 +1026,20 @@
     <string name="ai_error_empty">Respuesta vacía o no válida.</string>
     <string name="ai_error_not_configured">Falta la clave o el modelo.</string>
 
-    <string name="strategy_ai_plan">Plan con IA</string>
+    <string name="strategy_ai_plan">Pedir plan y consejos a la IA</string>
     <string name="strategy_ai_planning">Preparando el plan…</string>
     <string name="strategy_ai_rods">Cañas</string>
-    <string name="strategy_ai_plan_title">Plan de la IA (validado por la app)</string>
+    <string name="strategy_ai_plan_title">Plan de la IA de las %1$s (validado por la app)</string>
     <string name="strategy_ai_plan_rod">Caña %1$d</string>
     <string name="strategy_ai_plan_distance">a %1$s m</string>
     <string name="strategy_ai_plan_invalid">La respuesta de la IA no cumple las normas (%1$s): sigue el plan de las reglas.</string>
     <string name="strategy_ai_plan_error">La IA no respondió: sigue el plan de las reglas.</string>
     <string name="strategy_ai_plan_note">Es una ayuda: no promete peces. Se guarda con la sesión guiada si empiezas en las próximas 3 horas.</string>
+    <string name="strategy_ai_section">Asistente de IA</string>
+    <string name="strategy_ai_section_subtitle">Plan por caña y consejos por apartado. La app los comprueba: si no cumplen las normas, mandan las reglas.</string>
+    <string name="strategy_ai_off">Configura el asistente (tu clave de Gemini u otro proveedor) para que la IA te dé un plan y consejos para hoy.</string>
+    <string name="strategy_ai_advice_title">Consejos de la IA</string>
+    <string name="strategy_ai_advice_note">Son una ayuda que parte de tus datos y de las reglas: no prometen peces. Si contradicen a las reglas, decides tú.</string>
+    <string name="ai_issue_field">consejo sin apartado</string>
+    <string name="ai_issue_hours">cita horas fuera del horario legal ⚖</string>
 </resources>

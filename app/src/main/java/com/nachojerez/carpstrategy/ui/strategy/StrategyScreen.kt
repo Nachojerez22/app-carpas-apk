@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.Spots
@@ -73,11 +74,12 @@ import java.time.Duration
 fun StrategyScreen(
     onStartGuided: () -> Unit = {},
     onOpenSpots: () -> Unit = {},
+    onOpenAssistant: () -> Unit = {},
     viewModel: StrategyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan by viewModel.plan.collectAsStateWithLifecycle()
-    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan)
+    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant)
 }
 
 /**
@@ -92,6 +94,7 @@ fun StrategyContent(
     onOpenSpots: () -> Unit = {},
     plan: PlanUiState = PlanUiState(),
     onPlan: (Int) -> Unit = {},
+    onOpenAssistant: () -> Unit = {},
 ) {
     var whyOpen by rememberSaveable { mutableStateOf(false) }
     LazyColumn(
@@ -134,7 +137,22 @@ fun StrategyContent(
                 item { ResultCard(result) }
                 if (!result.blocked) {
                     item { SummaryActions(state, onStartGuided) }
-                    if (plan.configured) item { AiPlanCard(plan, onPlan) }
+
+                    // Asistente de IA: plan por caña y consejos por apartado (validados por la app).
+                    item { SectionTitle(stringResource(R.string.strategy_ai_section), subtitle = stringResource(R.string.strategy_ai_section_subtitle)) }
+                    item {
+                        if (plan.configured) {
+                            AiPlanCard(plan, onPlan)
+                        } else {
+                            CarpCard {
+                                Caption(stringResource(R.string.strategy_ai_off))
+                                OutlinedButton(onClick = onOpenAssistant) { Text(stringResource(R.string.ai_settings_open)) }
+                            }
+                        }
+                    }
+                    plan.outcome?.value?.advice?.takeIf { it.isNotEmpty() }?.let { advice ->
+                        item { AiAdviceCard(advice) }
+                    }
 
                     // 2. Qué hacer: dónde (y tus puestos), presentación, cebado y notas.
                     item { SectionTitle(stringResource(R.string.strategy_what_title), subtitle = stringResource(R.string.strategy_what_subtitle)) }
@@ -263,7 +281,11 @@ private fun AiPlanCard(plan: PlanUiState, onPlan: (Int) -> Unit) {
             outcome == null -> Unit
             value != null -> {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    Text(stringResource(R.string.strategy_ai_plan_title), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                    Text(
+                        stringResource(R.string.strategy_ai_plan_title, Formatting.clock(outcome.exchange.time)),
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.weight(1f),
+                    )
                     value.evidence?.let { AnyEvidenceBadge(it) }
                 }
                 Text(value.summary)
@@ -301,6 +323,29 @@ private fun AiPlanCard(plan: PlanUiState, onPlan: (Int) -> Unit) {
                 ),
             )
         }
+    }
+}
+
+/** Consejos de la IA agrupados por apartado (dónde, cuándo, cebado…), cada uno con su evidencia. */
+@Composable
+private fun AiAdviceCard(advice: List<AiAdvice>) {
+    val cs = MaterialTheme.colorScheme
+    CarpCard {
+        Text(stringResource(R.string.strategy_ai_advice_title), style = MaterialTheme.typography.titleSmall)
+        StrategyField.entries.forEach { field ->
+            val items = advice.filter { it.field == field }
+            if (items.isNotEmpty()) {
+                val avoid = field == StrategyField.AVOID
+                Text(stringResource(field.labelRes()), style = MaterialTheme.typography.labelLarge, color = if (avoid) cs.error else cs.primary)
+                items.forEach { item ->
+                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        Text(item.text, modifier = Modifier.weight(1f))
+                        item.evidence?.let { AnyEvidenceBadge(it) }
+                    }
+                }
+            }
+        }
+        Caption(stringResource(R.string.strategy_ai_advice_note))
     }
 }
 

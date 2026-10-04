@@ -10,6 +10,7 @@ import com.nachojerez.carpstrategy.domain.guided.Situation
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
+import com.nachojerez.carpstrategy.domain.rules.StrategyField
 import java.time.Duration
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -111,5 +112,33 @@ class AiValidatorTest {
         assertEquals(Column.POPUP, p.column)
         assertEquals("Sube el cebo con el pop-up — Señales a media agua", p.note)
         assertEquals(Evidence.YELLOW, p.evidence)
+    }
+
+    @Test
+    fun `horas citadas fuera del horario legal`() {
+        // Legal de 07:00 a 20:30 hora de Madrid (05:00–18:30 UTC en octubre).
+        val legal = ctx.copy(legalStart = Instant.parse("2026-10-04T05:00:00Z"), legalEnd = Instant.parse("2026-10-04T18:30:00Z"))
+        assertEquals(null, AiValidator.legalHoursIssue("Mejor de 07:30 a 10:00 y al final, hasta las 20:15", legal))
+        assertEquals(AiIssue.OUTSIDE_LEGAL_HOURS, AiValidator.legalHoursIssue("Prueba a las 21:30", legal))
+        assertEquals(AiIssue.OUTSIDE_LEGAL_HOURS, AiValidator.legalHoursIssue("desde las 6h15", legal))
+        assertEquals(null, AiValidator.legalHoursIssue("pop-up a 1.50 m del fondo", legal))
+        assertEquals(null, AiValidator.legalHoursIssue("a las 23:00", ctx))
+        val decisionLate = decision.copy(reasons = listOf("Aguanta hasta las 22:00"))
+        assertTrue(AiIssue.OUTSIDE_LEGAL_HOURS in AiValidator.validate(decisionLate, legal))
+    }
+
+    @Test
+    fun `consejos por apartado con evidencia`() {
+        val plan = AiPlan(
+            "Intermedio", Evidence.YELLOW,
+            listOf(AiRodPlan(1, reason = "Fondo", evidence = Evidence.YELLOW)),
+            advice = listOf(
+                AiAdvice(StrategyField.WHERE, "Orilla que recibe el viento cálido", Evidence.YELLOW),
+                AiAdvice(StrategyField.BAIT, "Cebado poco y frecuente", Evidence.PURPLE),
+            ),
+        )
+        assertTrue(AiValidator.validate(plan, ctx).isEmpty())
+        val bad = plan.copy(advice = listOf(AiAdvice(null, "Algo", null), AiAdvice(StrategyField.BAIT, "Echa 2 kilos", Evidence.YELLOW)))
+        assertEquals(setOf(AiIssue.UNKNOWN_FIELD, AiIssue.MISSING_EVIDENCE, AiIssue.GRAMS), AiValidator.validate(bad, ctx))
     }
 }

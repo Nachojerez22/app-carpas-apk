@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nachojerez.carpstrategy.data.assistant.AiOutcome
 import com.nachojerez.carpstrategy.data.assistant.Assistant
+import com.nachojerez.carpstrategy.data.assistant.AssistantJson
 import com.nachojerez.carpstrategy.data.assistant.AssistantPrompts
 import com.nachojerez.carpstrategy.data.assistant.AssistantSettings
 import com.nachojerez.carpstrategy.data.userdata.GuidedJson
@@ -15,6 +16,7 @@ import com.nachojerez.carpstrategy.domain.repository.JournalRepository
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
+import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.guided.GuidedSessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
@@ -73,6 +75,17 @@ class StrategyViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StrategyUiState())
 
     private val planFlow = MutableStateFlow(PlanUiState())
+
+    init {
+        // El último plan válido de hoy se vuelve a mostrar sin gastar otra consulta.
+        viewModelScope.launch {
+            val last = GuidedJson.decodeAi(localSettings.get(GuidedSessionManager.KEY_LAST_PLAN)) ?: return@launch
+            val today = clock.instant().atZone(Formatting.MADRID).toLocalDate()
+            if (!last.valid || last.time.atZone(Formatting.MADRID).toLocalDate() != today) return@launch
+            val plan = last.response?.let(AssistantJson::parsePlan) ?: return@launch
+            if (planFlow.value.outcome == null) planFlow.value = PlanUiState(outcome = AiOutcome(last, plan))
+        }
+    }
 
     /** Plan con IA: solo si hay clave; la respuesta se valida y, si no vale, mandan las reglas. */
     val plan: StateFlow<PlanUiState> = combine(planFlow, assistantSettings.observeKeyHint()) { p, hint -> p.copy(configured = hint != null) }

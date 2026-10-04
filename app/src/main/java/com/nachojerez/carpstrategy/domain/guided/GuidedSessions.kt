@@ -160,6 +160,8 @@ object GuidedSessions {
             spots = spots,
             storm = record?.activeConditions(env.now)?.contains(FieldCondition.STORM) == true,
             zoneLimitReached = record?.rods?.filter { it.log.zoneChanges >= maxZones }?.map { it.id }?.toSet().orEmpty(),
+            legalStart = LegalWindow.of(SolarCalculator.sunTimes(env.now.atZone(env.zone).toLocalDate(), session.location))?.start,
+            zone = env.zone,
         )
     }
 

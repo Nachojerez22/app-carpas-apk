@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.data.assistant
 
+import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
 import com.nachojerez.carpstrategy.domain.assistant.AiChange
 import com.nachojerez.carpstrategy.domain.assistant.AiDecision
 import com.nachojerez.carpstrategy.domain.assistant.AiNote
@@ -8,6 +9,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiRodPlan
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
+import com.nachojerez.carpstrategy.domain.rules.StrategyField
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
@@ -26,7 +28,7 @@ object AssistantJson {
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
     /** Respuesta guardada en el registro como mucho con esta longitud. */
-    const val MAX_STORED = 4_000
+    const val MAX_STORED = 8_000
 
     fun objectIn(text: String): JsonObject? {
         val start = text.indexOf('{')
@@ -79,7 +81,26 @@ object AssistantJson {
             val w = e as? JsonObject ?: return@mapNotNull null
             AiNote(w.string("texto").orEmpty(), evidence(w.string("evidencia")))
         }
-        return AiPlan(o.string("resumen").orEmpty(), evidence(o.string("evidencia")), rods, warnings)
+        val advice = o.array("consejos").mapNotNull { e ->
+            val a = e as? JsonObject ?: return@mapNotNull null
+            AiAdvice(field(a.string("apartado")), a.string("texto").orEmpty(), evidence(a.string("evidencia")))
+        }
+        return AiPlan(o.string("resumen").orEmpty(), evidence(o.string("evidencia")), rods, warnings, advice)
+    }
+
+    /** Apartado de Estrategia por nombre (WHERE…) o en español (dónde, cuándo…). */
+    fun field(text: String?): StrategyField? {
+        val t = text?.trim()?.lowercase() ?: return null
+        StrategyField.entries.firstOrNull { it.name.equals(t, ignoreCase = true) }?.let { return it }
+        return when (t) {
+            "donde", "dónde" -> StrategyField.WHERE
+            "cuando", "cuándo" -> StrategyField.WHEN
+            "cebado", "cebo" -> StrategyField.BAIT
+            "presentacion", "presentación" -> StrategyField.PRESENTATION
+            "evitar" -> StrategyField.AVOID
+            "notas" -> StrategyField.NOTES
+            else -> null
+        }
     }
 
     /** Etiqueta de evidencia: emoji (🟢🟡🔴🟣🔵⚖) o nombre. */

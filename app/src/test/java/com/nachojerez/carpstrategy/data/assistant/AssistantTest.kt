@@ -6,6 +6,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
+import com.nachojerez.carpstrategy.domain.rules.StrategyField
 import java.time.Instant
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
@@ -85,12 +86,13 @@ class AssistantTest {
     fun `plan`() {
         server.enqueue(
             gemini(
-                """{"resumen":"Empieza a fondo","evidencia":"🟡","canas":[{"cana":1,"cebo":null,"columna":"BOTTOM","distancia_m":35,"motivo":"Agua templada","evidencia":"🟢"}],"avisos":[{"texto":"Recoge al fin legal","evidencia":"⚖"}]}""",
+                """{"resumen":"Empieza a fondo","evidencia":"🟡","canas":[{"cana":1,"cebo":null,"columna":"BOTTOM","distancia_m":35,"motivo":"Agua templada","evidencia":"🟢"}],"consejos":[{"apartado":"dónde","texto":"Orilla con sol","evidencia":"🟡"},{"apartado":"AVOID","texto":"Sobrecebar","evidencia":"🟢"}],"avisos":[{"texto":"Recoge al fin legal","evidencia":"⚖"}]}""",
             ),
         )
         val plan = assistant.plan(config, "k", "{}", ctx).value!!
         assertEquals(35.0, plan.rods.single().distanceM)
         assertNull(plan.rods.single().baitName)
         assertEquals(Evidence.REGULATION, plan.warnings.single().evidence)
+        assertEquals(listOf(StrategyField.WHERE, StrategyField.AVOID), plan.advice.map { it.field })
     }
 }

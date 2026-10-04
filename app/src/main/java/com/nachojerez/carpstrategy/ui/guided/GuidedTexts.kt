@@ -385,6 +385,8 @@ fun AiIssue.titleRes(): Int = when (this) {
     AiIssue.MISSING_EVIDENCE -> R.string.ai_issue_evidence
     AiIssue.EMPTY_TEXT, AiIssue.TEXT_TOO_LONG -> R.string.ai_issue_text
     AiIssue.DISTANCE_OUT_OF_RANGE -> R.string.ai_issue_distance
+    AiIssue.UNKNOWN_FIELD -> R.string.ai_issue_field
+    AiIssue.OUTSIDE_LEGAL_HOURS -> R.string.ai_issue_hours
 }
 
 /** «IA: mantener — motivo» o por qué se descartó / falló (mandan las reglas). */

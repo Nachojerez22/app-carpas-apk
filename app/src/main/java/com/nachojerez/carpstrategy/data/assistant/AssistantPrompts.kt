@@ -77,9 +77,12 @@ Con MANTENER, "cambios" va vacío. No propongas cambios en cañas con "propuesta
 """
 
     val PLAN_SYSTEM = RULES + """
-Tarea: plan antes de pescar para hoy con las cañas indicadas. Responde con este JSON:
-{"resumen":"…","evidencia":"🟡","canas":[{"cana":1,"puesto":"nombre exacto o null","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","distancia_m":40 o null,"motivo":"…","evidencia":"🟡"}],"avisos":[{"texto":"…","evidencia":"⚖"}]}
-Respeta las ventanas legales y los consejos de las reglas; si no hay datos, dilo.
+Tarea: estrategia para hoy. Da un plan por caña (con las cañas indicadas) y consejos por apartado:
+dónde (WHERE), cuándo (WHEN, solo dentro del horario legal), cebado (BAIT: poco, normal o mucho),
+presentación (PRESENTATION: cebo, montaje, columna, distancia), qué evitar (AVOID) y notas (NOTES).
+Como mucho 2 consejos por apartado. Responde con este JSON:
+{"resumen":"…","evidencia":"🟡","canas":[{"cana":1,"puesto":"nombre exacto o null","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","distancia_m":40 o null,"motivo":"…","evidencia":"🟡"}],"consejos":[{"apartado":"WHERE","texto":"…","evidencia":"🟡"}],"avisos":[{"texto":"…","evidencia":"⚖"}]}
+Parte de los consejos de las reglas (no los contradigas sin decir por qué) y de los datos del usuario; si no hay datos, dilo.
 """
 
     private val CLOCK = DateTimeFormatter.ofPattern("HH:mm")

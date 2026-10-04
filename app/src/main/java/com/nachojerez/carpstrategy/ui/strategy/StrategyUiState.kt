@@ -170,4 +170,6 @@ fun planContext(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: In
     rodIds = (1..rods.coerceIn(1, GuidedSessions.MAX_RODS)).toSet(),
     gear = gear,
     spots = state.spots,
+    legalStart = state.derived?.legalToday?.start,
+    zone = Formatting.MADRID,
 )

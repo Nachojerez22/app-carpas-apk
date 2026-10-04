@@ -10,8 +10,11 @@ import com.nachojerez.carpstrategy.domain.guided.Situation
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
+import com.nachojerez.carpstrategy.domain.rules.StrategyField
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneId
 
 /** Para qué se consultó a la IA. */
 enum class AiKind { CHECK_IN, PLAN }
@@ -78,12 +81,17 @@ data class AiRodPlan(
 
 data class AiNote(val text: String, val evidence: Evidence?)
 
+/** Consejo de la IA para un apartado de Estrategia (dónde, cuándo, cebo…). */
+data class AiAdvice(val field: StrategyField?, val text: String, val evidence: Evidence?)
+
 /** Plan antes de pescar (desde Estrategia). */
 data class AiPlan(
     val summary: String,
     val evidence: Evidence?,
     val rods: List<AiRodPlan>,
     val warnings: List<AiNote> = emptyList(),
+    /** Consejos por apartado, además del plan por caña. */
+    val advice: List<AiAdvice> = emptyList(),
 )
 
 /** Motivo por el que una respuesta de la IA no se usa (todo o nada). */
@@ -109,6 +117,10 @@ enum class AiIssue {
     EMPTY_TEXT,
     TEXT_TOO_LONG,
     DISTANCE_OUT_OF_RANGE,
+    /** Un consejo sin apartado conocido. */
+    UNKNOWN_FIELD,
+    /** Menciona una hora fuera del horario legal (⚖). */
+    OUTSIDE_LEGAL_HOURS,
 }
 
 /** Lo que la app sabe para validar una respuesta: cañas, equipo, puestos, hora legal y tormenta. */
@@ -121,6 +133,9 @@ data class AiContext(
     val storm: Boolean = false,
     /** Cañas que ya no pueden cambiar de zona (límite de la fase alcanzado). */
     val zoneLimitReached: Set<Int> = emptySet(),
+    /** Inicio legal de hoy: con él y [legalEnd] se comprueban las horas que cite la IA. */
+    val legalStart: Instant? = null,
+    val zone: ZoneId = ZoneId.of("Europe/Madrid"),
 )
 
 /**
@@ -142,6 +157,7 @@ object AiValidator {
     private val PROBABILITY = Regex("""\d+([.,]\d+)?\s*%|probabilidad|\bconfianza\b|\bpor ciento\b""", RegexOption.IGNORE_CASE)
     private val GRAMS = Regex("""\b\d+([.,]\d+)?\s*(g|gr|grs|gramos?|kg|kgs|kilos?|kilogramos?)\b""", RegexOption.IGNORE_CASE)
     private val NIGHT = Regex("""\bnoche\b|\bnocturn\w*|\bmadrugada\b|\bde madrugada\b""", RegexOption.IGNORE_CASE)
+    private val CLOCK = Regex("""\b([01]?\d|2[0-3])[:h]([0-5]\d)\b""")
     private val PROMISE = Regex("""garantiz\w*|seguro que (pica|picar|habr|vas a)|vas a pescar seguro|hay peces (en|ahí)""", RegexOption.IGNORE_CASE)
 
     fun textIssues(text: String?, required: Boolean = true): Set<AiIssue> = buildSet {
@@ -157,12 +173,33 @@ object AiValidator {
         if (PROMISE.containsMatchIn(t)) add(AiIssue.PROMISE)
     }
 
+    /**
+     * ⚖ Horas citadas en el texto («a las 07:30», «7h30») fuera del horario legal de hoy.
+     * Sin ventana legal no se comprueba.
+     */
+    fun legalHoursIssue(text: String?, ctx: AiContext): AiIssue? {
+        val start = ctx.legalStart ?: return null
+        val end = ctx.legalEnd ?: return null
+        val from = start.atZone(ctx.zone).toLocalTime()
+        val to = end.atZone(ctx.zone).toLocalTime()
+        val outside = CLOCK.findAll(text.orEmpty()).any { m ->
+            val t = LocalTime.of(m.groupValues[1].toInt(), m.groupValues[2].toInt())
+            t.isBefore(from) || t.isAfter(to)
+        }
+        return if (outside) AiIssue.OUTSIDE_LEGAL_HOURS else null
+    }
+
+    private fun MutableSet<AiIssue>.checkText(text: String?, ctx: AiContext, required: Boolean = true) {
+        addAll(textIssues(text, required))
+        legalHoursIssue(text, ctx)?.let(::add)
+    }
+
     fun validate(decision: AiDecision, ctx: AiContext): Set<AiIssue> = buildSet {
         val keep = decision.keep
         if (keep == null) add(AiIssue.UNKNOWN_DECISION)
         if (decision.evidence == null) add(AiIssue.MISSING_EVIDENCE)
         if (decision.reasons.isEmpty()) add(AiIssue.EMPTY_TEXT)
-        decision.reasons.forEach { addAll(textIssues(it)) }
+        decision.reasons.forEach { checkText(it, ctx) }
         if (keep == true && decision.changes.isNotEmpty()) add(AiIssue.CHANGES_WHEN_KEEPING)
         if (keep == false) {
             if (decision.changes.isEmpty()) add(AiIssue.NO_CHANGES)
@@ -178,15 +215,15 @@ object AiValidator {
                 if (kind in ZONE_KINDS && (noZone || c.rod in ctx.zoneLimitReached)) add(AiIssue.ZONE_NOT_ALLOWED)
                 if (c.evidence == null) add(AiIssue.MISSING_EVIDENCE)
                 addAll(gearIssues(c.baitName, c.rigName, c.spotName, ctx))
-                addAll(textIssues(c.action))
-                addAll(textIssues(c.reason))
+                checkText(c.action, ctx)
+                checkText(c.reason, ctx)
             }
         }
     }
 
     fun validate(plan: AiPlan, ctx: AiContext): Set<AiIssue> = buildSet {
         if (plan.evidence == null) add(AiIssue.MISSING_EVIDENCE)
-        addAll(textIssues(plan.summary))
+        checkText(plan.summary, ctx)
         if (plan.rods.isEmpty()) add(AiIssue.NO_CHANGES)
         if (plan.rods.map { it.rod }.toSet().size != plan.rods.size) add(AiIssue.DUPLICATE_ROD)
         plan.rods.forEach { r ->
@@ -194,11 +231,16 @@ object AiValidator {
             if (r.evidence == null) add(AiIssue.MISSING_EVIDENCE)
             r.distanceM?.let { if (it < 0 || it > MAX_DISTANCE_M) add(AiIssue.DISTANCE_OUT_OF_RANGE) }
             addAll(gearIssues(r.baitName, r.rigName, r.spotName, ctx))
-            addAll(textIssues(r.reason))
+            checkText(r.reason, ctx)
         }
         plan.warnings.forEach { w ->
             if (w.evidence == null) add(AiIssue.MISSING_EVIDENCE)
-            addAll(textIssues(w.text))
+            checkText(w.text, ctx)
+        }
+        plan.advice.forEach { a ->
+            if (a.field == null) add(AiIssue.UNKNOWN_FIELD)
+            if (a.evidence == null) add(AiIssue.MISSING_EVIDENCE)
+            checkText(a.text, ctx)
         }
     }
 

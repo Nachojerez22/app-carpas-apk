@@ -144,6 +144,7 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                 StrategyScreen(
                     onStartGuided = { navController.navigate(GuidedRoute) { launchSingleTop = true } },
                     onOpenSpots = { navController.navigate(SpotsRoute) },
+                    onOpenAssistant = { navController.navigate(AssistantRoute) },
                 )
             }
             composable<DataRoute> { entry ->
