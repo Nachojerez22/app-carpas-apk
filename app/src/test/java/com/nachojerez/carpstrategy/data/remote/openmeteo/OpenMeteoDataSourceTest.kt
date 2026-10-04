@@ -10,14 +10,14 @@ import kotlinx.serialization.json.Json
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okhttp3.MediaType.Companion.toMediaType
-import retrofit2.Retrofit
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import retrofit2.create
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import retrofit2.Retrofit
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.create
 
 class OpenMeteoDataSourceTest {
     private val json = Json { ignoreUnknownKeys = true }
@@ -52,7 +52,7 @@ class OpenMeteoDataSourceTest {
         assertEquals("icon_eu,meteofrance_arpege_europe,ecmwf_ifs025", url.queryParameter("models"))
         assertEquals(
             "temperature_2m,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m," +
-                "cloud_cover,precipitation,shortwave_radiation",
+                "cloud_cover,precipitation,shortwave_radiation,weather_code",
             url.queryParameter("hourly"),
         )
         assertEquals("7", url.queryParameter("past_days"))

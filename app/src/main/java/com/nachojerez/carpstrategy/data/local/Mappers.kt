@@ -42,6 +42,7 @@ fun MultiModelForecast.toEntities(
                 cloudCoverPct = h.cloudCoverPct,
                 precipitationMm = h.precipitationMm,
                 shortwaveRadiationWm2 = h.shortwaveRadiationWm2,
+                weatherCode = h.weatherCode,
             )
         }
     }
@@ -64,6 +65,7 @@ fun ForecastWithHours.toDomain(): Cached<MultiModelForecast> {
                     cloudCoverPct = e.cloudCoverPct,
                     precipitationMm = e.precipitationMm,
                     shortwaveRadiationWm2 = e.shortwaveRadiationWm2,
+                    weatherCode = e.weatherCode,
                 )
             }
         }
