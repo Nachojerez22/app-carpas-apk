@@ -52,7 +52,8 @@ sealed class AiException(message: String) : Exception(message) {
 
     class Offline(cause: IOException) : AiException(cause.message ?: "Sin conexión")
 
-    class Failed(val code: Int) : AiException("El proveedor respondió $code")
+    /** [detail]: el mensaje del proveedor (sin la clave), para saber qué ha pasado. */
+    class Failed(val code: Int, val detail: String? = null) : AiException("El proveedor respondió $code")
 
     /** Respuesta vacía o bloqueada por el proveedor. */
     class Empty : AiException("Respuesta vacía")
@@ -87,7 +88,7 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
             AiProvider.GEMINI -> {
                 val url = geminiBase.toHttpUrlOrNull()?.newBuilder()?.addPathSegment("models")
                     ?.addQueryParameter("pageSize", "200")?.build() ?: throw AiException.NotConfigured()
-                val response = execute(Request.Builder().url(url).header("x-goog-api-key", apiKey.trim()).get().build())
+                val response = execute(Request.Builder().url(url).header("x-goog-api-key", apiKey.trim()).get().build(), apiKey.trim())
                 response["models"]?.jsonArray.orEmpty().mapNotNull { e ->
                     val m = e.jsonObject
                     val methods = m["supportedGenerationMethods"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }.orEmpty()
@@ -96,14 +97,15 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
             }
             AiProvider.OPENAI_COMPATIBLE -> {
                 val url = "${config.baseUrl.trim().trimEnd('/')}/models".toHttpUrlOrNull() ?: throw AiException.NotConfigured()
-                val response = execute(Request.Builder().url(url).header("Authorization", "Bearer ${apiKey.trim()}").get().build())
+                val response = execute(Request.Builder().url(url).header("Authorization", "Bearer ${apiKey.trim()}").get().build(), apiKey.trim())
                 response["data"]?.jsonArray.orEmpty().mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.contentOrNull }
             }
         }.distinct().sortedWith(compareBy({ !it.contains("flash") }, { it }))
     }
 
     private fun gemini(config: AiConfig, apiKey: String, system: String, user: String): String {
-        val url = geminiBase.toHttpUrlOrNull()?.newBuilder()
+        val key = apiKey.trim()
+        fun url(base: String) = base.toHttpUrlOrNull()?.newBuilder()
             ?.addPathSegment("models")
             ?.addPathSegment("${config.model.trim()}:generateContent")
             ?.build() ?: throw AiException.NotConfigured()
@@ -120,11 +122,27 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
                 put("responseMimeType", "application/json")
             }
         }
-        val request = Request.Builder().url(url)
-            .header("x-goog-api-key", apiKey.trim())
-            .post(body.toString().toRequestBody(mediaJson))
-            .build()
-        val response = execute(request)
+        val payload = body.toString()
+        // Con algunas claves Google responde 404 a una de las formas de llamar: se prueban, por
+        // orden, clave en cabecera, clave en la URL y la versión estable de la API.
+        val v1 = geminiBase.replace("/v1beta/", "/v1/").takeIf { it != geminiBase }
+        val attempts = listOfNotNull<() -> Request>(
+            { Request.Builder().url(url(geminiBase)).header("x-goog-api-key", key).post(payload.toRequestBody(mediaJson)).build() },
+            { Request.Builder().url(url(geminiBase).newBuilder().addQueryParameter("key", key).build()).post(payload.toRequestBody(mediaJson)).build() },
+            v1?.let { base -> { Request.Builder().url(url(base)).header("x-goog-api-key", key).post(payload.toRequestBody(mediaJson)).build() } },
+        )
+        var notFound: AiException.Failed? = null
+        var response: JsonObject? = null
+        for (attempt in attempts) {
+            try {
+                response = execute(attempt(), key)
+                break
+            } catch (e: AiException.Failed) {
+                if (e.code != 404) throw e
+                if (notFound == null) notFound = e
+            }
+        }
+        if (response == null) throw notFound ?: AiException.Empty()
         // Los modelos con razonamiento pueden devolver partes «thought»: se ignoran.
         val parts = response["candidates"]?.jsonArray?.firstOrNull()?.jsonObject
             ?.get("content")?.jsonObject?.get("parts")?.jsonArray.orEmpty()
@@ -157,13 +175,13 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
             .header("Authorization", "Bearer ${apiKey.trim()}")
             .post(body.toString().toRequestBody(mediaJson))
             .build()
-        val response = execute(request)
+        val response = execute(request, apiKey.trim())
         val text = response["choices"]?.jsonArray?.firstOrNull()?.jsonObject
             ?.get("message")?.jsonObject?.get("content")?.jsonPrimitive?.contentOrNull
         return text?.ifBlank { null } ?: throw AiException.Empty()
     }
 
-    private fun execute(request: Request): JsonObject {
+    private fun execute(request: Request, secret: String): JsonObject {
         try {
             http.newCall(request).execute().use { response ->
                 val text = response.body.string()
@@ -172,7 +190,7 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
                     // Gemini responde 400 «API key not valid» con una clave errónea.
                     response.code == 400 && text.contains("API_KEY_INVALID") -> throw AiException.Unauthorized()
                     response.code == 429 -> throw AiException.Quota()
-                    !response.isSuccessful -> throw AiException.Failed(response.code)
+                    !response.isSuccessful -> throw AiException.Failed(response.code, errorDetail(text, secret))
                 }
                 return runCatching { json.parseToJsonElement(text).jsonObject }.getOrElse { throw AiException.Empty() }
             }
@@ -181,7 +199,17 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
         }
     }
 
+    /** `error.message` de la respuesta (Google y OpenAI), recortado y sin la clave. */
+    private fun errorDetail(text: String, secret: String): String? {
+        val error = runCatching { json.parseToJsonElement(text).jsonObject["error"] }.getOrNull() ?: return null
+        val message = (error as? JsonObject)?.get("message")?.jsonPrimitive?.contentOrNull
+            ?: (error as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull
+        return message?.replace(secret, "…")?.take(MAX_DETAIL)
+    }
+
     private companion object {
+        const val MAX_DETAIL = 300
+
         /** Respuestas estables: poca creatividad. */
         const val TEMPERATURE = 0.2
     }
