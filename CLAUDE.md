@@ -170,6 +170,9 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   OpenAI-compatible), `AssistantPrompts` (normas + estado; **nunca** la ubicación), `AssistantJson`,
   `Assistant` (consulta + validación → `AiOutcome`) y `AssistantSettings` (`local_ai_config`,
   `local_ai_key`: nunca se sincronizan).
+- Estrategia: apartado «Asistente de IA» (`AiPlanCard` + `AiAdviceCard`): plan por caña y consejos
+  por `StrategyField` (`AiPlan.advice`); `AiValidator.legalHoursIssue` rechaza horas citadas fuera
+  del horario legal. El último plan válido del día se restaura al abrir.
 - `GuidedSessionManager.consultAi` (tras cada alarma, en `scope`, y a demanda); el último plan de
   Estrategia (`local_ai_last_plan`) se copia en la sesión si empieza en < 3 h. Todo queda en `GuidedRecord.ai`.
 

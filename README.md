@@ -143,7 +143,9 @@ el porqué (cadena de filtros, demanda y reglas).
 Opcional. En **Lugar → Asistente de IA** pegas la clave de tu proveedor (Gemini de Google AI
 Studio, nivel gratuito, u otro compatible con OpenAI) y el modelo. La clave se queda en el móvil:
 no se sube a Drive ni va en las exportaciones. En cada aviso de la sesión guiada la IA dice
-**mantener** o **cambiar** (una cosa por caña) y en Estrategia prepara un **plan con IA**. La app
+**mantener** o **cambiar** (una cosa por caña) y en Estrategia tiene su propio apartado con un
+**plan por caña** y **consejos** (dónde, cuándo, cebado, presentación, qué evitar), cada uno con su
+etiqueta de evidencia. La app
 comprueba cada respuesta: solo tu equipo y tus puestos, horario legal, sin gramos, sin
 probabilidades, sin prometer peces y con etiqueta de evidencia; si no cumple, la descarta y
 siguen mandando las reglas. Tú aceptas o rechazas cada propuesta. Se envía el estado de la pesca,
