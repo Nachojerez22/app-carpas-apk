@@ -835,4 +835,31 @@
     <string name="guided_msg_inflow_edge">Entra agua turbia: prueba la cola y el borde de la mancha, no el centro; ceba poco, el agua ya trae comida.</string>
     <string name="guided_msg_inflow_summer_storm">Con calor y tormenta, el agua que entra es más fresca y se hunde por el cauce: una caña en la caída frente a la desembocadura.</string>
     <string name="guided_msg_inflow_winter">En invierno, con lluvia fuerte o agua entrando, evita la entrada y la cola (agua muy fría): zonas estables y cebado mínimo.</string>
+
+    <!-- Fase 7.2: cuenta de Google (Drive) y versiones nuevas -->
+    <string name="account_title">Cuenta de Google</string>
+    <string name="account_subtitle">Tus datos guardados en tu Google Drive</string>
+    <string name="account_intro">Inicia sesión una vez y tu diario, tus datos, tu equipo y tus ajustes se guardan en tu Google Drive. Si cambias de móvil o reinstalas, inicias sesión y aparece todo.</string>
+    <string name="account_privacy">Se guardan en una carpeta privada de Drive que solo ve esta app. No se sube tu ubicación GPS ni ninguna clave. Sin cobertura, la app sigue funcionando y sube los cambios al volver la conexión.</string>
+    <string name="account_sign_in">Iniciar sesión con Google</string>
+    <string name="account_signing_in">Conectando…</string>
+    <string name="account_sign_in_again">Volver a iniciar sesión</string>
+    <string name="account_connected_as">Conectado como %1$s</string>
+    <string name="account_connected">Conectado a Google Drive</string>
+    <string name="account_how">Al abrir la app se baja lo último de Drive y cada cambio se sube a los pocos segundos.</string>
+    <string name="account_sync_now">Sincronizar ahora</string>
+    <string name="account_sign_out">Cerrar sesión</string>
+    <string name="account_sign_out_confirm">¿Cerrar sesión? Tus datos se quedan en el móvil y en tu Drive; solo se deja de sincronizar.</string>
+    <string name="account_syncing">Sincronizando…</string>
+    <string name="account_synced_at">Sincronizado el %1$s</string>
+    <string name="account_offline">Sin conexión: los cambios se subirán al volver la cobertura.</string>
+    <string name="account_needs_sign_in">Google pide que vuelvas a iniciar sesión para seguir guardando en Drive.</string>
+    <string name="account_error">No se pudo sincronizar. Prueba otra vez más tarde.</string>
+    <string name="account_error_code">No se pudo sincronizar (código %1$d). Prueba otra vez más tarde.</string>
+    <string name="account_error_config">Google no reconoce esta app: falta la credencial de Android en Google Cloud (nombre del paquete y huella SHA-1). Ver docs/CUENTA_GOOGLE.md.</string>
+    <string name="update_title">Nueva versión %1$s</string>
+    <string name="update_download">Descargar</string>
+    <string name="update_later">Más tarde</string>
+    <string name="update_data_safe_drive">Tus datos ya están en tu Google Drive. Instala la nueva versión encima de la actual, sin desinstalar.</string>
+    <string name="update_data_safe_local">Instala la nueva versión encima de la actual, sin desinstalar: así no se borra nada. Para tener además una copia en tu Google Drive, inicia sesión en Lugar → Cuenta de Google.</string>
 </resources>
