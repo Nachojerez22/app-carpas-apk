@@ -41,6 +41,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.domain.guided.ActivityPlace
 import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
 import com.nachojerez.carpstrategy.domain.guided.Decision
@@ -50,7 +51,9 @@ import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedMessage
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
+import com.nachojerez.carpstrategy.domain.guided.JumpCount
 import com.nachojerez.carpstrategy.domain.guided.Proposal
+import com.nachojerez.carpstrategy.domain.guided.ProposalSource
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Species
@@ -131,6 +134,7 @@ fun GuidedScreen(
             val rod = rods.firstOrNull { it.id == selectedRod } ?: rods.firstOrNull()
             item { HeaderCard(state, session, phase, rods.size > 1, viewModel::nothingEverywhere, viewModel::windChanged, viewModel::conditionChanged) }
             item { WeatherCard(session.guided?.spot, state.weather, viewModel::answerWeather) }
+            item { AiCard(state, viewModel::askAi) }
             rods.forEach { r ->
                 r.log.pending?.let { record ->
                     item(key = "propuesta-${r.id}") {
@@ -342,6 +346,24 @@ private fun WeatherCard(spot: Spot?, report: WeatherReport?, onAnswer: (WeatherQ
     }
 }
 
+/** Asistente de IA: su última opinión, consultar ahora y qué comprueba la app. */
+@Composable
+private fun AiCard(state: GuidedUiState, onAsk: () -> Unit) {
+    val res = LocalContext.current.resources
+    CarpCard {
+        SectionTitle(stringResource(R.string.guided_ai_title))
+        if (!state.aiConfigured) {
+            Caption(stringResource(R.string.guided_ai_off))
+        } else {
+            state.lastAi?.let { Text("${Formatting.clock(it.time)} · ${res.aiLine(it)}") }
+            OutlinedButton(onClick = onAsk, enabled = !state.aiBusy) {
+                Text(stringResource(if (state.aiBusy) R.string.guided_ai_asking else R.string.guided_ai_ask))
+            }
+            Caption(stringResource(R.string.guided_ai_note))
+        }
+    }
+}
+
 /** Lluvia, tormenta y entrada de agua: se marcan al empezar y se desmarcan al parar. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -372,11 +394,13 @@ private fun ProposalCard(rod: RodUi, showRod: Boolean, proposal: Proposal, phase
     var rejecting by rememberSaveable(rod.id) { mutableStateOf(false) }
     CarpCard(border = CardBorder.Warning) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            val title = stringResource(R.string.guided_proposal_title)
+            val title = stringResource(if (proposal.source == ProposalSource.AI) R.string.guided_proposal_ai_title else R.string.guided_proposal_title)
             Text(if (showRod) "$title · ${res.rodLabel(rod.id, rod.name)}" else title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             AnyEvidenceBadge(proposal.evidence)
         }
         Text(res.proposalText(proposal, phase), style = MaterialTheme.typography.bodyLarge)
+        proposal.note?.let { Text(it) }
+        proposal.spotName?.let { Caption(stringResource(R.string.guided_spot_label, it)) }
         Caption(res.situationText(proposal, phase))
         proposal.rigName?.let { Caption(stringResource(R.string.guided_step_rig_name, it)) }
         if (proposal.bait != null && proposal.baitName == null) Caption(stringResource(R.string.guided_step_no_gear))
@@ -451,11 +475,15 @@ private fun PlanCard(session: Session, rod: RodUi, showRod: Boolean, state: Guid
 private fun RegisterCard(rod: RodUi, onCheckIn: (CheckInDraft) -> Unit) {
     var signals by rememberSaveable(rod.id) { mutableStateOf(SignalLevel.NONE) }
     var bait by rememberSaveable(rod.id) { mutableStateOf(BaitState.NOT_CHECKED) }
+    var seenAt by rememberSaveable(rod.id) { mutableStateOf<ActivityPlace?>(null) }
+    var jumps by rememberSaveable(rod.id) { mutableStateOf<JumpCount?>(null) }
     var dialog by rememberSaveable(rod.id) { mutableStateOf<RegisterDialog?>(null) }
     fun send(draft: CheckInDraft) {
-        onCheckIn(draft.copy(signals = signals, baitState = bait))
+        onCheckIn(draft.copy(signals = signals, baitState = bait, seenAt = seenAt, jumps = jumps))
         signals = SignalLevel.NONE
         bait = BaitState.NOT_CHECKED
+        seenAt = null
+        jumps = null
     }
     CarpCard {
         Text(stringResource(R.string.guided_register_title), style = MaterialTheme.typography.titleMedium)
@@ -464,6 +492,14 @@ private fun RegisterCard(rod: RodUi, onCheckIn: (CheckInDraft) -> Unit) {
             SignalLevel.entries.forEach { s -> FilterChip(selected = signals == s, onClick = { signals = s }, label = { Text(stringResource(s.titleRes())) }) }
         }
         Caption(stringResource(R.string.guided_signal_hint))
+        Text(stringResource(R.string.guided_seen_at), style = MaterialTheme.typography.titleSmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            ActivityPlace.entries.forEach { p -> FilterChip(selected = seenAt == p, onClick = { seenAt = if (seenAt == p) null else p }, label = { Text(stringResource(p.titleRes())) }) }
+        }
+        Text(stringResource(R.string.guided_jumps), style = MaterialTheme.typography.titleSmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            JumpCount.entries.forEach { j -> FilterChip(selected = jumps == j, onClick = { jumps = if (jumps == j) null else j }, label = { Text(stringResource(j.titleRes())) }) }
+        }
         Text(stringResource(R.string.guided_bait_state), style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             BaitState.entries.forEach { b -> FilterChip(selected = bait == b, onClick = { bait = b }, label = { Text(stringResource(b.titleRes())) }) }

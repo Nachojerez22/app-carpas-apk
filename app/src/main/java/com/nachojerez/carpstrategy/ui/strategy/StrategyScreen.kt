@@ -16,9 +16,11 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -35,6 +38,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
+import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.rules.ActiveRule
 import com.nachojerez.carpstrategy.domain.rules.AdviceItem
@@ -59,6 +63,7 @@ import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.zoneLabelRes
 import com.nachojerez.carpstrategy.ui.guided.shortRes
 import com.nachojerez.carpstrategy.ui.guided.spotSummary
+import com.nachojerez.carpstrategy.ui.guided.titleRes
 import com.nachojerez.carpstrategy.ui.theme.CarpTheme
 import com.nachojerez.carpstrategy.ui.theme.EvidenceKind
 import com.nachojerez.carpstrategy.ui.theme.Spacing
@@ -71,7 +76,8 @@ fun StrategyScreen(
     viewModel: StrategyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    StrategyContent(state, onStartGuided, onOpenSpots)
+    val plan by viewModel.plan.collectAsStateWithLifecycle()
+    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan)
 }
 
 /**
@@ -80,7 +86,13 @@ fun StrategyScreen(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StrategyContent(state: StrategyUiState, onStartGuided: () -> Unit = {}, onOpenSpots: () -> Unit = {}) {
+fun StrategyContent(
+    state: StrategyUiState,
+    onStartGuided: () -> Unit = {},
+    onOpenSpots: () -> Unit = {},
+    plan: PlanUiState = PlanUiState(),
+    onPlan: (Int) -> Unit = {},
+) {
     var whyOpen by rememberSaveable { mutableStateOf(false) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -122,6 +134,7 @@ fun StrategyContent(state: StrategyUiState, onStartGuided: () -> Unit = {}, onOp
                 item { ResultCard(result) }
                 if (!result.blocked) {
                     item { SummaryActions(state, onStartGuided) }
+                    if (plan.configured) item { AiPlanCard(plan, onPlan) }
 
                     // 2. Qué hacer: dónde (y tus puestos), presentación, cebado y notas.
                     item { SectionTitle(stringResource(R.string.strategy_what_title), subtitle = stringResource(R.string.strategy_what_subtitle)) }
@@ -225,6 +238,68 @@ private fun LazyListScope.whyItems(result: StrategyResult) {
                     )
                 }
             }
+        }
+    }
+}
+
+/** Plan con IA: cuántas cañas, pedirlo y el resultado validado (o por qué se descartó). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AiPlanCard(plan: PlanUiState, onPlan: (Int) -> Unit) {
+    val res = LocalContext.current.resources
+    var rods by rememberSaveable { mutableStateOf(2) }
+    CarpCard {
+        Text(stringResource(R.string.strategy_ai_plan), style = MaterialTheme.typography.titleSmall)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            Caption(stringResource(R.string.strategy_ai_rods))
+            (1..GuidedSessions.MAX_RODS).forEach { n -> FilterChip(selected = rods == n, onClick = { rods = n }, label = { Text("$n") }) }
+        }
+        OutlinedButton(onClick = { onPlan(rods) }, enabled = !plan.running) {
+            Text(stringResource(if (plan.running) R.string.strategy_ai_planning else R.string.strategy_ai_plan))
+        }
+        val outcome = plan.outcome
+        val value = outcome?.value
+        when {
+            outcome == null -> Unit
+            value != null -> {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    Text(stringResource(R.string.strategy_ai_plan_title), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                    value.evidence?.let { AnyEvidenceBadge(it) }
+                }
+                Text(value.summary)
+                value.rods.forEach { r ->
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.strategy_ai_plan_rod, r.rod), style = MaterialTheme.typography.titleSmall)
+                            val parts = listOfNotNull(
+                                r.spotName,
+                                r.baitName,
+                                r.rigName,
+                                r.column?.let { stringResource(it.titleRes()) },
+                                r.distanceM?.let { stringResource(R.string.strategy_ai_plan_distance, Formatting.number(it, 0)) },
+                            )
+                            if (parts.isNotEmpty()) Text(parts.joinToString(" · "))
+                            Caption(r.reason)
+                        }
+                        r.evidence?.let { AnyEvidenceBadge(it) }
+                    }
+                }
+                value.warnings.forEach { w ->
+                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        Text(w.text, modifier = Modifier.weight(1f))
+                        w.evidence?.let { AnyEvidenceBadge(it) }
+                    }
+                }
+                Caption(stringResource(R.string.strategy_ai_plan_note))
+            }
+            outcome.exchange.error != null -> Caption(stringResource(R.string.strategy_ai_plan_error))
+            else -> Caption(
+                stringResource(
+                    R.string.strategy_ai_plan_invalid,
+                    outcome.exchange.issues.map { res.getString(it.titleRes()) }.distinct().joinToString(", "),
+                ),
+            )
         }
     }
 }

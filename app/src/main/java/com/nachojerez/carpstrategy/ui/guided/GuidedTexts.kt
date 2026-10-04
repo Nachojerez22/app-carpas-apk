@@ -3,6 +3,9 @@ package com.nachojerez.carpstrategy.ui.guided
 import android.content.res.Resources
 import androidx.annotation.StringRes
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.domain.assistant.AiExchange
+import com.nachojerez.carpstrategy.domain.assistant.AiIssue
+import com.nachojerez.carpstrategy.domain.guided.ActivityPlace
 import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
@@ -13,6 +16,7 @@ import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedMessage
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
+import com.nachojerez.carpstrategy.domain.guided.JumpCount
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.RigType
@@ -133,6 +137,7 @@ fun Situation.titleRes(): Int = when (this) {
     Situation.TOUCHES -> R.string.guided_situation_touches
     Situation.CRAB_OR_SMALL_FISH -> R.string.guided_situation_crab
     Situation.OTHER_FISH -> R.string.guided_situation_other_fish
+    Situation.ASSISTANT -> R.string.guided_situation_assistant
 }
 
 @StringRes
@@ -343,4 +348,49 @@ fun WindRelation.shortRes(): Int = when (this) {
     WindRelation.BEHIND -> R.string.wind_relation_behind_short
     WindRelation.SIDE -> R.string.wind_relation_side_short
     WindRelation.CALM -> R.string.wind_relation_calm_short
+}
+
+@StringRes
+fun ActivityPlace.titleRes(): Int = when (this) {
+    ActivityPlace.SHORE -> R.string.seen_at_shore
+    ActivityPlace.SURFACE -> R.string.seen_at_surface
+    ActivityPlace.MIDWATER -> R.string.seen_at_midwater
+    ActivityPlace.BOTTOM -> R.string.seen_at_bottom
+}
+
+@StringRes
+fun JumpCount.titleRes(): Int = when (this) {
+    JumpCount.NONE -> R.string.jumps_none
+    JumpCount.FEW -> R.string.jumps_few
+    JumpCount.MANY -> R.string.jumps_many
+}
+
+/** Por qué se descartó una respuesta de la IA, en corto. */
+@StringRes
+fun AiIssue.titleRes(): Int = when (this) {
+    AiIssue.UNREADABLE -> R.string.ai_issue_unreadable
+    AiIssue.UNKNOWN_DECISION -> R.string.ai_issue_unknown_decision
+    AiIssue.CHANGES_WHEN_KEEPING, AiIssue.NO_CHANGES -> R.string.ai_issue_inconsistent
+    AiIssue.UNKNOWN_ROD, AiIssue.DUPLICATE_ROD -> R.string.ai_issue_rod
+    AiIssue.KIND_NOT_ALLOWED -> R.string.ai_issue_kind
+    AiIssue.ZONE_NOT_ALLOWED -> R.string.ai_issue_zone
+    AiIssue.AFTER_LEGAL_END -> R.string.ai_issue_legal_end
+    AiIssue.STORM_ACTIVE -> R.string.ai_issue_storm
+    AiIssue.UNKNOWN_BAIT, AiIssue.UNKNOWN_RIG -> R.string.ai_issue_gear
+    AiIssue.UNKNOWN_SPOT -> R.string.ai_issue_spot
+    AiIssue.PROBABILITY -> R.string.ai_issue_probability
+    AiIssue.GRAMS -> R.string.ai_issue_grams
+    AiIssue.NIGHT -> R.string.ai_issue_night
+    AiIssue.PROMISE -> R.string.ai_issue_promise
+    AiIssue.MISSING_EVIDENCE -> R.string.ai_issue_evidence
+    AiIssue.EMPTY_TEXT, AiIssue.TEXT_TOO_LONG -> R.string.ai_issue_text
+    AiIssue.DISTANCE_OUT_OF_RANGE -> R.string.ai_issue_distance
+}
+
+/** «IA: mantener — motivo» o por qué se descartó / falló (mandan las reglas). */
+fun Resources.aiLine(e: AiExchange): String = when {
+    e.error != null -> getString(R.string.ai_line_error)
+    !e.valid -> getString(R.string.ai_line_invalid, e.issues.map { getString(it.titleRes()) }.distinct().joinToString(", "))
+    e.summary == "MANTENER" -> getString(R.string.ai_line_keep, e.note.orEmpty())
+    else -> getString(R.string.ai_line_change, e.note.orEmpty())
 }

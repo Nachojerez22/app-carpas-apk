@@ -1,9 +1,14 @@
 package com.nachojerez.carpstrategy.ui.strategy
 
+import com.nachojerez.carpstrategy.data.assistant.PlanInput
+import com.nachojerez.carpstrategy.domain.assistant.AiContext
 import com.nachojerez.carpstrategy.domain.derived.DerivedCalculator
 import com.nachojerez.carpstrategy.domain.derived.DerivedConditions
 import com.nachojerez.carpstrategy.domain.derived.Freshness
 import com.nachojerez.carpstrategy.domain.derived.FreshnessPolicy
+import com.nachojerez.carpstrategy.domain.derived.WaterTempSource
+import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.JournalStats
@@ -128,3 +133,41 @@ fun chainRows(result: StrategyResult): List<ChainRow> {
     }
     return listOf(legality) + chained
 }
+
+/**
+ * Lo que se manda a la IA para el plan antes de pescar (sin ubicación). Null si no hay
+ * valoración o la sesión está bloqueada (fuera del horario legal). Función pura.
+ */
+fun planInput(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: Instant): PlanInput? {
+    val result = state.result?.takeIf { !it.blocked } ?: return null
+    val derived = state.derived
+    return PlanInput(
+        now = now,
+        zone = Formatting.MADRID,
+        rods = rods.coerceIn(1, GuidedSessions.MAX_RODS),
+        band = result.band?.name,
+        limitingLevel = result.limitingLevel?.name,
+        legalStart = derived?.legalToday?.start,
+        legalEnd = derived?.legalToday?.end,
+        windows = state.windows.map { Triple(it.start, it.end, it.kind.name) },
+        advice = result.advice.flatMap { (field, items) -> items.map { Triple(field.name, it.text, it.evidence) } },
+        waterC = derived?.water?.valueC,
+        waterMeasured = derived?.water?.source == WaterTempSource.MEASURED,
+        waterTrend3dC = derived?.water?.trend3dC,
+        season = derived?.season?.season?.name,
+        windFromDeg = derived?.wind24h?.dominantDirectionDeg,
+        windKmh = derived?.wind24h?.meanSpeedKmh,
+        rain24hMm = derived?.rain?.last24hMm,
+        gear = gear,
+        spots = state.spots,
+    )
+}
+
+/** Contexto para validar el plan: cañas 1..n, tu equipo, tus puestos y el fin legal de hoy. */
+fun planContext(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: Instant): AiContext = AiContext(
+    now = now,
+    legalEnd = state.derived?.legalToday?.end,
+    rodIds = (1..rods.coerceIn(1, GuidedSessions.MAX_RODS)).toSet(),
+    gear = gear,
+    spots = state.spots,
+)

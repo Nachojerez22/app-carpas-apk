@@ -1,5 +1,10 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import com.nachojerez.carpstrategy.data.assistant.Assistant
+import com.nachojerez.carpstrategy.data.assistant.AssistantPrompts
+import com.nachojerez.carpstrategy.data.assistant.AssistantSettings
+import com.nachojerez.carpstrategy.data.userdata.GuidedJson
+import com.nachojerez.carpstrategy.data.userdata.LocalSettings
 import com.nachojerez.carpstrategy.di.IoDispatcher
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
@@ -24,6 +29,7 @@ import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.completeSession
 import com.nachojerez.carpstrategy.ui.strategy.buildStrategyState
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,6 +42,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -55,11 +62,18 @@ class GuidedSessionManager @Inject constructor(
     private val rulesRepository: RulesRepository,
     private val scheduler: CheckInScheduler,
     private val notifier: GuidedNotifier,
+    private val assistant: Assistant,
+    private val assistantSettings: AssistantSettings,
+    private val localSettings: LocalSettings,
     private val clock: Clock,
     @param:IoDispatcher private val io: CoroutineDispatcher,
 ) {
     private val mutex = Mutex()
     private val next = MutableStateFlow<Instant?>(null)
+    private val aiRunning = MutableStateFlow(false)
+
+    /** Hay una consulta a la IA en marcha. */
+    val aiBusy: StateFlow<Boolean> = aiRunning
 
     /** Ámbito para el trabajo que lanzan los receptores (alarma y botones de la notificación). */
     val scope = CoroutineScope(SupervisorJob() + io)
@@ -88,7 +102,10 @@ class GuidedSessionManager @Inject constructor(
         val env = env(now)
         val started = GuidedSessions.start(base, rodNames, groundbait, env, spot)
         // El primer tiempo se guarda sin reevaluar: el plan A de cada caña sigue pendiente.
-        val update = weather?.let { w -> started.copy(session = started.session.copy(guided = started.session.guided?.withWeather(w))) } ?: started
+        val withWeather = weather?.let { w -> started.copy(session = started.session.copy(guided = started.session.guided?.withWeather(w))) } ?: started
+        // El plan con IA de Estrategia (si es reciente) queda con la sesión para comparar después.
+        val plan = GuidedJson.decodeAi(localSettings.get(KEY_LAST_PLAN))?.takeIf { Duration.between(it.time, now) <= PLAN_MAX_AGE && !it.time.isAfter(now) }
+        val update = plan?.let { p -> withWeather.copy(session = withWeather.session.copy(guided = withWeather.session.guided?.let { it.copy(ai = it.ai + p) })) } ?: withWeather
         val id = journal.save(update.session)
         afterChange(update.copy(session = update.session.copy(id = id)), now, alert = false)
         id
@@ -139,6 +156,39 @@ class GuidedSessionManager @Inject constructor(
         val location = active()?.location
         val weather = location?.let { fieldWeather(it, refresh = true) }
         onAlarmLocked(weather)
+        // La IA puede tardar más de lo que dura el receptor: va aparte y avisa si propone algo.
+        if (assistantSettings.config().autoCheckIn && assistantSettings.apiKey() != null) {
+            scope.launch { consultAi(fromAlarm = true) }
+        }
+    }
+
+    /**
+     * Pregunta a la IA MANTENER o CAMBIAR con el estado de la sesión. La respuesta se valida;
+     * si no vale (o no hay red), se registra y siguen mandando las reglas.
+     */
+    suspend fun consultAi(fromAlarm: Boolean = false) {
+        val key = assistantSettings.apiKey() ?: return
+        if (!aiRunning.compareAndSet(expect = false, update = true)) return
+        try {
+            val config = assistantSettings.config()
+            val session = active() ?: return
+            val now = clock.instant()
+            val env = env(now)
+            val spots = settings.observeSpots().first()
+            val ctx = GuidedSessions.aiContext(session, env, spots)
+            if (ctx.legalEnd != null && !now.isBefore(ctx.legalEnd)) return
+            val state = AssistantPrompts.checkInState(session, GuidedSessions.phaseOf(session), ctx.legalEnd, now, Formatting.MADRID, env.inventory, spots)
+            val outcome = withContext(io) { assistant.checkIn(config, key, state, ctx) }
+            mutex.withLock {
+                val current = active()?.takeIf { it.id == session.id } ?: return@withLock
+                val at = clock.instant()
+                val update = GuidedSessions.applyAi(current, outcome.exchange, outcome.value, env(at))
+                journal.save(update.session)
+                afterChange(update, at, alert = update.newProposals.isNotEmpty(), checkIn = fromAlarm, reschedule = false)
+            }
+        } finally {
+            aiRunning.value = false
+        }
     }
 
     private suspend fun onAlarmLocked(weather: WeatherSnapshot?): Unit = mutex.withLock {
@@ -208,8 +258,14 @@ class GuidedSessionManager @Inject constructor(
         notifier.show(session, phase, legalEnd, at, now, alert = alert, checkIn = checkIn)
     }
 
-    private companion object {
+    companion object {
         /** El receptor de la alarma tiene poco tiempo: si la descarga tarda más, vale la caché. */
-        const val ALARM_REFRESH_TIMEOUT_MS = 7_000L
+        private const val ALARM_REFRESH_TIMEOUT_MS = 7_000L
+
+        /** Último plan con IA de Estrategia (ajuste local). */
+        const val KEY_LAST_PLAN = "ai_last_plan"
+
+        /** Un plan sirve para la sesión que empieza en las 3 h siguientes. */
+        private val PLAN_MAX_AGE: Duration = Duration.ofHours(3)
     }
 }
