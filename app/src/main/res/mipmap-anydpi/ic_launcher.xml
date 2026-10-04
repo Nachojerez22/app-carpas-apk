@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Logo de CarpStrategy (docs/design): el mapa de bits ya incluye el fondo en degradado y deja el
+     logo dentro de la zona segura (72 dp de 108 dp), así queda bien con máscara redonda o cuadrada. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/ic_launcher_background" />
-    <foreground android:drawable="@drawable/ic_launcher_foreground" />
-    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+    <background android:drawable="@drawable/ic_launcher_logo" />
+    <foreground android:drawable="@drawable/ic_launcher_transparent" />
 </adaptive-icon>
