@@ -214,4 +214,30 @@ class GuidedEngineTest {
         val record = GuidedRecord(listOf(RodTrack(1, "fija", a), RodTrack(2, "carrete", b)))
         assertEquals(t0.plus(Duration.ofMinutes(135)), GuidedEngine.nextCheckIn(record, FishingPhase.SUMMER, t0.plus(Duration.ofMinutes(90)), legalEnd))
     }
+
+    @Test
+    fun `tormenta - seguridad y ninguna propuesta mientras dura`() {
+        val log = started(FishingPhase.SUMMER).check(10, notWorking = true).check(20, notWorking = true)
+        val eval = GuidedEngine.evaluate(log, ctx(FishingPhase.SUMMER, 20).copy(conditions = setOf(FieldCondition.STORM, FieldCondition.HEAVY_RAIN)))
+        assertNull(eval.proposal)
+        assertTrue(GuidedMessage.STORM_SAFETY in eval.messages)
+        assertTrue(GuidedMessage.HEAVY_RAIN_WATCH in eval.messages)
+    }
+
+    @Test
+    fun `lluvia y entrada de agua - avisos por fase y peldano de la boca del arroyo antes de la zona`() {
+        val light = GuidedEngine.evaluate(started(FishingPhase.SUMMER), ctx(FishingPhase.SUMMER, 5).copy(conditions = setOf(FieldCondition.LIGHT_RAIN)))
+        assertTrue(GuidedMessage.LIGHT_RAIN_KEEP in light.messages)
+        val inflow = setOf(FieldCondition.MUDDY_INFLOW, FieldCondition.STORM)
+        val summer = GuidedEngine.evaluate(started(FishingPhase.SUMMER), ctx(FishingPhase.SUMMER, 5).copy(conditions = inflow))
+        assertTrue(GuidedMessage.INFLOW_EDGE in summer.messages)
+        assertTrue(GuidedMessage.INFLOW_SUMMER_STORM in summer.messages)
+        val winter = GuidedEngine.evaluate(started(FishingPhase.WINTER), ctx(FishingPhase.WINTER, 5).copy(conditions = setOf(FieldCondition.HEAVY_RAIN)))
+        assertTrue(GuidedMessage.INFLOW_WINTER_AVOID in winter.messages)
+        // Calor extremo sin señales: la zona va primero; con agua turbia entrando, antes la boca del arroyo.
+        val heat = started(FishingPhase.HEAT).check(30).check(60).check(90)
+        val muddy = ctx(FishingPhase.HEAT, 90).copy(conditions = setOf(FieldCondition.MUDDY_INFLOW))
+        assertEquals(StepKind.INFLOW, GuidedEngine.evaluate(heat, muddy).proposal!!.kind)
+        assertEquals(StepKind.ZONE, GuidedEngine.evaluate(heat, ctx(FishingPhase.HEAT, 90)).proposal!!.kind)
+    }
 }

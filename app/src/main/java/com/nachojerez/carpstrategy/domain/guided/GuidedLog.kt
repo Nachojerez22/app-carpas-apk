@@ -27,6 +27,16 @@ enum class Species { CARP, BARBEL, NASE, BLACK_BASS, SMALL }
 enum class GroundbaitLevel { LOW, NORMAL, HIGH }
 
 /**
+ * Condición del tiempo o del agua que el usuario ve durante la sesión (§5.6 «Por condición»).
+ * Se activan y desactivan con su hora y pueden coincidir (lluvia fuerte + tormenta + agua turbia).
+ * Lluvia ligera y fuerte se excluyen entre sí.
+ */
+enum class FieldCondition { LIGHT_RAIN, HEAVY_RAIN, STORM, MUDDY_INFLOW }
+
+/** Una condición empieza ([active] true) o termina en [time]. */
+data class ConditionChange(val time: Instant, val condition: FieldCondition, val active: Boolean)
+
+/**
  * Respuesta a un aviso (cada 30 min o cuando el usuario quiera). [notWorking] es el botón
  * «No funciona»: dos en 30 min fuerzan la siguiente propuesta (§5.9.3).
  */
@@ -49,7 +59,7 @@ data class CheckIn(
 }
 
 /** Tipo de paso de la escalera (§5.9.1–§5.9.2). */
-enum class StepKind { INITIAL, PRESENTATION, RIG, COLUMN, DISTANCE, ZONE, ANTI_CRAB, SELECTIVE }
+enum class StepKind { INITIAL, PRESENTATION, RIG, COLUMN, DISTANCE, ZONE, ANTI_CRAB, SELECTIVE, INFLOW }
 
 /** Por qué se propone el paso: la situación diagnosticada. */
 enum class Situation { START, NO_SIGNALS, SIGNALS_NO_BITES, TOUCHES, CRAB_OR_SMALL_FISH, OTHER_FISH }
@@ -118,8 +128,8 @@ data class GuidedLog(
 
     val allCheckIns: List<CheckIn> get() = segments.flatMap { it.checkIns }
 
-    /** Cambios de zona aceptados en la sesión (hay un máximo por fase). */
-    val zoneChanges: Int get() = segments.count { it.kind == StepKind.ZONE }
+    /** Cambios de zona aceptados (la boca del arroyo también es moverse); hay un máximo por fase. */
+    val zoneChanges: Int get() = segments.count { it.kind == StepKind.ZONE || it.kind == StepKind.INFLOW }
 
     fun withCheckIn(checkIn: CheckIn): GuidedLog =
         copy(segments = segments.dropLast(1) + current.copy(checkIns = current.checkIns + checkIn))
@@ -183,6 +193,8 @@ data class GuidedRecord(
     val alarms: List<Instant> = emptyList(),
     val windChanges: List<Instant> = emptyList(),
     val groundbait: GroundbaitLevel? = null,
+    /** Lluvia, tormenta y entrada de agua turbia anotadas, en orden. */
+    val conditions: List<ConditionChange> = emptyList(),
 ) {
     fun rod(id: Int): RodTrack? = rods.firstOrNull { it.id == id }
 
@@ -201,6 +213,24 @@ data class GuidedRecord(
     fun withAlarm(at: Instant): GuidedRecord = copy(alarms = alarms + at)
 
     fun withWindChange(at: Instant): GuidedRecord = copy(windChanges = windChanges + at)
+
+    /** Condiciones activas en [at]. */
+    fun activeConditions(at: Instant): Set<FieldCondition> = conditions
+        .filter { !it.time.isAfter(at) }
+        .fold(emptySet()) { acc, change -> if (change.active) acc + change.condition else acc - change.condition }
+
+    /** Activa o desactiva una condición; empezar una lluvia termina la otra intensidad. */
+    fun withCondition(at: Instant, condition: FieldCondition, active: Boolean): GuidedRecord {
+        val current = activeConditions(at)
+        if ((condition in current) == active) return this
+        val other = when (condition) {
+            FieldCondition.LIGHT_RAIN -> FieldCondition.HEAVY_RAIN
+            FieldCondition.HEAVY_RAIN -> FieldCondition.LIGHT_RAIN
+            else -> null
+        }
+        val closeOther = other?.takeIf { active && it in current }?.let { ConditionChange(at, it, false) }
+        return copy(conditions = conditions + listOfNotNull(closeOther) + ConditionChange(at, condition, active))
+    }
 
     fun finish(at: Instant): GuidedRecord = copy(rods = rods.map { it.copy(log = it.log.finish(at)) })
 }

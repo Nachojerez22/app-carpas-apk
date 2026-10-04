@@ -5,7 +5,9 @@ import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.Column
+import com.nachojerez.carpstrategy.domain.guided.ConditionChange
 import com.nachojerez.carpstrategy.domain.guided.Decision
+import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
@@ -89,6 +91,13 @@ object GuidedJson {
         @SerialName("propuestas") val proposals: List<ProposalRecordDto> = emptyList(),
     )
 
+    @Serializable
+    data class ConditionDto(
+        @SerialName("hora") val time: String,
+        @SerialName("tipo") val condition: String,
+        @SerialName("activa") val active: Boolean,
+    )
+
     /** `tramos` y `propuestas` sueltos: formato de prueba anterior a las cañas (una sola caña). */
     @Serializable
     data class GuidedDto(
@@ -96,6 +105,7 @@ object GuidedJson {
         @SerialName("avisos_mostrados") val alarms: List<String> = emptyList(),
         @SerialName("cambios_viento") val windChanges: List<String> = emptyList(),
         @SerialName("cebado_inicial") val groundbait: String? = null,
+        @SerialName("condiciones") val conditions: List<ConditionDto> = emptyList(),
         @SerialName("tramos") val legacySegments: List<SegmentDto>? = null,
         @SerialName("propuestas") val legacyProposals: List<ProposalRecordDto>? = null,
     )
@@ -184,6 +194,7 @@ object GuidedJson {
         alarms = alarms.map { it.toString() },
         windChanges = windChanges.map { it.toString() },
         groundbait = groundbait?.name,
+        conditions = conditions.map { ConditionDto(it.time.toString(), it.condition.name, it.active) },
     )
 
     fun GuidedDto.toDomain(): GuidedRecord? {
@@ -195,6 +206,9 @@ object GuidedJson {
             alarms = alarms.mapNotNull { instant(it) },
             windChanges = windChanges.mapNotNull { instant(it) },
             groundbait = enumOf<GroundbaitLevel>(groundbait),
+            conditions = conditions.mapNotNull { c ->
+                ConditionChange(instant(c.time) ?: return@mapNotNull null, enumOf<FieldCondition>(c.condition) ?: return@mapNotNull null, c.active)
+            },
         )
     }
 
