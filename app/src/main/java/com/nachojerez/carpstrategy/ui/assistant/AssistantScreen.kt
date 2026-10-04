@@ -184,7 +184,8 @@ fun aiErrorText(error: AiException): String = when (error) {
     is AiException.Unauthorized -> stringResource(R.string.ai_error_unauthorized)
     is AiException.Quota -> stringResource(R.string.ai_error_quota)
     is AiException.Offline -> stringResource(R.string.ai_error_offline)
-    is AiException.Failed -> stringResource(R.string.ai_error_failed, error.code)
+    is AiException.Failed -> stringResource(R.string.ai_error_failed, error.code) +
+        (error.detail?.let { "\n" + stringResource(R.string.ai_error_detail, it) } ?: "")
     is AiException.Empty -> stringResource(R.string.ai_error_empty)
     is AiException.NotConfigured -> stringResource(R.string.ai_error_not_configured)
 }

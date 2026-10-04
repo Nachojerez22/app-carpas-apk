@@ -62,7 +62,8 @@ class AiClientTest {
         assertThrows<AiException.Unauthorized> { client.complete(gemini, "k", "s", "u") }
         server.enqueue(MockResponse(code = 429, body = "{}"))
         assertThrows<AiException.Quota> { client.complete(gemini, "k", "s", "u") }
-        server.enqueue(MockResponse(code = 404, body = "{}"))
+        // Con 404 se prueban las tres formas de llamar antes de rendirse.
+        repeat(3) { server.enqueue(MockResponse(code = 404, body = "{}")) }
         assertEquals(404, assertThrows<AiException.Failed> { client.complete(gemini, "k", "s", "u") }.code)
         server.enqueue(MockResponse(body = """{"candidates":[{"finishReason":"SAFETY"}]}"""))
         assertThrows<AiException.Empty> { client.complete(gemini, "k", "s", "u") }
@@ -90,5 +91,26 @@ class AiClientTest {
         assertEquals("/v1/models", server.takeRequest().url.encodedPath)
         server.enqueue(MockResponse(code = 403, body = "{}"))
         assertThrows<AiException.Unauthorized> { client.listModels(gemini, "k") }
+    }
+
+    @Test
+    fun `con 404 prueba la clave en la URL y la version v1, y muestra el mensaje sin la clave`() {
+        val notFound = """{"error":{"code":404,"message":"models/m is not found for clave-secreta","status":"NOT_FOUND"}}"""
+        server.enqueue(MockResponse(code = 404, body = notFound))
+        server.enqueue(MockResponse(code = 404, body = notFound))
+        server.enqueue(MockResponse(body = """{"candidates":[{"content":{"parts":[{"text":"{}"}]}}]}"""))
+        assertEquals("{}", client.complete(gemini, "clave-secreta", "s", "u"))
+        val first = server.takeRequest()
+        assertEquals("/v1beta/models/gemini-test:generateContent", first.url.encodedPath)
+        val second = server.takeRequest()
+        assertEquals("clave-secreta", second.url.queryParameter("key"))
+        val third = server.takeRequest()
+        assertEquals("/v1/models/gemini-test:generateContent", third.url.encodedPath)
+        assertEquals("clave-secreta", third.headers["x-goog-api-key"])
+
+        repeat(3) { server.enqueue(MockResponse(code = 404, body = notFound)) }
+        val error = assertThrows<AiException.Failed> { client.complete(gemini, "clave-secreta", "s", "u") }
+        assertEquals(404, error.code)
+        assertEquals("models/m is not found for …", error.detail)
     }
 }

@@ -1047,4 +1047,5 @@
     <string name="ai_models_load">Ver modelos disponibles</string>
     <string name="ai_models_loading">Buscando modelos…</string>
     <string name="ai_models_empty">Tu clave no tiene modelos de texto disponibles.</string>
+    <string name="ai_error_detail">Google dice: %1$s</string>
 </resources>
