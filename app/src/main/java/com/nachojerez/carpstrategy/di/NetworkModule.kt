@@ -1,6 +1,8 @@
 package com.nachojerez.carpstrategy.di
 
 import com.nachojerez.carpstrategy.BuildConfig
+import com.nachojerez.carpstrategy.data.assistant.AiClient
+import com.nachojerez.carpstrategy.data.assistant.Assistant
 import com.nachojerez.carpstrategy.data.remote.aemet.AemetApi
 import com.nachojerez.carpstrategy.data.remote.aemet.AemetApiKeyInterceptor
 import com.nachojerez.carpstrategy.data.remote.aemet.AemetDataSource
@@ -67,6 +69,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideDriveClient(client: OkHttpClient): DriveClient = DriveClient(client)
+
+    @Provides
+    @Singleton
+    fun provideAssistant(client: OkHttpClient): Assistant = Assistant(AiClient(client))
 
     @Provides
     @Singleton
