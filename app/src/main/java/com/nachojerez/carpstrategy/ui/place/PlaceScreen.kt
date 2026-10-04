@@ -40,6 +40,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.BuildConfig
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.ui.account.AccountCard
 import com.nachojerez.carpstrategy.domain.model.AppStyle
 import com.nachojerez.carpstrategy.domain.model.AppThemeMode
 import com.nachojerez.carpstrategy.domain.model.DefaultLocation
@@ -70,6 +71,9 @@ fun PlaceScreen(viewModel: PlaceViewModel = hiltViewModel()) {
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item { ScreenHeader(stringResource(R.string.place_title), state.location.name) }
+
+        item { SectionTitle(stringResource(R.string.account_title), subtitle = stringResource(R.string.account_subtitle)) }
+        item { AccountCard() }
 
         item { SectionTitle(stringResource(R.string.place_location_title), subtitle = stringResource(R.string.place_location_subtitle)) }
         item {

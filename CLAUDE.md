@@ -134,6 +134,19 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `GuidedNotifier` (una notificación con cronómetro, solo vibra) y pantallas Guiada y Mi equipo.
   Los textos de pasos y avisos salen de `GuidedTexts` (Resources) para pantalla y notificación.
 
+## Cuenta de Google y versiones (fase 7.2)
+
+- `data/sync`: `SyncSnapshot` (formato `carpstrategy-sync` v1: la BD de usuario sin ids, filas
+  por clave natural; los ajustes `local_…` nunca se suben), `mergeSnapshots`, `decideSync`
+  (huellas SHA-256: subir, bajar, unir o nada), `DriveClient` (REST v3 con OkHttp,
+  `appDataFolder`), `SyncStore` (Room), `GoogleDriveAuth` (API de autorización de Play
+  Services, permiso `drive.appdata`) y `SyncManager` (al arrancar y ~15 s tras cada cambio).
+  La BD local sigue siendo la fuente de verdad de la UI (funciona sin cobertura).
+- `data/update/UpdateChecker`: última Release de GitHub (`v<versionName>-<versionCode>`,
+  asset `CarpStrategy.apk`); aviso en `MainActivity` solo en la versión de producción.
+- `data/userdata/LocalSettings`: ajustes del móvil (`local_…`) que no se sincronizan.
+- Configuración de Google Cloud: docs/CUENTA_GOOGLE.md (sin secretos en el repositorio).
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

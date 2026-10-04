@@ -74,6 +74,13 @@ interface SessionDao {
 
     @Query("DELETE FROM session WHERE id = :id")
     suspend fun delete(id: Long)
+
+    /** Sincronización con Google Drive. */
+    @Query("SELECT * FROM session")
+    suspend fun all(): List<SessionEntity>
+
+    @Query("DELETE FROM session")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -87,4 +94,11 @@ interface PredictionSnapshotDao {
     /** Limpieza: las valoraciones viejas que no se copiaron a ninguna sesión no sirven. */
     @Query("DELETE FROM prediction_snapshot WHERE computedAtEpochSecond < :beforeEpochSecond")
     suspend fun deleteOlderThan(beforeEpochSecond: Long)
+
+    /** Sincronización con Google Drive. */
+    @Query("SELECT * FROM prediction_snapshot")
+    suspend fun all(): List<PredictionSnapshotEntity>
+
+    @Query("DELETE FROM prediction_snapshot")
+    suspend fun deleteAll()
 }

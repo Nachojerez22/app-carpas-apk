@@ -57,6 +57,13 @@ interface ManualRecordDao {
 
     @Query("DELETE FROM manual_record WHERE id = :id")
     suspend fun delete(id: Long)
+
+    /** Sincronización con Google Drive. */
+    @Query("SELECT * FROM manual_record")
+    suspend fun all(): List<ManualRecordEntity>
+
+    @Query("DELETE FROM manual_record")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -66,4 +73,14 @@ interface SettingDao {
 
     @Upsert
     suspend fun upsert(setting: SettingEntity)
+
+    /** Sincronización con Google Drive. */
+    @Query("SELECT * FROM setting")
+    fun observeAll(): Flow<List<SettingEntity>>
+
+    @Query("SELECT * FROM setting")
+    suspend fun all(): List<SettingEntity>
+
+    @Query("DELETE FROM setting WHERE `key` = :key")
+    suspend fun delete(key: String)
 }

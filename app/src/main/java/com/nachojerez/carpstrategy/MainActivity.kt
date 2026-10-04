@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.ui.AppViewModel
 import com.nachojerez.carpstrategy.ui.CrashReportDialog
+import com.nachojerez.carpstrategy.ui.UpdateDialog
 import com.nachojerez.carpstrategy.ui.guided.GuidedNotifier
 import com.nachojerez.carpstrategy.ui.guided.GuidedSessionManager
 import com.nachojerez.carpstrategy.ui.navigation.CarpStrategyNavHost
@@ -43,6 +44,11 @@ class MainActivity : ComponentActivity() {
             CarpTheme(appearance.toThemePrefs()) {
                 CarpStrategyNavHost(openGuided = openGuided, onGuidedOpened = { openGuided = false })
                 lastCrash?.let { CrashReportDialog(it, onDismiss = appViewModel::dismissCrash) }
+                val update by appViewModel.update.collectAsStateWithLifecycle()
+                val syncEnabled by appViewModel.syncEnabled.collectAsStateWithLifecycle()
+                if (lastCrash == null) {
+                    update?.let { UpdateDialog(it, syncEnabled, onOpened = appViewModel::updateOpened, onLater = appViewModel::dismissUpdate) }
+                }
             }
         }
     }

@@ -43,6 +43,12 @@ private class FakeManualRecordDao : ManualRecordDao {
     override suspend fun delete(id: Long) {
         rows.value = rows.value.filterNot { it.id == id }
     }
+
+    override suspend fun all(): List<ManualRecordEntity> = rows.value
+
+    override suspend fun deleteAll() {
+        rows.value = emptyList()
+    }
 }
 
 private class FakeSettingDao : SettingDao {
@@ -50,6 +56,14 @@ private class FakeSettingDao : SettingDao {
     override fun observe(key: String): Flow<String?> = values.map { it[key] }
     override suspend fun upsert(setting: SettingEntity) {
         values.value = values.value + (setting.key to setting.value)
+    }
+
+    override fun observeAll(): Flow<List<SettingEntity>> = values.map { m -> m.map { SettingEntity(it.key, it.value) } }
+
+    override suspend fun all(): List<SettingEntity> = values.value.map { SettingEntity(it.key, it.value) }
+
+    override suspend fun delete(key: String) {
+        values.value = values.value - key
     }
 }
 
