@@ -1,13 +1,23 @@
 package com.nachojerez.carpstrategy.ui.strategy
 
+import com.nachojerez.carpstrategy.data.assistant.AiExtras
 import com.nachojerez.carpstrategy.data.assistant.PlanInput
+import com.nachojerez.carpstrategy.domain.advice.AdvisorInput
+import com.nachojerez.carpstrategy.domain.advice.Experience
+import com.nachojerez.carpstrategy.domain.advice.ExperienceSummary
+import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
+import com.nachojerez.carpstrategy.domain.advice.FishingAdvisor
+import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.assistant.AiContext
 import com.nachojerez.carpstrategy.domain.derived.DerivedCalculator
 import com.nachojerez.carpstrategy.domain.derived.DerivedConditions
 import com.nachojerez.carpstrategy.domain.derived.Freshness
 import com.nachojerez.carpstrategy.domain.derived.FreshnessPolicy
+import com.nachojerez.carpstrategy.domain.derived.SeasonByWater
 import com.nachojerez.carpstrategy.domain.derived.WaterTempSource
+import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
@@ -47,6 +57,12 @@ data class StrategyUiState(
     val rulesFingerprint: String? = null,
     /** Mis puestos, para ver cómo les da el viento (desempate, §5.4 🟡). */
     val spots: List<Spot> = emptyList(),
+    /** «Qué hago ahora»: cebo, puesto, distancia… (fase 7.5). */
+    val advice: FishingAdvice? = null,
+    /** Lecciones aceptadas (conocimiento aprendido). */
+    val lessons: List<Lesson> = emptyList(),
+    /** Lecciones propuestas por la IA pendientes de revisar. */
+    val pendingLessons: Int = 0,
 )
 
 /**
@@ -160,6 +176,7 @@ fun planInput(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: Inst
         rain24hMm = derived?.rain?.last24hMm,
         gear = gear,
         spots = state.spots,
+        extras = AiExtras(state.advice?.experience ?: ExperienceSummary.EMPTY, state.advice?.lessons ?: state.lessons, state.advice),
     )
 }
 
@@ -173,3 +190,46 @@ fun planContext(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: In
     legalStart = state.derived?.legalToday?.start,
     zone = Formatting.MADRID,
 )
+
+/** Estación de las reglas en el texto que usa la sesión guiada (`estacion` de rules.json). */
+fun SeasonByWater.rulesText(): String = when (this) {
+    SeasonByWater.WINTER -> "invierno"
+    SeasonByWater.SPRING -> "primavera"
+    SeasonByWater.SUMMER -> "verano"
+    SeasonByWater.AUTUMN -> "otono"
+}
+
+/** Fase de pesca a partir de los derivados (agua y estación), como en la sesión guiada. */
+fun phaseOf(derived: DerivedConditions): FishingPhase = GuidedEngine.phase(derived.water?.valueC, derived.season?.season?.rulesText())
+
+/**
+ * «Qué hago ahora» (fase 7.5): recomendación con tus sesiones en condiciones parecidas, tu
+ * equipo, tus puestos y tus lecciones aceptadas. Null sin derivados. Función pura.
+ */
+fun adviceFor(
+    derived: DerivedConditions?,
+    now: Instant,
+    sessions: List<Session>,
+    gear: List<GearItem>,
+    spots: List<Spot>,
+    lessons: List<Lesson>,
+): FishingAdvice? {
+    derived ?: return null
+    val phase = phaseOf(derived)
+    val water = derived.water?.valueC
+    return FishingAdvisor.advise(
+        AdvisorInput(
+            now = now,
+            phase = phase,
+            waterC = water,
+            sun = derived.sunToday,
+            legal = derived.legalToday,
+            windFromDeg = derived.wind24h?.dominantDirectionDeg,
+            windKmh = derived.wind24h?.meanSpeedKmh,
+            spots = spots,
+            gear = gear,
+            experience = Experience.forConditions(sessions, phase, water, Formatting.MADRID),
+            lessons = lessons,
+        ),
+    )
+}

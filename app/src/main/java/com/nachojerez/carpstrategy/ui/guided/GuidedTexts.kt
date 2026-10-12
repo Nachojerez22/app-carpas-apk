@@ -335,7 +335,8 @@ fun Resources.weatherLines(report: WeatherReport): List<String> = buildList {
     report.wind?.let { add(getString(it.titleRes())) }
     val light = listOfNotNull(
         report.toSunset?.takeIf { !it.isNegative }?.let { getString(R.string.weather_to_sunset, durationText(it)) },
-        report.toLegalEnd?.takeIf { !it.isNegative }?.let { getString(R.string.weather_to_legal_end, durationText(it)) },
+        // Solo en la última hora: antes no aporta nada.
+        report.toLegalEnd?.takeIf { !it.isNegative && it <= Duration.ofHours(1) }?.let { getString(R.string.weather_to_legal_end, durationText(it)) },
     )
     if (light.isNotEmpty()) add(light.joinToString(" · "))
     report.question?.let { add(getString(if (it == WeatherQuestion.STORM) R.string.weather_ask_storm else R.string.weather_ask_rain)) }

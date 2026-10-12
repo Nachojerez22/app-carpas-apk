@@ -1,11 +1,19 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import com.nachojerez.carpstrategy.data.assistant.AiExtras
 import com.nachojerez.carpstrategy.data.assistant.Assistant
 import com.nachojerez.carpstrategy.data.assistant.AssistantPrompts
 import com.nachojerez.carpstrategy.data.assistant.AssistantSettings
+import com.nachojerez.carpstrategy.data.assistant.KnowledgeAsset
 import com.nachojerez.carpstrategy.data.userdata.GuidedJson
 import com.nachojerez.carpstrategy.data.userdata.LocalSettings
 import com.nachojerez.carpstrategy.di.IoDispatcher
+import com.nachojerez.carpstrategy.domain.advice.AdvisorInput
+import com.nachojerez.carpstrategy.domain.advice.Experience
+import com.nachojerez.carpstrategy.domain.advice.FishingAdvisor
+import com.nachojerez.carpstrategy.domain.advice.Lessons
+import com.nachojerez.carpstrategy.domain.derived.LegalWindow
+import com.nachojerez.carpstrategy.domain.derived.SolarCalculator
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
@@ -27,10 +35,12 @@ import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
 import com.nachojerez.carpstrategy.domain.usecase.RefreshWeatherUseCase
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.completeSession
+import com.nachojerez.carpstrategy.ui.strategy.adviceFor
 import com.nachojerez.carpstrategy.ui.strategy.buildStrategyState
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
@@ -65,6 +75,7 @@ class GuidedSessionManager @Inject constructor(
     private val assistant: Assistant,
     private val assistantSettings: AssistantSettings,
     private val localSettings: LocalSettings,
+    private val knowledge: KnowledgeAsset,
     private val clock: Clock,
     @param:IoDispatcher private val io: CoroutineDispatcher,
 ) {
@@ -92,14 +103,19 @@ class GuidedSessionManager @Inject constructor(
         GuidedSessions.active(journal.observeSessions().first())?.let { return it.id }
         val now = clock.instant()
         val location = settings.observeLocation().first().point
-        val (base, weather) = withContext(io) {
+        val sessions = journal.observeSessions().first()
+        val gear = settings.observeGear().first()
+        val lessons = Lessons.accepted(settings.observeLessons().first())
+        val (base, weather, advice) = withContext(io) {
             val raw = observeRawWeather(location).first()
             val rules = rulesRepository.load()
             val snapshots = journal.predictionsBetween(now.minusSeconds(86_400), now)
             val session = completeSession(Session(start = now, location = location, rods = rodNames.size, zone = zone, createdAt = now), true, now, raw, rules, snapshots)
-            session to weatherSnapshotAt(raw, buildStrategyState(raw, rules, now, location).derived, now)
+            val derived = buildStrategyState(raw, rules, now, location).derived
+            Triple(session, weatherSnapshotAt(raw, derived, now), adviceFor(derived, now, sessions, gear, listOfNotNull(spot), lessons))
         }
-        val env = env(now)
+        // Plan A con los cebos recomendados: los que te han funcionado primero (fase 7.5).
+        val env = env(now).copy(preferredBaits = advice?.baits?.mapNotNull { it.type }.orEmpty())
         val started = GuidedSessions.start(base, rodNames, groundbait, env, spot)
         // El primer tiempo se guarda sin reevaluar: el plan A de cada caña sigue pendiente.
         val withWeather = weather?.let { w -> started.copy(session = started.session.copy(guided = started.session.guided?.withWeather(w))) } ?: started
@@ -144,7 +160,69 @@ class GuidedSessionManager @Inject constructor(
         scheduler.cancel()
         next.value = null
         notifier.dismiss()
+        // La IA repasa la sesión y propone lecciones (tú decides si se quedan).
+        if (assistantSettings.apiKey() != null) scope.launch { reviewSession(session.id) }
         session.id
+    }
+
+    /**
+     * Repasa una sesión terminada con la IA y guarda las lecciones válidas como propuestas.
+     * Devuelve cuántas lecciones nuevas hay (null si no se pudo consultar).
+     */
+    suspend fun reviewSession(sessionId: Long): Int? {
+        val key = assistantSettings.apiKey() ?: return null
+        val sessions = journal.observeSessions().first()
+        val session = sessions.firstOrNull { it.id == sessionId && it.end != null } ?: return null
+        val gear = settings.observeGear().first()
+        val spots = settings.observeSpots().first()
+        val now = clock.instant()
+        val phase = GuidedSessions.phaseOf(session)
+        val lessons = settings.observeLessons().first()
+        val extras = AiExtras(
+            experience = Experience.forConditions(sessions.filter { it.id != sessionId }, phase, session.context?.waterTempC, Formatting.MADRID),
+            lessons = Lessons.accepted(lessons),
+        )
+        val state = AssistantPrompts.reviewState(session, phase, Formatting.MADRID, gear, spots, extras)
+        val outcome = withContext(io) {
+            assistant.review(assistantSettings.config(), key, state, spots, now, sessionId, knowledge.forPlan()) { UUID.randomUUID().toString() }
+        }
+        val new = outcome.value.orEmpty()
+        val current = settings.observeLessons().first()
+        val merged = Lessons.addNew(current, new)
+        if (merged.size != current.size) settings.setLessons(merged)
+        // El repaso queda también en la sesión guiada (fase 8: «¿IA o reglas?»).
+        mutex.withLock {
+            journal.observeSessions().first().firstOrNull { it.id == sessionId }?.let { s ->
+                s.guided?.let { g -> journal.save(s.copy(guided = g.copy(ai = g.ai + outcome.exchange))) }
+            }
+        }
+        return if (outcome.exchange.valid) merged.size - current.size else null
+    }
+
+    /** Tus datos en condiciones parecidas, tus lecciones y la recomendación de la app. */
+    private suspend fun aiExtras(session: Session, now: Instant, spots: List<Spot>): AiExtras {
+        val sessions = journal.observeSessions().first().filter { it.id != session.id }
+        val phase = GuidedSessions.phaseOf(session)
+        val water = session.guided?.weather?.lastOrNull()?.waterC ?: session.context?.waterTempC
+        val experience = Experience.forConditions(sessions, phase, water, Formatting.MADRID)
+        val lessons = Lessons.accepted(settings.observeLessons().first())
+        val sun = SolarCalculator.sunTimes(now.atZone(Formatting.MADRID).toLocalDate(), session.location)
+        val advice = FishingAdvisor.advise(
+            AdvisorInput(
+                now = now,
+                phase = phase,
+                waterC = water,
+                sun = sun,
+                legal = LegalWindow.of(sun),
+                windFromDeg = session.guided?.weather?.lastOrNull()?.windFromDeg,
+                windKmh = session.guided?.weather?.lastOrNull()?.windKmh,
+                spots = spots,
+                gear = settings.observeGear().first(),
+                experience = experience,
+                lessons = lessons,
+            ),
+        )
+        return AiExtras(experience, advice.lessons, advice)
     }
 
     /**
@@ -177,8 +255,9 @@ class GuidedSessionManager @Inject constructor(
             val spots = settings.observeSpots().first()
             val ctx = GuidedSessions.aiContext(session, env, spots)
             if (ctx.legalEnd != null && !now.isBefore(ctx.legalEnd)) return
-            val state = AssistantPrompts.checkInState(session, GuidedSessions.phaseOf(session), ctx.legalEnd, now, Formatting.MADRID, env.inventory, spots)
-            val outcome = withContext(io) { assistant.checkIn(config, key, state, ctx) }
+            val extras = aiExtras(session, now, spots)
+            val state = AssistantPrompts.checkInState(session, GuidedSessions.phaseOf(session), ctx.legalEnd, now, Formatting.MADRID, env.inventory, spots, ctx.legalStart, extras)
+            val outcome = withContext(io) { assistant.checkIn(config, key, state, ctx, knowledge.forCheckIn()) }
             mutex.withLock {
                 val current = active()?.takeIf { it.id == session.id } ?: return@withLock
                 val at = clock.instant()

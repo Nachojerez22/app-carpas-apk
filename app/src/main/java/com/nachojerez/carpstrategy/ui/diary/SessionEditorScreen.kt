@@ -37,6 +37,7 @@ import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Fulfilled
 import com.nachojerez.carpstrategy.domain.journal.PredictionSnapshot
 import com.nachojerez.carpstrategy.domain.journal.SessionValidator
+import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.ui.components.AnyEvidenceBadge
 import com.nachojerez.carpstrategy.ui.components.Caption
 import com.nachojerez.carpstrategy.ui.components.CardBorder
@@ -48,7 +49,6 @@ import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.manual.issueText
 import com.nachojerez.carpstrategy.ui.strategy.labelRes
 import com.nachojerez.carpstrategy.ui.strategy.titleRes
-import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.ui.theme.CarpTheme
 import com.nachojerez.carpstrategy.ui.theme.EvidenceKind
 import com.nachojerez.carpstrategy.ui.theme.Spacing
@@ -97,7 +97,6 @@ fun SessionEditorScreen(
                 TextField(form.endTime, stringResource(R.string.session_end), FormField.END in errors, Modifier.weight(1f)) { v -> onChange { it.copy(endTime = v) } }
             }
             Caption(stringResource(R.string.session_end_hint))
-            Caption(stringResource(R.string.session_legal_note))
         }
 
         // Resultado.

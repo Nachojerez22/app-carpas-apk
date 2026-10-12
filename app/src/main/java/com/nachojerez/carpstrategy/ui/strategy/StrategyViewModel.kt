@@ -7,11 +7,18 @@ import com.nachojerez.carpstrategy.data.assistant.Assistant
 import com.nachojerez.carpstrategy.data.assistant.AssistantJson
 import com.nachojerez.carpstrategy.data.assistant.AssistantPrompts
 import com.nachojerez.carpstrategy.data.assistant.AssistantSettings
+import com.nachojerez.carpstrategy.data.assistant.KnowledgeAsset
 import com.nachojerez.carpstrategy.data.userdata.GuidedJson
 import com.nachojerez.carpstrategy.data.userdata.LocalSettings
 import com.nachojerez.carpstrategy.di.IoDispatcher
+import com.nachojerez.carpstrategy.domain.advice.Lesson
+import com.nachojerez.carpstrategy.domain.advice.LessonStatus
+import com.nachojerez.carpstrategy.domain.advice.Lessons
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
+import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.journal.JournalStats
+import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.repository.JournalRepository
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
@@ -48,6 +55,7 @@ class StrategyViewModel @Inject constructor(
     private val assistant: Assistant,
     private val assistantSettings: AssistantSettings,
     private val localSettings: LocalSettings,
+    private val knowledge: KnowledgeAsset,
     @param:IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
     private val location = settings.observeLocation()
@@ -71,7 +79,15 @@ class StrategyViewModel @Inject constructor(
             // "lo que dijo la app antes de salir", sin sesgo retrospectivo.
             state.result?.let { result -> viewModelScope.launch { journal.recordPrediction(JournalStats.snapshotOf(result, place.point, state.ruleContext, state.rulesFingerprint)) } }
         }.map { it.second }
-            .combine(settings.observeSpots()) { state, spots -> state.copy(spots = spots) }
+            .combine(combine(settings.observeSpots(), settings.observeGear(), settings.observeLessons(), journal.observeSessions(), ::AdviceInputs)) { state, inputs ->
+                val accepted = Lessons.accepted(inputs.lessons)
+                state.copy(
+                    spots = inputs.spots,
+                    lessons = accepted,
+                    pendingLessons = inputs.lessons.count { it.status == LessonStatus.PROPOSED },
+                    advice = adviceFor(state.derived, state.result?.evaluatedAt ?: clock.instant(), inputs.sessions, inputs.gear, inputs.spots, accepted),
+                )
+            }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StrategyUiState())
 
     private val planFlow = MutableStateFlow(PlanUiState())
@@ -101,7 +117,7 @@ class StrategyViewModel @Inject constructor(
             val input = planInput(state, rods, gear, now) ?: return@launch
             planFlow.value = PlanUiState(running = true)
             val outcome = withContext(io) {
-                assistant.plan(assistantSettings.config(), key, AssistantPrompts.planState(input), planContext(state, rods, gear, now))
+                assistant.plan(assistantSettings.config(), key, AssistantPrompts.planState(input), planContext(state, rods, gear, now), knowledge.forPlan())
             }
             // Se guarda para copiarlo en la sesión guiada si empieza en las próximas horas.
             localSettings.put(GuidedSessionManager.KEY_LAST_PLAN, GuidedJson.encodeAi(outcome.exchange))
@@ -109,6 +125,13 @@ class StrategyViewModel @Inject constructor(
         }
     }
 }
+
+private data class AdviceInputs(
+    val spots: List<Spot>,
+    val gear: List<GearItem>,
+    val lessons: List<Lesson>,
+    val sessions: List<Session>,
+)
 
 data class PlanUiState(
     val configured: Boolean = false,

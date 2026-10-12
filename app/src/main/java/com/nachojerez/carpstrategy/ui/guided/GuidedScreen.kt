@@ -142,7 +142,8 @@ fun GuidedScreen(
                     }
                 }
             }
-            if (state.messages.isNotEmpty()) item { MessagesCard(state.messages) }
+            val shown = state.messages - GuidedMessage.NO_ZONE_CHANGES_LEGAL
+            if (shown.isNotEmpty()) item { MessagesCard(shown) }
             if (rods.size > 1) {
                 item {
                     val res = LocalContext.current.resources
@@ -600,7 +601,6 @@ private fun WarningsCard() {
             Evidence.PURPLE to R.string.guided_warning_times,
             Evidence.RED to R.string.guided_warning_bathymetry,
             Evidence.RED to R.string.guided_warning_no_data,
-            Evidence.REGULATION to R.string.guided_warning_regulation,
             Evidence.GREEN to R.string.guided_warning_no_guarantee,
         ).forEach { (evidence, text) ->
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
