@@ -1,12 +1,17 @@
 package com.nachojerez.carpstrategy.data.assistant
 
+import com.nachojerez.carpstrategy.domain.advice.DayPart
+import com.nachojerez.carpstrategy.domain.advice.LessonConditions
+import com.nachojerez.carpstrategy.domain.advice.LessonTopic
 import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
 import com.nachojerez.carpstrategy.domain.assistant.AiChange
 import com.nachojerez.carpstrategy.domain.assistant.AiDecision
+import com.nachojerez.carpstrategy.domain.assistant.AiLessonDraft
 import com.nachojerez.carpstrategy.domain.assistant.AiNote
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiRodPlan
 import com.nachojerez.carpstrategy.domain.guided.Column
+import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.domain.rules.StrategyField
@@ -101,6 +106,39 @@ object AssistantJson {
             "notas" -> StrategyField.NOTES
             else -> null
         }
+    }
+
+    /** Lecciones del repaso de una sesión (`{"lecciones":[…]}`). */
+    fun parseLessons(text: String): List<AiLessonDraft>? {
+        val o = objectIn(text) ?: return null
+        return o.array("lecciones").mapNotNull { e ->
+            val l = e as? JsonObject ?: return@mapNotNull null
+            val c = l["condiciones"] as? JsonObject
+            AiLessonDraft(
+                topic = l.string("tema")?.let { t -> LessonTopic.entries.firstOrNull { it.name.equals(t, ignoreCase = true) } ?: topicFromField(t) },
+                text = l.string("texto").orEmpty(),
+                conditions = LessonConditions(
+                    phase = c?.string("fase")?.let { p -> FishingPhase.entries.firstOrNull { it.name.equals(p, ignoreCase = true) } },
+                    waterMinC = (c?.get("agua_min_c") as? JsonPrimitive)?.doubleOrNull,
+                    waterMaxC = (c?.get("agua_max_c") as? JsonPrimitive)?.doubleOrNull,
+                    dayPart = c?.string("momento")?.let { d -> DayPart.entries.firstOrNull { it.name.equals(d, ignoreCase = true) } },
+                    spotName = c?.string("puesto"),
+                ),
+                evidence = evidence(l.string("evidencia")),
+                knowledgeRef = l.string("apartado"),
+                correction = (l["corrige"] as? JsonPrimitive)?.contentOrNull?.toBooleanStrictOrNull() ?: false,
+            )
+        }
+    }
+
+    private fun topicFromField(text: String): LessonTopic? = when (field(text)) {
+        StrategyField.WHERE -> LessonTopic.WHERE
+        StrategyField.WHEN -> LessonTopic.WHEN
+        StrategyField.BAIT -> LessonTopic.GROUNDBAIT
+        StrategyField.PRESENTATION -> LessonTopic.PRESENTATION
+        StrategyField.AVOID -> LessonTopic.AVOID
+        StrategyField.NOTES -> LessonTopic.OTHER
+        null -> null
     }
 
     /** Etiqueta de evidencia: emoji (🟢🟡🔴🟣🔵⚖) o nombre. */

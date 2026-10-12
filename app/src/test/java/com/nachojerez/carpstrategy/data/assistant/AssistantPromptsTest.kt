@@ -1,5 +1,13 @@
 package com.nachojerez.carpstrategy.data.assistant
 
+import com.nachojerez.carpstrategy.domain.advice.DayPart
+import com.nachojerez.carpstrategy.domain.advice.ExperienceSummary
+import com.nachojerez.carpstrategy.domain.advice.Lesson
+import com.nachojerez.carpstrategy.domain.advice.LessonConditions
+import com.nachojerez.carpstrategy.domain.advice.LessonSource
+import com.nachojerez.carpstrategy.domain.advice.LessonStatus
+import com.nachojerez.carpstrategy.domain.advice.LessonTopic
+import com.nachojerez.carpstrategy.domain.advice.Stat
 import com.nachojerez.carpstrategy.domain.guided.ActivityPlace
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
@@ -75,13 +83,58 @@ class AssistantPromptsTest {
     }
 
     @Test
-    fun `las instrucciones recogen las normas`() {
-        listOf(AssistantPrompts.CHECK_IN_SYSTEM, AssistantPrompts.PLAN_SYSTEM).forEach { s ->
-            assertTrue(s.contains("Sin probabilidades"))
+    fun `las instrucciones recogen las normas y el objetivo`() {
+        listOf(AssistantPrompts.CHECK_IN_SYSTEM, AssistantPrompts.PLAN_SYSTEM, AssistantPrompts.REVIEW_SYSTEM).forEach { s ->
+            assertTrue(s.contains("MÁXIMO de carpas"))
+            assertTrue(s.contains("Sin porcentajes"))
             assertTrue(s.contains("Sin gramos"))
-            assertTrue(s.contains("Nunca propongas pescar de noche"))
-            assertTrue(s.contains("peso 0") || s.contains("pesan 0"))
+            assertTrue(s.contains("No propongas horas de noche"))
+            assertTrue(s.contains("no hables de normativa"))
+            assertTrue(s.contains("pesan 0"))
             assertTrue(s.contains("🟢"))
         }
+        assertEquals(AssistantPrompts.PLAN_SYSTEM, AssistantPrompts.withKnowledge(AssistantPrompts.PLAN_SYSTEM, null))
+        assertTrue(AssistantPrompts.withKnowledge(AssistantPrompts.PLAN_SYSTEM, "## 5. Estrategias").endsWith("## 5. Estrategias"))
+    }
+
+    @Test
+    fun `tus datos, tus lecciones y la recomendacion de la app van en el estado`() {
+        val exp = ExperienceSummary(
+            sessions = 3, rodHours = 30.0, catches = 6,
+            baits = listOf(Stat("Chufa", 10.0, 5, 3)), baitTypes = emptyList(), spots = emptyList(), columns = emptyList(),
+            dayParts = listOf(Stat(DayPart.DUSK, 8.0, 4, 3), Stat(DayPart.NIGHT, 1.0, 0, 1)),
+        )
+        val lesson = Lesson("1", t0, LessonTopic.BAIT, "Chufa al anochecer", LessonConditions(phase = FishingPhase.AUTUMN), source = LessonSource.AI, status = LessonStatus.ACCEPTED)
+        val input = PlanInput(
+            now = t0, zone = madrid, rods = 2, band = null, limitingLevel = null,
+            legalStart = Instant.parse("2026-10-04T05:00:00Z"), legalEnd = Instant.parse("2026-10-04T18:30:00Z"),
+            windows = emptyList(), advice = emptyList(), waterC = null, waterMeasured = false, waterTrend3dC = null, season = null,
+            windFromDeg = null, windKmh = null, rain24hMm = null, gear = gear, spots = spots, extras = AiExtras(exp, listOf(lesson)),
+        )
+        val o = Json.parseToJsonElement(AssistantPrompts.planState(input)).jsonObject
+        assertEquals("07:00–20:30", o["horario_de_pesca"]!!.jsonPrimitive.content)
+        val worked = o["lo_que_te_ha_funcionado"]!!.jsonObject
+        assertEquals("true", worked["cebos"]!!.jsonArray.single().jsonObject["le_ha_funcionado"]!!.jsonPrimitive.content)
+        assertEquals(1, worked["momentos_del_dia"]!!.jsonArray.size)
+        assertEquals("Chufa al anochecer", o["lecciones_aceptadas"]!!.jsonArray.single().jsonObject["texto"]!!.jsonPrimitive.content)
+        assertFalse(o.containsKey("fin_legal"))
+    }
+
+    @Test
+    fun `estado del repaso de una sesion`() {
+        val env = GuidedEnv(t0, gear, madrid)
+        var s = GuidedSessions.start(Session(start = t0, location = GeoPoint(38.3512, -6.7034), createdAt = t0), listOf("fija"), null, env, spots.first()).session
+        s = GuidedSessions.accept(s, 1, env).session
+        s = GuidedSessions.checkIn(s, 1, CheckIn(t0.plus(Duration.ofMinutes(40)), activity = com.nachojerez.carpstrategy.domain.guided.HookActivity.CATCH), GuidedEnv(t0.plus(Duration.ofMinutes(40)), gear, madrid)).session
+        s = GuidedSessions.finish(s, t0.plus(Duration.ofHours(2)))
+        val text = AssistantPrompts.reviewState(s, FishingPhase.AUTUMN, madrid, gear, spots, AiExtras())
+        assertFalse(text.contains("38.35"))
+        val o = Json.parseToJsonElement(text).jsonObject
+        val session = o["sesion"]!!.jsonObject
+        assertEquals("09:00", session["inicio"]!!.jsonPrimitive.content)
+        assertEquals(1, session["carpas"]!!.jsonPrimitive.content.toInt())
+        val tramo = session["canas_detalle"]!!.jsonArray.single().jsonObject["tramos"]!!.jsonArray.single().jsonObject
+        assertEquals("Maíz dulce", tramo["cebo"]!!.jsonPrimitive.content)
+        assertEquals(1, tramo["carpas"]!!.jsonPrimitive.content.toInt())
     }
 }

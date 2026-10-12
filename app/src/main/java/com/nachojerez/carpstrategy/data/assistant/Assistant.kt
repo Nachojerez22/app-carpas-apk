@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.data.assistant
 
+import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.assistant.AiContext
 import com.nachojerez.carpstrategy.domain.assistant.AiDecision
 import com.nachojerez.carpstrategy.domain.assistant.AiExchange
@@ -7,6 +8,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiIssue
 import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiValidator
+import com.nachojerez.carpstrategy.domain.guided.Spot
 import java.time.Instant
 
 /** Resultado de una consulta: el registro (siempre) y la respuesta solo si es válida. */
@@ -18,11 +20,43 @@ data class AiOutcome<T>(val exchange: AiExchange, val value: T?)
  */
 class Assistant(private val client: AiClient) {
 
-    fun checkIn(config: AiConfig, apiKey: String, state: String, ctx: AiContext): AiOutcome<AiDecision> =
-        run(config, apiKey, AiKind.CHECK_IN, AssistantPrompts.CHECK_IN_SYSTEM, state, ctx.now, AssistantJson::parseDecision, { AiValidator.validate(it, ctx) }, { it.summary }, { it.reasons.firstOrNull() })
+    fun checkIn(config: AiConfig, apiKey: String, state: String, ctx: AiContext, knowledge: String? = null): AiOutcome<AiDecision> =
+        run(config, apiKey, AiKind.CHECK_IN, AssistantPrompts.withKnowledge(AssistantPrompts.CHECK_IN_SYSTEM, knowledge), state, ctx.now, AssistantJson::parseDecision, { AiValidator.validate(it, ctx) }, { it.summary }, { it.reasons.firstOrNull() })
 
-    fun plan(config: AiConfig, apiKey: String, state: String, ctx: AiContext): AiOutcome<AiPlan> =
-        run(config, apiKey, AiKind.PLAN, AssistantPrompts.PLAN_SYSTEM, state, ctx.now, AssistantJson::parsePlan, { AiValidator.validate(it, ctx) }, { "PLAN ${it.rods.size}" }, { it.summary })
+    fun plan(config: AiConfig, apiKey: String, state: String, ctx: AiContext, knowledge: String? = null): AiOutcome<AiPlan> =
+        run(config, apiKey, AiKind.PLAN, AssistantPrompts.withKnowledge(AssistantPrompts.PLAN_SYSTEM, knowledge), state, ctx.now, AssistantJson::parsePlan, { AiValidator.validate(it, ctx) }, { "PLAN ${it.rods.size}" }, { it.summary })
+
+    /**
+     * Repaso de una sesión terminada: lecciones propuestas. Cada lección se valida por separado;
+     * las que no cumplen se descartan (quedan sus motivos en el registro).
+     */
+    fun review(
+        config: AiConfig,
+        apiKey: String,
+        state: String,
+        spots: List<Spot>,
+        now: Instant,
+        sessionId: Long,
+        knowledge: String? = null,
+        newId: () -> String,
+    ): AiOutcome<List<Lesson>> {
+        val rejected = mutableSetOf<AiIssue>()
+        val outcome = run(
+            config, apiKey, AiKind.REVIEW, AssistantPrompts.withKnowledge(AssistantPrompts.REVIEW_SYSTEM, knowledge), state, now,
+            parse = { text ->
+                AssistantJson.parseLessons(text)?.mapNotNull { draft ->
+                    val issues = AiValidator.validate(draft, spots)
+                    rejected += issues
+                    if (issues.isEmpty()) AiValidator.toLesson(draft, newId(), now, listOf(sessionId)) else null
+                }?.take(MAX_LESSONS)
+            },
+            validate = { emptySet() },
+            summary = { "LECCIONES ${it.size}" },
+            note = { it.firstOrNull()?.text },
+        )
+        val exchange = outcome.exchange.let { e -> if (rejected.isEmpty()) e else e.copy(issues = (e.issues + rejected).distinct().sortedBy { it.ordinal }) }
+        return AiOutcome(exchange, outcome.value)
+    }
 
     /** Prueba de conexión: pide un JSON mínimo. Devuelve el error o null si todo va bien. */
     fun test(config: AiConfig, apiKey: String): AiException? = try {
@@ -72,6 +106,8 @@ class Assistant(private val client: AiClient) {
     }
 
     private companion object {
+        /** Lecciones por repaso como mucho. */
+        const val MAX_LESSONS = 3
         const val TEST_SYSTEM = "Responde solo con JSON."
         const val TEST_USER = """Devuelve exactamente {"ok":true}"""
     }

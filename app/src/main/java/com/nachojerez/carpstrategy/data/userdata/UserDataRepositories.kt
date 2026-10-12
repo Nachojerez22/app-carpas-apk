@@ -2,6 +2,7 @@ package com.nachojerez.carpstrategy.data.userdata
 
 import com.nachojerez.carpstrategy.data.userdata.UserDataMappers.toDomain
 import com.nachojerez.carpstrategy.data.userdata.UserDataMappers.toEntity
+import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.derived.Geo
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.Spot
@@ -78,7 +79,14 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setSpots(spots: List<Spot>) =
         dao.upsert(SettingEntity(KEY_SPOTS, GuidedJson.encodeSpots(spots)))
 
+    override fun observeLessons(): Flow<List<Lesson>> =
+        dao.observe(KEY_LESSONS).map(LessonsJson::decode).distinctUntilChanged()
+
+    override suspend fun setLessons(lessons: List<Lesson>) =
+        dao.upsert(SettingEntity(KEY_LESSONS, LessonsJson.encode(lessons)))
+
     companion object {
+        const val KEY_LESSONS = "lessons"
         const val KEY_GEAR = "gear"
         const val KEY_SPOTS = "spots"
         const val KEY_SOURCE_PRIORITY = "source_priority"
