@@ -90,6 +90,11 @@ data class GuidedContext(
     val lastWindChange: Instant? = null,
     /** Lluvia, tormenta o entrada de agua turbia activas ahora. */
     val conditions: Set<FieldCondition> = emptySet(),
+    /**
+     * Cebos de partida en orden de preferencia (los que te han funcionado primero, fase 7.5);
+     * vacío = los de la fase.
+     */
+    val preferredBaits: List<BaitType> = emptyList(),
 )
 
 data class Evaluation(val proposal: Proposal?, val messages: Set<GuidedMessage>)
@@ -147,7 +152,8 @@ object GuidedEngine {
      * cebos entre cañas (la segunda empieza por el segundo cebo de la fase) para comparar (🟣).
      */
     fun initialProposal(ctx: GuidedContext, excluded: Set<BaitType> = emptySet(), variant: Int = 0): Proposal {
-        val base = BaitCatalog.initialBaits(ctx.phase).let { list -> val k = variant.mod(list.size); list.drop(k) + list.take(k) }
+        val base = (ctx.preferredBaits + BaitCatalog.initialBaits(ctx.phase)).distinct()
+            .let { list -> val k = variant.mod(list.size); list.drop(k) + list.take(k) }
         val preferred = base.filterNot { it in excluded }.ifEmpty { base }
         val bait = BaitCatalog.choose(preferred, ctx.inventory.filterNot { it.baitType in excluded }, ctx.phase)
         return Proposal(

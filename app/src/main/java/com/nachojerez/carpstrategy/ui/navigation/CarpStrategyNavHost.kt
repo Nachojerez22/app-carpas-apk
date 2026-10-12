@@ -35,6 +35,7 @@ import com.nachojerez.carpstrategy.ui.diary.DiaryScreen
 import com.nachojerez.carpstrategy.ui.guided.GearScreen
 import com.nachojerez.carpstrategy.ui.guided.GuidedScreen
 import com.nachojerez.carpstrategy.ui.guided.SpotsScreen
+import com.nachojerez.carpstrategy.ui.lessons.LessonsScreen
 import com.nachojerez.carpstrategy.ui.manual.DataScreen
 import com.nachojerez.carpstrategy.ui.place.PlaceScreen
 import com.nachojerez.carpstrategy.ui.strategy.StrategyScreen
@@ -65,6 +66,9 @@ import kotlinx.serialization.Serializable
 
 /** Asistente de IA (fase 7.4). */
 @Serializable data object AssistantRoute
+
+/** Lo aprendido (fase 7.5). */
+@Serializable data object LessonsRoute
 
 private enum class TopLevelDestination(
     val route: Any,
@@ -145,6 +149,7 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                     onStartGuided = { navController.navigate(GuidedRoute) { launchSingleTop = true } },
                     onOpenSpots = { navController.navigate(SpotsRoute) },
                     onOpenAssistant = { navController.navigate(AssistantRoute) },
+                    onOpenLessons = { navController.navigate(LessonsRoute) },
                 )
             }
             composable<DataRoute> { entry ->
@@ -172,10 +177,12 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
             composable<GearRoute> { GearScreen(onBack = { navController.popBackStack() }) }
             composable<SpotsRoute> { SpotsScreen(onBack = { navController.popBackStack() }) }
             composable<AssistantRoute> { AssistantScreen(onBack = { navController.popBackStack() }) }
+            composable<LessonsRoute> { LessonsScreen(onBack = { navController.popBackStack() }) }
             composable<PlaceRoute> {
                 PlaceScreen(
                     onOpenSpots = { navController.navigate(SpotsRoute) },
                     onOpenAssistant = { navController.navigate(AssistantRoute) },
+                    onOpenLessons = { navController.navigate(LessonsRoute) },
                 )
             }
             composable<RawDataRoute> {

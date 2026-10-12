@@ -1,5 +1,10 @@
 package com.nachojerez.carpstrategy.domain.assistant
 
+import com.nachojerez.carpstrategy.domain.advice.Lesson
+import com.nachojerez.carpstrategy.domain.advice.LessonConditions
+import com.nachojerez.carpstrategy.domain.advice.LessonSource
+import com.nachojerez.carpstrategy.domain.advice.LessonStatus
+import com.nachojerez.carpstrategy.domain.advice.LessonTopic
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
@@ -17,7 +22,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 
 /** Para qué se consultó a la IA. */
-enum class AiKind { CHECK_IN, PLAN }
+enum class AiKind { CHECK_IN, PLAN, REVIEW }
 
 /**
  * Una consulta a la IA tal como quedó (fase 8: «¿IA o reglas?»): la respuesta (recortada), si
@@ -92,6 +97,16 @@ data class AiPlan(
     val warnings: List<AiNote> = emptyList(),
     /** Consejos por apartado, además del plan por caña. */
     val advice: List<AiAdvice> = emptyList(),
+)
+
+/** Lección que propone la IA al repasar una sesión, antes de validarla. */
+data class AiLessonDraft(
+    val topic: LessonTopic?,
+    val text: String,
+    val conditions: LessonConditions = LessonConditions(),
+    val evidence: Evidence? = null,
+    val knowledgeRef: String? = null,
+    val correction: Boolean = false,
 )
 
 /** Motivo por el que una respuesta de la IA no se usa (todo o nada). */
@@ -254,6 +269,29 @@ object AiValidator {
 
     internal fun List<GearItem>.find(category: GearCategory, name: String): GearItem? =
         firstOrNull { it.category == category && same(it.name, name) }
+
+    /** Una lección: tema conocido, texto válido, evidencia y, si cita un puesto, que sea tuyo. */
+    fun validate(draft: AiLessonDraft, spots: List<Spot>): Set<AiIssue> = buildSet {
+        if (draft.topic == null) add(AiIssue.UNKNOWN_FIELD)
+        if (draft.evidence == null) add(AiIssue.MISSING_EVIDENCE)
+        addAll(textIssues(draft.text))
+        draft.conditions.spotName?.let { name -> if (spots.none { same(it.name, name) }) add(AiIssue.UNKNOWN_SPOT) }
+    }
+
+    /** Lección válida → propuesta pendiente de que el usuario la acepte. */
+    fun toLesson(draft: AiLessonDraft, id: String, now: Instant, sessionIds: List<Long>): Lesson = Lesson(
+        id = id,
+        createdAt = now,
+        topic = draft.topic ?: LessonTopic.OTHER,
+        text = draft.text.trim(),
+        conditions = draft.conditions,
+        evidence = draft.evidence ?: Evidence.PURPLE,
+        source = LessonSource.AI,
+        status = LessonStatus.PROPOSED,
+        sessionIds = sessionIds,
+        knowledgeRef = draft.knowledgeRef?.trim()?.take(20),
+        correction = draft.correction,
+    )
 
     /** Cambio validado → propuesta pendiente de aceptar o rechazar, como las de las reglas. */
     fun toProposal(change: AiChange, gear: List<GearItem>, now: Instant): Proposal {

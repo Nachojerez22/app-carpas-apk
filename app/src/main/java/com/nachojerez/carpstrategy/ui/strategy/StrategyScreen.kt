@@ -37,12 +37,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
 import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.rules.ActiveRule
 import com.nachojerez.carpstrategy.domain.rules.AdviceItem
+import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
 import com.nachojerez.carpstrategy.domain.rules.RuleType
 import com.nachojerez.carpstrategy.domain.rules.StrategyField
@@ -62,6 +64,7 @@ import com.nachojerez.carpstrategy.ui.components.WarningChip
 import com.nachojerez.carpstrategy.ui.components.WarningType
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.zoneLabelRes
+import com.nachojerez.carpstrategy.ui.guided.baitText
 import com.nachojerez.carpstrategy.ui.guided.shortRes
 import com.nachojerez.carpstrategy.ui.guided.spotSummary
 import com.nachojerez.carpstrategy.ui.guided.titleRes
@@ -75,11 +78,12 @@ fun StrategyScreen(
     onStartGuided: () -> Unit = {},
     onOpenSpots: () -> Unit = {},
     onOpenAssistant: () -> Unit = {},
+    onOpenLessons: () -> Unit = {},
     viewModel: StrategyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan by viewModel.plan.collectAsStateWithLifecycle()
-    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant)
+    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant, onOpenLessons)
 }
 
 /**
@@ -95,6 +99,7 @@ fun StrategyContent(
     plan: PlanUiState = PlanUiState(),
     onPlan: (Int) -> Unit = {},
     onOpenAssistant: () -> Unit = {},
+    onOpenLessons: () -> Unit = {},
 ) {
     var whyOpen by rememberSaveable { mutableStateOf(false) }
     LazyColumn(
@@ -133,8 +138,9 @@ fun StrategyContent(
                         }
                     }
                 }
-                // 1. Resumen: valoración, próxima ventana legal y empezar la sesión guiada.
+                // 1. Resumen: valoración y «qué hago ahora» (cebo, puesto, distancia…).
                 item { ResultCard(result) }
+                state.advice?.let { advice -> item { AdviceCard(advice, state.pendingLessons, onOpenSpots, onOpenLessons) } }
                 if (!result.blocked) {
                     item { SummaryActions(state, onStartGuided) }
 
@@ -183,11 +189,11 @@ fun StrategyContent(
                         Text(stringResource(if (whyOpen) R.string.strategy_why_hide else R.string.strategy_why_show))
                     }
                 }
-                if (whyOpen) whyItems(result)
+                if (whyOpen) {
+                    whyItems(result)
+                    state.regulationReviewed?.let { date -> item { Caption(stringResource(R.string.strategy_regulation, date)) } }
+                }
             }
-        }
-        state.regulationReviewed?.let { date ->
-            item { Caption(stringResource(R.string.strategy_regulation, date)) }
         }
     }
 }
@@ -260,6 +266,80 @@ private fun LazyListScope.whyItems(result: StrategyResult) {
     }
 }
 
+/**
+ * «Qué hago ahora» (fase 7.5): cebos para comparar entre cañas, presentación, puestos ordenados
+ * con distancia y profundidad, cebado, tus mejores momentos y tus lecciones.
+ */
+@Composable
+private fun AdviceCard(advice: FishingAdvice, pendingLessons: Int, onOpenSpots: () -> Unit, onOpenLessons: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    val res = LocalContext.current.resources
+    CarpCard {
+        val now = advice.forTime
+        val title = if (advice.deferred) stringResource(R.string.advice_title_next, Formatting.clock(now)) else stringResource(R.string.advice_title)
+        Text(title, style = MaterialTheme.typography.titleLarge)
+        Caption(stringResource(R.string.advice_moment, stringResource(advice.dayPart.titleRes()), Formatting.clock(now)))
+
+        Text(stringResource(R.string.advice_baits), style = MaterialTheme.typography.titleSmall)
+        advice.baits.forEachIndexed { i, b ->
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                Column(Modifier.weight(1f)) {
+                    Text("${i + 1}. " + (res.baitText(b.type, b.gearName) ?: "—"), style = MaterialTheme.typography.bodyLarge)
+                    b.proven?.let { Caption(stringResource(R.string.advice_bait_proven, it.catches, it.sessions)) }
+                    if (b.gearName == null) Caption(stringResource(R.string.advice_bait_not_in_gear))
+                }
+                AnyEvidenceBadge(b.evidence)
+            }
+        }
+        val column = stringResource(advice.column.titleRes()) + if (advice.columnProven) " " + stringResource(R.string.advice_column_proven) else ""
+        Text(stringResource(R.string.advice_column, column))
+        advice.altColumn?.let { Caption(stringResource(R.string.advice_alt_column, stringResource(it.titleRes()))) }
+        Text(stringResource(R.string.advice_groundbait, stringResource(advice.groundbait.titleRes())))
+
+        Text(stringResource(R.string.advice_spots), style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.advice_where_generic, stringResource(advice.depth.titleRes()), stringResource(advice.distance.titleRes())))
+        if (advice.spots.isEmpty()) {
+            Caption(stringResource(R.string.advice_no_spots))
+            TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+        }
+        advice.spots.take(MAX_SPOTS).forEachIndexed { i, p ->
+            val details = listOfNotNull(
+                p.spot.distanceM?.let { stringResource(R.string.advice_spot_distance, Formatting.number(it, 0)) },
+                p.spot.depthM?.let { stringResource(R.string.advice_spot_depth, Formatting.number(it)) },
+                if (p.windBonus) stringResource(R.string.advice_spot_wind) else null,
+                p.proven?.let { stringResource(R.string.advice_spot_proven, it.catches) },
+            )
+            Text("${i + 1}. ${p.spot.name}", style = MaterialTheme.typography.bodyLarge, color = if (i == 0) cs.primary else cs.onSurface)
+            Caption(
+                (listOf(stringResource(R.string.advice_spot_reasons, stringResource(p.spot.structure.titleRes()), p.structureFit)) + details).joinToString(" · "),
+            )
+        }
+
+        if (advice.bestDayParts.isNotEmpty()) {
+            Text(stringResource(R.string.advice_best_parts, advice.bestDayParts.joinToString(", ") { res.getString(it.value.titleRes()).lowercase() }))
+        }
+        if (advice.lessons.isNotEmpty()) {
+            Text(stringResource(R.string.advice_lessons), style = MaterialTheme.typography.titleSmall)
+            advice.lessons.take(MAX_LESSONS).forEach { l ->
+                Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    Text(l.text, modifier = Modifier.weight(1f))
+                    AnyEvidenceBadge(l.evidence)
+                }
+            }
+        }
+        val exp = advice.experience
+        Caption(
+            if (exp.sessions > 0) stringResource(R.string.advice_experience, exp.sessions, exp.catches) else stringResource(R.string.advice_experience_none),
+        )
+        TextButton(onClick = onOpenLessons) {
+            Text(if (pendingLessons > 0) stringResource(R.string.lessons_open_pending, pendingLessons) else stringResource(R.string.advice_open_lessons))
+        }
+    }
+}
+
+private const val MAX_SPOTS = 4
+private const val MAX_LESSONS = 4
+
 /** Plan con IA: cuántas cañas, pedirlo y el resultado validado (o por qué se descartó). */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -307,7 +387,8 @@ private fun AiPlanCard(plan: PlanUiState, onPlan: (Int) -> Unit) {
                         r.evidence?.let { AnyEvidenceBadge(it) }
                     }
                 }
-                value.warnings.forEach { w ->
+                // Los avisos de normativa no se muestran (fase 7.5): el horario ya lo controla la app.
+                value.warnings.filterNot { it.evidence == Evidence.REGULATION }.forEach { w ->
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                         Text(w.text, modifier = Modifier.weight(1f))
                         w.evidence?.let { AnyEvidenceBadge(it) }
@@ -436,7 +517,6 @@ private fun ResultCard(result: StrategyResult) {
     if (result.blocked) {
         CarpCard(containerColor = cs.errorContainer) {
             Text(stringResource(R.string.strategy_blocked), color = cs.onErrorContainer, style = MaterialTheme.typography.headlineSmall)
-            result.blockingRules.forEach { Text(it.rule.description, color = cs.onErrorContainer) }
             Caption(stringResource(R.string.strategy_disclaimer), color = cs.onErrorContainer)
         }
         return
@@ -501,7 +581,6 @@ private fun WhenCard(state: StrategyUiState) {
                 AnyEvidenceBadge(w.evidence)
             }
         }
-        Caption(stringResource(R.string.strategy_windows_legal_note))
     }
 }
 

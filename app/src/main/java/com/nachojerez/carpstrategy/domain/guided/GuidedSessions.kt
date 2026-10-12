@@ -13,7 +13,13 @@ import java.time.Instant
 import java.time.ZoneId
 
 /** Lo que necesita cada operación además de la sesión: hora, equipo y zona horaria. */
-data class GuidedEnv(val now: Instant, val inventory: List<GearItem>, val zone: ZoneId)
+data class GuidedEnv(
+    val now: Instant,
+    val inventory: List<GearItem>,
+    val zone: ZoneId,
+    /** Cebos de partida recomendados (los que te han funcionado primero). */
+    val preferredBaits: List<BaitType> = emptyList(),
+)
 
 /** Resultado de una acción. [newProposals]: caña → propuesta recién añadida. [messages]: avisos por caña. */
 data class GuidedUpdate(
@@ -63,6 +69,7 @@ object GuidedSessions {
             groundbait = record?.groundbaitOf(rodId),
             lastWindChange = record?.windChanges?.lastOrNull(),
             conditions = record?.activeConditions(env.now).orEmpty(),
+            preferredBaits = env.preferredBaits,
         )
     }
 

@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.domain.repository
 
+import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.manual.ManualRecord
@@ -45,4 +46,8 @@ interface SettingsRepository {
     /** Mis puestos (ajuste `spots`, se sincroniza). */
     fun observeSpots(): Flow<List<Spot>>
     suspend fun setSpots(spots: List<Spot>)
+
+    /** Conocimiento aprendido (ajuste `lessons`, se sincroniza). */
+    fun observeLessons(): Flow<List<Lesson>>
+    suspend fun setLessons(lessons: List<Lesson>)
 }

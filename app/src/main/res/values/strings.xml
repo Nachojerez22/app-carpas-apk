@@ -163,8 +163,8 @@
     <!-- Fase 3: parámetros derivados -->
     <string name="derived_title">Hoy: parámetros derivados</string>
     <string name="derived_not_enough">Faltan datos para calcular los parámetros derivados. Actualiza con conexión o añade datos manuales.</string>
-    <string name="derived_legal">⚖ Horario legal hoy: %1$s – %2$s (orto %3$s, ocaso %4$s). Fuera de esta ventana no se recomienda pescar.</string>
-    <string name="derived_legal_unknown">⚖ No se pudo calcular el horario legal de hoy.</string>
+    <string name="derived_legal">Horario de pesca hoy: %1$s – %2$s (orto %3$s, ocaso %4$s).</string>
+    <string name="derived_legal_unknown">No se pudo calcular el horario de pesca de hoy.</string>
     <string name="derived_water_measured">🟢 Agua: %1$s °C medida (%2$s)</string>
     <string name="derived_water_estimated">🟢 Agua: ≈ %1$s °C ESTIMADA a partir del aire (no es un dato medido)</string>
     <string name="derived_water_calibrated">Estimación calibrada con %1$d medidas tuyas (corrección %2$s °C).</string>
@@ -210,7 +210,7 @@
     <string name="strategy_loading">Evaluando reglas…</string>
     <string name="strategy_no_data">Actualiza en Hoy o añade tus mediciones en Datos.</string>
     <string name="strategy_rules_invalid">Las reglas (rules.json) tienen errores y no se pueden usar:</string>
-    <string name="strategy_blocked">⚖ Hoy no se recomienda ninguna sesión</string>
+    <string name="strategy_blocked">Ahora no es hora de pesca</string>
     <string name="strategy_favorability_unknown">Sin valoración: falta la temperatura del agua (mídela o espera a tener 5 días de datos).</string>
     <string name="band_very_unfavorable">muy desfavorables</string>
     <string name="band_unfavorable">desfavorables</string>
@@ -229,11 +229,11 @@
     <string name="level_3">3 · Modificadores físicos</string>
     <string name="level_4">4 · Capturabilidad</string>
     <string name="level_exploratory">Exploratorias (peso 0)</string>
-    <string name="strategy_windows_none">Sin ventanas: no hay horario legal calculable hoy.</string>
-    <string name="window_dawn">Amanecer legal</string>
+    <string name="strategy_windows_none">Sin franjas calculables hoy.</string>
+    <string name="window_dawn">Amanecer</string>
     <string name="window_midday">Horas centrales</string>
-    <string name="window_afternoon_dusk">Tarde y anochecer legal</string>
-    <string name="window_dusk">Anochecer legal</string>
+    <string name="window_afternoon_dusk">Tarde y anochecer</string>
+    <string name="window_dusk">Anochecer</string>
     <string name="field_where">Dónde</string>
     <string name="field_when">Cuándo</string>
     <string name="field_bait">Cebado</string>
@@ -382,11 +382,11 @@
     <string name="data_reservoir">Embalse</string>
     <string name="data_reservoir_delta">%1$s hm³ en 7 días</string>
     <string name="data_reservoir_missing">Sin lectura: añádela en Datos</string>
-    <string name="legal_title">⚖ Horario legal hoy</string>
+    <string name="legal_title">Horario de pesca hoy</string>
     <string name="legal_now_inside">Ahora: dentro</string>
     <string name="legal_now_outside">Ahora: fuera</string>
-    <string name="legal_caption">Orto %1$s · ocaso %2$s. Fuera de la franja no se recomienda pescar.</string>
-    <string name="legal_bar_description">Horario legal de %1$s a %2$s; las horas rayadas no son legales.</string>
+    <string name="legal_caption">Orto %1$s · ocaso %2$s.</string>
+    <string name="legal_bar_description">Horario de pesca de %1$s a %2$s; las horas rayadas quedan fuera.</string>
     <string name="weight_zero_title">Se muestran, pero no cuentan</string>
     <string name="weight_zero_moon">Luna iluminada</string>
     <string name="weight_zero_pressure">Presión y tendencia de 3 h</string>
@@ -409,7 +409,7 @@
     <string name="strategy_demand_title">Demanda alimentaria</string>
     <string name="strategy_demand_subtitle">🟢 Orientativa y nunca en gramos.</string>
     <string name="strategy_demand_unknown">Sin estimación</string>
-    <string name="strategy_windows_subtitle">Franjas sugeridas dentro del horario legal</string>
+    <string name="strategy_windows_subtitle">Las mejores franjas de hoy</string>
     <string name="strategy_windows_legal_note">⚖ Solo se proponen franjas dentro del horario legal.</string>
     <string name="strategy_why_subtitle">Código, efecto, porqué y evidencia de cada regla.</string>
     <string name="strategy_no_rules">Ninguna regla aplica con los datos actuales.</string>
@@ -523,7 +523,7 @@
     <string name="diary_losses">Pérdidas</string>
     <string name="diary_no_zone">Sin zona</string>
     <string name="diary_app_said">La app estimó: %1$s</string>
-    <string name="diary_app_said_blocked">La app estimó: ⚖ fuera de horario legal</string>
+    <string name="diary_app_said_blocked">La app estimó: fuera de horario de pesca</string>
     <string name="diary_app_said_none">Sin valoración previa guardada</string>
     <string name="diary_app_no_band">sin valoración (faltaba la temperatura del agua)</string>
     <string name="diary_accuracy_title">¿Acierta la app con tus datos?</string>
@@ -635,7 +635,7 @@
     <string name="guided_elapsed">Pescando desde las %1$s · %2$s</string>
     <string name="guided_phase">Fase: %1$s</string>
     <string name="guided_next_check">Próximo aviso: %1$s</string>
-    <string name="guided_next_none">Sin más avisos hoy (fin del horario legal).</string>
+    <string name="guided_next_none">Sin más avisos hoy (hora de recoger).</string>
     <string name="guided_proposal_title">Propuesta</string>
     <string name="guided_plan_title">Plan actual</string>
     <string name="guided_plan_since">Desde las %1$s · picadas %2$d · capturas %3$d</string>
@@ -702,7 +702,7 @@
     <string name="guided_msg_keep">Captura: no cambies nada, receba poco y repite. Tras varias capturas la zona puede rendir menos.</string>
     <string name="guided_msg_winter">En frío comen poco y en pocos puntos: paciencia antes de cambiar.</string>
     <string name="guided_msg_forced_winter">Has pedido cambiar en invierno: te lo propongo, pero cambiar pronto puede sacarte del único punto con peces.</string>
-    <string name="guided_msg_legal_end">Quedan 15 min o menos de horario legal: ve recogiendo.</string>
+    <string name="guided_msg_legal_end">Quedan 15 min: ve recogiendo.</string>
     <string name="guided_msg_no_zone">Quedan menos de 45 min de horario legal: solo cambios de presentación, no de zona.</string>
     <string name="guided_msg_zone_limit">Ya has hecho los cambios de zona razonables para esta fase.</string>
     <string name="guided_msg_no_equivalent">Sin equivalente en tu equipo: te propongo otro cebo de anzuelo; espera menos selectividad.</string>
@@ -782,7 +782,7 @@
     <string name="guided_notif_next">Próximo aviso a las %1$s</string>
     <string name="guided_notif_check">¿Cómo va? Anota picadas y capturas.</string>
     <string name="guided_notif_proposal">Nueva propuesta: %1$s Abre la app para rechazarla con un motivo.</string>
-    <string name="guided_notif_legal_end">Horario legal terminado: recoge y termina la sesión en la app.</string>
+    <string name="guided_notif_legal_end">Hora de recoger: termina la sesión en la app.</string>
     <string name="guided_notif_nothing">Nada</string>
     <string name="guided_notif_missed">Picada</string>
     <string name="guided_notif_catch">Captura</string>
@@ -876,7 +876,7 @@
     <string name="weather_since_last">Desde el último aviso: %1$s</string>
     <string name="weather_since_start">Desde el inicio: %1$s</string>
     <string name="weather_to_sunset">Ocaso en %1$s</string>
-    <string name="weather_to_legal_end">fin legal en %1$s ⚖</string>
+    <string name="weather_to_legal_end">recoger en %1$s</string>
     <string name="weather_ask_rain">¿Llueve en el puesto? Contesta en la app: lo que veas manda sobre la previsión.</string>
     <string name="weather_ask_storm">La previsión da tormenta: ¿la hay? Contesta en la app.</string>
     <string name="weather_change_air_up">aire ↑</string>
@@ -948,7 +948,7 @@
     <string name="wind_relation_calm_short">Viento flojo</string>
 
     <!-- Fase 7.3: Estrategia reordenada -->
-    <string name="strategy_next_window">Próxima ventana sugerida (dentro del horario legal)</string>
+    <string name="strategy_next_window">Próxima franja buena</string>
     <string name="strategy_start_guided">Pescar ahora (sesión guiada)</string>
     <string name="strategy_start_guided_hint">Te propone qué hacer con tus cañas y te avisa cada 30 min con el tiempo.</string>
     <string name="strategy_what_title">Qué hacer</string>
@@ -997,7 +997,7 @@
     <string name="guided_ai_ask">Consultar a la IA ahora</string>
     <string name="guided_ai_asking">Consultando…</string>
     <string name="guided_ai_off">Configura el asistente en Lugar → Asistente de IA para que opine en cada aviso. Sin él, decide el motor de reglas.</string>
-    <string name="guided_ai_note">La app comprueba cada respuesta (tu equipo, tus puestos, horario legal, sin gramos ni probabilidades, con evidencia). Si no cumple, mandan las reglas. Tú decides siempre.</string>
+    <string name="guided_ai_note">La app comprueba cada respuesta (tu equipo, tus puestos, sin gramos ni porcentajes, con evidencia). Si no cumple, mandan las reglas. Tú decides siempre.</string>
 
     <string name="ai_settings_title">Asistente de IA</string>
     <string name="ai_settings_subtitle">Opina en cada aviso y prepara un plan antes de pescar. Opcional.</string>
@@ -1048,4 +1048,87 @@
     <string name="ai_models_loading">Buscando modelos…</string>
     <string name="ai_models_empty">Tu clave no tiene modelos de texto disponibles.</string>
     <string name="ai_error_detail">Google dice: %1$s</string>
+
+    <!-- Fase 7.5: Qué hago ahora y Lo aprendido -->
+    <string name="topic_bait">Cebo</string>
+    <string name="topic_where">Dónde</string>
+    <string name="topic_distance">Distancia</string>
+    <string name="topic_presentation">Presentación</string>
+    <string name="topic_when">Cuándo</string>
+    <string name="topic_groundbait">Cebado</string>
+    <string name="topic_avoid">Evitar</string>
+    <string name="topic_other">Otras</string>
+    <string name="daypart_dawn">Amanecer</string>
+    <string name="daypart_morning">Mañana</string>
+    <string name="daypart_midday">Horas centrales</string>
+    <string name="daypart_afternoon">Tarde</string>
+    <string name="daypart_dusk">Anochecer</string>
+    <string name="daypart_night">Noche</string>
+    <string name="distance_close">cerca de la orilla</string>
+    <string name="distance_medium">a media distancia</string>
+    <string name="distance_far">lejos</string>
+    <string name="depth_shallow">en poco fondo</string>
+    <string name="depth_medium">a media profundidad (talud)</string>
+    <string name="depth_deep">en lo más hondo a tu alcance</string>
+    <string name="lessons_water_range">agua %1$s–%2$s °C</string>
+    <string name="lessons_water_min">agua ≥ %1$s °C</string>
+    <string name="lessons_water_max">agua ≤ %1$s °C</string>
+
+    <string name="lessons_title">Lo aprendido</string>
+    <string name="lessons_overline">Tu conocimiento de Brovales</string>
+    <string name="lessons_open">Lo aprendido</string>
+    <string name="lessons_open_pending">Lo aprendido (%1$d por revisar)</string>
+    <string name="lessons_intro">Lecciones sacadas de tus sesiones: completan o corrigen el documento de conocimiento. Al terminar cada sesión guiada, la IA propone las suyas y tú decides. Las aceptadas se usan en «Qué hago ahora» y en la IA. Expórtalas para incorporarlas al documento en una versión nueva de la app.</string>
+    <string name="lessons_review_last">Repasar mi última sesión con la IA</string>
+    <string name="lessons_reviewing">Repasando…</string>
+    <plurals name="lessons_review_done">
+        <item quantity="one">%1$d lección nueva por revisar.</item>
+        <item quantity="other">%1$d lecciones nuevas por revisar.</item>
+    </plurals>
+    <string name="lessons_review_failed">La IA no respondió o su respuesta no valía. Prueba más tarde.</string>
+    <string name="lessons_review_none">Aún no hay sesiones terminadas.</string>
+    <string name="lessons_ai_off">Sin asistente de IA configurado: puedes añadir tus propias lecciones.</string>
+    <string name="lessons_add">Añadir una lección</string>
+    <string name="lessons_export">Exportar (Markdown)</string>
+    <string name="lessons_export_subject">CarpStrategy: conocimiento aprendido</string>
+    <string name="lessons_proposed">Propuestas por la IA</string>
+    <string name="lessons_proposed_subtitle">Acepta las que te cuadren con lo que viviste; descarta las demás.</string>
+    <string name="lessons_accepted">Aceptadas</string>
+    <string name="lessons_accepted_subtitle">Se usan en las recomendaciones y en la IA.</string>
+    <string name="lessons_none">Aún no hay lecciones aceptadas.</string>
+    <string name="lessons_accept">Aceptar</string>
+    <string name="lessons_reject">Descartar</string>
+    <string name="lessons_source_ai">IA</string>
+    <string name="lessons_source_user">Tuya</string>
+    <string name="lessons_confirms">confirma %1$s</string>
+    <string name="lessons_corrects">corrige %1$s</string>
+    <string name="lessons_text">Qué has aprendido</string>
+    <string name="lessons_topic">Tema</string>
+    <string name="lessons_phase">Época</string>
+    <string name="lessons_phase_any">Cualquiera</string>
+
+    <string name="advice_title">Qué hago ahora</string>
+    <string name="advice_title_next">Para el próximo amanecer (%1$s)</string>
+    <string name="advice_moment">%1$s · %2$s</string>
+    <string name="advice_baits">Cebos (una caña con cada uno para comparar)</string>
+    <string name="advice_bait_proven">te ha funcionado: %1$d carpas en %2$d sesiones parecidas</string>
+    <string name="advice_bait_not_in_gear">no lo llevas en Mi equipo</string>
+    <string name="advice_column">Presentación: %1$s</string>
+    <string name="advice_column_proven">(la que mejor te ha ido)</string>
+    <string name="advice_alt_column">si ves carpas arriba: %1$s</string>
+    <string name="advice_spots">Puestos, de mejor a peor ahora</string>
+    <string name="advice_spot_reasons">%1$s · encaje %2$d/3</string>
+    <string name="advice_spot_wind">viento a favor</string>
+    <string name="advice_spot_proven">te ha funcionado (%1$d carpas)</string>
+    <string name="advice_spot_distance">a %1$s m</string>
+    <string name="advice_spot_depth">%1$s m de fondo</string>
+    <string name="advice_where_generic">Busca %1$s, %2$s.</string>
+    <string name="advice_no_spots">Añade tus puestos (Lugar → Mis puestos) para que la app te diga en cuál ponerte y a qué distancia.</string>
+    <string name="advice_groundbait">Cebado: %1$s</string>
+    <string name="advice_best_parts">Tus mejores momentos en condiciones parecidas: %1$s</string>
+    <string name="advice_experience">Basado en %1$d sesiones tuyas parecidas (%2$d carpas). Cuantas más anotes, más afina.</string>
+    <string name="advice_experience_none">Aún sin sesiones parecidas: se basa en el documento de conocimiento. Cada sesión que anotes lo afina.</string>
+    <string name="advice_lessons">Tus lecciones para ahora</string>
+    <string name="advice_open_lessons">Lo aprendido</string>
 </resources>
+

@@ -95,4 +95,30 @@ class AssistantTest {
         assertEquals(Evidence.REGULATION, plan.warnings.single().evidence)
         assertEquals(listOf(StrategyField.WHERE, StrategyField.AVOID), plan.advice.map { it.field })
     }
+
+    @Test
+    fun `repaso de sesion con lecciones validas y descartadas`() {
+        server.enqueue(
+            gemini(
+                """{"lecciones":[
+                {"tema":"BAIT","texto":"La chufa dio carpas al anochecer con agua a 17 °C","condiciones":{"fase":"AUTUMN","momento":"DUSK","agua_min_c":15,"agua_max_c":19},"evidencia":"🟣","apartado":"§5.8","corrige":false},
+                {"tema":"GROUNDBAIT","texto":"Ceba 500 g","evidencia":"🟣"},
+                {"tema":"WHERE","texto":"La Presa rinde","condiciones":{"puesto":"Presa"},"evidencia":"🟣"}
+                ]}""",
+            ),
+        )
+        var n = 0
+        val outcome = assistant.review(config, "k", "{}", listOf(com.nachojerez.carpstrategy.domain.guided.Spot(1, "Punta")), now, 7, null) { "L${++n}" }
+        val lessons = outcome.value!!
+        assertEquals(1, lessons.size)
+        val l = lessons.single()
+        assertEquals("L1", l.id)
+        assertEquals(com.nachojerez.carpstrategy.domain.advice.LessonTopic.BAIT, l.topic)
+        assertEquals(com.nachojerez.carpstrategy.domain.advice.LessonStatus.PROPOSED, l.status)
+        assertEquals(listOf(7L), l.sessionIds)
+        assertEquals(com.nachojerez.carpstrategy.domain.advice.DayPart.DUSK, l.conditions.dayPart)
+        assertEquals("§5.8", l.knowledgeRef)
+        assertEquals(AiKind.REVIEW, outcome.exchange.kind)
+        assertEquals(listOf(AiIssue.UNKNOWN_SPOT, AiIssue.GRAMS), outcome.exchange.issues)
+    }
 }
