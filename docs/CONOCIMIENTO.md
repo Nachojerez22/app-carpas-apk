@@ -460,6 +460,30 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - **Nunca se envía** la ubicación GPS, la cuenta ni la clave. La clave se guarda solo en el móvil (no se sincroniza ni se exporta).
 - Cada consulta queda en la sesión (respuesta, validez, motivos de descarte o error) y cada propuesta lleva su origen (reglas o IA) con la decisión del usuario: base de la comparación «¿IA o reglas?» de la fase 8. Lo que diga la IA es 🟣 hasta que tus datos lo respalden.
 
+### 5.10 Pescar más: recomendación concreta y conocimiento aprendido (oct. 2026, petición del usuario)
+
+> El usuario quiere que la app le diga qué hacer para sacar el máximo de carpas, sin dejar nada al azar, y que este documento mejore con sus vivencias. El horario de pesca se sigue respetando, pero sin recordarlo en cada pantalla.
+
+- **«Qué hago ahora»** (Estrategia, arriba). Momento del día según el sol (🟣): amanecer de −1 h a +1 h 30 min de la salida del sol; anochecer de −1 h 30 min a +1 h de la puesta; horas centrales ± 2 h del mediodía solar. De noche se aconseja para el próximo amanecer.
+  - **Cebos**: dos, uno por caña para comparar. Primero los que te han funcionado; si no hay datos, los de la fase (§5.9.5) con tu equipo.
+  - **Presentación**: a fondo salvo que otra te haya ido mejor. En verano y con calor, zig si ves carpas arriba (§5.6).
+  - **Puestos de «Mis puestos» ordenados.** Encaje de la estructura con la fase y la hora, de 0 a 3 (🟣/🟡, tabla «Dónde» de §5.8):
+    - invierno: caída y cauce; someras solo a mediodía;
+    - primavera: someras y reculas;
+    - verano: someras al amanecer y al anochecer, caída en las horas centrales;
+    - calor: lo más hondo y las entradas;
+    - otoño: reculas, caída y litoral nuevo.
+    - Además: +1 con viento a favor (de cara; en invierno, resguardado); +3 si te ha funcionado; +1 si hay una lección tuya.
+  - **Distancia y profundidad por fase y hora** (🟣): en verano, cerca y somero con luz baja, lejos y hondo a mediodía; en invierno, lejos y hondo salvo a mediodía. Los metros salen de tus puestos (la batimetría no está verificada, §6.3).
+  - **Cebado según la demanda** (🟢, §5.8).
+- **Lo que te ha funcionado** (🟣, datos propios): capturas por hora-caña por cebo, puesto, columna y momento del día, en sesiones parecidas (misma fase o agua ± 3 °C).
+  - «Te ha funcionado» = al menos 2 carpas en 2 sesiones y un rendimiento ≥ 1,25 veces tu media en esas condiciones.
+  - Tus datos pasan por delante de las tablas generales.
+- **Conocimiento aprendido.** Al terminar cada sesión guiada, la IA la repasa con este documento y propone como mucho 3 lecciones, con condiciones (fase, agua, momento, puesto), evidencia y el apartado que confirman o corrigen. El usuario las acepta o descarta, y también puede escribir las suyas.
+  - Las aceptadas se usan en «Qué hago ahora» y en la IA, y se exportan en Markdown para incorporarlas aquí en una versión nueva.
+  - **Este documento sigue siendo la base**: lo aprendido lo completa o lo corrige, siempre a la vista del usuario.
+- **IA orientada a capturas**: recibe este documento (§5 y §6), lo que te ha funcionado, tus lecciones y la recomendación de la app. No habla de normativa: el horario lo controla la app y se rechaza cualquier hora fuera de él.
+
 ## 6. Brovales
 
 ### 6.1 Verificado (oficial / inventario de presas MITECO)

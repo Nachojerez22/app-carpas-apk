@@ -152,6 +152,21 @@ siguen mandando las reglas. Tú aceptas o rechazas cada propuesta. Se envía el 
 nunca tu ubicación. En el nivel gratuito de Gemini, Google puede usar lo enviado para mejorar sus
 productos. Los avisos preguntan además dónde has visto actividad y cuántos saltos.
 
+### Pescar más y lo aprendido (fase 7.5)
+
+Arriba en **Estrategia**, **Qué hago ahora** te dice, para este momento del día:
+- **qué cebos poner**: dos de tu equipo, uno por caña para comparar;
+- **a qué altura**: a fondo, pop-up o zig;
+- **cuánto cebar**;
+- **en cuál de tus puestos ponerte**, ordenados de mejor a peor, con su distancia y profundidad;
+- **tus mejores horas**.
+
+Parte de `CONOCIMIENTO.md` y, por encima, de **lo que te ha funcionado** en sesiones parecidas. El plan A de la sesión guiada usa esos mismos cebos.
+
+En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suyas al terminar cada sesión guiada y tú las aceptas o descartas; también puedes escribir las tuyas. Las aceptadas mejoran las recomendaciones y la IA, y se exportan en Markdown para incorporarlas al documento.
+
+El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
+
 ### Cuenta de Google y versiones nuevas (fase 7.2)
 
 En **Lugar → Cuenta de Google** inicias sesión una vez y tus datos (diario, datos manuales,

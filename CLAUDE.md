@@ -176,6 +176,18 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - `GuidedSessionManager.consultAi` (tras cada alarma, en `scope`, y a demanda); el último plan de
   Estrategia (`local_ai_last_plan`) se copia en la sesión si empieza en < 3 h. Todo queda en `GuidedRecord.ai`.
 
+## Pescar más y conocimiento aprendido (fase 7.5)
+
+- `domain/advice` (puro):
+  - `DayParts` (momento del día según el sol);
+  - `Experience` (unidades = tramos de cada caña o la sesión entera; `forConditions`: capturas por hora-caña por cebo, puesto, columna y momento en sesiones parecidas; `proven`);
+  - `FishingAdvisor` (cebos ×2, columna, puestos con `structureFit` de §5.8, distancia y profundidad, cebado);
+  - `Lessons` (`Lesson` con condiciones, origen IA o usuario, estado; `toMarkdown`).
+- Las lecciones van en el ajuste `lessons` (se sincroniza; `LessonsJson`). La IA repasa cada sesión guiada al terminar (`GuidedSessionManager.reviewSession`, `AiKind.REVIEW`, validación por lección).
+- `assets/conocimiento.md` es copia exacta de docs/CONOCIMIENTO.md (un test lo comprueba): **al cambiar el documento, copiarlo**. `Knowledge` extrae §5–§6 (plan y repaso) y §5.8–§5.9 (avisos) para la IA.
+- `AiExtras` (tus datos, tus lecciones y la recomendación) va en los estados que se mandan a la IA. La IA no habla de normativa; el horario se sigue validando (`horario_de_pesca`).
+- UI: `AdviceCard` en Estrategia; `ui/lessons` («Lo aprendido»); textos de horario sin ⚖ (normativa en «Por qué»). El plan A guiado usa `GuidedEnv.preferredBaits`.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.
