@@ -3,10 +3,12 @@ package com.nachojerez.carpstrategy.ui.guided
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nachojerez.carpstrategy.data.assistant.AssistantSettings
+import com.nachojerez.carpstrategy.data.reservoir.ReservoirRepository
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.guided.WeatherQuestion
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
@@ -28,6 +30,7 @@ import kotlinx.coroutines.launch
 class GuidedViewModel @Inject constructor(
     private val manager: GuidedSessionManager,
     settings: SettingsRepository,
+    reservoirs: ReservoirRepository,
     assistantSettings: AssistantSettings,
     private val clock: Clock,
 ) : ViewModel() {
@@ -55,7 +58,7 @@ class GuidedViewModel @Inject constructor(
     val uiState: StateFlow<GuidedUiState> =
         combine(
             manager.observeActive(),
-            combine(settings.observeGear(), settings.observeSpots(), ::Pair),
+            combine(settings.observeGear(), combine(settings.observeSpots(), reservoirs.observeActive()) { spots, r -> Spots.of(spots, r?.reservoir?.id) }, ::Pair),
             manager.nextCheckIn,
             ticker,
             combine(starting, saved, permissions, assistantSettings.observeKeyHint(), manager.aiBusy, ::AuxState),

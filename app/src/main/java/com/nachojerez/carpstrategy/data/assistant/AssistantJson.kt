@@ -10,9 +10,11 @@ import com.nachojerez.carpstrategy.domain.assistant.AiLessonDraft
 import com.nachojerez.carpstrategy.domain.assistant.AiNote
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiRodPlan
+import com.nachojerez.carpstrategy.domain.assistant.AiSheetDraft
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.StepKind
+import com.nachojerez.carpstrategy.domain.reservoir.FishSpecies
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.domain.rules.StrategyField
 import kotlinx.serialization.json.Json
@@ -131,6 +133,22 @@ object AssistantJson {
         }
     }
 
+    /** Ficha de un embalse (`{"especies":[…],"abastecimiento":…,"resumen":…,"notas":[…]}`). */
+    fun parseSheet(text: String): AiSheetDraft? {
+        val o = objectIn(text) ?: return null
+        val species = o.array("especies").mapNotNull { e ->
+            val sp = e as? JsonObject ?: return@mapNotNull null
+            val kind = sp.string("especie")?.let { n -> FishSpecies.entries.firstOrNull { it.name.equals(n.trim(), ignoreCase = true) } } ?: return@mapNotNull null
+            val present = sp.bool("presente") ?: return@mapNotNull null
+            kind to present
+        }.toMap()
+        val notes = o.array("notas").mapNotNull { e ->
+            val n = e as? JsonObject ?: return@mapNotNull null
+            AiNote(n.string("texto").orEmpty(), evidence(n.string("evidencia")))
+        }
+        return AiSheetDraft(species, o.bool("abastecimiento"), o.string("resumen"), notes)
+    }
+
     private fun topicFromField(text: String): LessonTopic? = when (field(text)) {
         StrategyField.WHERE -> LessonTopic.WHERE
         StrategyField.WHEN -> LessonTopic.WHEN
@@ -165,6 +183,14 @@ object AssistantJson {
 
     private fun JsonObject.string(key: String): String? =
         (this[key] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() && it != "null" }
+
+    private fun JsonObject.bool(key: String): Boolean? = (this[key] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()?.lowercase()?.let {
+        when (it) {
+            "true", "si", "sí" -> true
+            "false", "no" -> false
+            else -> null
+        }
+    }
 
     private fun JsonObject.int(key: String): Int? = (this[key] as? JsonPrimitive)?.let { it.intOrNull ?: it.contentOrNull?.trim()?.toIntOrNull() }
 

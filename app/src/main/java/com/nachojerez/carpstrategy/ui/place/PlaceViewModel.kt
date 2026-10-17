@@ -4,12 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nachojerez.carpstrategy.data.location.DeviceLocationProvider
 import com.nachojerez.carpstrategy.data.location.LocationResult
+import com.nachojerez.carpstrategy.data.reservoir.ReservoirRepository
 import com.nachojerez.carpstrategy.domain.model.AppStyle
 import com.nachojerez.carpstrategy.domain.model.AppThemeMode
 import com.nachojerez.carpstrategy.domain.model.AppearanceSettings
 import com.nachojerez.carpstrategy.domain.model.DefaultLocation
 import com.nachojerez.carpstrategy.domain.model.FishingLocation
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
+import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
 import com.nachojerez.carpstrategy.domain.rules.RuleLoadResult
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +34,8 @@ data class PlaceUiState(
     val gps: GpsStatus = GpsStatus.IDLE,
     val coordinateError: CoordinateError? = null,
     val regulationReviewed: String? = null,
+    /** Embalse de la ubicación (fase 7.6). */
+    val reservoir: ReservoirContext? = null,
 )
 
 @HiltViewModel
@@ -39,6 +43,7 @@ class PlaceViewModel @Inject constructor(
     private val settings: SettingsRepository,
     private val device: DeviceLocationProvider,
     rulesRepository: RulesRepository,
+    reservoirs: ReservoirRepository,
 ) : ViewModel() {
     private val gps = MutableStateFlow(GpsStatus.IDLE)
     private val coordinateError = MutableStateFlow<CoordinateError?>(null)
@@ -52,7 +57,8 @@ class PlaceViewModel @Inject constructor(
         regulation,
     ) { location, appearance, gps, error, reviewed ->
         PlaceUiState(location, appearance, gps, error, reviewed)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PlaceUiState())
+    }.combine(reservoirs.observeActive()) { state, reservoir -> state.copy(reservoir = reservoir) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PlaceUiState())
 
     /** Se llama tras conceder el permiso: una única lectura, sin seguimiento. */
     fun useDeviceLocation(name: String) {

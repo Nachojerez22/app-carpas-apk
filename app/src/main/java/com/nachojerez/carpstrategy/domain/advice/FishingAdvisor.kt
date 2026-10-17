@@ -13,6 +13,9 @@ import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.guided.WindRelation
+import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
+import com.nachojerez.carpstrategy.domain.reservoir.SpeciesEffects
+import com.nachojerez.carpstrategy.domain.reservoir.SpeciesRules
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import java.time.Duration
 import java.time.Instant
@@ -53,6 +56,8 @@ data class AdvisorInput(
     val gear: List<GearItem> = emptyList(),
     val experience: ExperienceSummary = ExperienceSummary.EMPTY,
     val lessons: List<Lesson> = emptyList(),
+    /** Embalse activo con su ficha (especies, si se puede cebar). */
+    val reservoir: ReservoirContext? = null,
 )
 
 /** «Qué hago ahora»: todo lo necesario para empezar a pescar, de una vez. */
@@ -70,7 +75,12 @@ data class FishingAdvice(
     val spots: List<SpotPick>,
     val distance: DistanceBand,
     val depth: DepthBand,
-    val groundbait: GroundbaitLevel,
+    /** Null si en este embalse no se puede cebar (⚖ abastecimiento o plan del coto). */
+    val groundbait: GroundbaitLevel?,
+    /** Posible embalse de abastecimiento sin confirmar: confirma si se puede cebar. */
+    val groundbaitDoubt: Boolean = false,
+    /** Ajustes por las especies del embalse (§5.11). */
+    val species: SpeciesEffects = SpeciesEffects(),
     /** Franjas del día que mejor te han ido en condiciones parecidas. */
     val bestDayParts: List<Stat<DayPart>>,
     val lessons: List<Lesson>,
@@ -98,9 +108,10 @@ object FishingAdvisor {
         val phase = input.phase
         val exp = input.experience
         val spotNames = input.spots.map { it.name }
-        val lessons = Lessons.matching(input.lessons, phase, input.waterC, dayPart, spotNames)
+        val lessons = Lessons.matching(input.lessons, phase, input.waterC, dayPart, spotNames, input.reservoir?.reservoir?.id)
+        val effects = SpeciesRules.effects(input.reservoir?.species.orEmpty())
 
-        val baits = baits(input, exp)
+        val baits = baits(input, exp, effects)
         val provenColumn = exp.columns.firstOrNull { exp.proven(it) }?.value
         val column = provenColumn ?: Column.BOTTOM
         val altColumn = if ((phase == FishingPhase.SUMMER || phase == FishingPhase.HEAT) && column != Column.ZIG) Column.ZIG else null
@@ -120,7 +131,9 @@ object FishingAdvisor {
             spots = spots,
             distance = distance,
             depth = depth,
-            groundbait = groundbait(phase, dayPart),
+            groundbait = if (input.reservoir?.groundbaitAllowed == false) null else groundbait(phase, dayPart),
+            groundbaitDoubt = input.reservoir?.groundbaitDoubt == true,
+            species = effects,
             bestDayParts = exp.dayParts.filter { exp.proven(it) && it.value != DayPart.NIGHT },
             lessons = lessons,
             experience = exp,
@@ -143,7 +156,7 @@ object FishingAdvisor {
      * Dos cebos para comparar entre cañas: primero lo que te ha funcionado (por nombre y que lo
      * lleves), luego los tipos que te han funcionado y, por último, los de la fase (§5.9.5).
      */
-    private fun baits(input: AdvisorInput, exp: ExperienceSummary): List<BaitPick> {
+    private fun baits(input: AdvisorInput, exp: ExperienceSummary, effects: SpeciesEffects): List<BaitPick> {
         val baitsInGear = input.gear.filter { it.category == GearCategory.BAIT }
         val picks = mutableListOf<BaitPick>()
         fun add(pick: BaitPick) {
@@ -159,15 +172,34 @@ object FishingAdvisor {
             val item = baitsInGear.firstOrNull { it.baitType == stat.value }
             if (item != null) add(BaitPick(item.baitType, item.name, Stat(item.name, stat.rodHours, stat.catches, stat.sessions), Evidence.PURPLE))
         }
-        val base = BaitCatalog.initialBaits(input.phase)
+        val base = speciesOrder(BaitCatalog.initialBaits(input.phase), effects)
         base.indices.forEach { k ->
             if (picks.size >= 2) return@forEach
             val rotated = base.drop(k) + base.take(k)
             val excluded = picks.mapNotNull { it.type }.toSet()
-            val choice = BaitCatalog.choose(rotated.filterNot { it in excluded }.ifEmpty { rotated }, input.gear.filterNot { it.baitType in excluded }, input.phase)
+            val choice = BaitCatalog.choose(rotated.filterNot { it in excluded }.ifEmpty { rotated }, input.gear.filterNot { it.baitType in excluded }, input.phase, crab = effects.hardBaits)
             add(BaitPick(choice.type, choice.item?.name, null, Evidence.YELLOW))
         }
         return picks
+    }
+
+    /**
+     * 🟡 Con especies que se comen los cebos pequeños o blandos (barbo, boga, carpín, pez gato,
+     * cangrejo…), primero los selectivos y duros de la fase; los poco selectivos, al final (§5.11).
+     */
+    fun speciesOrder(base: List<BaitType>, effects: SpeciesEffects): List<BaitType> {
+        if (!effects.selective && !effects.hardBaits) return base
+        val extra = buildList {
+            if (effects.hardBaits) addAll(listOf(BaitType.BOILIE_HARD, BaitType.TIGERNUT))
+            add(BaitType.BOILIE)
+            add(BaitType.POPUP)
+        }
+        // Con especies que vacían el cebo, fuera los poco selectivos (maíz, pasta, pan…).
+        val all = (extra + base).distinct().let { list -> if (effects.selective) list.filter { it.selectivity >= 2 }.ifEmpty { list } else list }
+        return all.sortedWith(
+            compareByDescending<BaitType> { if (effects.hardBaits) it.crabResistance else 0 }
+                .thenByDescending { it.selectivity },
+        )
     }
 
     private fun pick(spot: Spot, input: AdvisorInput, dayPart: DayPart, exp: ExperienceSummary, lessons: List<Lesson>): SpotPick {

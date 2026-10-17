@@ -167,6 +167,27 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
+### Varios embalses (fase 7.6)
+
+En **Lugar → Embalse → Cambiar de embalse** eliges dónde vas a pescar:
+- la lista son los cotos del listado oficial de la Junta de Extremadura más Brovales, del más cercano al más lejano, y se puede buscar por embalse, pueblo o coto;
+- si el tuyo no está, lo añades con sus coordenadas.
+
+Al elegirlo cambian la ubicación (y con ella el tiempo), tus puestos, lo que te ha funcionado y tus lecciones.
+
+En **Ficha del embalse**:
+- la IA aplica `CONOCIMIENTO.md` al embalse y propone sus especies y unas notas (🟣, sin verificar);
+- tú confirmas cada especie y dices si se puede cebar.
+
+La estrategia cambia según las especies (§5.11):
+- con barbos o bogas, cebos selectivos y menos partícula;
+- con cangrejo, cebos duros;
+- con siluro, montaje fuerte.
+
+Si dices que no se puede cebar (embalses de abastecimiento), solo recomienda el cebo del anzuelo.
+
+Los datos de Brovales del documento (§6) solo se usan en Brovales. Formato del catálogo y de las fichas: [docs/EMBALSES.md](docs/EMBALSES.md).
+
 ### Cuenta de Google y versiones nuevas (fase 7.2)
 
 En **Lugar → Cuenta de Google** inicias sesión una vez y tus datos (diario, datos manuales,
@@ -250,6 +271,8 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7**: sesión guiada (plan A, avisos cada 30 min, alternativas y sustitutos de cebo, «Mi equipo»)
 - [x] **Fase 7.1**: lluvia, tormenta y entrada de agua durante la sesión
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
+- [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
+- [x] **Fase 7.6**: varios embalses (catálogo de cotos de Extremadura, ficha con especies preparada por la IA)
 - [ ] **Fase 8**: aprendizaje con datos propios cuando haya 20–40 sesiones (CONOCIMIENTO.md §10)
 
 ## CI

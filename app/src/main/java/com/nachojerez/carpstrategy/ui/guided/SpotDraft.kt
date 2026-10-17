@@ -14,6 +14,8 @@ data class SpotDraft(
     val distance: String = "",
     val facingDeg: Int? = null,
     val notes: String = "",
+    /** Embalse del puesto (al crearlo, el activo). */
+    val reservoirId: String? = null,
 ) {
     val depthM: Double? get() = parse(depth)
     val distanceM: Double? get() = parse(distance)
@@ -32,6 +34,7 @@ data class SpotDraft(
         distanceM = distanceM,
         facingDeg = facingDeg,
         notes = notes.trim(),
+        reservoirId = reservoirId,
     )
 
     companion object {
@@ -54,6 +57,7 @@ data class SpotDraft(
             distance = format(spot.distanceM),
             facingDeg = spot.facingDeg,
             notes = spot.notes,
+            reservoirId = spot.reservoirId,
         )
     }
 }

@@ -22,6 +22,7 @@ object LessonsJson {
         @SerialName("agua_max_c") val waterMaxC: Double? = null,
         @SerialName("momento") val dayPart: String? = null,
         @SerialName("puesto") val spotName: String? = null,
+        @SerialName("embalse") val reservoirId: String? = null,
     )
 
     @Serializable
@@ -45,7 +46,7 @@ object LessonsJson {
 
     fun Lesson.toDto() = LessonDto(
         id, createdAt.toString(), topic.name, text,
-        ConditionsDto(conditions.phase?.name, conditions.waterMinC, conditions.waterMaxC, conditions.dayPart?.name, conditions.spotName),
+        ConditionsDto(conditions.phase?.name, conditions.waterMinC, conditions.waterMaxC, conditions.dayPart?.name, conditions.spotName, conditions.reservoirId),
         evidence.name, source.name, status.name, sessionIds, knowledgeRef, correction,
     )
 
@@ -60,6 +61,7 @@ object LessonsJson {
             waterMaxC = conditions.waterMaxC,
             dayPart = enumOf<DayPart>(conditions.dayPart),
             spotName = conditions.spotName,
+            reservoirId = conditions.reservoirId,
         ),
         evidence = enumOf<Evidence>(evidence) ?: Evidence.PURPLE,
         source = enumOf<LessonSource>(source) ?: LessonSource.USER,

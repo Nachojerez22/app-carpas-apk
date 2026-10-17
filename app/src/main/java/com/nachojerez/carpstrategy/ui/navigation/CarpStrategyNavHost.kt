@@ -38,6 +38,8 @@ import com.nachojerez.carpstrategy.ui.guided.SpotsScreen
 import com.nachojerez.carpstrategy.ui.lessons.LessonsScreen
 import com.nachojerez.carpstrategy.ui.manual.DataScreen
 import com.nachojerez.carpstrategy.ui.place.PlaceScreen
+import com.nachojerez.carpstrategy.ui.reservoir.ReservoirSheetScreen
+import com.nachojerez.carpstrategy.ui.reservoir.ReservoirsScreen
 import com.nachojerez.carpstrategy.ui.strategy.StrategyScreen
 import com.nachojerez.carpstrategy.ui.theme.CarpTheme
 import com.nachojerez.carpstrategy.ui.today.TodayScreen
@@ -69,6 +71,11 @@ import kotlinx.serialization.Serializable
 
 /** Lo aprendido (fase 7.5). */
 @Serializable data object LessonsRoute
+
+/** Elegir embalse y ficha del activo (fase 7.6). */
+@Serializable data object ReservoirsRoute
+
+@Serializable data object ReservoirSheetRoute
 
 private enum class TopLevelDestination(
     val route: Any,
@@ -150,6 +157,7 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                     onOpenSpots = { navController.navigate(SpotsRoute) },
                     onOpenAssistant = { navController.navigate(AssistantRoute) },
                     onOpenLessons = { navController.navigate(LessonsRoute) },
+                    onOpenReservoir = { navController.navigate(ReservoirSheetRoute) },
                 )
             }
             composable<DataRoute> { entry ->
@@ -178,6 +186,10 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
             composable<SpotsRoute> { SpotsScreen(onBack = { navController.popBackStack() }) }
             composable<AssistantRoute> { AssistantScreen(onBack = { navController.popBackStack() }) }
             composable<LessonsRoute> { LessonsScreen(onBack = { navController.popBackStack() }) }
+            composable<ReservoirsRoute> {
+                ReservoirsScreen(onBack = { navController.popBackStack() }, onOpenSheet = { navController.navigate(ReservoirSheetRoute) })
+            }
+            composable<ReservoirSheetRoute> { ReservoirSheetScreen(onBack = { navController.popBackStack() }) }
             composable<PlaceRoute> {
                 PlaceScreen(
                     onOpenSpots = { navController.navigate(SpotsRoute) },

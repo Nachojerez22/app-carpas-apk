@@ -26,6 +26,8 @@ import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.manual.DataSource
 import com.nachojerez.carpstrategy.domain.model.DefaultLocation
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
+import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
 import com.nachojerez.carpstrategy.domain.rules.RuleContext
 import com.nachojerez.carpstrategy.domain.rules.RuleContextBuilder
 import com.nachojerez.carpstrategy.domain.rules.RuleEngine
@@ -63,6 +65,8 @@ data class StrategyUiState(
     val lessons: List<Lesson> = emptyList(),
     /** Lecciones propuestas por la IA pendientes de revisar. */
     val pendingLessons: Int = 0,
+    /** Embalse donde vas a pescar (el más cercano a la ubicación) con su ficha. */
+    val reservoir: ReservoirContext? = null,
 )
 
 /**
@@ -176,7 +180,7 @@ fun planInput(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: Inst
         rain24hMm = derived?.rain?.last24hMm,
         gear = gear,
         spots = state.spots,
-        extras = AiExtras(state.advice?.experience ?: ExperienceSummary.EMPTY, state.advice?.lessons ?: state.lessons, state.advice),
+        extras = AiExtras(state.advice?.experience ?: ExperienceSummary.EMPTY, state.advice?.lessons ?: state.lessons, state.advice, state.reservoir),
     )
 }
 
@@ -213,6 +217,8 @@ fun adviceFor(
     gear: List<GearItem>,
     spots: List<Spot>,
     lessons: List<Lesson>,
+    reservoir: ReservoirContext? = null,
+    reservoirs: List<Reservoir> = emptyList(),
 ): FishingAdvice? {
     derived ?: return null
     val phase = phaseOf(derived)
@@ -228,8 +234,9 @@ fun adviceFor(
             windKmh = derived.wind24h?.meanSpeedKmh,
             spots = spots,
             gear = gear,
-            experience = Experience.forConditions(sessions, phase, water, Formatting.MADRID),
+            experience = Experience.forReservoir(sessions, reservoir?.reservoir, reservoirs, phase, water, Formatting.MADRID),
             lessons = lessons,
+            reservoir = reservoir,
         ),
     )
 }

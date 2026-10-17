@@ -7,8 +7,11 @@ import com.nachojerez.carpstrategy.domain.assistant.AiExchange
 import com.nachojerez.carpstrategy.domain.assistant.AiIssue
 import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
+import com.nachojerez.carpstrategy.domain.assistant.AiSheetDraft
 import com.nachojerez.carpstrategy.domain.assistant.AiValidator
 import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
+import com.nachojerez.carpstrategy.domain.reservoir.ReservoirSheet
 import java.time.Instant
 
 /** Resultado de una consulta: el registro (siempre) y la respuesta solo si es válida. */
@@ -56,6 +59,21 @@ class Assistant(private val client: AiClient) {
         )
         val exchange = outcome.exchange.let { e -> if (rejected.isEmpty()) e else e.copy(issues = (e.issues + rejected).distinct().sortedBy { it.ordinal }) }
         return AiOutcome(exchange, outcome.value)
+    }
+
+    /**
+     * Ficha de un embalse preparada por la IA con el documento (§5). Si no es válida, no se
+     * guarda nada y la ficha anterior sigue igual.
+     */
+    fun sheet(config: AiConfig, apiKey: String, reservoir: Reservoir, previous: ReservoirSheet?, now: Instant, knowledge: String? = null): AiOutcome<ReservoirSheet> {
+        val outcome = run(
+            config, apiKey, AiKind.SHEET, AssistantPrompts.withKnowledge(AssistantPrompts.SHEET_SYSTEM, knowledge), AssistantPrompts.sheetState(reservoir, previous), now,
+            parse = AssistantJson::parseSheet,
+            validate = { draft: AiSheetDraft -> AiValidator.validate(draft) },
+            summary = { "FICHA ${it.species.count { s -> s.value }}" },
+            note = { it.summary },
+        )
+        return AiOutcome(outcome.exchange, outcome.value?.let { AiValidator.toSheet(it, reservoir.id, previous, now) })
     }
 
     /** Prueba de conexión: pide un JSON mínimo. Devuelve el error o null si todo va bien. */

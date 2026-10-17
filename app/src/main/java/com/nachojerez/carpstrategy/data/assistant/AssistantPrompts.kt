@@ -17,6 +17,9 @@ import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.guided.WeatherSnapshot
 import com.nachojerez.carpstrategy.domain.journal.Session
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
+import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
+import com.nachojerez.carpstrategy.domain.reservoir.ReservoirSheet
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import java.time.Duration
 import java.time.Instant
@@ -35,6 +38,8 @@ data class AiExtras(
     val experience: ExperienceSummary = ExperienceSummary.EMPTY,
     val lessons: List<Lesson> = emptyList(),
     val advice: FishingAdvice? = null,
+    /** Embalse activo con su ficha (especies, si se puede cebar). */
+    val reservoir: ReservoirContext? = null,
 )
 
 /** Lo que se manda para el plan antes de pescar (sale del estado de Estrategia). */
@@ -68,9 +73,11 @@ data class PlanInput(
  */
 object AssistantPrompts {
     private const val RULES = """
-Eres el guía de pesca de carpa de CarpStrategy en el embalse de Brovales (Badajoz). Tu objetivo es que el usuario saque el MÁXIMO de carpas: no dejes nada al azar. Sé concreto: qué cebo de su equipo, en qué puesto, a qué distancia, a qué altura (fondo, pop-up, zig), cuánto cebar y a qué hora.
+Eres el guía de pesca de carpa de CarpStrategy en el embalse de "embalse" (Extremadura; si no viene, Brovales). Tu objetivo es que el usuario saque el MÁXIMO de carpas: no dejes nada al azar. Sé concreto: qué cebo de su equipo, en qué puesto, a qué distancia, a qué altura (fondo, pop-up, zig), cuánto cebar y a qué hora.
 Cómo decidir:
-- Parte de "conocimiento_base" (su documento CONOCIMIENTO.md), de "recomendacion_de_la_app" y, por encima de ambos, de "lo_que_te_ha_funcionado" y "lecciones_aceptadas" (son datos reales del usuario en Brovales). Si sus datos contradicen al documento, sigue sus datos y dilo.
+- Parte de "conocimiento_base" (su documento CONOCIMIENTO.md), de "recomendacion_de_la_app" y, por encima de ambos, de "lo_que_te_ha_funcionado" y "lecciones_aceptadas" (son datos reales del usuario, en este embalse si "en_otros_embalses" es false). Si sus datos contradicen al documento, sigue sus datos y dilo.
+- Adapta todo a las especies de "embalse.especies" (§5.11): si hay barbos o bogas, cebos selectivos y poca partícula; con cangrejo, cebos duros; con siluro, montaje fuerte. Si "embalse.se_puede_cebar" es false, NO propongas cebar (solo el cebo del anzuelo); si es "sin_confirmar", dilo una vez.
+- El apartado §6 del documento es solo de Brovales: en otro embalse no lo apliques; usa "embalse.notas" si las hay.
 - Lo que el usuario anota en el puesto manda sobre la previsión.
 - Presión atmosférica, nubosidad y luna pesan 0: no las uses como motivo.
 Formato y límites (si no los cumples, la app descarta tu respuesta):
@@ -94,9 +101,44 @@ Tarea: estrategia concreta para hoy con las cañas indicadas, para sacar el máx
 """
 
     val REVIEW_SYSTEM = RULES + """
-Tarea: repasa la sesión terminada ("sesion") y saca como mucho 3 lecciones útiles para pescar más la próxima vez en Brovales: qué funcionó, qué no y en qué condiciones. Compáralas con "conocimiento_base": si una lección confirma o corrige un apartado, indícalo ("apartado": "§5.8", "corrige": true o false). No repitas "lecciones_aceptadas". Si la sesión no enseña nada nuevo, devuelve la lista vacía. Usa 🟣 salvo que haya algo más sólido. Responde con este JSON:
+Tarea: repasa la sesión terminada ("sesion") y saca como mucho 3 lecciones útiles para pescar más la próxima vez en este embalse: qué funcionó, qué no y en qué condiciones. Compáralas con "conocimiento_base": si una lección confirma o corrige un apartado, indícalo ("apartado": "§5.8", "corrige": true o false). No repitas "lecciones_aceptadas". Si la sesión no enseña nada nuevo, devuelve la lista vacía. Usa 🟣 salvo que haya algo más sólido. Responde con este JSON:
 {"lecciones":[{"tema":"BAIT|WHERE|DISTANCE|PRESENTATION|WHEN|GROUNDBAIT|AVOID|OTHER","texto":"…","condiciones":{"fase":"WINTER|SPRING|SUMMER|HEAT|AUTUMN o null","agua_min_c":14 o null,"agua_max_c":18 o null,"momento":"DAWN|MORNING|MIDDAY|AFTERNOON|DUSK o null","puesto":"nombre exacto o null"},"evidencia":"🟣","apartado":"§5.8 o null","corrige":false}]}
 """
+
+    /**
+     * Ficha de un embalse. Aquí no hay datos del usuario: solo el nombre, el municipio y las
+     * coordenadas públicas del embalse del catálogo (nunca las del GPS del usuario).
+     */
+    val SHEET_SYSTEM = """
+Eres el guía de pesca de carpa de CarpStrategy. Prepara la ficha del embalse de "embalse" (Extremadura) aplicando "conocimiento_base" (CONOCIMIENTO.md): qué especies hay y qué cambia eso en la pesca de la carpa.
+Normas (si no las cumples, la app descarta la respuesta):
+1. No inventes. Si no sabes si una especie está, NO la pongas en la lista. "presente": false solo si sabes que no está.
+2. Especies solo de esta lista: CARP, BARBEL, NASE, TENCH, CRUCIAN, BULLHEAD, CATFISH, BLACK_BASS, PIKE, PIKEPERCH, SUNFISH, BLEAK, CRAYFISH (cangrejo rojo americano).
+3. "abastecimiento": true si sabes que abastece de agua a una población, false si sabes que no, null si no lo sabes.
+4. "resumen" y cada nota: qué hacer para pescar más carpas en este embalse según sus especies, estructura y uso conocidos (como mucho 300 caracteres). No prometas peces, sin porcentajes, sin gramos ni kilos, sin noche, sin normativa ni horarios.
+5. Cada nota con evidencia: 🟢 demostrado, 🟡 indicio o experiencia, 🔴 sin evidencia, 🟣 hipótesis o dato sin verificar (lo normal aquí).
+6. Responde en español y SOLO con este JSON:
+{"especies":[{"especie":"CARP","presente":true}],"abastecimiento":null,"resumen":"…","notas":[{"texto":"…","evidencia":"🟣"}]}
+"""
+
+    /** Estado para la ficha: datos públicos del catálogo y lo que ya confirmó el usuario. */
+    fun sheetState(reservoir: Reservoir, previous: ReservoirSheet?): String = buildJsonObject {
+        put("momento", "ficha_de_embalse")
+        put("embalse", reservoir.name)
+        reservoir.municipality?.let { put("municipio", it) }
+        reservoir.coto?.let { put("coto", it) }
+        if (!reservoir.custom) {
+            put("lat", Math.round(reservoir.point.latitude * 1000) / 1000.0)
+            put("lon", Math.round(reservoir.point.longitude * 1000) / 1000.0)
+        }
+        if (reservoir.waterSupplyByName) put("nombre_oficial_dice_abastecimiento", true)
+        val confirmed = previous?.species.orEmpty().filterValues { it.confirmedByUser }
+        if (confirmed.isNotEmpty()) {
+            putJsonArray("especies_confirmadas_por_el_usuario") {
+                confirmed.forEach { (sp, st) -> addJsonObject { put("especie", sp.name); put("presente", st.present) } }
+            }
+        }
+    }.toString()
 
     /** Instrucciones + la parte del documento que sirve para decidir (si se tiene). */
     fun withKnowledge(system: String, knowledge: String?): String =
@@ -217,10 +259,12 @@ Tarea: repasa la sesión terminada ("sesion") y saca como mucho 3 lecciones úti
 
     /** Tus datos (en condiciones parecidas), tus lecciones aceptadas y la recomendación de la app. */
     private fun JsonObjectBuilder.extras(extras: AiExtras, zone: ZoneId) {
+        extras.reservoir?.let { reservoir(it) }
         val exp = extras.experience
         if (exp.sessions > 0) {
             putJsonObject("lo_que_te_ha_funcionado") {
                 put("sesiones_parecidas", exp.sessions)
+                put("en_otros_embalses", exp.otherReservoirs)
                 put("horas_cana", round1(exp.rodHours))
                 put("carpas", exp.catches)
                 fun <T : Any> list(name: String, stats: List<Stat<T>>, label: (T) -> String) = putJsonArray(name) {
@@ -264,9 +308,31 @@ Tarea: repasa la sesión terminada ("sesion") y saca como mucho 3 lecciones úti
                 a.altColumn?.let { put("columna_si_ves_carpas_arriba", it.name) }
                 put("distancia", a.distance.name)
                 put("profundidad", a.depth.name)
-                put("cebado", a.groundbait.name)
+                put("cebado", a.groundbait?.name ?: "NO_SE_PUEDE_CEBAR")
+                if (a.groundbaitDoubt) put("cebado_por_confirmar", true)
                 putJsonArray("puestos_ordenados") { a.spots.take(MAX_STATS).forEach { add(it.spot.name) } }
             }
+        }
+    }
+
+    private fun JsonObjectBuilder.reservoir(ctx: ReservoirContext) {
+        putJsonObject("embalse") {
+            put("nombre", ctx.reservoir.name)
+            ctx.reservoir.municipality?.let { put("municipio", it) }
+            ctx.reservoir.coto?.let { put("coto", it) }
+            val sheet = ctx.sheet
+            putJsonArray("especies") { ctx.species.sortedBy { it.ordinal }.forEach { add(it.name) } }
+            sheet?.species?.filterValues { !it.present }?.keys?.takeIf { it.isNotEmpty() }?.let { absent ->
+                putJsonArray("especies_que_no_hay") { absent.sortedBy { it.ordinal }.forEach { add(it.name) } }
+            }
+            if (sheet?.hasUnconfirmed == true) put("especies_sin_confirmar", true)
+            when (ctx.groundbaitAllowed) {
+                true -> put("se_puede_cebar", true)
+                false -> put("se_puede_cebar", false)
+                null -> put("se_puede_cebar", "sin_confirmar")
+            }
+            sheet?.summary?.let { put("resumen", it) }
+            if (sheet != null && sheet.notes.isNotEmpty()) putJsonArray("notas") { sheet.notes.forEach { add(it.text) } }
         }
     }
 

@@ -5,6 +5,7 @@ import com.nachojerez.carpstrategy.data.assistant.Assistant
 import com.nachojerez.carpstrategy.data.assistant.AssistantPrompts
 import com.nachojerez.carpstrategy.data.assistant.AssistantSettings
 import com.nachojerez.carpstrategy.data.assistant.KnowledgeAsset
+import com.nachojerez.carpstrategy.data.reservoir.ReservoirRepository
 import com.nachojerez.carpstrategy.data.userdata.GuidedJson
 import com.nachojerez.carpstrategy.data.userdata.LocalSettings
 import com.nachojerez.carpstrategy.di.IoDispatcher
@@ -23,6 +24,7 @@ import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.GuidedUpdate
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.guided.WeatherQuestion
 import com.nachojerez.carpstrategy.domain.guided.WeatherSnapshot
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
@@ -30,6 +32,9 @@ import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.repository.JournalRepository
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
+import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoirs
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
 import com.nachojerez.carpstrategy.domain.usecase.RefreshWeatherUseCase
@@ -76,6 +81,7 @@ class GuidedSessionManager @Inject constructor(
     private val assistantSettings: AssistantSettings,
     private val localSettings: LocalSettings,
     private val knowledge: KnowledgeAsset,
+    private val reservoirs: ReservoirRepository,
     private val clock: Clock,
     @param:IoDispatcher private val io: CoroutineDispatcher,
 ) {
@@ -105,14 +111,15 @@ class GuidedSessionManager @Inject constructor(
         val location = settings.observeLocation().first().point
         val sessions = journal.observeSessions().first()
         val gear = settings.observeGear().first()
-        val lessons = Lessons.accepted(settings.observeLessons().first())
+        val (reservoir, all) = reservoirAt(location)
+        val lessons = Lessons.forReservoir(settings.observeLessons().first(), reservoir?.reservoir?.id)
         val (base, weather, advice) = withContext(io) {
             val raw = observeRawWeather(location).first()
             val rules = rulesRepository.load()
             val snapshots = journal.predictionsBetween(now.minusSeconds(86_400), now)
             val session = completeSession(Session(start = now, location = location, rods = rodNames.size, zone = zone, createdAt = now), true, now, raw, rules, snapshots)
             val derived = buildStrategyState(raw, rules, now, location).derived
-            Triple(session, weatherSnapshotAt(raw, derived, now), adviceFor(derived, now, sessions, gear, listOfNotNull(spot), lessons))
+            Triple(session, weatherSnapshotAt(raw, derived, now), adviceFor(derived, now, sessions, gear, listOfNotNull(spot), lessons, reservoir, all))
         }
         // Plan A con los cebos recomendados: los que te han funcionado primero (fase 7.5).
         val env = env(now).copy(preferredBaits = advice?.baits?.mapNotNull { it.type }.orEmpty())
@@ -174,19 +181,23 @@ class GuidedSessionManager @Inject constructor(
         val sessions = journal.observeSessions().first()
         val session = sessions.firstOrNull { it.id == sessionId && it.end != null } ?: return null
         val gear = settings.observeGear().first()
-        val spots = settings.observeSpots().first()
+        val (reservoir, all) = reservoirAt(session.location)
+        val reservoirId = reservoir?.reservoir?.id
+        val spots = Spots.of(settings.observeSpots().first(), reservoirId)
         val now = clock.instant()
         val phase = GuidedSessions.phaseOf(session)
         val lessons = settings.observeLessons().first()
         val extras = AiExtras(
-            experience = Experience.forConditions(sessions.filter { it.id != sessionId }, phase, session.context?.waterTempC, Formatting.MADRID),
-            lessons = Lessons.accepted(lessons),
+            experience = Experience.forReservoir(sessions.filter { it.id != sessionId }, reservoir?.reservoir, all, phase, session.context?.waterTempC, Formatting.MADRID),
+            lessons = Lessons.forReservoir(lessons, reservoirId),
+            reservoir = reservoir,
         )
         val state = AssistantPrompts.reviewState(session, phase, Formatting.MADRID, gear, spots, extras)
         val outcome = withContext(io) {
-            assistant.review(assistantSettings.config(), key, state, spots, now, sessionId, knowledge.forPlan()) { UUID.randomUUID().toString() }
+            assistant.review(assistantSettings.config(), key, state, spots, now, sessionId, knowledge.forPlan(reservoir?.isBrovales ?: true)) { UUID.randomUUID().toString() }
         }
-        val new = outcome.value.orEmpty()
+        // Lo aprendido en un embalse vale para ese embalse.
+        val new = outcome.value.orEmpty().map { it.copy(conditions = it.conditions.copy(reservoirId = reservoirId)) }
         val current = settings.observeLessons().first()
         val merged = Lessons.addNew(current, new)
         if (merged.size != current.size) settings.setLessons(merged)
@@ -204,8 +215,9 @@ class GuidedSessionManager @Inject constructor(
         val sessions = journal.observeSessions().first().filter { it.id != session.id }
         val phase = GuidedSessions.phaseOf(session)
         val water = session.guided?.weather?.lastOrNull()?.waterC ?: session.context?.waterTempC
-        val experience = Experience.forConditions(sessions, phase, water, Formatting.MADRID)
-        val lessons = Lessons.accepted(settings.observeLessons().first())
+        val (reservoir, all) = reservoirAt(session.location)
+        val experience = Experience.forReservoir(sessions, reservoir?.reservoir, all, phase, water, Formatting.MADRID)
+        val lessons = Lessons.forReservoir(settings.observeLessons().first(), reservoir?.reservoir?.id)
         val sun = SolarCalculator.sunTimes(now.atZone(Formatting.MADRID).toLocalDate(), session.location)
         val advice = FishingAdvisor.advise(
             AdvisorInput(
@@ -220,9 +232,10 @@ class GuidedSessionManager @Inject constructor(
                 gear = settings.observeGear().first(),
                 experience = experience,
                 lessons = lessons,
+                reservoir = reservoir,
             ),
         )
-        return AiExtras(experience, advice.lessons, advice)
+        return AiExtras(experience, advice.lessons, advice, reservoir)
     }
 
     /**
@@ -252,7 +265,7 @@ class GuidedSessionManager @Inject constructor(
             val session = active() ?: return
             val now = clock.instant()
             val env = env(now)
-            val spots = settings.observeSpots().first()
+            val spots = Spots.of(settings.observeSpots().first(), reservoirAt(session.location).first?.reservoir?.id)
             val ctx = GuidedSessions.aiContext(session, env, spots)
             if (ctx.legalEnd != null && !now.isBefore(ctx.legalEnd)) return
             val extras = aiExtras(session, now, spots)
@@ -309,6 +322,13 @@ class GuidedSessionManager @Inject constructor(
         } catch (_: Exception) {
             null
         }
+    }
+
+    /** Embalse de un punto (el de la sesión o la ubicación) con su ficha, y todos los embalses. */
+    private suspend fun reservoirAt(point: GeoPoint): Pair<ReservoirContext?, List<Reservoir>> {
+        val all = reservoirs.observeAll().first()
+        val sheets = reservoirs.observeSheets().first()
+        return Reservoirs.nearest(point, all)?.let { r -> ReservoirContext(r, sheets.firstOrNull { it.reservoirId == r.id }) } to all
     }
 
     private suspend fun active(): Session? = GuidedSessions.active(journal.observeSessions().first())

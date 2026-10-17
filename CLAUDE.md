@@ -188,6 +188,23 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - `AiExtras` (tus datos, tus lecciones y la recomendación) va en los estados que se mandan a la IA. La IA no habla de normativa; el horario se sigue validando (`horario_de_pesca`).
 - UI: `AdviceCard` en Estrategia; `ui/lessons` («Lo aprendido»); textos de horario sin ⚖ (normativa en «Por qué»). El plan A guiado usa `GuidedEnv.preferredBaits`.
 
+## Varios embalses (fase 7.6)
+
+- `domain/reservoir` (puro): `Reservoir` (catálogo o propio), `ReservoirSheet` (especies con
+  `SpeciesStatus` IA/confirmada, `groundbaitAllowed`, notas), `ReservoirContext` (activo + ficha;
+  sin respuesta del usuario y nombre «Abto.» ⇒ no se ceba), `Reservoirs` (más cercano ≤ 3 km,
+  búsqueda sin tildes, sesiones por cercanía: **sin cambio de esquema**), `ReservoirSheets` y
+  `SpeciesRules.effects` (§5.11 → `SpeciesEffects` que usa `FishingAdvisor`).
+- `assets/embalses.json` (`carpstrategy-embalses` v1, docs/EMBALSES.md) se genera con `tools/`
+  desde el PDF oficial de cotos. Ajustes sincronizados `reservoirs` (propios) y `reservoir_sheets`.
+- `data/reservoir/ReservoirRepository`: embalse activo = el más cercano a la ubicación de Lugar;
+  elegir uno es cambiar la ubicación. `Spot.reservoirId` (null = Brovales) y
+  `LessonConditions.reservoirId`; `Experience.forReservoir` (propias primero, si no, todas).
+- IA: `AiKind.SHEET` (`Assistant.sheet`, `AiValidator.toSheet`: respeta lo confirmado; lo que no
+  sabe no se rellena). El estado lleva el bloque `embalse`; `Knowledge.forPlan(md, brovales)`
+  manda §6 solo en Brovales. A la IA solo van las coordenadas públicas del catálogo.
+- UI: `ui/reservoir` (Embalses y Ficha), tarjeta Embalse en Lugar, avisos en «Qué hago ahora».
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.
