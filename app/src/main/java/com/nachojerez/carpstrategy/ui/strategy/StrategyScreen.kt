@@ -86,7 +86,7 @@ fun StrategyScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan by viewModel.plan.collectAsStateWithLifecycle()
-    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant, onOpenLessons)
+    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant, onOpenLessons, onOpenReservoir)
 }
 
 /**
@@ -103,6 +103,7 @@ fun StrategyContent(
     onPlan: (Int) -> Unit = {},
     onOpenAssistant: () -> Unit = {},
     onOpenLessons: () -> Unit = {},
+    onOpenReservoir: () -> Unit = {},
 ) {
     var whyOpen by rememberSaveable { mutableStateOf(false) }
     LazyColumn(
