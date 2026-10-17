@@ -1182,14 +1182,10 @@
     <string name="reservoir_groundbait_yes">Sí</string>
     <string name="reservoir_groundbait_no">No</string>
     <string name="reservoir_groundbait_unknown">No lo sé</string>
-    <string name="species_carp">Carpa</string>
-    <string name="species_barbel">Barbo</string>
-    <string name="species_nase">Boga</string>
     <string name="species_tench">Tenca</string>
     <string name="species_crucian">Carpín</string>
     <string name="species_bullhead">Pez gato</string>
     <string name="species_catfish">Siluro</string>
-    <string name="species_black_bass">Black bass</string>
     <string name="species_pike">Lucio</string>
     <string name="species_pikeperch">Lucioperca</string>
     <string name="species_sunfish">Pez sol</string>
