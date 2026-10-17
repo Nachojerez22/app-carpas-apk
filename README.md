@@ -62,7 +62,7 @@ prioridad de fuentes. Cada una se muestra con su etiqueta de evidencia.
 |---|---|---|
 | Horario legal | Orto/ocaso (algoritmo NOAA, ±1–2 min) − 1 h / + 1 h | Normativa (filtro duro) |
 | Temperatura del agua | Tu medida de superficie si es de las últimas 48 h; si no, **estimación**: media ponderada del aire de los 7 bloques de 24 h previos, pesos 7…1 (el más reciente pesa más), calibrada con el desfase medio de tus medidas de los últimos 30 días (máx. ±5 °C). Tendencia: estimación ahora − hace 3 días | 🟢 (la relación con la demanda); la estimación es solo orientativa |
-| Estación por el agua | < 10 °C invierno, > 22 °C verano, entre medias según tendencia (±0,5 °C/3 días); plana → calendario | 🟡 |
+| Estación por el agua | < 10 °C invierno, > 22 °C verano; entre medias, primavera (ene–jun) u otoño (jul–dic) | 🟡 |
 | Tendencia del aire | Media 24 h frente a los 3 días previos | — |
 | Sesgo modelos vs AEMET | Media (modelo − estación) en las horas comunes de las últimas 48 h (mín. 6), con la estación llevada a la altitud de la rejilla (−6,5 °C/km); se resta a las temperaturas de los modelos (máx. ±5 °C) | — |
 | Rachas | Días completos seguidos hasta ayer con máxima ≥ 30 °C o media ≤ 8 °C (umbrales de trabajo) | — |

@@ -10,7 +10,9 @@ import com.nachojerez.carpstrategy.domain.journal.Catch
 import com.nachojerez.carpstrategy.domain.journal.Session
 import java.time.DayOfWeek
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 
 /** Lo que necesita cada operación además de la sesión: hora, equipo y zona horaria. */
 data class GuidedEnv(
@@ -43,7 +45,16 @@ object GuidedSessions {
     fun phaseOf(session: Session): FishingPhase {
         val features = session.context?.features
         val water = features?.numbers?.get("temp_agua_c") ?: session.context?.waterTempC
-        return GuidedEngine.phase(water, features?.texts?.get("estacion"))
+        return GuidedEngine.phase(water, seasonAt(features?.texts?.get("estacion"), session.start.atZone(ZoneOffset.UTC).toLocalDate()))
+    }
+
+    /**
+     * Sesiones guardadas antes de la corrección de la estación: entre 10 y 22 °C manda la época
+     * del año (SeasonModel), así que «primavera» en otoño (o al revés) se corrige con la fecha.
+     */
+    fun seasonAt(saved: String?, date: LocalDate): String? = when (saved) {
+        "primavera", "otono" -> if (date.monthValue <= 6) "primavera" else "otono"
+        else -> saved
     }
 
     /** Fin del horario legal del día de la sesión. */

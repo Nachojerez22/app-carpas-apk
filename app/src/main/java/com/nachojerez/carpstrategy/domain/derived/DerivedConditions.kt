@@ -95,7 +95,7 @@ object DerivedCalculator {
             temperatureBias = bias,
             airTrend = Trends.airTemperature(air, now),
             water = water,
-            season = water?.let { SeasonModel.classify(it.valueC, it.trend3dC, today) },
+            season = water?.let { SeasonModel.classify(it.valueC, today) },
             pressure = Trends.pressure(pressure, now),
             wind24h = Trends.wind(windSpeed, windDirection, gusts, now, Duration.ofHours(24)),
             wind48h = Trends.wind(windSpeed, windDirection, gusts, now, Duration.ofHours(48)),
