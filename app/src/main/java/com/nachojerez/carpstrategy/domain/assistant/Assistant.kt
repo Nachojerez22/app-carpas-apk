@@ -14,6 +14,10 @@ import com.nachojerez.carpstrategy.domain.guided.ProposalSource
 import com.nachojerez.carpstrategy.domain.guided.Situation
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.StepKind
+import com.nachojerez.carpstrategy.domain.reservoir.FishSpecies
+import com.nachojerez.carpstrategy.domain.reservoir.ReservoirSheet
+import com.nachojerez.carpstrategy.domain.reservoir.SheetNote
+import com.nachojerez.carpstrategy.domain.reservoir.SpeciesStatus
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.domain.rules.StrategyField
 import java.time.Duration
@@ -22,7 +26,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 
 /** Para qué se consultó a la IA. */
-enum class AiKind { CHECK_IN, PLAN, REVIEW }
+enum class AiKind { CHECK_IN, PLAN, REVIEW, SHEET }
 
 /**
  * Una consulta a la IA tal como quedó (fase 8: «¿IA o reglas?»): la respuesta (recortada), si
@@ -54,6 +58,17 @@ data class AiChange(
     val spotName: String? = null,
     val reason: String = "",
     val evidence: Evidence? = null,
+)
+
+/**
+ * Ficha de un embalse según la IA: especies (true está, false no está; las que no sabe no
+ * aparecen), si cree que es de abastecimiento, resumen y notas de estrategia.
+ */
+data class AiSheetDraft(
+    val species: Map<FishSpecies, Boolean> = emptyMap(),
+    val waterSupply: Boolean? = null,
+    val summary: String? = null,
+    val notes: List<AiNote> = emptyList(),
 )
 
 /** Decisión en un aviso: mantener o cambiar (con los cambios por caña). */
@@ -292,6 +307,36 @@ object AiValidator {
         knowledgeRef = draft.knowledgeRef?.trim()?.take(20),
         correction = draft.correction,
     )
+
+    /** Ficha de embalse: resumen y notas con texto válido y evidencia. Las especies son un enum cerrado. */
+    fun validate(draft: AiSheetDraft): Set<AiIssue> = buildSet {
+        addAll(textIssues(draft.summary))
+        draft.notes.forEach { n ->
+            if (n.evidence == null) add(AiIssue.MISSING_EVIDENCE)
+            addAll(textIssues(n.text))
+        }
+    }
+
+    /**
+     * Ficha válida → ficha guardable. Lo que el usuario ya confirmó (especies y cebado) se
+     * respeta; lo que la IA no sabe (null) no se rellena. Todo lo de la IA queda sin confirmar.
+     */
+    fun toSheet(draft: AiSheetDraft, reservoirId: String, previous: ReservoirSheet?, now: Instant): ReservoirSheet {
+        val confirmed = previous?.species.orEmpty().filterValues { it.confirmedByUser }
+        val proposed = draft.species.filterKeys { it !in confirmed }.mapValues { (_, present) -> SpeciesStatus(present, confirmedByUser = false) }
+        return ReservoirSheet(
+            reservoirId = reservoirId,
+            species = confirmed + proposed,
+            groundbaitAllowed = previous?.groundbaitAllowed,
+            aiWaterSupply = draft.waterSupply,
+            summary = draft.summary?.trim(),
+            notes = draft.notes.take(MAX_SHEET_NOTES).map { SheetNote(it.text.trim(), it.evidence ?: Evidence.PURPLE) },
+            aiGeneratedAt = now,
+            updatedAt = now,
+        )
+    }
+
+    const val MAX_SHEET_NOTES = 6
 
     /** Cambio validado → propuesta pendiente de aceptar o rechazar, como las de las reglas. */
     fun toProposal(change: AiChange, gear: List<GearItem>, now: Instant): Proposal {

@@ -10,7 +10,7 @@ import javax.inject.Singleton
 class KnowledgeAsset @Inject constructor(@param:ApplicationContext private val context: Context) {
     val text: String? by lazy { runCatching { context.assets.open(Knowledge.ASSET).bufferedReader().use { it.readText() } }.getOrNull() }
 
-    fun forPlan(): String? = text?.let(Knowledge::forPlan)
+    fun forPlan(brovales: Boolean = true): String? = text?.let { Knowledge.forPlan(it, brovales) }
 
     fun forCheckIn(): String? = text?.let(Knowledge::forCheckIn)
 }

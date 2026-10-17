@@ -7,8 +7,8 @@ package com.nachojerez.carpstrategy.data.assistant
 object Knowledge {
     const val ASSET = "conocimiento.md"
 
-    /** Plan y repaso: estrategias (§5) y Brovales (§6). */
-    fun forPlan(md: String): String = between(md, "## 5.", "## 7.")
+    /** Plan y repaso: estrategias (§5) y, solo en Brovales, sus datos (§6). */
+    fun forPlan(md: String, brovales: Boolean = true): String = between(md, "## 5.", if (brovales) "## 7." else "## 6.")
 
     /** Avisos: el playbook (§5.8) y la sesión guiada (§5.9), más cortos. */
     fun forCheckIn(md: String): String = between(md, "### 5.8", "## 6.")
