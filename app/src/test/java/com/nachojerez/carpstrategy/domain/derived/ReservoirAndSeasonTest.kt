@@ -44,20 +44,20 @@ class ReservoirAndSeasonTest {
     }
 
     @Test
-    fun `estacion por temperatura del agua y tendencia`() {
+    fun `invierno y verano por la temperatura del agua`() {
         val date = LocalDate.parse("2026-10-03")
-        assertEquals(SeasonByWater.WINTER, SeasonModel.classify(8.0, 1.0, date).season)
-        assertEquals(SeasonByWater.SUMMER, SeasonModel.classify(24.0, -1.0, date).season)
-        assertEquals(SeasonByWater.SPRING, SeasonModel.classify(15.0, 1.0, date).season)
-        assertEquals(SeasonByWater.AUTUMN, SeasonModel.classify(18.0, -0.8, LocalDate.parse("2026-04-01")).season)
-        assertFalse(SeasonModel.classify(18.0, -0.8, date).fromCalendar)
+        assertEquals(SeasonByWater.WINTER, SeasonModel.classify(8.0, date).season)
+        assertEquals(SeasonByWater.SUMMER, SeasonModel.classify(24.0, date).season)
+        assertFalse(SeasonModel.classify(24.0, date).fromCalendar)
     }
 
     @Test
-    fun `tendencia plana se desempata por el calendario`() {
-        val autumn = SeasonModel.classify(18.0, 0.1, LocalDate.parse("2026-10-03"))
+    fun `entre 10 y 22 grados manda la epoca del año`() {
+        // Octubre con el agua templada (aunque esté subiendo unos días): otoño, nunca primavera.
+        val autumn = SeasonModel.classify(19.2, LocalDate.parse("2026-10-17"))
         assertEquals(SeasonByWater.AUTUMN, autumn.season)
         assertTrue(autumn.fromCalendar)
-        assertEquals(SeasonByWater.SPRING, SeasonModel.classify(18.0, null, LocalDate.parse("2026-05-03")).season)
+        assertEquals(SeasonByWater.SPRING, SeasonModel.classify(18.0, LocalDate.parse("2026-05-03")).season)
+        assertEquals(SeasonByWater.AUTUMN, SeasonModel.classify(15.0, LocalDate.parse("2026-07-01")).season)
     }
 }

@@ -49,25 +49,23 @@ enum class SeasonByWater { WINTER, SPRING, SUMMER, AUTUMN }
 
 data class SeasonClassification(
     val season: SeasonByWater,
-    /** True si la tendencia era plana y se desempató por el calendario. */
+    /** True si se decidió por la época del año (agua entre 10 y 22 °C). */
     val fromCalendar: Boolean,
 )
 
 /**
- * Estación según la temperatura del agua y su tendencia, no según el calendario
- * (CONOCIMIENTO.md §5.8): invierno < 10 °C, verano > 22 °C, primavera subiendo, otoño bajando.
- * Con tendencia plana entre 10 y 22 °C se desempata por el mes (ene–jun primavera, jul–dic otoño).
+ * Estación de pesca (CONOCIMIENTO.md §5.8): invierno < 10 °C y verano > 22 °C por la temperatura
+ * del agua; entre 10 y 22 °C, primavera de enero a junio y otoño de julio a diciembre. Una racha
+ * templada de unos días en otoño (o fría en primavera) no cambia la estación: es el modificador
+ * «temperatura subiendo/bajando 3 días» del playbook, que va aparte con la tendencia.
  */
 object SeasonModel {
     const val WINTER_BELOW_C = 10.0
     const val SUMMER_ABOVE_C = 22.0
-    const val TREND_THRESHOLD_C = 0.5
 
-    fun classify(waterC: Double, trend3dC: Double?, date: LocalDate): SeasonClassification = when {
+    fun classify(waterC: Double, date: LocalDate): SeasonClassification = when {
         waterC < WINTER_BELOW_C -> SeasonClassification(SeasonByWater.WINTER, false)
         waterC > SUMMER_ABOVE_C -> SeasonClassification(SeasonByWater.SUMMER, false)
-        trend3dC != null && trend3dC >= TREND_THRESHOLD_C -> SeasonClassification(SeasonByWater.SPRING, false)
-        trend3dC != null && trend3dC <= -TREND_THRESHOLD_C -> SeasonClassification(SeasonByWater.AUTUMN, false)
         date.monthValue <= 6 -> SeasonClassification(SeasonByWater.SPRING, true)
         else -> SeasonClassification(SeasonByWater.AUTUMN, true)
     }

@@ -271,9 +271,9 @@ Reglas de diseño:
 
 ### 5.8 Playbook por estación y por condiciones (SI → ENTONCES)
 
-> Punto de partida operativo. **Casi todo es experiencia de pescadores o hipótesis local**: la app lo muestra con su etiqueta (Respaldado 🟢 · Experiencia/moderada 🟡 · Hipótesis local 🟣 · Sin evidencia, peso 0 🔴) y lo sustituye por los datos del propio usuario cuando haya 20–40 sesiones. Las estaciones se deciden por la **temperatura del agua**, no por el calendario. Todo respeta el filtro legal (§7): solo horas legales, máx. 3 cañas.
+> Punto de partida operativo. **Casi todo es experiencia de pescadores o hipótesis local**: la app lo muestra con su etiqueta (Respaldado 🟢 · Experiencia/moderada 🟡 · Hipótesis local 🟣 · Sin evidencia, peso 0 🔴) y lo sustituye por los datos del propio usuario cuando haya 20–40 sesiones. Invierno y verano se deciden por la **temperatura del agua** (<10 °C y >22 °C). Entre 10 y 22 °C manda la época del año: primavera de enero a junio y otoño de julio a diciembre. *(Corregido oct. 2026: una racha templada de unos días en octubre no es primavera; la tendencia de 3 días es el modificador «temperatura subiendo/bajando» de la tabla de condiciones, no la estación.)* Todo respeta el filtro legal (§7): solo horas legales, máx. 3 cañas.
 
-#### Por estación (disparador: temperatura del agua y tendencia)
+#### Por estación (disparador: temperatura del agua y época del año)
 
 | | **Invierno** (agua <10 °C) | **Primavera** (10→20 °C, subiendo) | **Verano** (>22 °C) | **Otoño** (20→10 °C, bajando) |
 |---|---|---|---|---|

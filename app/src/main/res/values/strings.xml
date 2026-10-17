@@ -171,7 +171,7 @@
     <string name="derived_water_trend">Tendencia del agua en 3 días: %1$s °C</string>
     <string name="derived_water_missing">Agua: sin medida ni datos suficientes para estimarla.</string>
     <string name="derived_season">🟡 Estación según el agua: %1$s</string>
-    <string name="derived_season_calendar">%1$s (tendencia plana: desempate por calendario)</string>
+    <string name="derived_season_calendar">%1$s (agua entre 10 y 22 °C: manda la época del año)</string>
     <string name="season_winter">invierno (&lt; 10 °C)</string>
     <string name="season_spring">primavera (subiendo)</string>
     <string name="season_summer">verano (&gt; 22 °C)</string>
