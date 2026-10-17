@@ -23,7 +23,12 @@ data class Spot(
     val distanceM: Double? = null,
     val facingDeg: Int? = null,
     val notes: String = "",
-)
+    /** Embalse del puesto; null = Brovales (puestos anteriores a «Varios embalses»). */
+    val reservoirId: String? = null,
+) {
+    /** Embalse efectivo del puesto. */
+    val reservoir: String get() = reservoirId ?: "brovales"
+}
 
 /** Viento respecto al puesto. */
 enum class WindRelation {
@@ -66,6 +71,9 @@ object Spots {
         val d = abs(((a - b) % 360 + 360) % 360)
         return if (d > 180) 360 - d else d
     }
+
+    /** Puestos de un embalse. */
+    fun of(spots: List<Spot>, reservoirId: String?): List<Spot> = if (reservoirId == null) spots else spots.filter { it.reservoir == reservoirId }
 
     /** Siguiente id libre. */
     fun nextId(spots: List<Spot>): Long = (spots.maxOfOrNull { it.id } ?: 0) + 1

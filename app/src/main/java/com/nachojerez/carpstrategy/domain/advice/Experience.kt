@@ -8,6 +8,8 @@ import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.journal.Session
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoirs
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -50,6 +52,8 @@ data class ExperienceSummary(
     val spots: List<Stat<String>>,
     val columns: List<Stat<Column>>,
     val dayParts: List<Stat<DayPart>>,
+    /** True si no había bastante en este embalse y se usan sesiones de otros. */
+    val otherReservoirs: Boolean = false,
 ) {
     val perRodHour: Double get() = if (rodHours > 0) catches / rodHours else 0.0
 
@@ -165,6 +169,28 @@ object Experience {
             columns = stats { it.column },
             dayParts = dayParts,
         )
+    }
+
+    /** Sesiones parecidas en el embalse con las que basta para fiarse de él solo. */
+    const val MIN_OWN_SESSIONS = 2
+
+    /**
+     * Lo que te ha funcionado en este embalse; si aún no hay [MIN_OWN_SESSIONS] sesiones parecidas
+     * en él, en todos tus embalses (marcado con [ExperienceSummary.otherReservoirs]).
+     */
+    fun forReservoir(
+        sessions: List<Session>,
+        reservoir: Reservoir?,
+        all: List<Reservoir>,
+        phase: FishingPhase,
+        waterC: Double?,
+        zone: ZoneId,
+    ): ExperienceSummary {
+        if (reservoir == null) return forConditions(sessions, phase, waterC, zone)
+        val own = forConditions(Reservoirs.sessionsAt(sessions, reservoir, all), phase, waterC, zone)
+        if (own.sessions >= MIN_OWN_SESSIONS) return own
+        val everywhere = forConditions(sessions, phase, waterC, zone)
+        return if (everywhere.sessions > own.sessions) everywhere.copy(otherReservoirs = true) else own
     }
 
     /** Resumen de tus sesiones en condiciones parecidas a las de ahora. */

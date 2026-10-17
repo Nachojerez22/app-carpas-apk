@@ -22,8 +22,11 @@ data class LessonConditions(
     val waterMaxC: Double? = null,
     val dayPart: DayPart? = null,
     val spotName: String? = null,
+    /** Embalse al que se refiere; null = vale para todos. */
+    val reservoirId: String? = null,
 ) {
-    fun matches(phase: FishingPhase?, waterC: Double?, dayPart: DayPart?, spotNames: Collection<String>): Boolean {
+    fun matches(phase: FishingPhase?, waterC: Double?, dayPart: DayPart?, spotNames: Collection<String>, reservoirId: String? = null): Boolean {
+        if (this.reservoirId != null && reservoirId != null && this.reservoirId != reservoirId) return false
         if (this.phase != null && phase != null && this.phase != phase) return false
         if (waterC != null) {
             if (waterMinC != null && waterC < waterMinC) return false
@@ -34,7 +37,7 @@ data class LessonConditions(
         return true
     }
 
-    val isEmpty: Boolean get() = phase == null && waterMinC == null && waterMaxC == null && dayPart == null && spotName == null
+    val isEmpty: Boolean get() = phase == null && waterMinC == null && waterMaxC == null && dayPart == null && spotName == null && reservoirId == null
 }
 
 /**
@@ -64,8 +67,12 @@ object Lessons {
 
     fun accepted(lessons: List<Lesson>): List<Lesson> = lessons.filter { it.status == LessonStatus.ACCEPTED }
 
-    fun matching(lessons: List<Lesson>, phase: FishingPhase?, waterC: Double?, dayPart: DayPart?, spotNames: Collection<String>): List<Lesson> =
-        accepted(lessons).filter { it.conditions.matches(phase, waterC, dayPart, spotNames) }
+    fun matching(lessons: List<Lesson>, phase: FishingPhase?, waterC: Double?, dayPart: DayPart?, spotNames: Collection<String>, reservoirId: String? = null): List<Lesson> =
+        accepted(lessons).filter { it.conditions.matches(phase, waterC, dayPart, spotNames, reservoirId) }
+
+    /** Las aceptadas que valen para este embalse (las suyas y las generales). */
+    fun forReservoir(lessons: List<Lesson>, reservoirId: String?): List<Lesson> =
+        accepted(lessons).filter { it.conditions.reservoirId == null || reservoirId == null || it.conditions.reservoirId == reservoirId }
 
     fun upsert(lessons: List<Lesson>, lesson: Lesson): List<Lesson> =
         if (lessons.any { it.id == lesson.id }) lessons.map { if (it.id == lesson.id) lesson else it } else lessons + lesson
