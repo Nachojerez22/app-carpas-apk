@@ -42,6 +42,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.Spots
+import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
 import com.nachojerez.carpstrategy.domain.rules.ActiveRule
 import com.nachojerez.carpstrategy.domain.rules.AdviceItem
 import com.nachojerez.carpstrategy.domain.rules.Evidence
@@ -68,6 +69,7 @@ import com.nachojerez.carpstrategy.ui.guided.baitText
 import com.nachojerez.carpstrategy.ui.guided.shortRes
 import com.nachojerez.carpstrategy.ui.guided.spotSummary
 import com.nachojerez.carpstrategy.ui.guided.titleRes
+import com.nachojerez.carpstrategy.ui.reservoir.effectRes
 import com.nachojerez.carpstrategy.ui.theme.CarpTheme
 import com.nachojerez.carpstrategy.ui.theme.EvidenceKind
 import com.nachojerez.carpstrategy.ui.theme.Spacing
@@ -79,6 +81,7 @@ fun StrategyScreen(
     onOpenSpots: () -> Unit = {},
     onOpenAssistant: () -> Unit = {},
     onOpenLessons: () -> Unit = {},
+    onOpenReservoir: () -> Unit = {},
     viewModel: StrategyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -140,7 +143,7 @@ fun StrategyContent(
                 }
                 // 1. Resumen: valoración y «qué hago ahora» (cebo, puesto, distancia…).
                 item { ResultCard(result) }
-                state.advice?.let { advice -> item { AdviceCard(advice, state.pendingLessons, onOpenSpots, onOpenLessons) } }
+                state.advice?.let { advice -> item { AdviceCard(advice, state.reservoir, state.pendingLessons, onOpenSpots, onOpenLessons, onOpenReservoir) } }
                 if (!result.blocked) {
                     item { SummaryActions(state, onStartGuided) }
 
@@ -271,7 +274,14 @@ private fun LazyListScope.whyItems(result: StrategyResult) {
  * con distancia y profundidad, cebado, tus mejores momentos y tus lecciones.
  */
 @Composable
-private fun AdviceCard(advice: FishingAdvice, pendingLessons: Int, onOpenSpots: () -> Unit, onOpenLessons: () -> Unit) {
+private fun AdviceCard(
+    advice: FishingAdvice,
+    reservoir: ReservoirContext?,
+    pendingLessons: Int,
+    onOpenSpots: () -> Unit,
+    onOpenLessons: () -> Unit,
+    onOpenReservoir: () -> Unit,
+) {
     val cs = MaterialTheme.colorScheme
     val res = LocalContext.current.resources
     CarpCard {
@@ -279,6 +289,13 @@ private fun AdviceCard(advice: FishingAdvice, pendingLessons: Int, onOpenSpots: 
         val title = if (advice.deferred) stringResource(R.string.advice_title_next, Formatting.clock(now)) else stringResource(R.string.advice_title)
         Text(title, style = MaterialTheme.typography.titleLarge)
         Caption(stringResource(R.string.advice_moment, stringResource(advice.dayPart.titleRes()), Formatting.clock(now)))
+        reservoir?.let { r ->
+            Text(stringResource(R.string.advice_reservoir, r.reservoir.name), style = MaterialTheme.typography.titleSmall, color = cs.primary)
+            if (r.sheet == null && !r.isBrovales) {
+                Caption(stringResource(R.string.advice_no_sheet))
+                TextButton(onClick = onOpenReservoir) { Text(stringResource(R.string.reservoir_sheet_open)) }
+            }
+        }
 
         Text(stringResource(R.string.advice_baits), style = MaterialTheme.typography.titleSmall)
         advice.baits.forEachIndexed { i, b ->
@@ -294,7 +311,18 @@ private fun AdviceCard(advice: FishingAdvice, pendingLessons: Int, onOpenSpots: 
         val column = stringResource(advice.column.titleRes()) + if (advice.columnProven) " " + stringResource(R.string.advice_column_proven) else ""
         Text(stringResource(R.string.advice_column, column))
         advice.altColumn?.let { Caption(stringResource(R.string.advice_alt_column, stringResource(it.titleRes()))) }
-        Text(stringResource(R.string.advice_groundbait, stringResource(advice.groundbait.titleRes())))
+        val groundbait = advice.groundbait
+        Text(if (groundbait == null) stringResource(R.string.advice_no_groundbait) else stringResource(R.string.advice_groundbait, stringResource(groundbait.titleRes())))
+        if (advice.groundbaitDoubt) Caption(stringResource(R.string.advice_groundbait_doubt), color = cs.error)
+        if (advice.species.notes.isNotEmpty()) {
+            Text(stringResource(R.string.advice_species), style = MaterialTheme.typography.titleSmall)
+            advice.species.notes.forEach { (sp, evidence) ->
+                Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    Caption(stringResource(sp.effectRes()), Modifier.weight(1f))
+                    AnyEvidenceBadge(evidence)
+                }
+            }
+        }
 
         Text(stringResource(R.string.advice_spots), style = MaterialTheme.typography.titleSmall)
         Text(stringResource(R.string.advice_where_generic, stringResource(advice.depth.titleRes()), stringResource(advice.distance.titleRes())))
@@ -331,6 +359,7 @@ private fun AdviceCard(advice: FishingAdvice, pendingLessons: Int, onOpenSpots: 
         Caption(
             if (exp.sessions > 0) stringResource(R.string.advice_experience, exp.sessions, exp.catches) else stringResource(R.string.advice_experience_none),
         )
+        if (exp.otherReservoirs) Caption(stringResource(R.string.advice_other_reservoirs))
         TextButton(onClick = onOpenLessons) {
             Text(if (pendingLessons > 0) stringResource(R.string.lessons_open_pending, pendingLessons) else stringResource(R.string.advice_open_lessons))
         }

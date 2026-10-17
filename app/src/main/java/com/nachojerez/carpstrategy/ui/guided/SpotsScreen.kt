@@ -48,6 +48,7 @@ import com.nachojerez.carpstrategy.ui.theme.Spacing
 @Composable
 fun SpotsScreen(onBack: () -> Unit, viewModel: SpotsViewModel = hiltViewModel()) {
     val spots by viewModel.spots.collectAsStateWithLifecycle()
+    val reservoirName by viewModel.reservoirName.collectAsStateWithLifecycle()
     var draft by remember { mutableStateOf<SpotDraft?>(null) }
 
     LazyColumn(
@@ -57,7 +58,7 @@ fun SpotsScreen(onBack: () -> Unit, viewModel: SpotsViewModel = hiltViewModel())
     ) {
         item {
             TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
-            ScreenHeader(stringResource(R.string.spots_title), stringResource(R.string.nav_place))
+            ScreenHeader(stringResource(R.string.spots_title), reservoirName ?: stringResource(R.string.nav_place))
         }
         item { Caption(stringResource(R.string.spots_intro)) }
         item {

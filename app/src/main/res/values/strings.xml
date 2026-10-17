@@ -11,7 +11,7 @@
     <string name="about_disclaimers_title">Limitaciones</string>
     <string name="about_disclaimer_water">La temperatura del agua NO se mide desde la app: salvo que introduzcas tu propia medición (recomendado), es una estimación a partir de la temperatura del aire de los últimos días.</string>
     <string name="about_disclaimer_rules">Cada indicación muestra su nivel de evidencia: 🟢 fuerte · 🟡 moderada/hipótesis · 🔴 mito o insuficiente (peso 0) · 🟣 hipótesis local pendiente de validar · 🔵 variabilidad individual.</string>
-    <string name="about_disclaimer_legal">En Brovales solo es legal pescar desde 1 h antes de la salida del sol hasta 1 h después de su puesta. Revisa la normativa vigente (DOE y pescayrios.juntaextremadura.es) antes de cada temporada.</string>
+    <string name="about_disclaimer_legal">En Brovales (y, como norma general, en Extremadura) solo es legal pescar desde 1 h antes de la salida del sol hasta 1 h después de su puesta. Revisa la normativa vigente (DOE y pescayrios.juntaextremadura.es) antes de cada temporada.</string>
     <string name="about_aemet_key_missing">No hay API key de AEMET configurada: no se usarán observaciones reales.</string>
     <string name="about_aemet_key_present">API key de AEMET configurada.</string>
     <string name="about_version">Versión %1$s</string>
@@ -495,7 +495,7 @@
     <string name="legend_individual">Depende mucho de cada pez o de cada día.</string>
     <string name="legend_regulation">Normativa de pesca: filtro duro, nunca se salta.</string>
     <string name="place_regulation_title">Normativa</string>
-    <string name="place_regulation_hours">En Brovales solo se pesca desde 1 h antes del amanecer hasta 1 h después del anochecer.</string>
+    <string name="place_regulation_hours">En Brovales y, salvo tramos con pesca nocturna autorizada, en Extremadura solo se pesca desde 1 h antes del amanecer hasta 1 h después del anochecer.</string>
     <string name="place_regulation_reviewed">Última revisión: %1$s</string>
     <string name="place_regulation_check">Confírmala en el DOE y en pescayrios.juntaextremadura.es antes de cada temporada.</string>
     <!-- Fase 6: Diario -->
@@ -549,7 +549,7 @@
     <string name="session_start">Inicio (HH:MM)</string>
     <string name="session_end">Fin (HH:MM)</string>
     <string name="session_end_hint">Deja el fin vacío mientras sigues pescando y pulsa «Terminar sesión» al acabar.</string>
-    <string name="session_legal_note">⚖ En Brovales solo es legal desde 1 h antes del amanecer hasta 1 h después del anochecer.</string>
+    <string name="session_legal_note">⚖ En Brovales (y en general en Extremadura) solo es legal desde 1 h antes del amanecer hasta 1 h después del anochecer.</string>
     <string name="session_result_title">Resultado</string>
     <string name="session_catches">Capturas: %1$d</string>
     <string name="session_add_catch">Añadir captura</string>
@@ -665,8 +665,8 @@
     <string name="guided_finish_confirm">¿Terminar la sesión? Después anotas el resultado en su ficha.</string>
     <string name="guided_warnings_title">Antes de fiarte</string>
     <string name="guided_warning_times">Los tiempos de cambio son hipótesis: no hay estudios que los fijen.</string>
-    <string name="guided_warning_bathymetry">La batimetría de Brovales no está verificada.</string>
-    <string name="guided_warning_no_data">Sin datos de oxígeno, estratificación ni cangrejo rojo en Brovales.</string>
+    <string name="guided_warning_bathymetry">La batimetría del embalse no está verificada.</string>
+    <string name="guided_warning_no_data">Sin datos de oxígeno ni estratificación del embalse.</string>
     <string name="guided_warning_regulation">Normativa revisada hasta marzo de 2026; confirma con el Servicio de Pesca y con los carteles del embalse.</string>
     <string name="guided_warning_no_guarantee">La app no garantiza capturas; las carpas aprenden a evitar los montajes.</string>
 
@@ -828,7 +828,7 @@
     <string name="condition_heavy_rain">Lluvia fuerte</string>
     <string name="condition_storm">Tormenta</string>
     <string name="condition_muddy_inflow">Entra agua turbia</string>
-    <string name="guided_step_inflow">Prueba la boca de la recula o del arroyo (Brovales, Rubiales): el borde del agua turbia, no el centro del barro.</string>
+    <string name="guided_step_inflow">Prueba la boca de la recula o del arroyo: el borde del agua turbia, no el centro del barro.</string>
     <string name="guided_msg_storm">Tormenta: las cañas de carbono conducen la electricidad. Deja las cañas, aléjate del agua y ponte a cubierto. Mientras dure no se propone nada.</string>
     <string name="guided_msg_light_rain">Lluvia ligera sin entrada de agua: no cambies el plan; queda anotada.</string>
     <string name="guided_msg_heavy_rain">Lluvia fuerte: vigila si empieza a entrar agua turbia por arroyos y colas, y márcalo.</string>
@@ -912,7 +912,7 @@
 
     <!-- Fase 7.3: Mis puestos -->
     <string name="spots_title">Mis puestos</string>
-    <string name="spots_intro">Tus puestos con lo que has medido tú. La batimetría de Brovales no está verificada: la app no supone profundidades, usa las tuyas.</string>
+    <string name="spots_intro">Tus puestos con lo que has medido tú. Se guardan con el embalse activo. La batimetría no está verificada: la app no supone profundidades, usa las tuyas.</string>
     <string name="spots_open">Mis puestos</string>
     <string name="spots_open_detail">Estructura, profundidad, distancia y hacia dónde mira la orilla (para el viento)</string>
     <string name="spots_empty">Aún no has añadido puestos.</string>
@@ -1075,7 +1075,7 @@
     <string name="lessons_water_max">agua ≤ %1$s °C</string>
 
     <string name="lessons_title">Lo aprendido</string>
-    <string name="lessons_overline">Tu conocimiento de Brovales</string>
+    <string name="lessons_overline">Tu conocimiento</string>
     <string name="lessons_open">Lo aprendido</string>
     <string name="lessons_open_pending">Lo aprendido (%1$d por revisar)</string>
     <string name="lessons_intro">Lecciones sacadas de tus sesiones: completan o corrigen el documento de conocimiento. Al terminar cada sesión guiada, la IA propone las suyas y tú decides. Las aceptadas se usan en «Qué hago ahora» y en la IA. Expórtalas para incorporarlas al documento en una versión nueva de la app.</string>
@@ -1130,5 +1130,87 @@
     <string name="advice_experience_none">Aún sin sesiones parecidas: se basa en el documento de conocimiento. Cada sesión que anotes lo afina.</string>
     <string name="advice_lessons">Tus lecciones para ahora</string>
     <string name="advice_open_lessons">Lo aprendido</string>
+
+    <!-- Embalses (fase 7.6) -->
+    <string name="reservoirs_title">Embalses</string>
+    <string name="reservoirs_open">Cambiar de embalse</string>
+    <string name="reservoirs_place_title">Embalse</string>
+    <string name="reservoirs_place_subtitle">Dónde vas a pescar: el tiempo, tus puestos, tus datos y la estrategia van con él</string>
+    <string name="reservoirs_active">Embalse activo</string>
+    <string name="reservoirs_none_active">La ubicación no está en ningún embalse conocido. Elige uno de la lista o añade el tuyo.</string>
+    <string name="reservoirs_search">Buscar por embalse, pueblo o coto</string>
+    <string name="reservoirs_count">%1$d de %2$d, del más cercano al más lejano</string>
+    <string name="reservoirs_km">%1$s km</string>
+    <string name="reservoirs_selected">Activo</string>
+    <string name="reservoirs_custom_intro">¿No está tu embalse? Añádelo con sus coordenadas (por defecto, las de tu ubicación actual; usa antes el GPS en Lugar si estás allí).</string>
+    <string name="reservoirs_custom_add">Añadir embalse propio</string>
+    <string name="reservoirs_custom_name">Nombre</string>
+    <string name="reservoirs_custom_hint">Las coordenadas se quedan en tu móvil y en tu cuenta; no se mandan a la IA.</string>
+    <string name="reservoirs_source">Lista: «Listado completo de cotos de pesca de Extremadura» (Junta de Extremadura) más Brovales. Las coordenadas son las del listado.</string>
+    <string name="reservoir_coto">Coto %1$s</string>
+    <string name="reservoir_general">Aguas libres</string>
+    <string name="reservoir_custom">Añadido por ti</string>
+    <string name="reservoir_sheet_title">Ficha del embalse</string>
+    <string name="reservoir_sheet_open">Ficha del embalse</string>
+    <string name="reservoir_catalog_title">Del listado oficial</string>
+    <string name="reservoir_online_permit_yes">Permiso diario por internet: sí</string>
+    <string name="reservoir_online_permit_no">Permiso diario por internet: no</string>
+    <string name="reservoir_posts">Plazas: %1$d para asociados y %2$d para el resto</string>
+    <string name="reservoir_coordinates">Coordenadas: %1$s, %2$s</string>
+    <string name="reservoir_not_brovales">Los datos de Brovales del documento (orillas, profundidades, zonas) no se aplican aquí: usa tus puestos y tus mediciones.</string>
+    <string name="reservoir_ai_title">Ficha con IA</string>
+    <string name="reservoir_ai_subtitle">La IA aplica tu documento de conocimiento a este embalse. Sin verificar 🟣: confírmalo tú.</string>
+    <string name="reservoir_ai_no_key">Configura el asistente de IA en Lugar para prepararla.</string>
+    <string name="reservoir_ai_generate">Preparar ficha con IA</string>
+    <string name="reservoir_ai_regenerate">Volver a preparar la ficha</string>
+    <string name="reservoir_ai_error">No se pudo consultar a la IA (%1$s).</string>
+    <string name="reservoir_ai_invalid">La respuesta no valía y no se ha guardado: %1$s</string>
+    <string name="reservoir_ai_done">Ficha actualizada. Revisa las especies.</string>
+    <string name="reservoir_ai_when">Preparada por la IA el %1$s</string>
+    <string name="reservoir_species_title">Especies</string>
+    <string name="reservoir_species_subtitle">Según las que haya, cambian los cebos, el cebado y el montaje</string>
+    <string name="reservoir_species_unconfirmed">Hay especies propuestas por la IA sin confirmar.</string>
+    <string name="reservoir_species_confirm_all">Confirmar lo que propone la IA</string>
+    <string name="reservoir_species_by_ai">IA, sin confirmar</string>
+    <string name="reservoir_species_yes">Hay</string>
+    <string name="reservoir_species_no">No hay</string>
+    <string name="reservoir_effects_title">Qué cambia por las especies</string>
+    <string name="reservoir_groundbait_title">¿Se puede cebar?</string>
+    <string name="reservoir_groundbait_hint">En los embalses de abastecimiento no se puede cebar; algunos cotos tienen sus propias normas. Si dices que no, la app solo recomienda el cebo del anzuelo.</string>
+    <string name="reservoir_groundbait_doubt">Puede ser de abastecimiento: confírmalo antes de cebar.</string>
+    <string name="reservoir_groundbait_by_name">El nombre oficial dice abastecimiento: mientras no digas otra cosa, la app no recomienda cebar.</string>
+    <string name="reservoir_groundbait_yes">Sí</string>
+    <string name="reservoir_groundbait_no">No</string>
+    <string name="reservoir_groundbait_unknown">No lo sé</string>
+    <string name="species_carp">Carpa</string>
+    <string name="species_barbel">Barbo</string>
+    <string name="species_nase">Boga</string>
+    <string name="species_tench">Tenca</string>
+    <string name="species_crucian">Carpín</string>
+    <string name="species_bullhead">Pez gato</string>
+    <string name="species_catfish">Siluro</string>
+    <string name="species_black_bass">Black bass</string>
+    <string name="species_pike">Lucio</string>
+    <string name="species_pikeperch">Lucioperca</string>
+    <string name="species_sunfish">Pez sol</string>
+    <string name="species_bleak">Alburno</string>
+    <string name="species_crayfish">Cangrejo rojo</string>
+    <string name="species_effect_carp">Carpa: la especie objetivo.</string>
+    <string name="species_effect_barbel">Barbo: se come el cebo pequeño y la partícula. Cebos de anzuelo grandes y selectivos (boilie, chufa) y menos maíz o cañamón suelto.</string>
+    <string name="species_effect_nase">Boga: vacía los cebados de partícula. Poca partícula y cebo selectivo en el anzuelo.</string>
+    <string name="species_effect_tench">Tenca: entra en fondos con vegetación y cebos pequeños; si quieres solo carpa, cebos más grandes.</string>
+    <string name="species_effect_crucian">Carpín: picadas pequeñas y cebos comidos. Cebos duros y grandes.</string>
+    <string name="species_effect_bullhead">Pez gato: rodea el cebo en el fondo. Cebos duros o pop-up para separarlo del fondo.</string>
+    <string name="species_effect_catfish">Siluro: puede entrar al cebo de carpa. Montaje y bajo más fuertes.</string>
+    <string name="species_effect_predator">Depredadores: no compiten por el cebo, pero los alevines se mueven por la orilla; la carpa puede apartarse de esas zonas.</string>
+    <string name="species_effect_sunfish">Pez sol: pica cebos pequeños cerca de la orilla. Cebos grandes y lances algo más largos.</string>
+    <string name="species_effect_bleak">Alburno: ataca a media agua. Mejor fondo o pop-up corto que zig.</string>
+    <string name="species_effect_crayfish">Cangrejo: destroza los cebos blandos. Cebos duros (chufa, boilie endurecido) y revisar a menudo.</string>
+    <string name="advice_reservoir">%1$s</string>
+    <string name="advice_no_groundbait">Cebado: aquí no se puede cebar, solo el cebo del anzuelo</string>
+    <string name="advice_groundbait_doubt">Puede ser de abastecimiento: confirma en la ficha del embalse si se puede cebar.</string>
+    <string name="advice_species">Por las especies del embalse</string>
+    <string name="advice_no_sheet">Sin ficha del embalse: prepárala para adaptar la estrategia a sus especies.</string>
+    <string name="advice_other_reservoirs">Aún tienes pocas sesiones aquí: se usan también las de otros embalses.</string>
 </resources>
 

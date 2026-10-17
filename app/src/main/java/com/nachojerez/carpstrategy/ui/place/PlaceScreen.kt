@@ -52,13 +52,21 @@ import com.nachojerez.carpstrategy.ui.components.ScreenHeader
 import com.nachojerez.carpstrategy.ui.components.SectionTitle
 import com.nachojerez.carpstrategy.ui.components.SourceBadge
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
+import com.nachojerez.carpstrategy.ui.reservoir.reservoirLine
 import com.nachojerez.carpstrategy.ui.theme.EvidenceKind
 import com.nachojerez.carpstrategy.ui.theme.SourceKind
 import com.nachojerez.carpstrategy.ui.theme.Spacing
 
 /** Pestaña Lugar: ubicación, apariencia, fuentes, leyenda, limitaciones y normativa. */
 @Composable
-fun PlaceScreen(onOpenSpots: () -> Unit = {}, onOpenAssistant: () -> Unit = {}, onOpenLessons: () -> Unit = {}, viewModel: PlaceViewModel = hiltViewModel()) {
+fun PlaceScreen(
+    onOpenSpots: () -> Unit = {},
+    onOpenAssistant: () -> Unit = {},
+    onOpenLessons: () -> Unit = {},
+    onOpenReservoirs: () -> Unit = {},
+    onOpenReservoirSheet: () -> Unit = {},
+    viewModel: PlaceViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val myLocationName = stringResource(R.string.place_my_location)
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
@@ -74,6 +82,21 @@ fun PlaceScreen(onOpenSpots: () -> Unit = {}, onOpenAssistant: () -> Unit = {}, 
 
         item { SectionTitle(stringResource(R.string.account_title), subtitle = stringResource(R.string.account_subtitle)) }
         item { AccountCard() }
+
+        item { SectionTitle(stringResource(R.string.reservoirs_place_title), subtitle = stringResource(R.string.reservoirs_place_subtitle)) }
+        item {
+            CarpCard {
+                val reservoir = state.reservoir
+                if (reservoir == null) {
+                    Caption(stringResource(R.string.reservoirs_none_active))
+                } else {
+                    Text(reservoir.reservoir.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                    Caption(reservoirLine(reservoir.reservoir))
+                }
+                Button(onClick = onOpenReservoirs) { Text(stringResource(R.string.reservoirs_open)) }
+                if (reservoir != null) OutlinedButton(onClick = onOpenReservoirSheet) { Text(stringResource(R.string.reservoir_sheet_open)) }
+            }
+        }
 
         item { SectionTitle(stringResource(R.string.place_location_title), subtitle = stringResource(R.string.place_location_subtitle)) }
         item {
