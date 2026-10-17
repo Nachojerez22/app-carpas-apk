@@ -61,12 +61,15 @@ class GuidedViewModel @Inject constructor(
             combine(settings.observeGear(), combine(settings.observeSpots(), reservoirs.observeActive()) { spots, r -> Spots.of(spots, r?.reservoir?.id) }, ::Pair),
             manager.nextCheckIn,
             ticker,
-            combine(starting, saved, permissions, assistantSettings.observeKeyHint(), manager.aiBusy, ::AuxState),
+            combine(starting, saved, permissions, assistantSettings.observeKeyHint(), combine(manager.aiBusy, manager.chatBusy, ::Pair)) { st, sv, pm, hint, (ai, chat) ->
+                AuxState(st, sv, pm, hint, ai, chat)
+            },
         ) { session, (gear, spots), next, now, aux ->
             val (isStarting, lastSaved, perms) = Triple(aux.starting, aux.saved, aux.permissions)
             buildGuidedState(session, gear, now, next, Formatting.MADRID, spots).copy(
                 aiConfigured = aux.aiKeyHint != null,
                 aiBusy = aux.aiBusy,
+                chatBusy = aux.chatBusy,
                 starting = isStarting,
                 lastSaved = lastSaved,
                 canNotify = perms.first,
@@ -130,6 +133,11 @@ class GuidedViewModel @Inject constructor(
         viewModelScope.launch { manager.consultAi() }
     }
 
+    /** Mensaje para la IA en el chat de la sesión. */
+    fun sendChat(text: String) {
+        viewModelScope.launch { manager.chat(text) }
+    }
+
     fun accept(rodId: Int) {
         viewModelScope.launch { manager.accept(rodId) }
     }
@@ -149,4 +157,5 @@ private data class AuxState(
     val permissions: Pair<Boolean, Boolean>,
     val aiKeyHint: String?,
     val aiBusy: Boolean,
+    val chatBusy: Boolean,
 )

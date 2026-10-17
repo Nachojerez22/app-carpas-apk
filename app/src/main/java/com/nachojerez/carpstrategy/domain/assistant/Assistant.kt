@@ -26,7 +26,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 
 /** Para qué se consultó a la IA. */
-enum class AiKind { CHECK_IN, PLAN, REVIEW, SHEET }
+enum class AiKind { CHECK_IN, PLAN, REVIEW, SHEET, CHAT }
 
 /**
  * Una consulta a la IA tal como quedó (fase 8: «¿IA o reglas?»): la respuesta (recortada), si
@@ -69,6 +69,16 @@ data class AiSheetDraft(
     val waterSupply: Boolean? = null,
     val summary: String? = null,
     val notes: List<AiNote> = emptyList(),
+)
+
+/**
+ * Respuesta en el chat de la sesión: texto para el usuario y, si propone algo, cambios por caña
+ * (los mismos tipos que en un aviso, uno por caña), que quedan como propuestas pendientes.
+ */
+data class AiChatReply(
+    val text: String,
+    val changes: List<AiChange> = emptyList(),
+    val evidence: Evidence? = null,
 )
 
 /** Decisión en un aviso: mantener o cambiar (con los cambios por caña). */
@@ -190,13 +200,13 @@ object AiValidator {
     private val CLOCK = Regex("""\b([01]?\d|2[0-3])[:h]([0-5]\d)\b""")
     private val PROMISE = Regex("""garantiz\w*|seguro que (pica|picar|habr|vas a)|vas a pescar seguro|hay peces (en|ahí)""", RegexOption.IGNORE_CASE)
 
-    fun textIssues(text: String?, required: Boolean = true): Set<AiIssue> = buildSet {
+    fun textIssues(text: String?, required: Boolean = true, maxLength: Int = MAX_TEXT): Set<AiIssue> = buildSet {
         val t = text?.trim().orEmpty()
         if (t.isEmpty()) {
             if (required) add(AiIssue.EMPTY_TEXT)
             return@buildSet
         }
-        if (t.length > MAX_TEXT) add(AiIssue.TEXT_TOO_LONG)
+        if (t.length > maxLength) add(AiIssue.TEXT_TOO_LONG)
         if (PROBABILITY.containsMatchIn(t)) add(AiIssue.PROBABILITY)
         if (GRAMS.containsMatchIn(t)) add(AiIssue.GRAMS)
         if (NIGHT.containsMatchIn(t)) add(AiIssue.NIGHT)
@@ -233,23 +243,38 @@ object AiValidator {
         if (keep == true && decision.changes.isNotEmpty()) add(AiIssue.CHANGES_WHEN_KEEPING)
         if (keep == false) {
             if (decision.changes.isEmpty()) add(AiIssue.NO_CHANGES)
-            val ended = ctx.legalEnd != null && !ctx.now.isBefore(ctx.legalEnd)
-            if (ended) add(AiIssue.AFTER_LEGAL_END)
-            if (ctx.storm) add(AiIssue.STORM_ACTIVE)
-            val noZone = ctx.legalEnd != null && Duration.between(ctx.now, ctx.legalEnd) <= GuidedEngine.LEGAL_NO_ZONE
-            if (decision.changes.map { it.rod }.toSet().size != decision.changes.size) add(AiIssue.DUPLICATE_ROD)
-            decision.changes.forEach { c ->
-                if (c.rod !in ctx.rodIds) add(AiIssue.UNKNOWN_ROD)
-                val kind = c.kind
-                if (kind == null || kind !in ALLOWED_KINDS) add(AiIssue.KIND_NOT_ALLOWED)
-                if (kind in ZONE_KINDS && (noZone || c.rod in ctx.zoneLimitReached)) add(AiIssue.ZONE_NOT_ALLOWED)
-                if (c.evidence == null) add(AiIssue.MISSING_EVIDENCE)
-                addAll(gearIssues(c.baitName, c.rigName, c.spotName, ctx))
-                checkText(c.action, ctx)
-                checkText(c.reason, ctx)
-            }
+            checkChanges(decision.changes, ctx)
         }
     }
+
+    /** Cambios por caña (aviso o chat): caña conocida, uno por caña, tipo permitido, ⚖ zona, equipo y textos. */
+    private fun MutableSet<AiIssue>.checkChanges(changes: List<AiChange>, ctx: AiContext) {
+        val ended = ctx.legalEnd != null && !ctx.now.isBefore(ctx.legalEnd)
+        if (ended) add(AiIssue.AFTER_LEGAL_END)
+        if (ctx.storm) add(AiIssue.STORM_ACTIVE)
+        val noZone = ctx.legalEnd != null && Duration.between(ctx.now, ctx.legalEnd) <= GuidedEngine.LEGAL_NO_ZONE
+        if (changes.map { it.rod }.toSet().size != changes.size) add(AiIssue.DUPLICATE_ROD)
+        changes.forEach { c ->
+            if (c.rod !in ctx.rodIds) add(AiIssue.UNKNOWN_ROD)
+            val kind = c.kind
+            if (kind == null || kind !in ALLOWED_KINDS) add(AiIssue.KIND_NOT_ALLOWED)
+            if (kind in ZONE_KINDS && (noZone || c.rod in ctx.zoneLimitReached)) add(AiIssue.ZONE_NOT_ALLOWED)
+            if (c.evidence == null) add(AiIssue.MISSING_EVIDENCE)
+            addAll(gearIssues(c.baitName, c.rigName, c.spotName, ctx))
+            checkText(c.action, ctx)
+            checkText(c.reason, ctx)
+        }
+    }
+
+    /** Respuesta del chat: texto válido (más largo que un motivo) y, si propone cambios, que valgan. */
+    fun validate(reply: AiChatReply, ctx: AiContext): Set<AiIssue> = buildSet {
+        addAll(textIssues(reply.text, maxLength = MAX_CHAT_TEXT))
+        legalHoursIssue(reply.text, ctx)?.let(::add)
+        if (reply.changes.isNotEmpty()) checkChanges(reply.changes, ctx)
+    }
+
+    /** Respuesta del chat como mucho de esta longitud. */
+    const val MAX_CHAT_TEXT = 1_200
 
     fun validate(plan: AiPlan, ctx: AiContext): Set<AiIssue> = buildSet {
         if (plan.evidence == null) add(AiIssue.MISSING_EVIDENCE)

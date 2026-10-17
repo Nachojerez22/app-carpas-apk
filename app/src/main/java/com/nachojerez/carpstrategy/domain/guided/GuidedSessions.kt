@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.domain.guided
 
+import com.nachojerez.carpstrategy.domain.assistant.AiChatReply
 import com.nachojerez.carpstrategy.domain.assistant.AiContext
 import com.nachojerez.carpstrategy.domain.assistant.AiDecision
 import com.nachojerez.carpstrategy.domain.assistant.AiExchange
@@ -202,6 +203,30 @@ object GuidedSessions {
         }
         val update = refresh(session.copy(guided = record), env)
         return update.copy(newProposals = proposals + update.newProposals)
+    }
+
+    /**
+     * Anota un mensaje del chat y la respuesta de la IA (fase 7.7). Si la respuesta es válida y
+     * propone cambios, quedan como propuestas pendientes en sus cañas (como en un aviso, salvo
+     * en cañas que ya tienen una). Si no es válida o no llegó, el mensaje del usuario se guarda
+     * igual y la respuesta queda marcada como descartada.
+     */
+    fun applyChat(session: Session, question: String, asked: Instant, exchange: AiExchange, reply: AiChatReply?, env: GuidedEnv): GuidedUpdate {
+        val record = session.guided ?: return GuidedUpdate(session)
+        val withQuestion = session.copy(guided = record.copy(chat = record.chat + ChatMessage(asked, fromUser = true, text = question.trim())))
+        val valid = exchange.valid && reply != null
+        val decision = reply?.takeIf { valid && it.changes.isNotEmpty() }?.let { AiDecision(keep = false, changes = it.changes, reasons = listOf(it.text), evidence = it.evidence) }
+        val freeRods = decision?.changes?.map { it.rod }?.filter { rod -> record.rod(rod)?.log?.pending == null }.orEmpty()
+        val update = applyAi(withQuestion, exchange, decision, env)
+        val answer = ChatMessage(
+            time = env.now,
+            fromUser = false,
+            text = if (valid) reply?.text?.trim().orEmpty() else "",
+            proposedRods = if (session.isOngoing) freeRods.filter { it in update.newProposals } else emptyList(),
+            rejected = !valid,
+        )
+        val guided = update.session.guided ?: return update
+        return update.copy(session = update.session.copy(guided = guided.copy(chat = guided.chat + answer)))
     }
 
     /** Acepta la propuesta pendiente de una caña; cebo y montaje pasan a la ficha. */

@@ -5,6 +5,7 @@ import com.nachojerez.carpstrategy.domain.advice.ExperienceSummary
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
 import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.advice.Stat
+import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import com.nachojerez.carpstrategy.domain.assistant.AiValidator
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.FieldWeather
@@ -105,6 +106,11 @@ Tarea: repasa la sesión terminada ("sesion") y saca como mucho 3 lecciones úti
 {"lecciones":[{"tema":"BAIT|WHERE|DISTANCE|PRESENTATION|WHEN|GROUNDBAIT|AVOID|OTHER","texto":"…","condiciones":{"fase":"WINTER|SPRING|SUMMER|HEAT|AUTUMN o null","agua_min_c":14 o null,"agua_max_c":18 o null,"momento":"DAWN|MORNING|MIDDAY|AFTERNOON|DUSK o null","puesto":"nombre exacto o null"},"evidencia":"🟣","apartado":"§5.8 o null","corrige":false}]}
 """
 
+    val CHAT_SYSTEM = RULES + """
+Tarea: eres un experto en la pesca de la carpa y estás conversando con el usuario, que está pescando ahora. Ya sabes dónde está ("embalse" y "puesto_actual"), qué estrategia lleva ("estrategia_del_dia", "recomendacion_de_la_app" y la configuración de cada caña en "canas") y lo que ha pasado en la sesión: no le pidas datos que ya tienes. Contesta a "mensaje_del_usuario" teniendo en cuenta "conversacion". Responde como un pescador experto que está a su lado: claro, concreto y breve (como mucho 1000 caracteres). Si lo que cuenta pide cambiar algo, propónlo en "cambios" (un cambio por caña, tipos PRESENTATION, RIG, COLUMN, DISTANCE, ZONE, ANTI_CRAB, SELECTIVE, INFLOW; nada de ZONE ni INFLOW si "zona_permitida" es false; no en cañas con "propuesta_pendiente"); si no, deja "cambios" vacío. Si te pregunta algo que no sabes, dilo. Responde con este JSON:
+{"respuesta":"…","cambios":[{"cana":1,"tipo":"COLUMN","accion":"qué hacer, concreto","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","puesto":"nombre exacto o null","motivo":"por qué","evidencia":"🟡"}],"evidencia":"🟡"}
+"""
+
     /**
      * Ficha de un embalse. Aquí no hay datos del usuario: solo el nombre, el municipio y las
      * coordenadas públicas del embalse del catálogo (nunca las del GPS del usuario).
@@ -160,10 +166,76 @@ Normas (si no las cumples, la app descarta la respuesta):
         legalStart: Instant? = null,
         extras: AiExtras = AiExtras(),
     ): String {
-        val record = session.guided
-        val report = record?.let { FieldWeather.report(it, now) }
         return buildJsonObject {
             put("momento", "aviso")
+            sessionState(session, phase, legalEnd, now, zone, gear, spots, legalStart, extras)
+        }.toString()
+    }
+
+    /**
+     * Estado para el chat de la sesión (fase 7.7): todo lo de un aviso (embalse, puesto, cañas,
+     * tiempo, tus datos), la estrategia del día, la conversación hasta ahora y el mensaje nuevo.
+     */
+    fun chatState(
+        session: Session,
+        phase: FishingPhase,
+        legalEnd: Instant?,
+        now: Instant,
+        zone: ZoneId,
+        gear: List<GearItem>,
+        spots: List<Spot>,
+        message: String,
+        legalStart: Instant? = null,
+        extras: AiExtras = AiExtras(),
+    ): String = buildJsonObject {
+        put("momento", "conversacion_en_el_puesto")
+        put("mensaje_del_usuario", message.trim().take(MAX_USER_MESSAGE))
+        sessionState(session, phase, legalEnd, now, zone, gear, spots, legalStart, extras)
+        session.guided?.ai?.lastOrNull { it.kind == AiKind.PLAN && it.valid }?.response?.let(AssistantJson::parsePlan)?.let { plan ->
+            putJsonObject("estrategia_del_dia") {
+                put("resumen", plan.summary)
+                putJsonArray("canas") {
+                    plan.rods.forEach { r ->
+                        addJsonObject {
+                            put("cana", r.rod)
+                            r.spotName?.let { put("puesto", it) }
+                            r.baitName?.let { put("cebo", it) }
+                            r.rigName?.let { put("montaje", it) }
+                            r.column?.let { put("columna", it.name) }
+                            r.distanceM?.let { put("distancia_m", it) }
+                            if (r.reason.isNotBlank()) put("motivo", r.reason)
+                        }
+                    }
+                }
+                putJsonArray("consejos") { plan.advice.forEach { a -> add(a.text) } }
+            }
+        }
+        putJsonArray("conversacion") {
+            session.guided?.chat?.takeLast(MAX_CHAT_HISTORY)?.forEach { m ->
+                if (m.rejected) return@forEach
+                addJsonObject {
+                    put("hora", CLOCK.format(m.time.atZone(zone)))
+                    put("de", if (m.fromUser) "usuario" else "ia")
+                    put("texto", m.text)
+                }
+            }
+        }
+    }.toString()
+
+    private fun JsonObjectBuilder.sessionState(
+        session: Session,
+        phase: FishingPhase,
+        legalEnd: Instant?,
+        now: Instant,
+        zone: ZoneId,
+        gear: List<GearItem>,
+        spots: List<Spot>,
+        legalStart: Instant?,
+        extras: AiExtras,
+    ) {
+        val record = session.guided
+        val report = record?.let { FieldWeather.report(it, now) }
+        run {
             put("hora_local", CLOCK.format(now.atZone(zone)))
             put("minutos_de_sesion", Duration.between(session.start, now).toMinutes())
             minutes(now, legalEnd)?.let { put("minutos_hasta_recoger", it) }
@@ -208,7 +280,7 @@ Normas (si no las cumples, la app descarta la respuesta):
                     }
                 }
             }
-        }.toString()
+        }
     }
 
     /** Estado para el plan antes de pescar. */
@@ -342,6 +414,10 @@ Normas (si no las cumples, la app descarta la respuesta):
     private const val MAX_STATS = 5
     private const val MAX_LESSONS = 20
 
+    /** Mensajes del chat que se mandan (los últimos) y longitud máxima de un mensaje del usuario. */
+    private const val MAX_CHAT_HISTORY = 20
+    private const val MAX_USER_MESSAGE = 1_000
+
     /** Estado para repasar una sesión terminada y sacar lecciones. */
     fun reviewState(session: Session, phase: FishingPhase, zone: ZoneId, gear: List<GearItem>, spots: List<Spot>, extras: AiExtras): String = buildJsonObject {
         put("momento", "repaso_de_sesion")
@@ -360,6 +436,11 @@ Normas (si no las cumples, la app descarta la respuesta):
                 record.spot?.let { s -> putJsonObject("puesto") { spot(s, record.weather.firstOrNull()) } }
                 record.groundbait?.let { put("cebado_inicial", it.name) }
                 putJsonArray("tiempo") { record.weather.forEach { w -> addJsonObject { put("hora", CLOCK.format(w.time.atZone(zone))); weather(w) } } }
+                putJsonArray("conversacion_con_la_ia") {
+                    record.chat.filterNot { it.rejected }.takeLast(MAX_CHAT_HISTORY).forEach { m ->
+                        addJsonObject { put("hora", CLOCK.format(m.time.atZone(zone))); put("de", if (m.fromUser) "usuario" else "ia"); put("texto", m.text) }
+                    }
+                }
                 putJsonArray("condiciones_anotadas") {
                     record.conditions.forEach { c -> addJsonObject { put("hora", CLOCK.format(c.time.atZone(zone))); put("tipo", c.condition.name); put("activa", c.active) } }
                 }

@@ -1208,5 +1208,17 @@
     <string name="advice_species">Por las especies del embalse</string>
     <string name="advice_no_sheet">Sin ficha del embalse: prepárala para adaptar la estrategia a sus especies.</string>
     <string name="advice_other_reservoirs">Aún tienes pocas sesiones aquí: se usan también las de otros embalses.</string>
+
+    <!-- Chat con la IA en la sesión (fase 7.7) -->
+    <string name="guided_chat_title">Hablar con la IA</string>
+    <string name="guided_chat_intro">Cuéntale lo que ves en el puesto (saltos, picadas, cebo comido, viento, otros peces…) o pregúntale lo que quieras. Ya sabe dónde estás, qué llevas en cada caña y la estrategia del día.</string>
+    <string name="guided_chat_you">Tú</string>
+    <string name="guided_chat_ai">IA</string>
+    <string name="guided_chat_hint">Escribe o dicta con el micrófono del teclado</string>
+    <string name="guided_chat_send">Enviar</string>
+    <string name="guided_chat_waiting">La IA está pensando…</string>
+    <string name="guided_chat_failed">Sin respuesta válida (sin conexión, cuota o la respuesta no cumplía las normas). Vuelve a intentarlo.</string>
+    <string name="guided_chat_proposed">Propuesta arriba para: %1$s</string>
+    <string name="guided_chat_note">Los cambios que proponga aparecen como propuesta en su caña: tú decides si los aceptas. La conversación se guarda con la sesión.</string>
 </resources>
 

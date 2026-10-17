@@ -283,6 +283,48 @@ class GuidedSessionManager @Inject constructor(
         }
     }
 
+    private val chatRunning = MutableStateFlow(false)
+
+    /** Hay un mensaje del chat esperando respuesta. */
+    val chatBusy: StateFlow<Boolean> = chatRunning
+
+    /**
+     * Chat con la IA durante la sesión (fase 7.7). La IA recibe el estado completo (embalse,
+     * puesto, cañas, estrategia del día, tus datos y la conversación) y el documento. Su
+     * respuesta se valida; si propone cambios válidos quedan como propuestas pendientes.
+     * Devuelve false si no hay clave, sesión o ya hay un mensaje en marcha.
+     */
+    suspend fun chat(message: String): Boolean {
+        if (message.isBlank()) return false
+        val key = assistantSettings.apiKey() ?: return false
+        if (!chatRunning.compareAndSet(expect = false, update = true)) return false
+        try {
+            val session = active() ?: return false
+            val asked = clock.instant()
+            val env = env(asked)
+            val (reservoir, _) = reservoirAt(session.location)
+            val spots = Spots.of(settings.observeSpots().first(), reservoir?.reservoir?.id)
+            val ctx = GuidedSessions.aiContext(session, env, spots)
+            val extras = aiExtras(session, asked, spots)
+            val state = AssistantPrompts.chatState(
+                session, GuidedSessions.phaseOf(session), ctx.legalEnd, asked, Formatting.MADRID, env.inventory, spots, message, ctx.legalStart, extras,
+            )
+            val outcome = withContext(io) {
+                assistant.chat(assistantSettings.config(), key, state, ctx, knowledge.forPlan(reservoir?.isBrovales ?: true))
+            }
+            mutex.withLock {
+                val current = active()?.takeIf { it.id == session.id } ?: return@withLock
+                val at = clock.instant()
+                val update = GuidedSessions.applyChat(current, message, asked, outcome.exchange, outcome.value, env(at))
+                journal.save(update.session)
+                afterChange(update, at, alert = false, reschedule = false)
+            }
+            return true
+        } finally {
+            chatRunning.value = false
+        }
+    }
+
     private suspend fun onAlarmLocked(weather: WeatherSnapshot?): Unit = mutex.withLock {
         val session = active()
         if (session == null) {

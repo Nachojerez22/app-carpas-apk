@@ -484,6 +484,8 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
   - **Este documento sigue siendo la base**: lo aprendido lo completa o lo corrige, siempre a la vista del usuario.
 - **IA orientada a capturas**: recibe este documento (§5, y §6 solo en Brovales), lo que te ha funcionado, tus lecciones y la recomendación de la app. No habla de normativa: el horario lo controla la app y se rechaza cualquier hora fuera de él.
 
+- *(Añadido oct. 2026.)* **Chat en el puesto**: durante la sesión guiada el usuario habla con la IA (texto o dictado). La IA actúa como experta en carpas y ya conoce el embalse y sus especies, el puesto, la configuración de cada caña, la estrategia del día, el tiempo, tus datos y tus lecciones: no hay que explicárselo. Si propone cambios, valen las mismas normas que en un aviso (uno por caña, tu equipo, ⚖ sin cambio de zona a menos de 45 min del final) y quedan como propuestas que el usuario acepta o rechaza. La conversación se guarda con la sesión y entra en el repaso.
+
 ### 5.11 Varios embalses y especies acompañantes (oct. 2026, petición del usuario)
 
 > El usuario pesca también fuera de Brovales (p. ej. el embalse de Burguillos, coto «Charco El Toro», en Burguillos del Cerro). Este documento se aplica a todos los embalses; lo que cambia de uno a otro son sus especies, si se puede cebar y los puestos del usuario.

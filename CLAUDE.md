@@ -205,6 +205,17 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   manda §6 solo en Brovales. A la IA solo van las coordenadas públicas del catálogo.
 - UI: `ui/reservoir` (Embalses y Ficha), tarjeta Embalse en Lugar, avisos en «Qué hago ahora».
 
+## Chat con la IA en la sesión (fase 7.7)
+
+- `ChatMessage` en `GuidedRecord.chat` (JSON `chat` en `GuidedJson`/exportación). `AiKind.CHAT`,
+  `AiChatReply` (texto + cambios por caña) y `AiValidator.validate(reply, ctx)` (texto hasta
+  `MAX_CHAT_TEXT`; cambios con las mismas normas que un aviso, `checkChanges`).
+- `AssistantPrompts.CHAT_SYSTEM` (experto en carpas que ya conoce embalse, puesto, cañas y
+  estrategia) y `chatState` (estado del aviso + `estrategia_del_dia` + `conversacion` +
+  `mensaje_del_usuario`). `GuidedSessions.applyChat` guarda pregunta y respuesta y deja los cambios
+  como propuestas pendientes. `GuidedSessionManager.chat` (fuera del cerrojo; aplica dentro).
+- UI: `ChatCard` en la pantalla Guiada. El repaso (`reviewState`) incluye la conversación.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

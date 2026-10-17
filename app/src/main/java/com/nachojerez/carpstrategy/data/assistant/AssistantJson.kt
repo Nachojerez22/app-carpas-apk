@@ -5,6 +5,7 @@ import com.nachojerez.carpstrategy.domain.advice.LessonConditions
 import com.nachojerez.carpstrategy.domain.advice.LessonTopic
 import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
 import com.nachojerez.carpstrategy.domain.assistant.AiChange
+import com.nachojerez.carpstrategy.domain.assistant.AiChatReply
 import com.nachojerez.carpstrategy.domain.assistant.AiDecision
 import com.nachojerez.carpstrategy.domain.assistant.AiLessonDraft
 import com.nachojerez.carpstrategy.domain.assistant.AiNote
@@ -51,22 +52,31 @@ object AssistantJson {
             "CAMBIAR" -> false
             else -> null
         }
-        val changes = o.array("cambios").mapNotNull { e ->
-            val c = e as? JsonObject ?: return@mapNotNull null
-            AiChange(
-                rod = c.int("cana") ?: c.int("caña") ?: -1,
-                kind = c.string("tipo")?.let { name -> StepKind.entries.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) } },
-                action = c.string("accion") ?: c.string("acción").orEmpty(),
-                baitName = c.string("cebo"),
-                rigName = c.string("montaje"),
-                column = c.string("columna")?.let { name -> Column.entries.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) } },
-                spotName = c.string("puesto"),
-                reason = c.string("motivo").orEmpty(),
-                evidence = evidence(c.string("evidencia")),
-            )
-        }
+        val changes = changes(o)
         val reasons = o.array("motivos").mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.takeIf(String::isNotBlank) }
         return AiDecision(keep, changes, reasons, evidence(o.string("evidencia")))
+    }
+
+    /** Respuesta del chat de la sesión (`{"respuesta":"…","cambios":[…],"evidencia":"🟡"}`). */
+    fun parseChat(text: String): AiChatReply? {
+        val o = objectIn(text) ?: return null
+        val answer = o.string("respuesta") ?: o.string("texto") ?: return null
+        return AiChatReply(answer, changes(o), evidence(o.string("evidencia")))
+    }
+
+    private fun changes(o: JsonObject): List<AiChange> = o.array("cambios").mapNotNull { e ->
+        val c = e as? JsonObject ?: return@mapNotNull null
+        AiChange(
+            rod = c.int("cana") ?: c.int("caña") ?: -1,
+            kind = c.string("tipo")?.let { name -> StepKind.entries.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) } },
+            action = c.string("accion") ?: c.string("acción").orEmpty(),
+            baitName = c.string("cebo"),
+            rigName = c.string("montaje"),
+            column = c.string("columna")?.let { name -> Column.entries.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) } },
+            spotName = c.string("puesto"),
+            reason = c.string("motivo").orEmpty(),
+            evidence = evidence(c.string("evidencia")),
+        )
     }
 
     fun parsePlan(text: String): AiPlan? {
