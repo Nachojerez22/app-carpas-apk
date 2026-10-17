@@ -482,7 +482,25 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - **Conocimiento aprendido.** Al terminar cada sesión guiada, la IA la repasa con este documento y propone como mucho 3 lecciones, con condiciones (fase, agua, momento, puesto), evidencia y el apartado que confirman o corrigen. El usuario las acepta o descarta, y también puede escribir las suyas.
   - Las aceptadas se usan en «Qué hago ahora» y en la IA, y se exportan en Markdown para incorporarlas aquí en una versión nueva.
   - **Este documento sigue siendo la base**: lo aprendido lo completa o lo corrige, siempre a la vista del usuario.
-- **IA orientada a capturas**: recibe este documento (§5 y §6), lo que te ha funcionado, tus lecciones y la recomendación de la app. No habla de normativa: el horario lo controla la app y se rechaza cualquier hora fuera de él.
+- **IA orientada a capturas**: recibe este documento (§5, y §6 solo en Brovales), lo que te ha funcionado, tus lecciones y la recomendación de la app. No habla de normativa: el horario lo controla la app y se rechaza cualquier hora fuera de él.
+
+### 5.11 Varios embalses y especies acompañantes (oct. 2026, petición del usuario)
+
+> El usuario pesca también fuera de Brovales (p. ej. el embalse de Burguillos, coto «Charco El Toro», en Burguillos del Cerro). Este documento se aplica a todos los embalses; lo que cambia de uno a otro son sus especies, si se puede cebar y los puestos del usuario.
+
+- **Catálogo**: los cotos del «Listado completo de cotos de pesca de Extremadura» (Junta de Extremadura) con las coordenadas de sus enlaces al IGN, más Brovales (no es coto). Se pueden añadir embalses propios. El embalse activo es el más cercano (≤ 3 km) a la ubicación elegida.
+- **Ficha del embalse**: la IA la prepara con este documento (🟣, sin verificar): especies (lista cerrada; lo que no sabe queda vacío), si cree que abastece a una población, resumen y notas. **El usuario confirma** cada especie y dice si se puede cebar; lo suyo manda.
+- ⚖ **Cebado**: prohibido en embalses de abastecimiento (§7). Si el nombre oficial lo dice («Abto.», «Abastecimiento») y el usuario no dice otra cosa, la app no recomienda cebar; si solo lo sospecha la IA, avisa para confirmarlo.
+- **Especies acompañantes → qué cambia en la pesca de la carpa** (sin cambiar la cadena de filtros de §4):
+  - 🟡 **Barbo y boga**: se comen el cebo pequeño y vacían los cebados de partícula → cebos de anzuelo selectivos (boilie, chufa, pop-up) y menos maíz o cañamón suelto.
+  - 🟡 **Cangrejo rojo**: destroza los cebos blandos → cebos duros (chufa, boilie endurecido) y revisar a menudo (§5.9.5).
+  - 🟣 **Carpín y pez gato**: picadas pequeñas y cebos comidos en el fondo → cebos duros y grandes, o pop-up para separarlo del fondo.
+  - 🟡 **Tenca**: entra en fondos con vegetación y cebos pequeños; si solo se busca carpa, cebos más grandes.
+  - 🟣 **Siluro**: puede entrar al cebo de carpa → montaje y bajo más fuertes.
+  - 🟣 **Black bass, lucio y lucioperca**: no compiten por el cebo; los alevines se refugian en la orilla y la carpa puede apartarse de esas zonas.
+  - 🟣 **Pez sol y alburno**: atacan cebos pequeños cerca de la orilla y a media agua → cebos grandes, fondo o pop-up corto mejor que zig.
+- **Lo que te ha funcionado** se calcula primero con las sesiones de ese embalse; con menos de 2 se usan también las de otros embalses (y se dice). Los puestos y las lecciones van con su embalse.
+- **§6 es solo de Brovales**: en otro embalse sus datos (orillas, profundidades, nivel) no se aplican; se usan la ficha, los puestos y las mediciones del usuario.
 
 ## 6. Brovales
 
