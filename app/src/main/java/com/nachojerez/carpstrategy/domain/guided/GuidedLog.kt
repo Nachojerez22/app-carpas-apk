@@ -199,6 +199,19 @@ data class GuidedLog(
     }
 }
 
+/**
+ * Mensaje del chat con la IA durante la sesión (fase 7.7): lo que cuenta el usuario y lo que
+ * contesta la IA. [proposedRods]: cañas en las que la respuesta dejó una propuesta pendiente.
+ * [rejected]: la respuesta no pasó la validación o no hubo respuesta (sin red, cuota…).
+ */
+data class ChatMessage(
+    val time: Instant,
+    val fromUser: Boolean,
+    val text: String,
+    val proposedRods: List<Int> = emptyList(),
+    val rejected: Boolean = false,
+)
+
 /** Una caña con nombre («fija», «carrete») y su registro. */
 data class RodTrack(val id: Int, val name: String, val log: GuidedLog)
 
@@ -220,6 +233,8 @@ data class GuidedRecord(
     val weather: List<WeatherSnapshot> = emptyList(),
     /** Consultas al asistente de IA (válidas o no), en orden. */
     val ai: List<AiExchange> = emptyList(),
+    /** Conversación con la IA durante la sesión, en orden. */
+    val chat: List<ChatMessage> = emptyList(),
 ) {
     fun rod(id: Int): RodTrack? = rods.firstOrNull { it.id == id }
 

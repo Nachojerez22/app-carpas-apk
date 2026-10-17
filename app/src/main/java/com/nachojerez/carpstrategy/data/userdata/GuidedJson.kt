@@ -7,6 +7,7 @@ import com.nachojerez.carpstrategy.domain.guided.ActivityPlace
 import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
+import com.nachojerez.carpstrategy.domain.guided.ChatMessage
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.ConditionChange
@@ -172,8 +173,19 @@ object GuidedJson {
         @SerialName("puesto") val spot: SpotDto? = null,
         @SerialName("tiempo") val weather: List<WeatherDto> = emptyList(),
         @SerialName("ia") val ai: List<AiDto> = emptyList(),
+        @SerialName("chat") val chat: List<ChatDto> = emptyList(),
         @SerialName("tramos") val legacySegments: List<SegmentDto>? = null,
         @SerialName("propuestas") val legacyProposals: List<ProposalRecordDto>? = null,
+    )
+
+    /** Mensaje del chat con la IA (fase 7.7). */
+    @Serializable
+    data class ChatDto(
+        @SerialName("hora") val time: String,
+        @SerialName("de_usuario") val fromUser: Boolean,
+        @SerialName("texto") val text: String = "",
+        @SerialName("canas_con_propuesta") val proposedRods: List<Int> = emptyList(),
+        @SerialName("descartada") val rejected: Boolean = false,
     )
 
     @Serializable
@@ -272,6 +284,7 @@ object GuidedJson {
         spot = spot?.toDto(),
         weather = weather.map { it.toDto() },
         ai = ai.map { it.toDto() },
+        chat = chat.map { ChatDto(it.time.toString(), it.fromUser, it.text, it.proposedRods, it.rejected) },
     )
 
     fun GuidedDto.toDomain(): GuidedRecord? {
@@ -289,6 +302,7 @@ object GuidedJson {
             spot = spot?.toDomain(),
             weather = weather.mapNotNull { it.toDomain() },
             ai = ai.mapNotNull { it.toDomain() },
+            chat = chat.mapNotNull { c -> ChatMessage(instant(c.time) ?: return@mapNotNull null, c.fromUser, c.text, c.proposedRods, c.rejected) },
         )
     }
 

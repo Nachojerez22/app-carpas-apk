@@ -121,4 +121,16 @@ class AssistantTest {
         assertEquals(AiKind.REVIEW, outcome.exchange.kind)
         assertEquals(listOf(AiIssue.UNKNOWN_SPOT, AiIssue.GRAMS), outcome.exchange.issues)
     }
+
+    @Test
+    fun `chat de la sesion`() {
+        server.enqueue(gemini("""{"respuesta":"Mantén el boilie y acerca la carrete al cortado.","cambios":[{"cana":1,"tipo":"DISTANCE","accion":"Acércala","motivo":"Saltos cerca","evidencia":"🟡"}],"evidencia":"🟡"}"""))
+        val outcome = assistant.chat(config, "k", "{}", ctx)
+        assertTrue(outcome.exchange.valid)
+        assertEquals(AiKind.CHAT, outcome.exchange.kind)
+        assertEquals(StepKind.DISTANCE, outcome.value!!.changes.single().kind)
+        assertEquals("RESPUESTA 1:DISTANCE", outcome.exchange.summary)
+        val body = server.takeRequest().body!!.utf8()
+        assertTrue(body.contains("experto en la pesca de la carpa"))
+    }
 }

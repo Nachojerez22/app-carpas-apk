@@ -1,6 +1,7 @@
 package com.nachojerez.carpstrategy.data.assistant
 
 import com.nachojerez.carpstrategy.domain.advice.Lesson
+import com.nachojerez.carpstrategy.domain.assistant.AiChatReply
 import com.nachojerez.carpstrategy.domain.assistant.AiContext
 import com.nachojerez.carpstrategy.domain.assistant.AiDecision
 import com.nachojerez.carpstrategy.domain.assistant.AiExchange
@@ -60,6 +61,16 @@ class Assistant(private val client: AiClient) {
         val exchange = outcome.exchange.let { e -> if (rejected.isEmpty()) e else e.copy(issues = (e.issues + rejected).distinct().sortedBy { it.ordinal }) }
         return AiOutcome(exchange, outcome.value)
     }
+
+    /** Mensaje del chat de la sesión: respuesta validada (texto y, si los hay, cambios por caña). */
+    fun chat(config: AiConfig, apiKey: String, state: String, ctx: AiContext, knowledge: String? = null): AiOutcome<AiChatReply> =
+        run(
+            config, apiKey, AiKind.CHAT, AssistantPrompts.withKnowledge(AssistantPrompts.CHAT_SYSTEM, knowledge), state, ctx.now,
+            parse = AssistantJson::parseChat,
+            validate = { reply: AiChatReply -> AiValidator.validate(reply, ctx) },
+            summary = { if (it.changes.isEmpty()) "RESPUESTA" else "RESPUESTA " + it.changes.joinToString(" ") { c -> "${c.rod}:${c.kind?.name ?: "?"}" } },
+            note = { it.text },
+        )
 
     /**
      * Ficha de un embalse preparada por la IA con el documento (§5). Si no es válida, no se

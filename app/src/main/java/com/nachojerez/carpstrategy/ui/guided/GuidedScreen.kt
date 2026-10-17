@@ -135,6 +135,7 @@ fun GuidedScreen(
             item { HeaderCard(state, session, phase, rods.size > 1, viewModel::nothingEverywhere, viewModel::windChanged, viewModel::conditionChanged) }
             item { WeatherCard(session.guided?.spot, state.weather, viewModel::answerWeather) }
             item { AiCard(state, viewModel::askAi) }
+            item { ChatCard(state, viewModel::sendChat) }
             rods.forEach { r ->
                 r.log.pending?.let { record ->
                     item(key = "propuesta-${r.id}") {
@@ -364,6 +365,60 @@ private fun AiCard(state: GuidedUiState, onAsk: () -> Unit) {
         }
     }
 }
+
+/**
+ * Chat con la IA (fase 7.7): cuentas lo que ves en el puesto y te contesta un experto en carpas
+ * que ya conoce el embalse, el puesto y la estrategia. Si propone cambios, aparecen arriba como
+ * propuestas de cada caña (aceptar o rechazar, como siempre).
+ */
+@Composable
+private fun ChatCard(state: GuidedUiState, onSend: (String) -> Unit) {
+    val res = LocalContext.current.resources
+    val cs = MaterialTheme.colorScheme
+    var draft by rememberSaveable { mutableStateOf("") }
+    CarpCard {
+        SectionTitle(stringResource(R.string.guided_chat_title))
+        if (!state.aiConfigured) Caption(stringResource(R.string.guided_ai_off))
+        if (state.chat.isEmpty()) Caption(stringResource(R.string.guided_chat_intro))
+        state.chat.takeLast(MAX_CHAT_SHOWN).forEach { m ->
+            val who = stringResource(if (m.fromUser) R.string.guided_chat_you else R.string.guided_chat_ai)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = if (m.fromUser) Alignment.End else Alignment.Start,
+            ) {
+                Caption("${Formatting.clock(m.time)} · $who")
+                when {
+                    m.rejected -> Caption(stringResource(R.string.guided_chat_failed), color = cs.error)
+                    else -> Text(m.text, color = if (m.fromUser) cs.primary else cs.onSurface)
+                }
+                if (m.proposedRods.isNotEmpty()) {
+                    val names = m.proposedRods.joinToString(", ") { id -> res.rodLabel(id, state.rods.firstOrNull { it.id == id }?.name.orEmpty()) }
+                    Caption(stringResource(R.string.guided_chat_proposed, names))
+                }
+            }
+        }
+        if (state.chatBusy) Caption(stringResource(R.string.guided_chat_waiting))
+        OutlinedTextField(
+            value = draft,
+            onValueChange = { draft = it },
+            label = { Text(stringResource(R.string.guided_chat_hint)) },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 2,
+            maxLines = 6,
+        )
+        Button(
+            onClick = {
+                onSend(draft)
+                draft = ""
+            },
+            enabled = state.aiConfigured && draft.isNotBlank() && !state.chatBusy,
+        ) { Text(stringResource(R.string.guided_chat_send)) }
+        Caption(stringResource(R.string.guided_chat_note))
+    }
+}
+
+/** Mensajes del chat que se muestran (los últimos); todos quedan guardados con la sesión. */
+private const val MAX_CHAT_SHOWN = 30
 
 /** Lluvia, tormenta y entrada de agua: se marcan al empezar y se desmarcan al parar. */
 @OptIn(ExperimentalLayoutApi::class)

@@ -129,6 +129,10 @@ de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "te
   La clave nunca se guarda. Las propuestas llevan `origen` (`AI`; ausente = reglas), `nota` y
   `puesto`; `situacion` puede ser `ASSISTANT`. Los avisos pueden llevar `actividad_en`
   (`SHORE`, `SURFACE`, `MIDWATER`, `BOTTOM`) y `saltos` (`NONE`, `FEW`, `MANY`).
+- `chat` (desde 0.13.0): conversación con la IA durante la sesión, en orden. `de_usuario`: true si
+  lo escribió el usuario · `texto` · `canas_con_propuesta`: cañas en las que la respuesta dejó una
+  propuesta pendiente · `descartada`: la respuesta no llegó o no pasó la validación (su consulta
+  queda en `ia` con `tipo` `CHAT`). `tipo` en `ia` también puede ser `REVIEW` (repaso) o `CHAT`.
 - `tiempo` (desde 0.9.0): previsión de la hora en curso al empezar y en cada aviso. `codigo_tiempo`
   es el código WMO de Open-Meteo (95–99 = tormenta). `nubosidad_pct` y `presion_hpa` tienen peso 0.
   `llueve_usuario` y `tormenta_usuario`: respuesta a «¿Llueve?» / «¿Hay tormenta?» en ese aviso

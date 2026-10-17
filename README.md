@@ -167,6 +167,15 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
+### Chat con la IA en el puesto (fase 7.7)
+
+En la sesión guiada, **Hablar con la IA**:
+- le cuentas lo que ves (saltos, picadas, cebo comido, viento, otros peces…) o le preguntas, escribiendo o dictando con el micrófono del teclado;
+- te contesta como experta en carpas y ya sabe dónde estás, qué llevas en cada caña y la estrategia del día;
+- si propone un cambio, aparece como propuesta en su caña y tú decides si la aceptas.
+
+Las respuestas pasan las mismas comprobaciones que el resto del asistente. La conversación se guarda con la sesión (diario y exportación) y la IA la tiene en cuenta al repasar la sesión.
+
 ### Varios embalses (fase 7.6)
 
 En **Lugar → Embalse → Cambiar de embalse** eliges dónde vas a pescar:
@@ -272,6 +281,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.1**: lluvia, tormenta y entrada de agua durante la sesión
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
+- [x] **Fase 7.7**: chat con la IA durante la sesión
 - [x] **Fase 7.6**: varios embalses (catálogo de cotos de Extremadura, ficha con especies preparada por la IA)
 - [ ] **Fase 8**: aprendizaje con datos propios cuando haya 20–40 sesiones (CONOCIMIENTO.md §10)
 

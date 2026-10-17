@@ -5,6 +5,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import com.nachojerez.carpstrategy.domain.guided.ActivityPlace
 import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
+import com.nachojerez.carpstrategy.domain.guided.ChatMessage
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.FieldWeather
@@ -61,7 +62,12 @@ data class GuidedUiState(
     /** Hay clave del asistente de IA en este móvil. */
     val aiConfigured: Boolean = false,
     val aiBusy: Boolean = false,
+    /** Hay un mensaje del chat esperando respuesta de la IA. */
+    val chatBusy: Boolean = false,
 ) {
+    /** Conversación con la IA en esta sesión (fase 7.7). */
+    val chat: List<ChatMessage> get() = session?.guided?.chat.orEmpty()
+
     /** Última consulta a la IA en un aviso. */
     val lastAi: AiExchange? get() = session?.guided?.ai?.lastOrNull { it.kind == AiKind.CHECK_IN }
 
