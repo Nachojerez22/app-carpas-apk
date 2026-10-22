@@ -195,6 +195,8 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                     onOpenSpots = { navController.navigate(SpotsRoute) },
                     onOpenAssistant = { navController.navigate(AssistantRoute) },
                     onOpenLessons = { navController.navigate(LessonsRoute) },
+                    onOpenReservoirs = { navController.navigate(ReservoirsRoute) },
+                    onOpenReservoirSheet = { navController.navigate(ReservoirSheetRoute) },
                 )
             }
             composable<RawDataRoute> {
