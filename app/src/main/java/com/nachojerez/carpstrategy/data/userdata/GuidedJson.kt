@@ -35,6 +35,7 @@ import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.guided.WeatherSnapshot
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
+import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import java.time.Instant
 import kotlinx.serialization.SerialName
@@ -126,6 +127,8 @@ object GuidedJson {
         @SerialName("notas") val notes: String = "",
         @SerialName("embalse") val reservoirId: String? = null,
         @SerialName("fetch_m") val fetchM: Double? = null,
+        @SerialName("lat") val latitude: Double? = null,
+        @SerialName("lon") val longitude: Double? = null,
     )
 
     /** Una consulta a la IA (la clave nunca se guarda aquí). */
@@ -312,7 +315,7 @@ object GuidedJson {
     fun decode(text: String?): GuidedRecord? =
         text?.let { runCatching { JournalJson.json.decodeFromString(GuidedDto.serializer(), it) }.getOrNull() }?.toDomain()
 
-    fun Spot.toDto() = SpotDto(id, name, zone?.name, structure.name, depthM, distanceM, facingDeg, notes, reservoirId, fetchM)
+    fun Spot.toDto() = SpotDto(id, name, zone?.name, structure.name, depthM, distanceM, facingDeg, notes, reservoirId, fetchM, point?.latitude, point?.longitude)
 
     fun SpotDto.toDomain(): Spot? = name.takeIf { it.isNotBlank() }?.let {
         Spot(
@@ -326,8 +329,12 @@ object GuidedJson {
             notes = notes,
             reservoirId = reservoirId,
             fetchM = fetchM,
+            point = pointOf(latitude, longitude),
         )
     }
+
+    private fun pointOf(lat: Double?, lon: Double?): GeoPoint? =
+        if (lat == null || lon == null) null else runCatching { GeoPoint(lat, lon) }.getOrNull()
 
     private fun WeatherSnapshot.toDto() = WeatherDto(
         time.toString(), airC, windKmh, windFromDeg, gustKmh, cloudPct, precipitationMm, weatherCode, pressureHpa,

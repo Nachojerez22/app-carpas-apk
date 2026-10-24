@@ -6,7 +6,7 @@ versiones, que se pueden tener instaladas a la vez sin mezclar datos:
 | Versión | Nombre en el móvil | Cuándo se genera | Para qué |
 |---|---|---|---|
 | **Producción** | CarpStrategy | Cada cambio en `main` (si existe la clave de firma) | Uso real: diario, mediciones |
-| **Prueba** | CarpStrategy (prueba) | Cada ejecución de la CI, en cualquier rama | Probar cambios antes del merge |
+| ~~Prueba~~ | CarpStrategy (prueba) | **Ya no se publica** (oct. 2026): solo producción | — |
 
 Requisitos: Android 8.0 o superior.
 
@@ -61,10 +61,10 @@ workflow** sobre `main`) genera el APK de producción.
 (descarga directa, sin zip ni sesión de GitHub). La app avisa sola cuando hay una versión nueva.
 Instálala siempre **encima** de la actual, sin desinstalar.
 
-También desde los artefactos de la CI (la versión de prueba solo está aquí):
+También desde los artefactos de la CI de `main`:
 
 1. En GitHub: **Actions → CI →** la última ejecución en verde.
-2. Abajo, en **Artifacts**: `CarpStrategy-N` (producción) o `CarpStrategy-prueba-N` (prueba).
+2. Abajo, en **Artifacts**: `CarpStrategy-N` (producción).
    Se descarga un `.zip` con el `.apk` dentro (los artefactos se guardan 90 días).
 3. Pasa el `.apk` al móvil (o descárgalo directamente desde el navegador del móvil con tu sesión
    de GitHub iniciada) y ábrelo.

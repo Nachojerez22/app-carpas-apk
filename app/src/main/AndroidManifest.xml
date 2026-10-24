@@ -19,6 +19,14 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.CarpStrategy">
+        <!-- Google Maps (mapa de puestos). La clave llega de MAPS_API_KEY al compilar; nunca se versiona. -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
+        <!-- Recomendado por Google para el renderizador del mapa en Android 9 y posteriores. -->
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

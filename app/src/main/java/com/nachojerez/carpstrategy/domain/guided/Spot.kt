@@ -1,6 +1,7 @@
 package com.nachojerez.carpstrategy.domain.guided
 
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
+import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import kotlin.math.abs
 
 /**
@@ -30,6 +31,8 @@ data class Spot(
      * hay oleaje que remueva el fondo (§5.4, umbral 🟣 500 m).
      */
     val fetchM: Double? = null,
+    /** Dónde está el puesto (tocado en el mapa, fase 7.9). Solo en tu móvil y tu cuenta; nunca va a la IA. */
+    val point: GeoPoint? = null,
 ) {
     /** Embalse efectivo del puesto. */
     val reservoir: String get() = reservoirId ?: "brovales"

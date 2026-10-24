@@ -22,6 +22,11 @@ turbine = "1.2.1"
 play-services-location = "21.4.0"
 # Autorización de Google (Drive, fase 7.2). Comprobada al compilar en la CI.
 play-services-auth = "21.4.0"
+# Mapa de puestos (fase 7.9). maps-compose 9.0.1 (Maven Central, compose-bom 2026.09.00 y Kotlin
+# 2.4.20, los mismos que la app) no arrastra play-services-maps: se declara aparte (20.1.0, notas
+# de Google Play services del 12/10/2026).
+play-services-maps = "20.1.0"
+maps-compose = "9.0.1"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
@@ -50,6 +55,8 @@ androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "
 
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "play-services-auth" }
+play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "play-services-maps" }
+maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "maps-compose" }
 
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 

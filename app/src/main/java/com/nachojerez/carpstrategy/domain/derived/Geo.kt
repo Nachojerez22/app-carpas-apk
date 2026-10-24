@@ -2,6 +2,7 @@ package com.nachojerez.carpstrategy.domain.derived
 
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import kotlin.math.asin
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
@@ -19,6 +20,16 @@ object Geo {
         val dLon = Math.toRadians(b.longitude - a.longitude)
         val h = sin(dLat / 2).pow(2) + cos(lat1) * cos(lat2) * sin(dLon / 2).pow(2)
         return 2 * EARTH_RADIUS_KM * asin(sqrt(h.coerceIn(0.0, 1.0)))
+    }
+
+    /** Rumbo inicial de [a] hacia [b] en grados (0 = norte, 90 = este), 0–360. */
+    fun bearingDeg(a: GeoPoint, b: GeoPoint): Double {
+        val lat1 = Math.toRadians(a.latitude)
+        val lat2 = Math.toRadians(b.latitude)
+        val dLon = Math.toRadians(b.longitude - a.longitude)
+        val y = sin(dLon) * cos(lat2)
+        val x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
+        return (Math.toDegrees(atan2(y, x)) + 360) % 360
     }
 
     /** Los [limit] elementos más cercanos a [origin] dentro de [maxDistanceKm], ordenados por distancia. */

@@ -24,6 +24,8 @@ jobs:
       # Secretos del repositorio (Settings → Secrets and variables → Actions). Si no existen,
       # todo funciona igual: la app sin AEMET y los APK firmados con una clave temporal.
       AEMET_API_KEY: ${{ secrets.AEMET_API_KEY }}
+      # Mapa de puestos (fase 7.9). Sin ella, la app muestra un aviso en lugar del mapa.
+      MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
       CARP_KEYSTORE_BASE64: ${{ secrets.CARP_KEYSTORE_BASE64 }}
       CARP_KEYSTORE_PASSWORD: ${{ secrets.CARP_KEYSTORE_PASSWORD }}
       CARP_KEY_ALIAS: ${{ secrets.CARP_KEY_ALIAS }}
@@ -57,8 +59,9 @@ jobs:
 
       - name: Aviso si falta la clave
         if: env.CARP_KEYSTORE_BASE64 == ''
-        run: echo "::notice::Sin secreto CARP_KEYSTORE_BASE64. El APK de prueba se firma con una clave temporal y no podrá actualizarse sin desinstalar (ver docs/INSTALACION.md)."
+        run: echo "::notice::Sin secreto CARP_KEYSTORE_BASE64, no se publica el APK de producción (ver docs/INSTALACION.md)."
 
+      # Solo comprueba que compila: ya no se publica APK de prueba (decisión del propietario, oct. 2026).
       - name: Build debug
         run: ./gradlew assembleDebug --stacktrace
 
@@ -76,13 +79,6 @@ jobs:
             echo "::warning file=$f::Esquema de Room nuevo o cambiado sin versionar"
             echo "----- $f -----"; cat "$f"; echo
           done
-
-      - name: APK de prueba
-        uses: actions/upload-artifact@v4
-        with:
-          name: CarpStrategy-prueba-${{ github.run_number }}
-          path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
 
       # Versión de producción: solo en main y solo con la clave fija.
       - name: Build release
