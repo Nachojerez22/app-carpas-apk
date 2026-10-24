@@ -281,15 +281,40 @@
       ]
     },
     {
-      "id": "viento_calido_sotavento",
+      "id": "viento_calido_orilla_receptora",
       "nivel": 3,
       "tipo": "consejo",
       "evidencia": "amarillo",
       "peso": "bajo",
-      "descripcion": "Viento sostenido 24 h sin enfriamiento: el agua calentada se acumula a sotavento (física). En Brovales el fetch es corto: úsalo como desempate.",
-      "condiciones": { "viento_24h_kmh": { "min": 10 }, "viento_persistencia_24h": { "min": 0.7 }, "tendencia_aire_c": { "min": 0 } },
+      "descripcion": "Viento más cálido que el agua, sostenido y con el agua por debajo del óptimo: la capa templada de arriba y el plancton pequeño se acumulan en la orilla que lo recibe (física 🟢; en carpa, experiencia). En Brovales el fetch es corto: desempate.",
+      "condiciones": { "viento_24h_kmh": { "min": 10 }, "viento_persistencia_24h": { "min": 0.7 }, "delta_aire_agua_c": { "min": 2 }, "temp_agua_c": { "max": 22 } },
       "estrategia": [
-        { "campo": "donde", "texto": "Desempate: orilla a sotavento, hacia donde sopla el viento (sopla del {viento_desde}, empuja hacia el {viento_hacia})." }
+        { "campo": "donde", "texto": "Desempate: prueba primero la orilla que recibe el viento (sopla del {viento_desde}, empuja hacia el {viento_hacia}), sobre todo zonas someras que se calientan antes; deja una caña de control en tu zona habitual." }
+      ]
+    },
+    {
+      "id": "viento_frio_resguardo",
+      "nivel": 3,
+      "tipo": "consejo",
+      "evidencia": "amarillo",
+      "peso": "bajo",
+      "descripcion": "Viento más frío que el agua: enfría la orilla que lo recibe (experiencia de pescadores; mecanismo térmico plausible).",
+      "condiciones": { "viento_24h_kmh": { "min": 6 }, "delta_aire_agua_c": { "max": -2 } },
+      "estrategia": [
+        { "campo": "donde", "texto": "Orilla resguardada y soleada, con el viento a la espalda (sopla del {viento_desde})." },
+        { "campo": "cebado", "texto": "Cebado mínimo; cebos de alta atracción y poco volumen." }
+      ]
+    },
+    {
+      "id": "viento_calido_agua_caliente",
+      "nivel": 3,
+      "tipo": "aviso",
+      "evidencia": "morado",
+      "peso": "0",
+      "descripcion": "Con el agua ya caliente, la orilla que recibe el viento cálido no suma por temperatura (hipótesis local, peso 0 hasta tener datos).",
+      "condiciones": { "viento_24h_kmh": { "min": 10 }, "delta_aire_agua_c": { "min": 0 }, "temp_agua_c": { "min": 22 } },
+      "estrategia": [
+        { "campo": "notas", "texto": "Viento cálido con el agua ya caliente: no elijas orilla por el viento; valora sombra, profundidad, entradas de agua y la orilla con oleaje (oxígeno)." }
       ]
     },
     {
@@ -313,10 +338,11 @@
       "tipo": "consejo",
       "evidencia": "morado",
       "peso": "bajo",
-      "descripcion": "Viento fuerte con oleaje en la orilla expuesta.",
-      "condiciones": { "racha_max_24h_kmh": { "min": 35 } },
+      "descripcion": "Viento fuerte: el oleaje remueve el fondo en orillas someras y blandas (física 🟢; atracción de la carpa sin demostrar).",
+      "condiciones": { "viento_24h_kmh": { "min": 15 } },
       "estrategia": [
-        { "campo": "donde", "texto": "Probar la orilla batida con fondo blando (remueve alimento) o una recula protegida si no hay señales." }
+        { "campo": "donde", "texto": "Si se puede pescar con seguridad, prueba la orilla batida de fondo blando (agua turbia = alimento removido); si no, una recula protegida." },
+        { "campo": "presentacion", "texto": "Con oleaje: hilo hundido, puntas bajas y bobbins más pesados antes que bajar la sensibilidad." }
       ]
     },
     {

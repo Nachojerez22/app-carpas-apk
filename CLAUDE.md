@@ -216,6 +216,19 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   como propuestas pendientes. `GuidedSessionManager.chat` (fuera del cerrojo; aplica dentro).
 - UI: `ChatCard` en la pantalla Guiada. El repaso (`reviewState`) incluye la conversación.
 
+## Viento (fase 7.8)
+
+- `domain/advice/WindRules` (puro, CONOCIMIENTO.md §5.4 y §5.9.12):
+  - `temperature` (aire − agua ≥ 2 °C cálido, ≤ −2 frío);
+  - `favours`: de cara solo con viento cálido sostenido y agua < 22 °C; de espaldas con viento frío; agua caliente ⇒ 0;
+  - `tips`: avisos prácticos que no puntúan.
+  `FishingAdvisor` lo usa (`AdvisorInput.airC/windPersistence/gustKmh`, `SpotPick.windTips`).
+- rules.json:
+  - `viento_calido_orilla_receptora`, `viento_frio_resguardo`, `viento_calido_agua_caliente` (peso 0) y `viento_fuerte_oleaje` (≥ 15 km/h);
+  - parámetro nuevo `delta_aire_agua_c`.
+- Diario: `SessionContext.observed` (`WindObservation`: viento en el puesto, oleaje, espuma, aire en la orilla, problemas), en el JSON del contexto (`observacion_viento`): **sin cambio de esquema**. `completeSession` lo conserva al recalcular. `Spot.fetchM` (`fetch_m`).
+- El informe completo está en `docs/investigacion/2026-10-viento.md`.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

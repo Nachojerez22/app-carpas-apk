@@ -96,8 +96,23 @@ class RealRulesScenarioTest {
 
     @Test
     fun `viento calido sostenido sustituye los rumbos en el consejo`() {
-        val result = evaluate(derived(20.0, measured = true, season = SeasonByWater.AUTUMN, trend = 0.0, airDelta = 1.0))
-        val text = result.advice.getValue(StrategyField.WHERE).first { it.ruleId == "viento_calido_sotavento" }.text
+        // Aire (21 °C) más de 2 °C por encima del agua (17 °C), por debajo del óptimo.
+        val result = evaluate(derived(17.0, measured = true, season = SeasonByWater.AUTUMN, trend = 0.0, airDelta = 1.0))
+        val text = result.advice.getValue(StrategyField.WHERE).first { it.ruleId == "viento_calido_orilla_receptora" }.text
         assertTrue("del SO" in text && "hacia el NE" in text, text)
+    }
+
+    @Test
+    fun `viento respecto al agua decide la orilla`() {
+        // Aire 20 °C y agua 19 °C: sin diferencia clara, ninguna regla de orilla.
+        val neutral = evaluate(derived(19.0, measured = true, season = SeasonByWater.AUTUMN, trend = 0.0)).activeRules.map { it.rule.id }
+        assertTrue("viento_calido_orilla_receptora" !in neutral && "viento_frio_resguardo" !in neutral)
+        // Aire 17 °C y agua 20 °C: viento frío → orilla resguardada.
+        val cold = evaluate(derived(20.0, measured = true, season = SeasonByWater.AUTUMN, trend = 0.0, airDelta = -3.0)).activeRules.map { it.rule.id }
+        assertTrue("viento_frio_resguardo" in cold)
+        // Agua ya caliente (25 °C) con aire más caliente: la orilla que recibe el viento no suma.
+        val hot = evaluate(derived(25.0, measured = true, season = SeasonByWater.SUMMER, trend = 0.0, airDelta = 7.0))
+        val hotIds = hot.activeRules.map { it.rule.id }
+        assertTrue("viento_calido_agua_caliente" in hotIds && "viento_calido_orilla_receptora" !in hotIds)
     }
 }

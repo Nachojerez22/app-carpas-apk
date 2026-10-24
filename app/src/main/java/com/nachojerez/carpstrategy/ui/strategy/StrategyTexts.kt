@@ -98,6 +98,7 @@ fun RuleParameter.labelRes(): Int = when (this) {
     RuleParameter.WIND_24H -> R.string.param_viento_24h_kmh
     RuleParameter.WIND_PERSISTENCE_24H -> R.string.param_viento_persistencia_24h
     RuleParameter.GUST_MAX_24H -> R.string.param_racha_max_24h_kmh
+    RuleParameter.AIR_WATER_DELTA -> R.string.param_delta_aire_agua_c
     RuleParameter.UNCERTAIN_WIND_HOURS -> R.string.param_horas_viento_incierto
     RuleParameter.RAIN_24H -> R.string.param_lluvia_24h_mm
     RuleParameter.RAIN_72H -> R.string.param_lluvia_72h_mm

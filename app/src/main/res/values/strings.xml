@@ -283,6 +283,7 @@
     <string name="param_tendencia_agua_3d_c">tendencia agua 3 días (°C)</string>
     <string name="param_estacion">estación del agua</string>
     <string name="param_temp_aire_24h_c">aire media 24 h (°C)</string>
+    <string name="param_delta_aire_agua_c">aire − agua (°C)</string>
     <string name="param_tendencia_aire_c">tendencia aire (°C)</string>
     <string name="param_dias_calor">días de calor</string>
     <string name="param_dias_frio">días fríos</string>
@@ -807,7 +808,7 @@
     <string name="guided_situation_other_fish">Entran pequeños u otras especies (barbo, boga, black bass) o mordisquean el cebo antes que la carpa.</string>
     <string name="guided_msg_reduce_groundbait">Con mucho cebado entran pequeños y otras especies: ceba menos y más selectivo.</string>
     <string name="guided_msg_winter_groundbait">En frío, cebado mínimo: la carpa come poco y el resto atrae a otros peces.</string>
-    <string name="guided_msg_wind">Ha cambiado el viento: valora la orilla que lo recibe.</string>
+    <string name="guided_msg_wind">Ha cambiado el viento: anota si cambian las señales (saltos, burbujas, picadas). No está demostrado que el cambio mueva a las carpas; si es más cálido que el agua y el agua aún no está caliente, valora la orilla que lo recibe.</string>
     <string name="guided_notif_check_rods">¿Cómo va? Toca para anotar en cada caña.</string>
     <string name="guided_notif_nothing_all">Nada en ninguna</string>
     <string name="species_carp">Carpa</string>
@@ -894,7 +895,7 @@
     <string name="weather_change_storm">tormenta prevista</string>
     <string name="weather_change_water_up">agua ↑</string>
     <string name="weather_change_water_down">agua ↓</string>
-    <string name="wind_relation_facing">Viento de cara en tu puesto: tu orilla lo recibe (sotavento). Arrastra agua de superficie y alimento hacia ti; si es cálido, a favor; si es frío, en contra. Desempate, no regla principal 🟡</string>
+    <string name="wind_relation_facing">Viento de cara en tu puesto: tu orilla lo recibe. Arrastra agua de superficie y plancton hacia ti; si es más cálido que el agua y el agua aún no está caliente, a favor; si es frío, en contra. Desempate, no regla principal 🟡</string>
     <string name="wind_relation_behind">Viento de espaldas: orilla resguardada, el agua de superficie se aleja. Con viento frío, un puesto protegido puede ir mejor 🟡</string>
     <string name="wind_relation_side">Viento lateral en tu puesto 🟡</string>
     <string name="wind_relation_calm">Viento flojo: no influye en el puesto</string>
@@ -942,7 +943,7 @@
     <string name="guided_start_spot">Puesto</string>
     <string name="guided_start_spot_none">Sin puesto guardado</string>
     <string name="guided_spot_label">Puesto: %1$s</string>
-    <string name="wind_relation_facing_short">Viento de cara: tu orilla lo recibe (sotavento) 🟡</string>
+    <string name="wind_relation_facing_short">Viento de cara: tu orilla lo recibe 🟡</string>
     <string name="wind_relation_behind_short">Viento de espaldas: orilla resguardada 🟡</string>
     <string name="wind_relation_side_short">Viento lateral 🟡</string>
     <string name="wind_relation_calm_short">Viento flojo</string>
@@ -1220,5 +1221,36 @@
     <string name="guided_chat_failed">Sin respuesta válida (sin conexión, cuota o la respuesta no cumplía las normas). Vuelve a intentarlo.</string>
     <string name="guided_chat_proposed">Propuesta arriba para: %1$s</string>
     <string name="guided_chat_note">Los cambios que proponga aparecen como propuesta en su caña: tú decides si los aceptas. La conversación se guarda con la sesión.</string>
+
+    <!-- Avisos prácticos del viento (fase 7.8, §5.9.12): no puntúan al pez -->
+    <string name="wind_tip_short_cast">Viento de cara fuerte: lance más corto, plomo más pesado o aerodinámico y trayectoria baja. Ceba con bolas o PVA sólido: el pellet suelto se queda corto 🟡</string>
+    <string name="wind_tip_slack_line">Viento lateral: comba. Hunde el hilo, puntas bajas, bobbins más pesados y separa las líneas 🟡</string>
+    <string name="wind_tip_false_beeps">Oleaje: posibles pitidos falsos. Sube el peso del indicador antes de bajar la sensibilidad; mira el hilo antes de descartar una caída del bobbin 🟡</string>
+    <string name="wind_tip_bait_far">Viento de espaldas: buen momento para cebar lejos; ojo, el cebo flotante deriva hacia fuera 🟡</string>
+    <string name="wind_tip_anchor">Rachas fuertes: ancla el bivvy y el paraguas; cuidado en la sacada en orilla batida 🟡</string>
+
+    <!-- Viento observado en la orilla (fase 7.8, §9) -->
+    <string name="session_wind_title">Viento en la orilla</string>
+    <string name="session_wind_subtitle">Lo que viste tú; con tus sesiones se comprobará si de cara o de espaldas te va mejor</string>
+    <string name="session_wind_relation">Cómo te daba el viento en el puesto</string>
+    <string name="session_wind_facing">De cara</string>
+    <string name="session_wind_behind">De espaldas</string>
+    <string name="session_wind_side">Lateral</string>
+    <string name="session_wind_calm">Flojo</string>
+    <string name="session_waves">Oleaje</string>
+    <string name="waves_flat">Plano</string>
+    <string name="waves_ripple">Rizado</string>
+    <string name="waves_small">Olas pequeñas</string>
+    <string name="waves_whitecaps">Olas con espuma</string>
+    <string name="session_foam_line">Línea de espuma o flotantes en tu orilla</string>
+    <string name="session_air_shore">Aire en la orilla (°C)</string>
+    <string name="session_practical_issues">Problemas por el viento</string>
+    <string name="issue_false_beeps">Pitidos falsos</string>
+    <string name="issue_lead_dragged">Plomo arrastrado</string>
+    <string name="issue_short_cast">Lance corto</string>
+    <string name="issue_slack_line">Comba en el hilo</string>
+    <string name="session_wind_hint">Con el aire y el agua medidos se sabe si el viento era cálido o frío respecto al agua. Los problemas separan «no había peces» de «no pude pescar bien».</string>
+    <string name="spots_fetch">Agua abierta delante (m)</string>
+    <string name="spots_fetch_help">Fetch: metros de agua hasta la otra orilla hacia donde mira tu puesto (míralo en el mapa). Con menos de 500 m apenas hay oleaje.</string>
 </resources>
 

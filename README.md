@@ -167,6 +167,17 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
+### Viento (fase 7.8)
+
+El viento cuenta como **desempate**, según si está más caliente o más frío que el agua (CONOCIMIENTO.md §5.4):
+- cálido y sostenido, con el agua aún por debajo del óptimo → la orilla que lo recibe;
+- frío → la orilla resguardada;
+- con el agua ya caliente (verano), la dirección no suma.
+
+En «Qué hago ahora» y en cada aviso de la sesión guiada salen **avisos prácticos**: lance corto, comba, pitidos falsos, cebar lejos y rachas. No dicen dónde está el pez; ayudan a pescar bien donde estés.
+
+En la ficha de la sesión puedes anotar el **viento en la orilla**: cómo te daba, oleaje, línea de espuma, aire en la orilla y problemas (pitidos falsos, plomo arrastrado, lance corto, comba). En Mis puestos, el **fetch**: metros de agua abierta delante. Con eso se podrá comprobar con tus datos si de cara o de espaldas te va mejor.
+
 ### Chat con la IA en el puesto (fase 7.7)
 
 En la sesión guiada, **Hablar con la IA**:
@@ -281,6 +292,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.1**: lluvia, tormenta y entrada de agua durante la sesión
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
+- [x] **Fase 7.8**: viento (cálido o frío respecto al agua, avisos prácticos y campos del diario)
 - [x] **Fase 7.7**: chat con la IA durante la sesión
 - [x] **Fase 7.6**: varios embalses (catálogo de cotos de Extremadura, ficha con especies preparada por la IA)
 - [ ] **Fase 8**: aprendizaje con datos propios cuando haya 20–40 sesiones (CONOCIMIENTO.md §10)

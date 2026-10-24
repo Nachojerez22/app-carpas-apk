@@ -342,6 +342,7 @@ private fun AdviceCard(
             Caption(
                 (listOf(stringResource(R.string.advice_spot_reasons, stringResource(p.spot.structure.titleRes()), p.structureFit)) + details).joinToString(" · "),
             )
+            if (i == 0) p.windTips.forEach { Caption(stringResource(it.titleRes())) }
         }
 
         if (advice.bestDayParts.isNotEmpty()) {

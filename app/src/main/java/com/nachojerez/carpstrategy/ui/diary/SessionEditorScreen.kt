@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.diary
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -33,10 +34,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.domain.guided.WindRelation
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Fulfilled
+import com.nachojerez.carpstrategy.domain.journal.PracticalIssue
 import com.nachojerez.carpstrategy.domain.journal.PredictionSnapshot
 import com.nachojerez.carpstrategy.domain.journal.SessionValidator
+import com.nachojerez.carpstrategy.domain.journal.WaveLevel
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.ui.components.AnyEvidenceBadge
 import com.nachojerez.carpstrategy.ui.components.Caption
@@ -155,6 +159,45 @@ fun SessionEditorScreen(
             editor.measurementIssues.forEach { issue ->
                 Text(issueText(issue), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
+        }
+
+        // Viento en la orilla (§9, fase 7.8): para comparar después de cara, de espaldas y lateral.
+        SectionTitle(stringResource(R.string.session_wind_title), subtitle = stringResource(R.string.session_wind_subtitle))
+        CarpCard {
+            Text(stringResource(R.string.session_wind_relation), style = MaterialTheme.typography.labelLarge)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                WindRelation.entries.forEach { r ->
+                    val selected = form.windRelation == r
+                    FilterChip(selected = selected, onClick = { onChange { it.copy(windRelation = if (selected) null else r) } }, label = { Text(stringResource(r.chipRes())) })
+                }
+            }
+            Text(stringResource(R.string.session_waves), style = MaterialTheme.typography.labelLarge)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                WaveLevel.entries.forEach { w ->
+                    val selected = form.waves == w
+                    FilterChip(selected = selected, onClick = { onChange { it.copy(waves = if (selected) null else w) } }, label = { Text(stringResource(w.titleRes())) })
+                }
+            }
+            Text(stringResource(R.string.session_foam_line), style = MaterialTheme.typography.labelLarge)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                listOf(true to R.string.fulfilled_yes, false to R.string.fulfilled_no).forEach { (value, label) ->
+                    val selected = form.foamLine == value
+                    FilterChip(selected = selected, onClick = { onChange { it.copy(foamLine = if (selected) null else value) } }, label = { Text(stringResource(label)) })
+                }
+            }
+            TextField(form.airShore, stringResource(R.string.session_air_shore), FormField.AIR_SHORE in errors, keyboard = KeyboardType.Decimal) { v -> onChange { it.copy(airShore = v) } }
+            Text(stringResource(R.string.session_practical_issues), style = MaterialTheme.typography.labelLarge)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                PracticalIssue.entries.forEach { p ->
+                    val selected = p in form.issues
+                    FilterChip(
+                        selected = selected,
+                        onClick = { onChange { it.copy(issues = if (selected) it.issues - p else it.issues + p) } },
+                        label = { Text(stringResource(p.titleRes())) },
+                    )
+                }
+            }
+            Caption(stringResource(R.string.session_wind_hint))
         }
 
         // Puesto.
@@ -341,4 +384,28 @@ private fun TextField(
         keyboardOptions = KeyboardOptions(keyboardType = keyboard),
         modifier = modifier,
     )
+}
+
+@StringRes
+private fun WindRelation.chipRes(): Int = when (this) {
+    WindRelation.FACING -> R.string.session_wind_facing
+    WindRelation.BEHIND -> R.string.session_wind_behind
+    WindRelation.SIDE -> R.string.session_wind_side
+    WindRelation.CALM -> R.string.session_wind_calm
+}
+
+@StringRes
+private fun WaveLevel.titleRes(): Int = when (this) {
+    WaveLevel.FLAT -> R.string.waves_flat
+    WaveLevel.RIPPLE -> R.string.waves_ripple
+    WaveLevel.SMALL_WAVES -> R.string.waves_small
+    WaveLevel.WHITECAPS -> R.string.waves_whitecaps
+}
+
+@StringRes
+private fun PracticalIssue.titleRes(): Int = when (this) {
+    PracticalIssue.FALSE_BEEPS -> R.string.issue_false_beeps
+    PracticalIssue.LEAD_DRAGGED -> R.string.issue_lead_dragged
+    PracticalIssue.SHORT_CAST -> R.string.issue_short_cast
+    PracticalIssue.SLACK_LINE -> R.string.issue_slack_line
 }

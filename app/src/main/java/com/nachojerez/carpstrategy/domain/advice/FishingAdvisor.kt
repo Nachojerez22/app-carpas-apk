@@ -42,6 +42,8 @@ data class SpotPick(
     val wind: WindRelation?,
     val windBonus: Boolean,
     val proven: Stat<String>? = null,
+    /** Avisos prácticos del viento en este puesto (no puntúan, §5.9.12). */
+    val windTips: List<WindTip> = emptyList(),
 )
 
 data class AdvisorInput(
@@ -52,6 +54,11 @@ data class AdvisorInput(
     val legal: LegalWindow?,
     val windFromDeg: Double? = null,
     val windKmh: Double? = null,
+    /** Aire (media de 24 h o de la hora) para saber si el viento es cálido o frío respecto al agua (§5.4). */
+    val airC: Double? = null,
+    /** 0–1: cuánto ha soplado de la misma dirección en 24 h; null = desconocido. */
+    val windPersistence: Double? = null,
+    val gustKmh: Double? = null,
     val spots: List<Spot> = emptyList(),
     val gear: List<GearItem> = emptyList(),
     val experience: ExperienceSummary = ExperienceSummary.EMPTY,
@@ -205,16 +212,14 @@ object FishingAdvisor {
     private fun pick(spot: Spot, input: AdvisorInput, dayPart: DayPart, exp: ExperienceSummary, lessons: List<Lesson>): SpotPick {
         val fit = structureFit(spot.structure, input.phase, dayPart)
         val wind = input.windKmh?.takeIf { it >= WIND_MIN_KMH }?.let { Spots.windRelation(spot.facingDeg, input.windFromDeg, it) }
-        // 🟡 Viento cálido de cara acumula agua cálida y alimento; en invierno, mejor resguardado.
-        val windBonus = when (input.phase) {
-            FishingPhase.WINTER -> wind == WindRelation.BEHIND
-            else -> wind == WindRelation.FACING
-        }
+        // 🟡 Desempate (§5.4): viento cálido sostenido con agua por debajo del óptimo → orilla que lo
+        // recibe; viento frío → resguardada; agua ya caliente → la dirección no suma (🟣).
+        val windBonus = WindRules.favours(wind, input.airC, input.waterC, input.windKmh, input.windPersistence)
         val proven = exp.spots.firstOrNull { it.value.trim().equals(spot.name.trim(), ignoreCase = true) }?.takeIf { exp.proven(it) }
         val lessonBonus = lessons.any { it.topic == LessonTopic.WHERE && it.conditions.spotName?.trim()?.equals(spot.name.trim(), ignoreCase = true) == true }
         // Tus datos pesan más que la tabla general (máximo 3): un puesto que te ha funcionado gana.
         val score = fit + (if (windBonus) 1 else 0) + (if (proven != null) PROVEN_SPOT_BONUS else 0) + (if (lessonBonus) 1 else 0)
-        return SpotPick(spot, score, fit, wind, windBonus, proven)
+        return SpotPick(spot, score, fit, wind, windBonus, proven, WindRules.tips(wind, input.windKmh, input.gustKmh))
     }
 
     /**

@@ -15,6 +15,7 @@ import com.nachojerez.carpstrategy.domain.rules.Evidence
 import java.time.Instant
 import java.time.LocalDate
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -42,7 +43,8 @@ class FishingAdvisorTest {
         assertEquals(DayPart.DAWN, dawn.dayPart)
         assertEquals(false, dawn.deferred)
         assertEquals("Orilla", dawn.spots.first().spot.name)
-        assertTrue(dawn.spots.first().windBonus)
+        // Agua a 24 °C (ya en el óptimo): el viento de cara no suma (§5.4, 🟣).
+        assertFalse(dawn.spots.first().windBonus)
         assertEquals(DistanceBand.CLOSE, dawn.distance)
         assertEquals(DepthBand.SHALLOW, dawn.depth)
         assertEquals(GroundbaitLevel.HIGH, dawn.groundbait)
@@ -99,7 +101,7 @@ class FishingAdvisorTest {
         val l3 = l1.copy(id = "3", status = LessonStatus.PROPOSED)
         val a = FishingAdvisor.advise(input(sun.sunrise!!.plusSeconds(1800), lessons = listOf(l1, l2, l3)))
         assertEquals(listOf("1"), a.lessons.map { it.id })
-        assertEquals(5, a.spots.first().score)
+        assertEquals(4, a.spots.first().score)
     }
 
     @Test

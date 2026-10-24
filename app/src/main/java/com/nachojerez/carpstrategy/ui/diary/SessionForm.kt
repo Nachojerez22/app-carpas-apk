@@ -1,9 +1,14 @@
 package com.nachojerez.carpstrategy.ui.diary
 
+import com.nachojerez.carpstrategy.domain.guided.WindRelation
 import com.nachojerez.carpstrategy.domain.journal.Catch
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Fulfilled
+import com.nachojerez.carpstrategy.domain.journal.PracticalIssue
 import com.nachojerez.carpstrategy.domain.journal.Session
+import com.nachojerez.carpstrategy.domain.journal.SessionContext
+import com.nachojerez.carpstrategy.domain.journal.WaveLevel
+import com.nachojerez.carpstrategy.domain.journal.WindObservation
 import com.nachojerez.carpstrategy.domain.manual.ManualField
 import com.nachojerez.carpstrategy.domain.manual.ManualRecord
 import com.nachojerez.carpstrategy.domain.manual.RawRecord
@@ -19,7 +24,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /** Campos de texto del formulario que pueden estar mal escritos. */
-enum class FormField { DATE, START, END, DEPTH, RODS, ROD_HOURS, GROUNDBAIT, OTHER_ANGLERS, CATCH_TIME, CATCH_WEIGHT, CATCH_ROD }
+enum class FormField { DATE, START, END, DEPTH, RODS, ROD_HOURS, GROUNDBAIT, OTHER_ANGLERS, CATCH_TIME, CATCH_WEIGHT, CATCH_ROD, AIR_SHORE }
 
 /** Una captura tal como se teclea. */
 data class CatchInput(
@@ -59,6 +64,12 @@ data class SessionForm(
     val waterSurface: String = "",
     val turbidity: Int? = null,
     val reservoirPercent: String = "",
+    /** Viento observado en la orilla (§9, fase 7.8). */
+    val windRelation: WindRelation? = null,
+    val waves: WaveLevel? = null,
+    val foamLine: Boolean? = null,
+    val airShore: String = "",
+    val issues: Set<PracticalIssue> = emptySet(),
 ) {
     /**
      * Registro manual con las mediciones de la sesión a la hora de inicio, o null si no hay
@@ -108,6 +119,7 @@ data class SessionForm(
         val rodHoursValue = number(rodHours, FormField.ROD_HOURS)
         val groundbaitKg = number(groundbait, FormField.GROUNDBAIT)
         val anglers = integer(otherAnglers, FormField.OTHER_ANGLERS)
+        val airShoreC = number(airShore, FormField.AIR_SHORE)?.also { if (it !in AIR_SHORE_RANGE_C) errors += FormField.AIR_SHORE }
         val parsedCatches = catches.map { c ->
             Triple(
                 if (c.time.isBlank()) null else time(c.time, FormField.CATCH_TIME),
@@ -146,7 +158,7 @@ data class SessionForm(
             // Con capturas no hay bolo, aunque se hubiera marcado antes de anotarlas.
             blank = if (catches.isNotEmpty()) false else blank,
             prediction = base?.prediction,
-            context = base?.context,
+            context = withObservation(base?.context, WindObservation(windRelation, waves, foamLine, airShoreC, issues)),
             fulfilled = fulfilled,
             notes = notes.trim(),
             createdAt = base?.createdAt ?: now,
@@ -157,6 +169,15 @@ data class SessionForm(
     }
 
     companion object {
+        /** Aire en la orilla admitido (°C). */
+        val AIR_SHORE_RANGE_C = -15.0..50.0
+
+        /** Pone lo observado en el contexto (o lo quita si no hay nada) sin tocar lo calculado. */
+        fun withObservation(context: SessionContext?, observed: WindObservation): SessionContext? = when {
+            !observed.isEmpty -> (context ?: SessionContext()).copy(observed = observed)
+            else -> context?.copy(observed = null)
+        }
+
         /** Fuente de los registros de Datos creados desde el diario. */
         const val MEASUREMENT_SOURCE = "Diario de sesiones"
 
@@ -208,6 +229,11 @@ data class SessionForm(
                 blank = session.blank,
                 fulfilled = session.fulfilled,
                 notes = session.notes,
+                windRelation = session.context?.observed?.relation,
+                waves = session.context?.observed?.waves,
+                foamLine = session.context?.observed?.foamLine,
+                airShore = num(session.context?.observed?.airShoreC),
+                issues = session.context?.observed?.issues.orEmpty(),
             )
         }
     }

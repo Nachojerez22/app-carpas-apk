@@ -3,6 +3,8 @@ package com.nachojerez.carpstrategy.ui.guided
 import android.content.res.Resources
 import androidx.annotation.StringRes
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.domain.advice.WindRules
+import com.nachojerez.carpstrategy.domain.advice.WindTip
 import com.nachojerez.carpstrategy.domain.assistant.AiExchange
 import com.nachojerez.carpstrategy.domain.assistant.AiIssue
 import com.nachojerez.carpstrategy.domain.guided.ActivityPlace
@@ -333,6 +335,8 @@ fun Resources.weatherLines(report: WeatherReport): List<String> = buildList {
     if (report.sinceLast.isNotEmpty()) add(getString(R.string.weather_since_last, report.sinceLast.joinToString(", ") { weatherChangeText(it) }))
     if (report.sinceStart.isNotEmpty()) add(getString(R.string.weather_since_start, report.sinceStart.joinToString(", ") { weatherChangeText(it) }))
     report.wind?.let { add(getString(it.titleRes())) }
+    // Avisos prácticos del viento (§5.9.12): ayudan a pescar bien, no dicen dónde está el pez.
+    WindRules.tips(report.wind, report.current.windKmh, report.current.gustKmh).forEach { add(getString(it.titleRes())) }
     val light = listOfNotNull(
         report.toSunset?.takeIf { !it.isNegative }?.let { getString(R.string.weather_to_sunset, durationText(it)) },
         // Solo en la última hora: antes no aporta nada.
@@ -340,6 +344,15 @@ fun Resources.weatherLines(report: WeatherReport): List<String> = buildList {
     )
     if (light.isNotEmpty()) add(light.joinToString(" · "))
     report.question?.let { add(getString(if (it == WeatherQuestion.STORM) R.string.weather_ask_storm else R.string.weather_ask_rain)) }
+}
+
+@StringRes
+fun WindTip.titleRes(): Int = when (this) {
+    WindTip.SHORT_CAST -> R.string.wind_tip_short_cast
+    WindTip.SLACK_LINE -> R.string.wind_tip_slack_line
+    WindTip.FALSE_BEEPS -> R.string.wind_tip_false_beeps
+    WindTip.BAIT_FAR -> R.string.wind_tip_bait_far
+    WindTip.ANCHOR -> R.string.wind_tip_anchor
 }
 
 /** Versión corta para listas de puestos. */
