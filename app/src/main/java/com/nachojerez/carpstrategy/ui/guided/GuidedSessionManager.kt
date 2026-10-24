@@ -228,6 +228,8 @@ class GuidedSessionManager @Inject constructor(
                 legal = LegalWindow.of(sun),
                 windFromDeg = session.guided?.weather?.lastOrNull()?.windFromDeg,
                 windKmh = session.guided?.weather?.lastOrNull()?.windKmh,
+                airC = session.guided?.weather?.lastOrNull()?.airC,
+                gustKmh = session.guided?.weather?.lastOrNull()?.gustKmh,
                 spots = spots,
                 gear = settings.observeGear().first(),
                 experience = experience,

@@ -63,6 +63,7 @@ Marcadores en los textos: `{viento_desde}`, `{viento_hacia}` (rumbo de 8 puntos)
 | `temp_aire_24h_c`, `tendencia_aire_c` | número | Media 24 h y diferencia con los 3 días previos |
 | `dias_calor`, `dias_frio` | número | Rachas hasta ayer |
 | `viento_24h_kmh`, `viento_persistencia_24h`, `racha_max_24h_kmh` | número | Viento 24 h (persistencia 0–1) |
+| `delta_aire_agua_c` | número | Aire (media 24 h) − agua: ≥ 2 viento cálido, ≤ −2 frío (§5.4, umbral 🟣) |
 | `horas_viento_incierto` | número | Horas de las próximas 24 con divergencia entre modelos |
 | `lluvia_24h_mm`, `lluvia_72h_mm` | número | Acumulados |
 | `escorrentia` | sí/no | Escorrentía probable (🟣) |

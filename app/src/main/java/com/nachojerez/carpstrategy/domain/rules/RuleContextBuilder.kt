@@ -40,6 +40,9 @@ object RuleContextBuilder {
             numbers[RuleParameter.AIR_TEMP_24H] = it.last24hMeanC
             numbers[RuleParameter.AIR_TREND] = it.deltaC
         }
+        val air = derived.airTrend?.last24hMeanC
+        val water = derived.water?.valueC
+        if (air != null && water != null) numbers[RuleParameter.AIR_WATER_DELTA] = air - water
         numbers[RuleParameter.HOT_DAYS] = derived.streaks.hotDays.toDouble()
         numbers[RuleParameter.COLD_DAYS] = derived.streaks.coldDays.toDouble()
 

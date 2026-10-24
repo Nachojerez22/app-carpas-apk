@@ -13,6 +13,8 @@ enum class RuleParameter(val key: String, val type: ParameterType, val allowedVa
     SEASON("estacion", ParameterType.TEXT, setOf("invierno", "primavera", "verano", "otono")),
     AIR_TEMP_24H("temp_aire_24h_c", ParameterType.NUMBER),
     AIR_TREND("tendencia_aire_c", ParameterType.NUMBER),
+    /** Aire (media 24 h) − agua: viento cálido o frío respecto al agua (§5.4). */
+    AIR_WATER_DELTA("delta_aire_agua_c", ParameterType.NUMBER),
     HOT_DAYS("dias_calor", ParameterType.NUMBER),
     COLD_DAYS("dias_frio", ParameterType.NUMBER),
     WIND_24H("viento_24h_kmh", ParameterType.NUMBER),
