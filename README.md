@@ -266,7 +266,7 @@ Sin clave la app compila y funciona, pero sin observaciones de AEMET (lo indica 
 
 ## Instalar en Android
 
-APK de prueba y de producción desde **GitHub Actions → CI → Artifacts**. Configuración de la
+APK de producción en la última Release (también en **GitHub Actions → CI → Artifacts** de `main`). Configuración de la
 clave de firma, instalación, actualización sin perder datos y copias de seguridad en
 [`docs/INSTALACION.md`](docs/INSTALACION.md).
 

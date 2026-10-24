@@ -297,8 +297,9 @@ Los paquetes se crean conforme los necesita cada fase.
 - Firma de producción: `CARP_KEYSTORE_FILE`, `CARP_KEYSTORE_PASSWORD`, `CARP_KEY_ALIAS` y
   `CARP_KEY_PASSWORD` (local.properties o entorno). En la CI salen de los secretos
   `CARP_KEYSTORE_BASE64` y compañía; la clave debe ser siempre la misma (docs/INSTALACION.md).
-- La CI publica el APK de prueba (`applicationIdSuffix ".prueba"`) en cada ejecución y el de
-  producción en `main`; `versionCode` = número de ejecución (`CARP_VERSION_CODE`).
+- La CI compila y prueba en cada ejecución, pero **solo publica el APK de producción** (Release en
+  `main`). Ya no se sube el APK de prueba: decisión del propietario, oct. 2026.
+  `versionCode` = número de ejecución (`CARP_VERSION_CODE`).
 
 ## Git
 
