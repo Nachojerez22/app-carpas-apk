@@ -429,6 +429,15 @@ Normas (si no las cumples, la app descarta la respuesta):
             session.context?.waterTempC?.let { put("agua_c", it) }
             put("canas", session.rods)
             put("carpas", session.catches.size)
+            session.context?.observed?.let { o ->
+                putJsonObject("viento_observado_en_la_orilla") {
+                    o.relation?.let { put("viento_en_puesto", it.name) }
+                    o.waves?.let { put("oleaje", it.name) }
+                    o.foamLine?.let { put("linea_espuma", it) }
+                    o.airShoreC?.let { put("aire_orilla_c", it) }
+                    if (o.issues.isNotEmpty()) putJsonArray("problemas") { o.issues.forEach { add(it.name) } }
+                }
+            }
             put("picadas", session.bites)
             if (session.bait.isNotBlank()) put("cebo", session.bait)
             if (session.notes.isNotBlank()) put("notas_del_usuario", session.notes.take(AiValidator.MAX_TEXT))
@@ -502,6 +511,7 @@ Normas (si no las cumples, la app descarta la respuesta):
         s.depthM?.let { put("profundidad_m_medida", it) }
         s.distanceM?.let { put("distancia_m", it) }
         s.facingDeg?.let { put("orilla_mira_a_grados", it) }
+        s.fetchM?.let { put("fetch_m", it) }
         Spots.windRelation(s.facingDeg, wind?.windFromDeg, wind?.windKmh)?.let { put("viento", it.name) }
         if (s.notes.isNotBlank()) put("notas", s.notes.take(AiValidator.MAX_TEXT))
     }

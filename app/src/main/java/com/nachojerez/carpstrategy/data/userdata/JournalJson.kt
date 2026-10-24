@@ -1,12 +1,16 @@
 package com.nachojerez.carpstrategy.data.userdata
 
+import com.nachojerez.carpstrategy.domain.guided.WindRelation
 import com.nachojerez.carpstrategy.domain.journal.Catch
 import com.nachojerez.carpstrategy.domain.journal.FeatureSnapshot
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Fulfilled
+import com.nachojerez.carpstrategy.domain.journal.PracticalIssue
 import com.nachojerez.carpstrategy.domain.journal.PredictionSnapshot
 import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.journal.SessionContext
+import com.nachojerez.carpstrategy.domain.journal.WaveLevel
+import com.nachojerez.carpstrategy.domain.journal.WindObservation
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
 import com.nachojerez.carpstrategy.domain.rules.FeedingDemand
@@ -78,6 +82,17 @@ object JournalJson {
         @SerialName("luna_iluminacion") val moonIllumination: Double? = null,
         @SerialName("presion_hpa") val pressureHpa: Double? = null,
         @SerialName("parametros") val features: FeaturesDto? = null,
+        @SerialName("observacion_viento") val observed: WindObservationDto? = null,
+    )
+
+    /** Viento observado en la orilla (desde 0.14.0). */
+    @Serializable
+    data class WindObservationDto(
+        @SerialName("viento_en_puesto") val relation: String? = null,
+        @SerialName("oleaje") val waves: String? = null,
+        @SerialName("linea_espuma") val foamLine: Boolean? = null,
+        @SerialName("aire_orilla_c") val airShoreC: Double? = null,
+        @SerialName("problemas") val issues: List<String> = emptyList(),
     )
 
     @Serializable
@@ -148,11 +163,21 @@ object JournalJson {
     fun SessionContext.toDto() = ContextDto(
         legalStart?.toString(), legalEnd?.toString(), waterTempC, waterMeasured, airTemp24hC, windKmh, windDirectionDeg,
         rain72hMm, reservoirPercent, moonIllumination, pressureHpa, features?.toDto(),
+        observed?.takeIf { !it.isEmpty }?.let { o -> WindObservationDto(o.relation?.name, o.waves?.name, o.foamLine, o.airShoreC, o.issues.map { it.name }.sorted()) },
     )
 
     fun ContextDto.toDomain() = SessionContext(
         instant(legalStart), instant(legalEnd), waterTempC, waterMeasured, airTemp24hC, windKmh, windDirectionDeg,
         rain72hMm, reservoirPercent, moonIllumination, pressureHpa, features?.toDomain(),
+        observed?.let { o ->
+            WindObservation(
+                relation = o.relation?.let { n -> WindRelation.entries.firstOrNull { it.name == n } },
+                waves = o.waves?.let { n -> WaveLevel.entries.firstOrNull { it.name == n } },
+                foamLine = o.foamLine,
+                airShoreC = o.airShoreC,
+                issues = o.issues.mapNotNull { n -> PracticalIssue.entries.firstOrNull { it.name == n } }.toSet(),
+            )
+        },
     )
 
     fun encodeCatches(catches: List<Catch>): String = json.encodeToString(catches.map { it.toDto() })

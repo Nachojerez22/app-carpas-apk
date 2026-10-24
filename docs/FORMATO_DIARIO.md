@@ -129,6 +129,12 @@ de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "te
   La clave nunca se guarda. Las propuestas llevan `origen` (`AI`; ausente = reglas), `nota` y
   `puesto`; `situacion` puede ser `ASSISTANT`. Los avisos pueden llevar `actividad_en`
   (`SHORE`, `SURFACE`, `MIDWATER`, `BOTTOM`) y `saltos` (`NONE`, `FEW`, `MANY`).
+- `contexto.observacion_viento` (desde 0.14.0): lo que el usuario vio del viento en la orilla.
+  `viento_en_puesto`: `FACING` (de cara), `BEHIND` (de espaldas), `SIDE`, `CALM` · `oleaje`: `FLAT`,
+  `RIPPLE`, `SMALL_WAVES`, `WHITECAPS` · `linea_espuma` · `aire_orilla_c` · `problemas`:
+  `FALSE_BEEPS`, `LEAD_DRAGGED`, `SHORT_CAST`, `SLACK_LINE`. No se recalcula nunca.
+- Los puestos (`puesto` de la sesión guiada y el ajuste `spots`) pueden llevar `fetch_m` (desde
+  0.14.0): metros de agua abierta hacia donde mira la orilla.
 - `chat` (desde 0.13.0): conversación con la IA durante la sesión, en orden. `de_usuario`: true si
   lo escribió el usuario · `texto` · `canas_con_propuesta`: cañas en las que la respuesta dejó una
   propuesta pendiente · `descartada`: la respuesta no llegó o no pasó la validación (su consulta

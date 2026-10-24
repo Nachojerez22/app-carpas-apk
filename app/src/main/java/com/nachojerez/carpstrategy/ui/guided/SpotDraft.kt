@@ -16,14 +16,18 @@ data class SpotDraft(
     val notes: String = "",
     /** Embalse del puesto (al crearlo, el activo). */
     val reservoirId: String? = null,
+    val fetch: String = "",
 ) {
     val depthM: Double? get() = parse(depth)
     val distanceM: Double? get() = parse(distance)
+    val fetchM: Double? get() = parse(fetch)
 
     val depthValid: Boolean get() = depth.isBlank() || depthM?.let { it in 0.0..MAX_DEPTH_M } == true
     val distanceValid: Boolean get() = distance.isBlank() || distanceM?.let { it in 0.0..MAX_DISTANCE_M } == true
 
-    val isValid: Boolean get() = name.isNotBlank() && depthValid && distanceValid
+    val fetchValid: Boolean get() = fetch.isBlank() || fetchM?.let { it in 0.0..MAX_FETCH_M } == true
+
+    val isValid: Boolean get() = name.isNotBlank() && depthValid && distanceValid && fetchValid
 
     fun toSpot(newId: () -> Long): Spot = Spot(
         id = id ?: newId(),
@@ -35,12 +39,14 @@ data class SpotDraft(
         facingDeg = facingDeg,
         notes = notes.trim(),
         reservoirId = reservoirId,
+        fetchM = fetchM,
     )
 
     companion object {
         /** Límites de validación (un embalse pequeño; lances desde orilla). */
         const val MAX_DEPTH_M = 60.0
         const val MAX_DISTANCE_M = 250.0
+        const val MAX_FETCH_M = 10_000.0
 
         private fun parse(text: String): Double? = text.trim().replace(',', '.').takeIf { it.isNotEmpty() }?.toDoubleOrNull()
 
@@ -58,6 +64,7 @@ data class SpotDraft(
             facingDeg = spot.facingDeg,
             notes = spot.notes,
             reservoirId = spot.reservoirId,
+            fetch = format(spot.fetchM),
         )
     }
 }

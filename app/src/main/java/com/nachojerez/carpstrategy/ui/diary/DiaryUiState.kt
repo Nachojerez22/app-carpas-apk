@@ -105,7 +105,8 @@ fun completeSession(
         val state = buildStrategyState(raw, rules, result.start, result.location)
         state.derived?.let { derived ->
             val pressure = raw.merged.lastOrNull { !it.time.isAfter(result.start) }?.get(WeatherVariable.PRESSURE_MSL)?.value
-            result = result.copy(context = JournalStats.contextOf(derived, pressure, state.ruleContext))
+            // Lo observado en la orilla lo escribe el usuario: se conserva al recalcular el contexto.
+            result = result.copy(context = JournalStats.contextOf(derived, pressure, state.ruleContext).copy(observed = result.context?.observed))
         }
     }
     return result

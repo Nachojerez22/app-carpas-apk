@@ -146,6 +146,16 @@ private fun SpotDialog(draft: SpotDraft, onChange: (SpotDraft) -> Unit, onSave: 
                         modifier = Modifier.weight(1f),
                     )
                 }
+                OutlinedTextField(
+                    value = draft.fetch,
+                    onValueChange = { onChange(draft.copy(fetch = it)) },
+                    label = { Text(stringResource(R.string.spots_fetch)) },
+                    isError = !draft.fetchValid,
+                    supportingText = { Text(stringResource(if (draft.fetchValid) R.string.spots_fetch_help else R.string.spots_invalid_number)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 Text(stringResource(R.string.spots_facing), style = MaterialTheme.typography.titleSmall)
                 Caption(stringResource(R.string.spots_facing_help))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {

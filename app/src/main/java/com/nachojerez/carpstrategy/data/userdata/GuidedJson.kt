@@ -125,6 +125,7 @@ object GuidedJson {
         @SerialName("orientacion_grados") val facingDeg: Int? = null,
         @SerialName("notas") val notes: String = "",
         @SerialName("embalse") val reservoirId: String? = null,
+        @SerialName("fetch_m") val fetchM: Double? = null,
     )
 
     /** Una consulta a la IA (la clave nunca se guarda aquí). */
@@ -311,7 +312,7 @@ object GuidedJson {
     fun decode(text: String?): GuidedRecord? =
         text?.let { runCatching { JournalJson.json.decodeFromString(GuidedDto.serializer(), it) }.getOrNull() }?.toDomain()
 
-    fun Spot.toDto() = SpotDto(id, name, zone?.name, structure.name, depthM, distanceM, facingDeg, notes, reservoirId)
+    fun Spot.toDto() = SpotDto(id, name, zone?.name, structure.name, depthM, distanceM, facingDeg, notes, reservoirId, fetchM)
 
     fun SpotDto.toDomain(): Spot? = name.takeIf { it.isNotBlank() }?.let {
         Spot(
@@ -324,6 +325,7 @@ object GuidedJson {
             facingDeg = facingDeg?.let { d -> ((d % 360) + 360) % 360 },
             notes = notes,
             reservoirId = reservoirId,
+            fetchM = fetchM,
         )
     }
 

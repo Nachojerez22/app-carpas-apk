@@ -1,6 +1,7 @@
 package com.nachojerez.carpstrategy.domain.journal
 
 import com.nachojerez.carpstrategy.domain.guided.GuidedRecord
+import com.nachojerez.carpstrategy.domain.guided.WindRelation
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
 import com.nachojerez.carpstrategy.domain.rules.FeedingDemand
@@ -87,7 +88,32 @@ data class SessionContext(
     val pressureHpa: Double? = null,
     /** Todos los parámetros de las reglas calculados para el inicio de la sesión. */
     val features: FeatureSnapshot? = null,
+    /** Lo que el usuario observó del viento en la orilla (§9, fase 7.8). Lo escribe él: no se recalcula. */
+    val observed: WindObservation? = null,
 )
+
+/** Oleaje en la orilla (§9): 0 plano, 1 rizado, 2 olas pequeñas, 3 olas con espuma. */
+enum class WaveLevel { FLAT, RIPPLE, SMALL_WAVES, WHITECAPS }
+
+/** Problemas prácticos con el viento: separan «no había peces» de «no pude pescar bien» (§9). */
+enum class PracticalIssue { FALSE_BEEPS, LEAD_DRAGGED, SHORT_CAST, SLACK_LINE }
+
+/**
+ * Viento observado en la orilla (CONOCIMIENTO.md §9, fase 7.8): sirve para comparar después las
+ * picadas por hora-caña de cara, de espaldas y lateral, separando por estación y por aire − agua.
+ */
+data class WindObservation(
+    /** Cómo te daba el viento en el puesto (de cara, de espaldas, lateral o flojo). */
+    val relation: WindRelation? = null,
+    val waves: WaveLevel? = null,
+    /** Línea de espuma o flotantes en tu orilla. */
+    val foamLine: Boolean? = null,
+    /** Temperatura del aire en la orilla (°C); con el agua medida da el viento cálido o frío. */
+    val airShoreC: Double? = null,
+    val issues: Set<PracticalIssue> = emptySet(),
+) {
+    val isEmpty: Boolean get() = relation == null && waves == null && foamLine == null && airShoreC == null && issues.isEmpty()
+}
 
 /**
  * Sesión de pesca. [end] null = sesión en curso. Un bolo es un dato: se guarda siempre con su

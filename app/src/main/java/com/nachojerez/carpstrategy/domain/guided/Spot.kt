@@ -25,6 +25,11 @@ data class Spot(
     val notes: String = "",
     /** Embalse del puesto; null = Brovales (puestos anteriores a «Varios embalses»). */
     val reservoirId: String? = null,
+    /**
+     * Agua abierta delante de la orilla hacia donde mira (m, estimado en el mapa): sin fetch no
+     * hay oleaje que remueva el fondo (§5.4, umbral 🟣 500 m).
+     */
+    val fetchM: Double? = null,
 ) {
     /** Embalse efectivo del puesto. */
     val reservoir: String get() = reservoirId ?: "brovales"
