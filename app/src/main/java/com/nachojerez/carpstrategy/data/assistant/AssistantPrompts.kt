@@ -65,6 +65,8 @@ data class PlanInput(
     val gear: List<GearItem>,
     val spots: List<Spot>,
     val extras: AiExtras = AiExtras(),
+    /** Puesto elegido en Estrategia (fase 7.10): el plan se hace para él. */
+    val chosenSpot: Spot? = null,
 )
 
 /**
@@ -97,8 +99,8 @@ Con MANTENER, "cambios" va vacío. No propongas cambios en cañas con "propuesta
 """
 
     val PLAN_SYSTEM = RULES + """
-Tarea: estrategia concreta para hoy con las cañas indicadas, para sacar el máximo de carpas. Da un plan por caña (puesto, cebo, montaje, columna y distancia en metros si el puesto la tiene) y consejos por apartado: dónde (WHERE), cuándo (WHEN: mejores horas dentro de "horario_de_pesca"), cebado (BAIT: poco, normal o mucho y cada cuánto recebar), presentación (PRESENTATION), qué evitar (AVOID) y notas (NOTES). Como mucho 2 consejos por apartado. Responde con este JSON:
-{"resumen":"…","evidencia":"🟡","canas":[{"cana":1,"puesto":"nombre exacto o null","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","distancia_m":40 o null,"motivo":"…","evidencia":"🟡"}],"consejos":[{"apartado":"WHERE","texto":"…","evidencia":"🟡"}],"avisos":[]}
+Tarea: estrategia concreta para hoy con las cañas indicadas, para sacar el máximo de carpas. Ayúdale también a decidir dónde pescar: compara todos los puestos de "mis_puestos" (estructura, profundidad, distancia, orientación, fetch, cómo les da el viento con el agua y el aire de hoy, y lo que le ha funcionado en "lo_que_te_ha_funcionado", "lecciones_aceptadas" y "recomendacion_de_la_app") y elige el mejor para hoy en "puesto_recomendado" con un motivo concreto (si no hay puestos, null). Si hay "puesto_elegido", es el que el usuario tiene pensado: el plan por caña es para ese puesto (adaptado a su estructura, profundidad, distancia y viento), y si recomiendas otro, explica en el motivo qué gana con el cambio; si el elegido ya es el mejor, recomiéndalo y di por qué. Sin "puesto_elegido", el plan es para el puesto que recomiendas. Da un plan por caña (puesto, cebo, montaje, columna y distancia en metros si el puesto la tiene) y consejos por apartado: dónde (WHERE), cuándo (WHEN: mejores horas dentro de "horario_de_pesca"), cebado (BAIT: poco, normal o mucho y cada cuánto recebar), presentación (PRESENTATION), qué evitar (AVOID) y notas (NOTES). Como mucho 2 consejos por apartado. Responde con este JSON:
+{"resumen":"…","evidencia":"🟡","puesto_recomendado":{"puesto":"nombre exacto","motivo":"…","evidencia":"🟡"} o null,"canas":[{"cana":1,"puesto":"nombre exacto o null","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","distancia_m":40 o null,"motivo":"…","evidencia":"🟡"}],"consejos":[{"apartado":"WHERE","texto":"…","evidencia":"🟡"}],"avisos":[]}
 """
 
     val REVIEW_SYSTEM = RULES + """
@@ -320,6 +322,7 @@ Normas (si no las cumples, la app descarta la respuesta):
             input.rain24hMm?.let { put("lluvia_24h_mm", it) }
         }
         val wind = WeatherSnapshot(time = input.now, windKmh = input.windKmh, windFromDeg = input.windFromDeg)
+        input.chosenSpot?.let { s -> putJsonObject("puesto_elegido") { spot(s, wind) } }
         putJsonArray("mis_puestos") { input.spots.forEach { s -> addJsonObject { spot(s, wind) } } }
         gear(input.gear)
     }.toString()

@@ -83,6 +83,23 @@ class AssistantPromptsTest {
     }
 
     @Test
+    fun `el puesto elegido va en el plan sin coordenadas`() {
+        val spot = spots.single().copy(point = GeoPoint(38.351, -6.701), fetchM = 300.0)
+        val input = PlanInput(
+            now = t0, zone = madrid, rods = 2, band = null, limitingLevel = null, legalStart = null, legalEnd = null,
+            windows = emptyList(), advice = emptyList(), waterC = 19.5, waterMeasured = false, waterTrend3dC = null, season = null,
+            windFromDeg = 270.0, windKmh = 14.0, rain24hMm = null, gear = gear, spots = listOf(spot), chosenSpot = spot,
+        )
+        val state = AssistantPrompts.planState(input)
+        val chosen = Json.parseToJsonElement(state).jsonObject["puesto_elegido"]!!.jsonObject
+        assertEquals("Punta del cauce", chosen["nombre"]!!.jsonPrimitive.content)
+        assertEquals("FACING", chosen["viento"]!!.jsonPrimitive.content)
+        assertEquals(300.0, chosen["fetch_m"]!!.jsonPrimitive.content.toDouble())
+        assertFalse(state.contains("38.351") || state.contains("\"lat\""))
+        assertTrue(AssistantPrompts.PLAN_SYSTEM.contains("puesto_elegido"))
+    }
+
+    @Test
     fun `las instrucciones recogen las normas y el objetivo`() {
         listOf(AssistantPrompts.CHECK_IN_SYSTEM, AssistantPrompts.PLAN_SYSTEM, AssistantPrompts.REVIEW_SYSTEM).forEach { s ->
             assertTrue(s.contains("MÁXIMO de carpas"))

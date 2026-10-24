@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
@@ -26,22 +28,27 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
+import com.nachojerez.carpstrategy.domain.advice.SpotPick
 import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.Spots
+import com.nachojerez.carpstrategy.domain.guided.WindRelation
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
 import com.nachojerez.carpstrategy.domain.rules.ActiveRule
 import com.nachojerez.carpstrategy.domain.rules.AdviceItem
@@ -82,11 +89,12 @@ fun StrategyScreen(
     onOpenAssistant: () -> Unit = {},
     onOpenLessons: () -> Unit = {},
     onOpenReservoir: () -> Unit = {},
+    onOpenReservoirs: () -> Unit = {},
     viewModel: StrategyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan by viewModel.plan.collectAsStateWithLifecycle()
-    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant, onOpenLessons, onOpenReservoir)
+    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant, onOpenLessons, onOpenReservoir, onOpenReservoirs, viewModel::chooseSpot, viewModel::chooseReservoir)
 }
 
 /**
@@ -104,6 +112,9 @@ fun StrategyContent(
     onOpenAssistant: () -> Unit = {},
     onOpenLessons: () -> Unit = {},
     onOpenReservoir: () -> Unit = {},
+    onOpenReservoirs: () -> Unit = {},
+    onChooseSpot: (Long?) -> Unit = {},
+    onChooseReservoir: (Reservoir) -> Unit = {},
 ) {
     var whyOpen by rememberSaveable { mutableStateOf(false) }
     LazyColumn(
@@ -112,6 +123,8 @@ fun StrategyContent(
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item { ScreenHeader(stringResource(R.string.strategy_title), stringResource(R.string.strategy_overline)) }
+        // Dónde vas a pescar: embalse y puesto (fase 7.10). La estrategia se hace para ellos.
+        if (!state.isLoading) item { PlaceCard(state, onChooseReservoir, onOpenReservoirs, onChooseSpot, onOpenSpots) }
         when {
             state.isLoading -> item {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
@@ -152,7 +165,7 @@ fun StrategyContent(
                     item { SectionTitle(stringResource(R.string.strategy_ai_section), subtitle = stringResource(R.string.strategy_ai_section_subtitle)) }
                     item {
                         if (plan.configured) {
-                            AiPlanCard(plan, onPlan)
+                            AiPlanCard(plan, onPlan, state, onChooseSpot)
                         } else {
                             CarpCard {
                                 Caption(stringResource(R.string.strategy_ai_off))
@@ -325,24 +338,27 @@ private fun AdviceCard(
             }
         }
 
-        Text(stringResource(R.string.advice_spots), style = MaterialTheme.typography.titleSmall)
+        val chosen = advice.chosen
+        Text(stringResource(if (chosen != null) R.string.advice_chosen_title else R.string.advice_spots), style = MaterialTheme.typography.titleSmall)
         Text(stringResource(R.string.advice_where_generic, stringResource(advice.depth.titleRes()), stringResource(advice.distance.titleRes())))
-        if (advice.spots.isEmpty()) {
-            Caption(stringResource(R.string.advice_no_spots))
-            TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
-        }
-        advice.spots.take(MAX_SPOTS).forEachIndexed { i, p ->
-            val details = listOfNotNull(
-                p.spot.distanceM?.let { stringResource(R.string.advice_spot_distance, Formatting.number(it, 0)) },
-                p.spot.depthM?.let { stringResource(R.string.advice_spot_depth, Formatting.number(it)) },
-                if (p.windBonus) stringResource(R.string.advice_spot_wind) else null,
-                p.proven?.let { stringResource(R.string.advice_spot_proven, it.catches) },
-            )
-            Text("${i + 1}. ${p.spot.name}", style = MaterialTheme.typography.bodyLarge, color = if (i == 0) cs.primary else cs.onSurface)
-            Caption(
-                (listOf(stringResource(R.string.advice_spot_reasons, stringResource(p.spot.structure.titleRes()), p.structureFit)) + details).joinToString(" · "),
-            )
-            if (i == 0) p.windTips.forEach { Caption(stringResource(it.titleRes())) }
+        if (chosen != null) {
+            // Puesto elegido: todo para él; si otro encaja claramente mejor hoy, solo se avisa.
+            Text(chosen.spot.name, style = MaterialTheme.typography.bodyLarge, color = cs.primary)
+            Caption(spotPickText(chosen))
+            chosen.spot.fetchM?.let { Caption(stringResource(R.string.advice_spot_fetch, Formatting.number(it, 0))) }
+            Caption(stringResource(spotWindRes(chosen)))
+            chosen.windTips.forEach { Caption(stringResource(it.titleRes())) }
+            advice.better?.let { b -> Caption(stringResource(R.string.advice_better_spot, b.spot.name, spotPickText(b)), color = CarpTheme.colors.onWarnContainer) }
+        } else {
+            if (advice.spots.isEmpty()) {
+                Caption(stringResource(R.string.advice_no_spots))
+                TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+            }
+            advice.spots.take(MAX_SPOTS).forEachIndexed { i, p ->
+                Text("${i + 1}. ${p.spot.name}", style = MaterialTheme.typography.bodyLarge, color = if (i == 0) cs.primary else cs.onSurface)
+                Caption(spotPickText(p))
+                if (i == 0) p.windTips.forEach { Caption(stringResource(it.titleRes())) }
+            }
         }
 
         if (advice.bestDayParts.isNotEmpty()) {
@@ -374,7 +390,7 @@ private const val MAX_LESSONS = 4
 /** Plan con IA: cuántas cañas, pedirlo y el resultado validado (o por qué se descartó). */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AiPlanCard(plan: PlanUiState, onPlan: (Int) -> Unit) {
+private fun AiPlanCard(plan: PlanUiState, onPlan: (Int) -> Unit, state: StrategyUiState, onChooseSpot: (Long?) -> Unit) {
     val res = LocalContext.current.resources
     var rods by rememberSaveable { mutableStateOf(2) }
     CarpCard {
@@ -400,6 +416,29 @@ private fun AiPlanCard(plan: PlanUiState, onPlan: (Int) -> Unit) {
                     value.evidence?.let { AnyEvidenceBadge(it) }
                 }
                 Text(value.summary)
+                val chosenName = state.spots.firstOrNull { it.id == state.chosenSpotId }?.name
+                plan.spotName?.let { name ->
+                    Caption(stringResource(R.string.strategy_ai_plan_for, name))
+                    if (!name.equals(chosenName, ignoreCase = true)) Caption(stringResource(R.string.strategy_ai_plan_spot_changed), color = MaterialTheme.colorScheme.error)
+                }
+                // La IA también ayuda a elegir: el mejor de tus puestos para hoy (fase 7.10).
+                value.bestSpot?.let { best ->
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Text(stringResource(R.string.strategy_ai_best_spot), style = MaterialTheme.typography.titleSmall)
+                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        Column(Modifier.weight(1f)) {
+                            Text(best.spotName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+                            Caption(best.reason)
+                        }
+                        best.evidence?.let { AnyEvidenceBadge(it) }
+                    }
+                    val spot = state.spots.firstOrNull { it.name.trim().equals(best.spotName.trim(), ignoreCase = true) }
+                    when {
+                        spot == null -> Unit
+                        spot.id == state.chosenSpotId -> Caption(stringResource(R.string.strategy_ai_best_is_chosen))
+                        else -> Button(onClick = { onChooseSpot(spot.id) }) { Text(stringResource(R.string.strategy_ai_best_use, spot.name)) }
+                    }
+                }
                 value.rods.forEach { r ->
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -462,6 +501,88 @@ private fun AiAdviceCard(advice: List<AiAdvice>) {
 }
 
 /** Próxima ventana legal sugerida y el botón para empezar la sesión guiada. */
+/** «Primera caída · encaje 2/3 · a 40 m · 3,5 m de fondo · viento a favor · te ha funcionado». */
+@Composable
+private fun spotPickText(p: SpotPick): String = listOfNotNull(
+    stringResource(R.string.advice_spot_reasons, stringResource(p.spot.structure.titleRes()), p.structureFit),
+    p.spot.distanceM?.let { stringResource(R.string.advice_spot_distance, Formatting.number(it, 0)) },
+    p.spot.depthM?.let { stringResource(R.string.advice_spot_depth, Formatting.number(it)) },
+    if (p.windBonus) stringResource(R.string.advice_spot_wind) else null,
+    p.proven?.let { stringResource(R.string.advice_spot_proven, it.catches) },
+).joinToString(" · ")
+
+/** Cómo le da el viento al puesto elegido (desempate, §5.4). */
+private fun spotWindRes(p: SpotPick): Int = when {
+    p.windBonus -> R.string.spot_wind_favoured
+    p.spot.facingDeg == null -> R.string.advice_spot_no_facing
+    else -> (p.wind ?: WindRelation.CALM).shortRes()
+}
+
+/**
+ * Embalse y puesto donde vas a pescar (fase 7.10). El desplegable muestra tus embalses (los que
+ * tienen puestos) y al elegir uno aparecen sus puestos; «Otro embalse…» abre la lista completa.
+ * Cambiar de embalse es cambiar la ubicación (como en Lugar); el puesto se recuerda por embalse.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PlaceCard(
+    state: StrategyUiState,
+    onChooseReservoir: (Reservoir) -> Unit,
+    onOpenReservoirs: () -> Unit,
+    onChooseSpot: (Long?) -> Unit,
+    onOpenSpots: () -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    CarpCard {
+        Caption(stringResource(R.string.reservoirs_place_title))
+        Box {
+            OutlinedButton(onClick = { menuOpen = true }, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    (state.reservoir?.reservoir?.name ?: stringResource(R.string.strategy_place_no_reservoir)) + " ▾",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                state.myReservoirs.forEach { (reservoir, count) ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(reservoir.name)
+                                Caption(pluralStringResource(R.plurals.strategy_place_spots_count, count, count))
+                            }
+                        },
+                        onClick = {
+                            menuOpen = false
+                            if (reservoir.id != state.reservoir?.reservoir?.id) onChooseReservoir(reservoir)
+                        },
+                    )
+                }
+                if (state.myReservoirs.isNotEmpty()) HorizontalDivider()
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.strategy_place_other)) },
+                    onClick = {
+                        menuOpen = false
+                        onOpenReservoirs()
+                    },
+                )
+            }
+        }
+        Text(stringResource(R.string.guided_start_spot), style = MaterialTheme.typography.titleSmall)
+        if (state.spots.isEmpty()) {
+            Caption(stringResource(R.string.strategy_place_no_spots))
+            TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+        } else {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                FilterChip(selected = state.chosenSpotId == null, onClick = { onChooseSpot(null) }, label = { Text(stringResource(R.string.strategy_place_auto)) })
+                state.spots.forEach { spot ->
+                    FilterChip(selected = state.chosenSpotId == spot.id, onClick = { onChooseSpot(spot.id) }, label = { Text(spot.name) })
+                }
+            }
+            Caption(stringResource(if (state.chosenSpotId == null) R.string.strategy_place_auto_hint else R.string.strategy_place_spot_hint))
+        }
+    }
+}
+
 @Composable
 private fun SummaryActions(state: StrategyUiState, onStartGuided: () -> Unit) {
     val now = state.result?.evaluatedAt ?: return

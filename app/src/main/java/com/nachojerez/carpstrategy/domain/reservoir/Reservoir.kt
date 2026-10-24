@@ -1,6 +1,7 @@
 package com.nachojerez.carpstrategy.domain.reservoir
 
 import com.nachojerez.carpstrategy.domain.derived.Geo
+import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.rules.Evidence
@@ -88,6 +89,24 @@ object Reservoirs {
 
     fun nearest(point: GeoPoint, all: List<Reservoir>, maxKm: Double = MATCH_KM): Reservoir? =
         all.map { it to Geo.haversineKm(point, it.point) }.filter { it.second <= maxKm }.minByOrNull { it.second }?.first
+
+    /**
+     * Embalse de un puesto nuevo (fase 7.10): el más cercano a su punto del mapa; si no tiene
+     * punto o no cae cerca de ninguno, el embalse activo.
+     */
+    fun forSpot(point: GeoPoint?, all: List<Reservoir>, activeId: String?): String? =
+        point?.let { nearest(it, all)?.id } ?: activeId
+
+    /**
+     * Tus embalses para el desplegable de Estrategia (fase 7.10): los que tienen puestos guardados,
+     * con cuántos, más el activo aunque aún no tenga; por nombre.
+     */
+    fun withSpots(spots: List<Spot>, all: List<Reservoir>, active: Reservoir?): List<Pair<Reservoir, Int>> {
+        val counts = spots.groupingBy { it.reservoir }.eachCount()
+        val mine = all.filter { it.id in counts }.distinctBy { it.id }
+        val list = if (active != null && mine.none { it.id == active.id }) mine + active else mine
+        return list.sortedBy { normalize(it.name) }.map { it to (counts[it.id] ?: 0) }
+    }
 
     /** El embalse de una sesión, por su ubicación. */
     fun of(session: Session, all: List<Reservoir>): Reservoir? = nearest(session.location, all)

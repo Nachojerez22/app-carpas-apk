@@ -200,8 +200,10 @@ private fun PermissionCard(text: String, action: String?, onAction: (() -> Unit)
 private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots: () -> Unit, onStart: (List<String>, FishingZone?, GroundbaitLevel?, Spot?) -> Unit) {
     var rods by rememberSaveable { mutableStateOf(2) }
     var names by rememberSaveable { mutableStateOf(listOf("", "", "")) }
-    var zone by rememberSaveable { mutableStateOf<FishingZone?>(null) }
-    var spotId by rememberSaveable { mutableStateOf<Long?>(null) }
+    // El puesto elegido en Estrategia viene marcado (y con él, su zona).
+    val preferred = state.spots.firstOrNull { it.id == state.preferredSpotId }
+    var zone by rememberSaveable(preferred?.id) { mutableStateOf(preferred?.zone) }
+    var spotId by rememberSaveable(preferred?.id) { mutableStateOf(preferred?.id) }
     val spot = state.spots.firstOrNull { it.id == spotId }
     var groundbait by rememberSaveable { mutableStateOf<GroundbaitLevel?>(null) }
     CarpCard {

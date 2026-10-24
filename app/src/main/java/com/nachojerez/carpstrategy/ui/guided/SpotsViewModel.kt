@@ -8,6 +8,7 @@ import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoirs
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
 import com.nachojerez.carpstrategy.ui.strategy.buildStrategyState
@@ -73,7 +74,8 @@ class SpotsViewModel @Inject constructor(
         if (!draft.isValid) return
         viewModelScope.launch {
             val current = settings.observeSpots().first()
-            val withReservoir = draft.copy(reservoirId = draft.reservoirId ?: active.first()?.reservoir?.id)
+            val reservoirId = draft.reservoirId ?: Reservoirs.forSpot(draft.point, reservoirs.observeAll().first(), active.first()?.reservoir?.id)
+            val withReservoir = draft.copy(reservoirId = reservoirId)
             settings.setSpots(current.upsertSpot(withReservoir.toSpot { Spots.nextId(current) }))
         }
     }

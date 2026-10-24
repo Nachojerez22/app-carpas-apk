@@ -101,6 +101,14 @@ class AiValidatorTest {
     }
 
     @Test
+    fun `puesto recomendado por la IA solo de tus puestos y con evidencia`() {
+        val plan = AiPlan("Intermedio", Evidence.YELLOW, listOf(AiRodPlan(1, "Punta", reason = "Fondo", evidence = Evidence.YELLOW)))
+        assertTrue(AiValidator.validate(plan.copy(bestSpot = AiSpotPick("punta", "Recibe el viento cálido", Evidence.YELLOW)), ctx).isEmpty())
+        assertEquals(setOf(AiIssue.UNKNOWN_SPOT), AiValidator.validate(plan.copy(bestSpot = AiSpotPick("La presa", "Más hondo", Evidence.YELLOW)), ctx))
+        assertEquals(setOf(AiIssue.MISSING_EVIDENCE), AiValidator.validate(plan.copy(bestSpot = AiSpotPick("Punta", "Más hondo", null)), ctx))
+    }
+
+    @Test
     fun `un cambio valido se convierte en propuesta de la IA con tu equipo`() {
         val p = AiValidator.toProposal(change.copy(baitName = "chufa"), gear, now)
         assertEquals(StepKind.COLUMN, p.kind)

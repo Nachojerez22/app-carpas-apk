@@ -59,6 +59,8 @@ data class GuidedUiState(
     val weather: WeatherReport? = null,
     /** Mis puestos, para elegir uno al empezar. */
     val spots: List<Spot> = emptyList(),
+    /** Puesto elegido en Estrategia: viene marcado al empezar (fase 7.10). */
+    val preferredSpotId: Long? = null,
     /** Hay clave del asistente de IA en este móvil. */
     val aiConfigured: Boolean = false,
     val aiBusy: Boolean = false,

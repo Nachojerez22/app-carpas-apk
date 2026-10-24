@@ -9,6 +9,7 @@ import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
+import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import java.time.Instant
@@ -97,5 +98,26 @@ class ReservoirsTest {
     fun `buscar sin tildes`() {
         val list = listOf(Reservoir("a", "Embalse de Cáceres", point = GeoPoint(39.4, -6.4)), Reservoir("b", "Embalse de Brovales", point = GeoPoint(38.35, -6.7)))
         assertEquals(listOf("a"), Reservoirs.search(list, "caceres", null).map { it.id })
+    }
+
+    @Test
+    fun `el embalse de un puesto sale de su punto del mapa`() {
+        assertEquals("burguillos", Reservoirs.forSpot(GeoPoint(38.405, -6.604), all, Reservoirs.BROVALES_ID))
+        // Sin punto, o lejos de cualquier embalse del catálogo: el activo.
+        assertEquals(Reservoirs.BROVALES_ID, Reservoirs.forSpot(null, all, Reservoirs.BROVALES_ID))
+        assertEquals("propio-1", Reservoirs.forSpot(GeoPoint(39.5, -6.0), all, "propio-1"))
+    }
+
+    @Test
+    fun `tus embalses son los que tienen puestos, mas el activo`() {
+        val spots = listOf(
+            Spot(1, "Punta"),
+            Spot(2, "Recula", reservoirId = "burguillos"),
+            Spot(3, "Caída", reservoirId = "burguillos"),
+        )
+        assertEquals(listOf(brovales to 1, burguillos to 2), Reservoirs.withSpots(spots, all, brovales))
+        // El activo sale aunque aún no tenga puestos.
+        assertEquals(listOf(supply to 0), Reservoirs.withSpots(emptyList(), all, supply))
+        assertTrue(Reservoirs.withSpots(emptyList(), all, null).isEmpty())
     }
 }

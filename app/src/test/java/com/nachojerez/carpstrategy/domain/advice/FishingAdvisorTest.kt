@@ -112,4 +112,27 @@ class FishingAdvisorTest {
         assertEquals(GroundbaitLevel.LOW, FishingAdvisor.groundbait(FishingPhase.WINTER, DayPart.MIDDAY))
         assertNull(FishingAdvisor.advise(input(sun.sunrise!!.plusSeconds(1800), phase = FishingPhase.WINTER)).altColumn)
     }
+
+    @Test
+    fun `puesto elegido, con aviso solo si otro encaja claramente mejor`() {
+        val dawn = sun.sunrise!!.plusSeconds(1800)
+        // Al amanecer en verano la orilla somera encaja más que la caída, pero no por 2 puntos o más.
+        val chosen = FishingAdvisor.advise(input(dawn).copy(chosenSpotId = 2))
+        assertEquals("Caída", chosen.chosen?.spot?.name)
+        assertNull(chosen.better)
+        // Si la orilla te ha funcionado (+3), se avisa de que hoy encaja mejor.
+        val exp = ExperienceSummary(
+            sessions = 3, rodHours = 30.0, catches = 6, baits = emptyList(), baitTypes = emptyList(),
+            spots = listOf(Stat("Orilla", 10.0, 5, 3)), columns = emptyList(), dayParts = emptyList(),
+        )
+        val withExp = FishingAdvisor.advise(input(dawn, exp = exp).copy(chosenSpotId = 2))
+        assertEquals("Orilla", withExp.better?.spot?.name)
+        // Elegido el mejor, o en automático, no hay aviso.
+        assertNull(FishingAdvisor.advise(input(dawn, exp = exp).copy(chosenSpotId = 1)).better)
+        val auto = FishingAdvisor.advise(input(dawn))
+        assertNull(auto.chosen)
+        assertNull(auto.better)
+        // Un puesto que ya no existe vuelve a automático.
+        assertNull(FishingAdvisor.advise(input(dawn).copy(chosenSpotId = 99)).chosen)
+    }
 }

@@ -25,6 +25,7 @@ import com.nachojerez.carpstrategy.domain.repository.JournalRepository
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoirs
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
@@ -39,6 +40,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -74,13 +76,18 @@ class StrategyViewModel @Inject constructor(
         }
     }
 
+    /** Puesto elegido para el embalse activo (se recuerda por embalse, solo en este móvil). */
+    private val chosenSpot = reservoirs.observeActive().map { it?.reservoir?.id }.distinctUntilChanged()
+        .flatMapLatest { id -> localSettings.observe(chosenSpotKey(id)).map { it?.toLongOrNull() } }
+
     private val adviceInputs = combine(
         combine(settings.observeSpots(), settings.observeGear(), settings.observeLessons(), journal.observeSessions()) { spots, gear, lessons, sessions ->
             AdviceInputs(spots, gear, lessons, sessions)
         },
         reservoirs.observeActive(),
         reservoirs.observeAll(),
-    ) { inputs, active, all -> inputs.copy(reservoir = active, reservoirs = all) }
+        chosenSpot,
+    ) { inputs, active, all, chosen -> inputs.copy(reservoir = active, reservoirs = all, chosenSpotId = chosen) }
 
     private val placeAndRaw = location.flatMapLatest { place -> observeRawWeather(place.point).map { place to it } }
 
@@ -96,20 +103,37 @@ class StrategyViewModel @Inject constructor(
                 val reservoirId = inputs.reservoir?.reservoir?.id
                 val accepted = Lessons.forReservoir(inputs.lessons, reservoirId)
                 val spots = Spots.of(inputs.spots, reservoirId)
+                // Un puesto borrado o de otro embalse vuelve a «automático».
+                val chosenId = inputs.chosenSpotId?.takeIf { id -> spots.any { it.id == id } }
                 state.copy(
                     spots = spots,
+                    chosenSpotId = chosenId,
+                    myReservoirs = Reservoirs.withSpots(inputs.spots, inputs.reservoirs, inputs.reservoir?.reservoir),
                     lessons = accepted,
                     pendingLessons = inputs.lessons.count { it.status == LessonStatus.PROPOSED },
                     reservoir = inputs.reservoir,
                     advice = adviceFor(
                         state.derived, state.result?.evaluatedAt ?: clock.instant(), inputs.sessions, inputs.gear, spots, accepted,
-                        inputs.reservoir, inputs.reservoirs,
+                        inputs.reservoir, inputs.reservoirs, chosenId,
                     ),
                 )
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StrategyUiState())
 
     private val planFlow = MutableStateFlow(PlanUiState())
+
+    /** Cambia de embalse desde Estrategia: es cambiar la ubicación, como en Lugar. */
+    fun chooseReservoir(reservoir: Reservoir) {
+        viewModelScope.launch { reservoirs.select(reservoir) }
+    }
+
+    /** Elige el puesto para el embalse activo; null = automático (la app ordena todos). */
+    fun chooseSpot(id: Long?) {
+        viewModelScope.launch {
+            val reservoirId = reservoirs.observeActive().first()?.reservoir?.id
+            localSettings.put(chosenSpotKey(reservoirId), id?.toString())
+        }
+    }
 
     init {
         // El último plan válido de hoy se vuelve a mostrar sin gastar otra consulta.
@@ -140,7 +164,7 @@ class StrategyViewModel @Inject constructor(
             }
             // Se guarda para copiarlo en la sesión guiada si empieza en las próximas horas.
             localSettings.put(GuidedSessionManager.KEY_LAST_PLAN, GuidedJson.encodeAi(outcome.exchange))
-            planFlow.value = PlanUiState(outcome = outcome)
+            planFlow.value = PlanUiState(outcome = outcome, spotName = input.chosenSpot?.name)
         }
     }
 }
@@ -152,10 +176,16 @@ private data class AdviceInputs(
     val sessions: List<Session>,
     val reservoir: ReservoirContext? = null,
     val reservoirs: List<Reservoir> = emptyList(),
+    val chosenSpotId: Long? = null,
 )
+
+/** Clave local (no se sincroniza) del puesto elegido en Estrategia para cada embalse. */
+fun chosenSpotKey(reservoirId: String?): String = "strategy_spot_" + (reservoirId ?: "sin_embalse")
 
 data class PlanUiState(
     val configured: Boolean = false,
     val running: Boolean = false,
     val outcome: AiOutcome<AiPlan>? = null,
+    /** Puesto elegido cuando se pidió el plan (null = automático o plan restaurado). */
+    val spotName: String? = null,
 )
