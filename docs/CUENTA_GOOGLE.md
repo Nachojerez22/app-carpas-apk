@@ -42,6 +42,18 @@ Android se reconoce por el nombre del paquete y la huella SHA-1 de la firma.
 Si la app dice «Google no reconoce esta app», revisa el paquete y la huella SHA-1 de la
 credencial (código 10 de Google Play Services).
 
+## Clave de Google Maps (mapa de puestos, fase 7.9)
+
+1. Google Cloud Console → **APIs y servicios → Biblioteca** → «Maps SDK for Android» → **Habilitar**.
+2. **Credenciales → Crear credenciales → Clave de API**:
+   - **Restricciones de API:** solo «Maps SDK for Android».
+   - **Restricciones de aplicaciones:** «Apps para Android», con dos entradas y la misma huella SHA-1 de la firma de producción (la que imprime la CI, «Huella SHA1»):
+     - `com.nachojerez.carpstrategy`;
+     - `com.nachojerez.carpstrategy.prueba`.
+3. GitHub → **Settings → Secrets and variables → Actions → New repository secret** con nombre `MAPS_API_KEY` (desde el móvil, en el navegador: `https://github.com/<usuario>/<repo>/settings/secrets/actions/new`). En local, `MAPS_API_KEY=…` en `local.properties`.
+
+**Nunca va en el repositorio.** Sin clave, la app compila igual y el mapa muestra un aviso. Las coordenadas de los puestos se guardan en tu móvil y en tu Drive, y nunca se mandan a la IA.
+
 ## Formato
 
 El archivo `carpstrategy-sync.json` (formato `carpstrategy-sync` v1) es la base de datos tal

@@ -18,6 +18,12 @@ val localProperties = Properties().apply {
 val aemetApiKey: String =
     localProperties.getProperty("AEMET_API_KEY") ?: System.getenv("AEMET_API_KEY") ?: ""
 
+// Clave de Google Maps (mapa de puestos, fase 7.9): local.properties o variable de entorno
+// MAPS_API_KEY (secreto de GitHub en la CI). Restringida en Google Cloud al paquete y a la huella
+// de la firma. Sin clave la app compila igual y el mapa muestra un aviso en vez de cargarse.
+val mapsApiKey: String =
+    localProperties.getProperty("MAPS_API_KEY") ?: System.getenv("MAPS_API_KEY") ?: ""
+
 // Firma de la versión de producción (release). Siempre la MISMA clave: Android solo actualiza una
 // app firmada con la misma clave, y desinstalar borra los datos del usuario. La clave nunca se
 // versiona: se lee de local.properties o de variables de entorno (secretos de GitHub en la CI).
@@ -39,11 +45,13 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = ciVersionCode
-        versionName = "0.14.0"
+        versionName = "0.15.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "AEMET_API_KEY", "\"$aemetApiKey\"")
+        buildConfigField("boolean", "MAPS_CONFIGURED", "${mapsApiKey.isNotBlank()}")
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     signingConfigs {
@@ -128,6 +136,9 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    implementation(libs.play.services.maps)
+    implementation(libs.maps.compose)
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.kotlinx.serialization)

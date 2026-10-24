@@ -24,6 +24,8 @@ jobs:
       # Secretos del repositorio (Settings → Secrets and variables → Actions). Si no existen,
       # todo funciona igual: la app sin AEMET y los APK firmados con una clave temporal.
       AEMET_API_KEY: ${{ secrets.AEMET_API_KEY }}
+      # Mapa de puestos (fase 7.9). Sin ella, la app muestra un aviso en lugar del mapa.
+      MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
       CARP_KEYSTORE_BASE64: ${{ secrets.CARP_KEYSTORE_BASE64 }}
       CARP_KEYSTORE_PASSWORD: ${{ secrets.CARP_KEYSTORE_PASSWORD }}
       CARP_KEY_ALIAS: ${{ secrets.CARP_KEY_ALIAS }}
