@@ -30,12 +30,16 @@ data class AssistantUiState(
     val config: AiConfig = AiConfig(),
     /** «••••1234» si hay clave; la clave nunca llega a la pantalla. */
     val keyHint: String? = null,
+    /** La clave está también en tu cuenta de Google (la tienes en todos tus móviles). */
+    val keyInAccount: Boolean = false,
     val test: TestState = TestState.Idle,
     /** Modelos disponibles con tu clave (null = aún no se han pedido). */
     val models: List<String>? = null,
     val loadingModels: Boolean = false,
     val modelsError: AiException? = null,
 )
+
+private data class KeyState(val hint: String?, val inAccount: Boolean)
 
 private data class ModelsState(val list: List<String>? = null, val loading: Boolean = false, val error: AiException? = null)
 
@@ -49,8 +53,13 @@ class AssistantViewModel @Inject constructor(
     private val models = MutableStateFlow(ModelsState())
 
     val uiState: StateFlow<AssistantUiState> =
-        combine(settings.observeConfig(), settings.observeKeyHint(), test, models) { config, hint, t, m ->
-            AssistantUiState(config, hint, t, m.list, m.loading, m.error)
+        combine(
+            settings.observeConfig(),
+            combine(settings.observeKeyHint(), settings.observeInAccount(), ::KeyState),
+            test,
+            models,
+        ) { config, key, t, m ->
+            AssistantUiState(config, key.hint, key.inAccount, t, m.list, m.loading, m.error)
         }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AssistantUiState())
 
@@ -59,14 +68,18 @@ class AssistantViewModel @Inject constructor(
         viewModelScope.launch { settings.setConfig(config) }
     }
 
-    fun saveKey(key: String) {
+    fun saveKey(key: String, inAccount: Boolean) {
         test.value = TestState.Idle
-        viewModelScope.launch { settings.setApiKey(key) }
+        viewModelScope.launch { settings.setApiKey(key, inAccount) }
+    }
+
+    fun setKeyInAccount(enabled: Boolean) {
+        viewModelScope.launch { settings.setInAccount(enabled) }
     }
 
     fun deleteKey() {
         test.value = TestState.Idle
-        viewModelScope.launch { settings.setApiKey(null) }
+        viewModelScope.launch { settings.deleteApiKey() }
     }
 
     /** Pide al proveedor la lista de modelos que admite tu clave. */

@@ -1003,7 +1003,7 @@
     <string name="ai_settings_title">Asistente de IA</string>
     <string name="ai_settings_subtitle">Opina en cada aviso y prepara un plan antes de pescar. Opcional.</string>
     <string name="ai_settings_open">Configurar el asistente</string>
-    <string name="ai_settings_intro">Pega la clave de la API de tu proveedor. Se guarda solo en este móvil: no se sube a tu Google Drive, no va en las exportaciones y no se muestra.</string>
+    <string name="ai_settings_intro">Pega la clave de la API de tu proveedor. Se guarda en este móvil y, si lo eliges, en tu cuenta de Google para tenerla en todos tus móviles. No va en las exportaciones y nunca se muestra entera.</string>
     <string name="ai_settings_privacy">Se envía el estado de la pesca (tiempo, agua, tus cañas, avisos, equipo y puestos), nunca tu ubicación ni tu cuenta. En el nivel gratuito de Gemini, Google puede usar lo que envías para mejorar sus productos.</string>
     <string name="ai_provider">Proveedor</string>
     <string name="ai_provider_gemini">Gemini (Google AI Studio)</string>
@@ -1016,6 +1016,9 @@
     <string name="ai_key_none">Sin clave</string>
     <string name="ai_key_save">Guardar clave</string>
     <string name="ai_key_delete">Borrar clave</string>
+    <string name="ai_key_account">Guardar la clave en mi cuenta de Google</string>
+    <string name="ai_key_account_on">La clave se guarda en la carpeta privada de la app en tu Drive y la tendrás en todos los móviles con tu cuenta. No va en las exportaciones. «Borrar clave» la quita de la cuenta y de este móvil.</string>
+    <string name="ai_key_account_off">La clave se queda solo en este móvil.</string>
     <string name="ai_auto">Consultar en cada aviso de la sesión guiada</string>
     <string name="ai_test">Probar conexión</string>
     <string name="ai_testing">Probando…</string>

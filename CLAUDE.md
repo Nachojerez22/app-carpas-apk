@@ -169,7 +169,7 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - `data/assistant`: `AiClient` (OkHttp; Gemini `generateContent` con `x-goog-api-key` y
   OpenAI-compatible), `AssistantPrompts` (normas + estado; **nunca** la ubicación), `AssistantJson`,
   `Assistant` (consulta + validación → `AiOutcome`) y `AssistantSettings` (`local_ai_config`,
-  `local_ai_key`: nunca se sincronizan).
+  `local_ai_key`; desde la fase 7.11 la clave puede ir también en la cuenta).
 - Estrategia: apartado «Asistente de IA» (`AiPlanCard` + `AiAdviceCard`): plan por caña y consejos
   por `StrategyField` (`AiPlan.advice`); `AiValidator.legalHoursIssue` rechaza horas citadas fuera
   del horario legal. El último plan válido del día se restaura al abrir.
@@ -252,6 +252,13 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   validado: puesto tuyo y con evidencia) con botón «Pescar en …»; con `puesto_elegido` (sin coordenadas)
   el plan por caña es para ese puesto. La sesión guiada lo trae marcado (`GuidedUiState.preferredSpotId`).
 - Un puesto nuevo pertenece al embalse más cercano a su punto del mapa (`Reservoirs.forSpot`); sin punto, al activo.
+
+## Clave de la IA en la cuenta (fase 7.11)
+
+- `AssistantSettings`: la clave se guarda en el móvil (`local_ai_key`) y, si el usuario activa el
+  interruptor, también en el ajuste sincronizado `ai_key_cuenta` (manda la de la cuenta; el móvil donde
+  se escribe guarda copia). Proveedor y modelo van en `ai_config_cuenta` (antes `local_ai_config`, que
+  queda como respaldo). Ninguno va en las exportaciones. «Borrar clave» quita las dos.
 
 ## Stack
 

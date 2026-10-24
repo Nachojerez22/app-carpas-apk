@@ -9,7 +9,11 @@ equipo y los ajustes en una **carpeta privada de tu Google Drive** que solo ve C
 - Sin cobertura (el embalse) todo funciona igual con la copia del móvil y se sube al volver.
 - En otro móvil, o tras reinstalar, inicias sesión y aparece todo.
 - Si cambiaste cosas en dos móviles sin conexión, se **unen** sin duplicar sesiones.
-- **Nunca** se suben la ubicación GPS en vivo ni claves (ajustes `local_…` del móvil).
+- **Nunca** se suben la ubicación GPS en vivo ni los ajustes `local_…` del móvil.
+- La clave de la IA solo se sube si activas «Guardar la clave en mi cuenta de Google» (Ajustes del
+  asistente): va en la carpeta privada de la app (`appDataFolder`, oculta en Drive y solo legible por
+  esta app con tu cuenta), sin cifrar, y así la tienes en todos tus móviles. «Borrar clave» la quita
+  de la cuenta y de ese móvil. Si se filtra, revócala en Google AI Studio.
 - Cerrar sesión no borra nada: los datos quedan en el móvil y en Drive.
 
 ## Configurar Google Cloud (una vez, ~15 min)
