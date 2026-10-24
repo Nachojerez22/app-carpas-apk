@@ -141,8 +141,9 @@ el porqué (cadena de filtros, demanda y reglas).
 ### Asistente de IA (fase 7.4)
 
 Opcional. En **Lugar → Asistente de IA** pegas la clave de tu proveedor (Gemini de Google AI
-Studio, nivel gratuito, u otro compatible con OpenAI) y el modelo. La clave se queda en el móvil:
-no se sube a Drive ni va en las exportaciones. En cada aviso de la sesión guiada la IA dice
+Studio, nivel gratuito, u otro compatible con OpenAI) y el modelo. La clave se guarda en el móvil y,
+si activas «Guardar la clave en mi cuenta de Google», también en la carpeta privada de la app en tu
+Drive, para tenerla en todos tus móviles (fase 7.11); nunca va en las exportaciones. En cada aviso de la sesión guiada la IA dice
 **mantener** o **cambiar** (una cosa por caña) y en Estrategia tiene su propio apartado con un
 **plan por caña** y **consejos** (dónde, cuándo, cebado, presentación, qué evitar), cada uno con su
 etiqueta de evidencia. La app

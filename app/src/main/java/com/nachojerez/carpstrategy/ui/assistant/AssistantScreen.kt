@@ -54,6 +54,8 @@ fun AssistantScreen(onBack: () -> Unit, viewModel: AssistantViewModel = hiltView
     var auto by rememberSaveable { mutableStateOf(true) }
     var loaded by rememberSaveable { mutableStateOf(false) }
     var key by rememberSaveable { mutableStateOf("") }
+    // Mientras no haya clave, el interruptor viene activado (lo que se pidió: tenerla en todos los móviles).
+    var inAccount by rememberSaveable(state.keyInAccount, state.keyHint != null) { mutableStateOf(state.keyInAccount || state.keyHint == null) }
     LaunchedEffect(state.config) {
         if (!loaded) {
             provider = state.config.provider
@@ -126,11 +128,23 @@ fun AssistantScreen(onBack: () -> Unit, viewModel: AssistantViewModel = hiltView
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     modifier = Modifier.fillMaxWidth(),
                 )
+                // Fase 7.11: la clave también en tu cuenta de Google, para todos tus móviles.
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    Text(stringResource(R.string.ai_key_account), modifier = Modifier.weight(1f))
+                    Switch(
+                        checked = inAccount,
+                        onCheckedChange = {
+                            inAccount = it
+                            if (state.keyHint != null) viewModel.setKeyInAccount(it)
+                        },
+                    )
+                }
+                Caption(stringResource(if (inAccount) R.string.ai_key_account_on else R.string.ai_key_account_off))
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                     Button(
                         onClick = {
                             save()
-                            viewModel.saveKey(key)
+                            viewModel.saveKey(key, inAccount)
                             key = ""
                         },
                         enabled = key.isNotBlank(),
