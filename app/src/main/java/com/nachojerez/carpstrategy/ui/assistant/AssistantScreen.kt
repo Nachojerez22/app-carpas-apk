@@ -52,20 +52,23 @@ fun AssistantScreen(onBack: () -> Unit, viewModel: AssistantViewModel = hiltView
     var model by rememberSaveable { mutableStateOf("") }
     var baseUrl by rememberSaveable { mutableStateOf("") }
     var auto by rememberSaveable { mutableStateOf(true) }
-    var loaded by rememberSaveable { mutableStateOf(false) }
     var key by rememberSaveable { mutableStateOf("") }
     // Mientras no haya clave, el interruptor viene activado (lo que se pidió: tenerla en todos los móviles).
     var inAccount by rememberSaveable(state.keyInAccount, state.keyHint != null) { mutableStateOf(state.keyInAccount || state.keyHint == null) }
-    LaunchedEffect(state.config) {
-        if (!loaded) {
+    // El formulario sigue a lo guardado (también si llega de tu cuenta desde otro móvil), pero solo
+    // con los ajustes ya leídos: con los valores por defecto del primer instante mostraba el modelo
+    // por defecto y «Guardar» lo escribía encima del tuyo (y, desde la 0.17.0, en la cuenta).
+    LaunchedEffect(state.ready, state.config) {
+        if (state.ready) {
             provider = state.config.provider
             model = state.config.model
             baseUrl = state.config.baseUrl
             auto = state.config.autoCheckIn
-            loaded = true
         }
     }
-    fun save() = viewModel.saveConfig(AiConfig(provider, model, baseUrl, auto))
+    fun save() {
+        if (state.ready) viewModel.saveConfig(AiConfig(provider, model, baseUrl, auto))
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
