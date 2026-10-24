@@ -136,7 +136,8 @@ data class StrategyActions(
 /**
  * Estrategia en 3 pasos (fase 7.12): ① embalse → ② puesto y cañas → ③ un solo plan para hoy
  * (de la app con el conocimiento y tus datos, afinado por la IA) con qué hacer si cambia algo.
- * Lo técnico (valoración, reglas, ventanas, cadena de filtros) va plegado en «Detalles» y, al
+ * Arriba, siempre, «Condiciones para hoy» (escala y nivel que limita). Lo técnico (reglas,
+ * ventanas, cadena de filtros) va plegado en «Detalles» y, al
  * final, cuando ya está todo elegido, se empieza la sesión guiada con ese plan.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -161,6 +162,8 @@ fun StrategyContent(state: StrategyUiState, plan: PlanUiState = PlanUiState(), a
             }
             return@LazyColumn
         }
+        // Condiciones para hoy (escala de 5 tramos y nivel que limita): siempre arriba.
+        state.result?.let { result -> item { ResultCard(result) } }
         // ① Embalse.
         item { ReservoirStep(state, actions) }
         // ② Puesto (con la recomendación de la app o de la IA) y cañas.
@@ -190,9 +193,7 @@ fun StrategyContent(state: StrategyUiState, plan: PlanUiState = PlanUiState(), a
                     }
                 }
                 // ③ Tu plan para hoy.
-                if (result.blocked) {
-                    item { ResultCard(result) }
-                } else if (dayPlan != null && state.advice != null) {
+                if (!result.blocked && dayPlan != null && state.advice != null) {
                     item { PlanStep(state, plan, currentAi, dayPlan, state.advice, actions) }
                 }
 
@@ -211,9 +212,8 @@ fun StrategyContent(state: StrategyUiState, plan: PlanUiState = PlanUiState(), a
     }
 }
 
-/** «Detalles»: valoración, «Qué hago ahora» completo, consejos de la IA y de las reglas, horas, avisos y el porqué. */
+/** «Detalles»: «Qué hago ahora» completo, consejos de la IA y de las reglas, horas, avisos y el porqué. */
 private fun LazyListScope.detailItems(state: StrategyUiState, plan: PlanUiState, result: StrategyResult, actions: StrategyActions) {
-    if (!result.blocked) item { ResultCard(result) }
     state.advice?.let { advice -> item { AdviceCard(advice, state.reservoir, state.pendingLessons, actions.onOpenSpots, actions.onOpenLessons, actions.onOpenReservoir) } }
     if (!result.blocked) {
         plan.outcome?.value?.advice?.takeIf { it.isNotEmpty() }?.let { advice -> item { AiAdviceCard(advice) } }
@@ -564,8 +564,7 @@ private fun PlanStep(
     val res = LocalContext.current.resources
     CarpCard {
         StepTitle(3, if (advice.deferred) stringResource(R.string.strategy_plan_title_next, Formatting.clock(advice.forTime)) else stringResource(R.string.strategy_plan_title))
-        // Condiciones y mejor rato.
-        state.result?.band?.let { band -> Text(stringResource(R.string.strategy_band_title, stringResource(band.labelRes())), style = MaterialTheme.typography.titleSmall) }
+        // Mejor rato (las condiciones están arriba, en su tarjeta).
         state.result?.evaluatedAt?.let { now ->
             nextWindow(state.windows, now)?.let { w ->
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {

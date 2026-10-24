@@ -1169,7 +1169,7 @@
     <string name="strategy_if_other_species">Si pican otras especies: cebo más grande y selectivo.</string>
     <string name="strategy_start_summary">%1$s · %2$s · cañas: %3$d</string>
     <string name="strategy_start_with_plan">Empezar sesión guiada con este plan</string>
-    <string name="strategy_details_show">Ver detalles (valoración, reglas, horas y por qué)</string>
+    <string name="strategy_details_show">Ver detalles (reglas, horas y por qué)</string>
     <string name="strategy_details_hide">Ocultar detalles</string>
     <string name="duration_m">%1$d min</string>
     <string name="duration_h">%1$d h</string>

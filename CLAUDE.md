@@ -262,8 +262,9 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 
 ## Estrategia en 3 pasos (fase 7.12)
 
-- `StrategyContent`: ① embalse (`ReservoirStep`) → ② puesto y cañas (`SpotStep`, con la recomendación de
-  la IA o de la app) → ③ un solo plan (`PlanStep`) → «Detalles» plegado (valoración, «Qué hago ahora»
+- `StrategyContent`: arriba, siempre, `ResultCard` («Condiciones para hoy»: escala y nivel que limita) →
+  ① embalse (`ReservoirStep`) → ② puesto y cañas (`SpotStep`, con la recomendación de
+  la IA o de la app) → ③ un solo plan (`PlanStep`) → «Detalles» plegado («Qué hago ahora»
   completo, reglas, horas, porqué) → al final `StartStep` («Empezar sesión guiada con este plan»).
 - `domain/advice/DayPlan.kt` (puro): `DayPlans.build` hace el plan de la app por caña con `FishingAdvice`
   (3.ª caña con la columna alternativa) y, con un `AiPlan` válido, la IA manda en lo que dice
