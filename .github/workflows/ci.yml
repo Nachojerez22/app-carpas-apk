@@ -59,7 +59,7 @@ jobs:
 
       - name: Aviso si falta la clave
         if: env.CARP_KEYSTORE_BASE64 == ''
-        run: echo "::notice::Sin secreto CARP_KEYSTORE_BASE64: no se publica el APK de producción (ver docs/INSTALACION.md)."
+        run: echo "::notice::Sin secreto CARP_KEYSTORE_BASE64, no se publica el APK de producción (ver docs/INSTALACION.md)."
 
       # Solo comprueba que compila: ya no se publica APK de prueba (decisión del propietario, oct. 2026).
       - name: Build debug
