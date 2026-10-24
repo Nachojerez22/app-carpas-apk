@@ -27,6 +27,8 @@ sealed interface TestState {
 }
 
 data class AssistantUiState(
+    /** False hasta leer los ajustes guardados: antes, el formulario no debe rellenarse ni guardarse. */
+    val ready: Boolean = false,
     val config: AiConfig = AiConfig(),
     /** «••••1234» si hay clave; la clave nunca llega a la pantalla. */
     val keyHint: String? = null,
@@ -59,7 +61,7 @@ class AssistantViewModel @Inject constructor(
             test,
             models,
         ) { config, key, t, m ->
-            AssistantUiState(config, key.hint, key.inAccount, t, m.list, m.loading, m.error)
+            AssistantUiState(true, config, key.hint, key.inAccount, t, m.list, m.loading, m.error)
         }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AssistantUiState())
 
