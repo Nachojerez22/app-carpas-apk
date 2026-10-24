@@ -1,8 +1,12 @@
 package com.nachojerez.carpstrategy.ui.strategy
 
 import com.nachojerez.carpstrategy.data.assistant.AiExtras
+import com.nachojerez.carpstrategy.domain.assistant.AiPlan
+import com.nachojerez.carpstrategy.data.assistant.AiOutcome
 import com.nachojerez.carpstrategy.data.assistant.PlanInput
 import com.nachojerez.carpstrategy.domain.advice.AdvisorInput
+import com.nachojerez.carpstrategy.domain.advice.DayPlan
+import com.nachojerez.carpstrategy.domain.advice.DayPlans
 import com.nachojerez.carpstrategy.domain.advice.Experience
 import com.nachojerez.carpstrategy.domain.advice.ExperienceSummary
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
@@ -71,7 +75,48 @@ data class StrategyUiState(
     val chosenSpotId: Long? = null,
     /** Tus embalses (con puestos guardados, y cuántos) para el desplegable de Estrategia. */
     val myReservoirs: List<Pair<Reservoir, Int>> = emptyList(),
+    /** Cañas que vas a pescar (paso ② de Estrategia, fase 7.12). */
+    val rods: Int = DEFAULT_RODS,
+    /** Tu equipo, para el plan del día. */
+    val gear: List<GearItem> = emptyList(),
 )
+
+data class PlanUiState(
+    val configured: Boolean = false,
+    val running: Boolean = false,
+    val outcome: AiOutcome<AiPlan>? = null,
+    /** [planKey] para el que se pidió (o se guardó) el plan; si no coincide, el plan ya no vale. */
+    val key: String? = null,
+)
+
+/** Cañas por defecto si aún no has elegido. */
+const val DEFAULT_RODS = 2
+
+/**
+ * Para qué se pidió un plan de la IA (fase 7.12): día, embalse, puesto (o automático), cañas y
+ * franja del día. Si cambia, el plan guardado ya no vale y se pide otro (una vez). Null si no
+ * hay nada que planificar (sin datos o fuera del horario legal sin plan para el amanecer).
+ */
+fun planKey(state: StrategyUiState): String? {
+    state.result?.takeIf { !it.blocked } ?: return null
+    val advice = state.advice ?: return null
+    val day = advice.forTime.atZone(Formatting.MADRID).toLocalDate()
+    return listOf(day, state.reservoir?.reservoir?.id ?: "sin_embalse", state.chosenSpotId ?: "auto", state.rods, advice.dayPart).joinToString("|")
+}
+
+/**
+ * El plan del día para la pantalla: el de la app y, si el plan de la IA es válido y se pidió
+ * para lo mismo ([planKey]), afinado por la IA. En automático, el puesto es el que recomienda la
+ * IA si es uno de los tuyos; si no, el mejor de la app.
+ */
+fun dayPlanFor(state: StrategyUiState, plan: PlanUiState): DayPlan? {
+    val advice = state.advice ?: return null
+    val derived = state.derived ?: return null
+    val ai = plan.outcome?.value?.takeIf { plan.key != null && plan.key == planKey(state) }
+    val aiSpot = ai?.bestSpot?.let { best -> advice.spots.firstOrNull { it.spot.name.trim().equals(best.spotName.trim(), ignoreCase = true) } }
+    val spot = advice.chosen ?: aiSpot ?: advice.spots.firstOrNull()
+    return DayPlans.build(advice, state.rods, phaseOf(derived), state.gear, ai, spot)
+}
 
 /**
  * Próxima ventana sugerida (la que está en curso o la siguiente que empieza); si ya han pasado

@@ -61,6 +61,8 @@ data class GuidedUiState(
     val spots: List<Spot> = emptyList(),
     /** Puesto elegido en Estrategia: viene marcado al empezar (fase 7.10). */
     val preferredSpotId: Long? = null,
+    /** Cañas elegidas en Estrategia (fase 7.12); null = sin elegir. */
+    val preferredRods: Int? = null,
     /** Hay clave del asistente de IA en este móvil. */
     val aiConfigured: Boolean = false,
     val aiBusy: Boolean = false,

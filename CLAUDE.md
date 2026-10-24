@@ -260,6 +260,20 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   se escribe guarda copia). Proveedor y modelo van en `ai_config_cuenta` (antes `local_ai_config`, que
   queda como respaldo). Ninguno va en las exportaciones. «Borrar clave» quita las dos.
 
+## Estrategia en 3 pasos (fase 7.12)
+
+- `StrategyContent`: ① embalse (`ReservoirStep`) → ② puesto y cañas (`SpotStep`, con la recomendación de
+  la IA o de la app) → ③ un solo plan (`PlanStep`) → «Detalles» plegado (valoración, «Qué hago ahora»
+  completo, reglas, horas, porqué) → al final `StartStep` («Empezar sesión guiada con este plan»).
+- `domain/advice/DayPlan.kt` (puro): `DayPlans.build` hace el plan de la app por caña con `FishingAdvice`
+  (3.ª caña con la columna alternativa) y, con un `AiPlan` válido, la IA manda en lo que dice
+  (`PlanSource`); `contingencies` = «Si cambia algo» con los tiempos 🟣 de `GuidedEngine.THRESHOLDS`,
+  `noSignalLadder` y los `WindTip` del puesto.
+- IA automática (opción A): `planKey` (día, embalse, puesto o automático, cañas, franja) y
+  `dayPlanFor` (el plan de la IA solo cuenta si su clave coincide). `StrategyViewModel` consulta sola
+  una vez por clave (espera 1,5 s, cancela la anterior; si falla no reintenta sola) y guarda la clave
+  en `local_strategy_plan_key`. Cañas en `local_strategy_rods` (`KEY_RODS`); la guiada las trae marcadas.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

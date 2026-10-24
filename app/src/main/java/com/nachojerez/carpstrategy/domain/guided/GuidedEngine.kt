@@ -134,6 +134,9 @@ object GuidedEngine {
         FishingPhase.AUTUMN to listOf(StepKind.DISTANCE, StepKind.COLUMN, StepKind.ZONE),
     )
 
+    /** Escalera sin señales de la fase (§5.9.2), para anticiparla en el plan del día. */
+    fun noSignalLadder(phase: FishingPhase): List<StepKind> = NO_SIGNAL_LADDER.getValue(phase)
+
     /** Fase por el agua: estación de las reglas (por temperatura y tendencia) y calor extremo > 28 °C. */
     fun phase(waterTempC: Double?, season: String?): FishingPhase = when {
         waterTempC != null && waterTempC > HEAT_THRESHOLD_C -> FishingPhase.HEAT

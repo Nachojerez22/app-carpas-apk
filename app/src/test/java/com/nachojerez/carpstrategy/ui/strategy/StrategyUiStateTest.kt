@@ -1,6 +1,18 @@
 package com.nachojerez.carpstrategy.ui.strategy
 
+import com.nachojerez.carpstrategy.data.assistant.AiOutcome
 import com.nachojerez.carpstrategy.data.rules.RulesJson
+import com.nachojerez.carpstrategy.domain.advice.PlanSource
+import com.nachojerez.carpstrategy.domain.assistant.AiExchange
+import com.nachojerez.carpstrategy.domain.assistant.AiKind
+import com.nachojerez.carpstrategy.domain.assistant.AiPlan
+import com.nachojerez.carpstrategy.domain.assistant.AiRodPlan
+import com.nachojerez.carpstrategy.domain.assistant.AiSpotPick
+import com.nachojerez.carpstrategy.domain.guided.BaitType
+import com.nachojerez.carpstrategy.domain.guided.GearCategory
+import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.manual.ManualField
 import com.nachojerez.carpstrategy.domain.manual.ManualOrigin
 import com.nachojerez.carpstrategy.domain.manual.ManualRecord
@@ -68,5 +80,34 @@ class StrategyUiStateTest {
         assertEquals(dusk, nextWindow(windows, base.plus(Duration.ofHours(3))))
         assertNull(nextWindow(windows, base.plus(Duration.ofHours(13))))
         assertNull(nextWindow(emptyList(), base))
+    }
+
+    @Test
+    fun `plan del dia - la IA solo cuenta si se pidio para lo elegido y en automatico manda su puesto`() {
+        val water = ManualRecord(
+            period = RecordPeriod.At(now.minus(Duration.ofHours(1))), location = point, source = "termómetro",
+            origin = ManualOrigin.Typed, values = mapOf(ManualField.WATER_TEMP_SURFACE to 18.0), createdAt = now,
+        )
+        val base = buildStrategyState(RawWeather(null, emptyList(), null, manualRecords = listOf(water)), rules, now, point)
+        val spots = listOf(Spot(1, "Punta", structure = SpotStructure.SHALLOW_EDGE), Spot(2, "Caída", structure = SpotStructure.FIRST_DROP))
+        val gear = listOf(GearItem("1", GearCategory.BAIT, "Chufa", baitType = BaitType.TIGERNUT))
+        val state = base.copy(spots = spots, gear = gear, advice = adviceFor(base.derived, now, emptyList(), gear, spots, emptyList()))
+        val key = planKey(state)!!
+        // Otro puesto u otras cañas: otro plan.
+        assertTrue(key != planKey(state.copy(chosenSpotId = 2)))
+        assertTrue(key != planKey(state.copy(rods = 3)))
+
+        val ai = AiPlan(
+            "Plan", Evidence.YELLOW, listOf(AiRodPlan(1, "Caída", "Chufa", reason = "Fondo duro", evidence = Evidence.YELLOW)),
+            bestSpot = AiSpotPick("Caída", "Más honda", Evidence.YELLOW),
+        )
+        val outcome = AiOutcome(AiExchange(now, AiKind.PLAN, "GEMINI", "modelo", valid = true), ai)
+        val withAi = dayPlanFor(state, PlanUiState(outcome = outcome, key = key))!!
+        assertEquals("Caída", withAi.spot?.spot?.name)
+        assertEquals(PlanSource.AI, withAi.source)
+        // Pedido para otra elección: no vale y manda la app.
+        val stale = dayPlanFor(state, PlanUiState(outcome = outcome, key = "otra"))!!
+        assertEquals(PlanSource.APP, stale.source)
+        assertEquals(DEFAULT_RODS, stale.rods.size)
     }
 }

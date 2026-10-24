@@ -1,6 +1,7 @@
 package com.nachojerez.carpstrategy.ui.strategy
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,12 +42,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.data.assistant.AiOutcome
+import com.nachojerez.carpstrategy.domain.advice.Contingency
+import com.nachojerez.carpstrategy.domain.advice.ContingencyLine
+import com.nachojerez.carpstrategy.domain.advice.DayPlan
+import com.nachojerez.carpstrategy.domain.advice.DayPlans
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
+import com.nachojerez.carpstrategy.domain.advice.PlanSource
+import com.nachojerez.carpstrategy.domain.advice.RodLine
 import com.nachojerez.carpstrategy.domain.advice.SpotPick
 import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
+import com.nachojerez.carpstrategy.domain.assistant.AiPlan
+import com.nachojerez.carpstrategy.domain.assistant.AiSpotPick
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
-import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
-import com.nachojerez.carpstrategy.domain.guided.Spots
+import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.guided.WindRelation
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
@@ -74,7 +83,6 @@ import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.zoneLabelRes
 import com.nachojerez.carpstrategy.ui.guided.baitText
 import com.nachojerez.carpstrategy.ui.guided.shortRes
-import com.nachojerez.carpstrategy.ui.guided.spotSummary
 import com.nachojerez.carpstrategy.ui.guided.titleRes
 import com.nachojerez.carpstrategy.ui.reservoir.effectRes
 import com.nachojerez.carpstrategy.ui.theme.CarpTheme
@@ -94,44 +102,70 @@ fun StrategyScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan by viewModel.plan.collectAsStateWithLifecycle()
-    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant, onOpenLessons, onOpenReservoir, onOpenReservoirs, viewModel::chooseSpot, viewModel::chooseReservoir)
+    StrategyContent(
+        state, plan,
+        StrategyActions(
+            onStartGuided = onStartGuided,
+            onOpenSpots = onOpenSpots,
+            onOpenAssistant = onOpenAssistant,
+            onOpenLessons = onOpenLessons,
+            onOpenReservoir = onOpenReservoir,
+            onOpenReservoirs = onOpenReservoirs,
+            onChooseReservoir = viewModel::chooseReservoir,
+            onChooseSpot = viewModel::chooseSpot,
+            onChooseRods = viewModel::chooseRods,
+            onAskAgain = viewModel::requestPlan,
+        ),
+    )
 }
 
+/** Lo que se puede hacer desde Estrategia (navegación y elecciones). */
+data class StrategyActions(
+    val onStartGuided: () -> Unit = {},
+    val onOpenSpots: () -> Unit = {},
+    val onOpenAssistant: () -> Unit = {},
+    val onOpenLessons: () -> Unit = {},
+    val onOpenReservoir: () -> Unit = {},
+    val onOpenReservoirs: () -> Unit = {},
+    val onChooseReservoir: (Reservoir) -> Unit = {},
+    val onChooseSpot: (Long?) -> Unit = {},
+    val onChooseRods: (Int) -> Unit = {},
+    val onAskAgain: () -> Unit = {},
+)
+
 /**
- * Orden pensado para decidir en el puesto: resumen → qué hacer → cuándo → avisos → por qué
- * (plegado, para quien quiera ver la cadena de filtros y las reglas).
+ * Estrategia en 3 pasos (fase 7.12): ① embalse → ② puesto y cañas → ③ un solo plan para hoy
+ * (de la app con el conocimiento y tus datos, afinado por la IA) con qué hacer si cambia algo.
+ * Lo técnico (valoración, reglas, ventanas, cadena de filtros) va plegado en «Detalles» y, al
+ * final, cuando ya está todo elegido, se empieza la sesión guiada con ese plan.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StrategyContent(
-    state: StrategyUiState,
-    onStartGuided: () -> Unit = {},
-    onOpenSpots: () -> Unit = {},
-    plan: PlanUiState = PlanUiState(),
-    onPlan: (Int) -> Unit = {},
-    onOpenAssistant: () -> Unit = {},
-    onOpenLessons: () -> Unit = {},
-    onOpenReservoir: () -> Unit = {},
-    onOpenReservoirs: () -> Unit = {},
-    onChooseSpot: (Long?) -> Unit = {},
-    onChooseReservoir: (Reservoir) -> Unit = {},
-) {
-    var whyOpen by rememberSaveable { mutableStateOf(false) }
+fun StrategyContent(state: StrategyUiState, plan: PlanUiState = PlanUiState(), actions: StrategyActions = StrategyActions()) {
+    var detailsOpen by rememberSaveable { mutableStateOf(false) }
+    val dayPlan = remember(state, plan) { dayPlanFor(state, plan) }
+    // El plan de la IA solo cuenta si se pidió para lo que tienes elegido ahora.
+    val currentAi = plan.outcome?.takeIf { plan.key != null && plan.key == planKey(state) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = Spacing.screen, vertical = Spacing.sm),
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item { ScreenHeader(stringResource(R.string.strategy_title), stringResource(R.string.strategy_overline)) }
-        // Dónde vas a pescar: embalse y puesto (fase 7.10). La estrategia se hace para ellos.
-        if (!state.isLoading) item { PlaceCard(state, onChooseReservoir, onOpenReservoirs, onChooseSpot, onOpenSpots) }
-        when {
-            state.isLoading -> item {
+        if (state.isLoading) {
+            item {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     LinearProgressIndicator(Modifier.fillMaxWidth())
                     Caption(stringResource(R.string.strategy_loading))
                 }
             }
+            return@LazyColumn
+        }
+        // ① Embalse.
+        item { ReservoirStep(state, actions) }
+        // ② Puesto (con la recomendación de la app o de la IA) y cañas.
+        item { SpotStep(state, dayPlan, currentAi?.value?.bestSpot, actions) }
+        when {
             state.ruleIssues.isNotEmpty() -> {
                 item {
                     CarpCard(containerColor = MaterialTheme.colorScheme.errorContainer) {
@@ -155,64 +189,50 @@ fun StrategyContent(
                         }
                     }
                 }
-                // 1. Resumen: valoración y «qué hago ahora» (cebo, puesto, distancia…).
-                item { ResultCard(result) }
-                state.advice?.let { advice -> item { AdviceCard(advice, state.reservoir, state.pendingLessons, onOpenSpots, onOpenLessons, onOpenReservoir) } }
-                if (!result.blocked) {
-                    item { SummaryActions(state, onStartGuided) }
-
-                    // Asistente de IA: plan por caña y consejos por apartado (validados por la app).
-                    item { SectionTitle(stringResource(R.string.strategy_ai_section), subtitle = stringResource(R.string.strategy_ai_section_subtitle)) }
-                    item {
-                        if (plan.configured) {
-                            AiPlanCard(plan, onPlan, state, onChooseSpot)
-                        } else {
-                            CarpCard {
-                                Caption(stringResource(R.string.strategy_ai_off))
-                                OutlinedButton(onClick = onOpenAssistant) { Text(stringResource(R.string.ai_settings_open)) }
-                            }
-                        }
-                    }
-                    plan.outcome?.value?.advice?.takeIf { it.isNotEmpty() }?.let { advice ->
-                        item { AiAdviceCard(advice) }
-                    }
-
-                    // 2. Qué hacer: dónde (y tus puestos), presentación, cebado y notas.
-                    item { SectionTitle(stringResource(R.string.strategy_what_title), subtitle = stringResource(R.string.strategy_what_subtitle)) }
-                    WHAT_FIELDS.forEach { field ->
-                        val advice = result.advice[field].orEmpty()
-                        if (advice.isNotEmpty()) {
-                            item { AdviceCard(stringResource(field.labelRes()), advice, avoid = false) }
-                        }
-                        if (field == StrategyField.WHERE) item { SpotsCard(state, onOpenSpots) }
-                    }
-
-                    // 3. Cuándo.
-                    item { SectionTitle(stringResource(R.string.field_when), subtitle = stringResource(R.string.strategy_windows_subtitle)) }
-                    item { WhenCard(state) }
-
-                    // 4. Avisos: rotar puesto y qué evitar.
-                    val avoid = result.advice[StrategyField.AVOID].orEmpty()
-                    if (state.recentCatchZones.isNotEmpty() || avoid.isNotEmpty()) {
-                        item { SectionTitle(stringResource(R.string.strategy_warnings_title)) }
-                        if (state.recentCatchZones.isNotEmpty()) item { RotateCard(state) }
-                        if (avoid.isNotEmpty()) item { AdviceCard(stringResource(StrategyField.AVOID.labelRes()), avoid, avoid = true) }
-                    }
+                // ③ Tu plan para hoy.
+                if (result.blocked) {
+                    item { ResultCard(result) }
+                } else if (dayPlan != null && state.advice != null) {
+                    item { PlanStep(state, plan, currentAi, dayPlan, state.advice, actions) }
                 }
 
-                // 5. Por qué (plegado): cadena de filtros, demanda, reglas y datos con peso 0.
+                // Detalles (plegado): todo lo que hay detrás del plan.
                 item {
-                    TextButton(onClick = { whyOpen = !whyOpen }, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(if (whyOpen) R.string.strategy_why_hide else R.string.strategy_why_show))
+                    TextButton(onClick = { detailsOpen = !detailsOpen }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(if (detailsOpen) R.string.strategy_details_hide else R.string.strategy_details_show))
                     }
                 }
-                if (whyOpen) {
-                    whyItems(result)
-                    state.regulationReviewed?.let { date -> item { Caption(stringResource(R.string.strategy_regulation, date)) } }
-                }
+                if (detailsOpen) detailItems(state, plan, result, actions)
+
+                // Al final, con todo elegido: empezar la sesión guiada con este plan.
+                if (!result.blocked && dayPlan != null) item { StartStep(state, dayPlan, actions.onStartGuided) }
             }
         }
     }
+}
+
+/** «Detalles»: valoración, «Qué hago ahora» completo, consejos de la IA y de las reglas, horas, avisos y el porqué. */
+private fun LazyListScope.detailItems(state: StrategyUiState, plan: PlanUiState, result: StrategyResult, actions: StrategyActions) {
+    if (!result.blocked) item { ResultCard(result) }
+    state.advice?.let { advice -> item { AdviceCard(advice, state.reservoir, state.pendingLessons, actions.onOpenSpots, actions.onOpenLessons, actions.onOpenReservoir) } }
+    if (!result.blocked) {
+        plan.outcome?.value?.advice?.takeIf { it.isNotEmpty() }?.let { advice -> item { AiAdviceCard(advice) } }
+        item { SectionTitle(stringResource(R.string.strategy_what_title), subtitle = stringResource(R.string.strategy_what_subtitle)) }
+        WHAT_FIELDS.forEach { field ->
+            val advice = result.advice[field].orEmpty()
+            if (advice.isNotEmpty()) item { AdviceCard(stringResource(field.labelRes()), advice, avoid = false) }
+        }
+        item { SectionTitle(stringResource(R.string.field_when), subtitle = stringResource(R.string.strategy_windows_subtitle)) }
+        item { WhenCard(state) }
+        val avoid = result.advice[StrategyField.AVOID].orEmpty()
+        if (state.recentCatchZones.isNotEmpty() || avoid.isNotEmpty()) {
+            item { SectionTitle(stringResource(R.string.strategy_warnings_title)) }
+            if (state.recentCatchZones.isNotEmpty()) item { RotateCard(state) }
+            if (avoid.isNotEmpty()) item { AdviceCard(stringResource(StrategyField.AVOID.labelRes()), avoid, avoid = true) }
+        }
+    }
+    whyItems(result)
+    state.regulationReviewed?.let { date -> item { Caption(stringResource(R.string.strategy_regulation, date)) } }
 }
 
 /** La parte «Por qué»: cadena de filtros, demanda de alimento, reglas activas y datos con peso 0. */
@@ -386,96 +406,7 @@ private fun AdviceCard(
 
 private const val MAX_SPOTS = 4
 private const val MAX_LESSONS = 4
-
-/** Plan con IA: cuántas cañas, pedirlo y el resultado validado (o por qué se descartó). */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun AiPlanCard(plan: PlanUiState, onPlan: (Int) -> Unit, state: StrategyUiState, onChooseSpot: (Long?) -> Unit) {
-    val res = LocalContext.current.resources
-    var rods by rememberSaveable { mutableStateOf(2) }
-    CarpCard {
-        Text(stringResource(R.string.strategy_ai_plan), style = MaterialTheme.typography.titleSmall)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            Caption(stringResource(R.string.strategy_ai_rods))
-            (1..GuidedSessions.MAX_RODS).forEach { n -> FilterChip(selected = rods == n, onClick = { rods = n }, label = { Text("$n") }) }
-        }
-        OutlinedButton(onClick = { onPlan(rods) }, enabled = !plan.running) {
-            Text(stringResource(if (plan.running) R.string.strategy_ai_planning else R.string.strategy_ai_plan))
-        }
-        val outcome = plan.outcome
-        val value = outcome?.value
-        when {
-            outcome == null -> Unit
-            value != null -> {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    Text(
-                        stringResource(R.string.strategy_ai_plan_title, Formatting.clock(outcome.exchange.time)),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.weight(1f),
-                    )
-                    value.evidence?.let { AnyEvidenceBadge(it) }
-                }
-                Text(value.summary)
-                val chosenName = state.spots.firstOrNull { it.id == state.chosenSpotId }?.name
-                plan.spotName?.let { name ->
-                    Caption(stringResource(R.string.strategy_ai_plan_for, name))
-                    if (!name.equals(chosenName, ignoreCase = true)) Caption(stringResource(R.string.strategy_ai_plan_spot_changed), color = MaterialTheme.colorScheme.error)
-                }
-                // La IA también ayuda a elegir: el mejor de tus puestos para hoy (fase 7.10).
-                value.bestSpot?.let { best ->
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    Text(stringResource(R.string.strategy_ai_best_spot), style = MaterialTheme.typography.titleSmall)
-                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                        Column(Modifier.weight(1f)) {
-                            Text(best.spotName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
-                            Caption(best.reason)
-                        }
-                        best.evidence?.let { AnyEvidenceBadge(it) }
-                    }
-                    val spot = state.spots.firstOrNull { it.name.trim().equals(best.spotName.trim(), ignoreCase = true) }
-                    when {
-                        spot == null -> Unit
-                        spot.id == state.chosenSpotId -> Caption(stringResource(R.string.strategy_ai_best_is_chosen))
-                        else -> Button(onClick = { onChooseSpot(spot.id) }) { Text(stringResource(R.string.strategy_ai_best_use, spot.name)) }
-                    }
-                }
-                value.rods.forEach { r ->
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.strategy_ai_plan_rod, r.rod), style = MaterialTheme.typography.titleSmall)
-                            val parts = listOfNotNull(
-                                r.spotName,
-                                r.baitName,
-                                r.rigName,
-                                r.column?.let { stringResource(it.titleRes()) },
-                                r.distanceM?.let { stringResource(R.string.strategy_ai_plan_distance, Formatting.number(it, 0)) },
-                            )
-                            if (parts.isNotEmpty()) Text(parts.joinToString(" · "))
-                            Caption(r.reason)
-                        }
-                        r.evidence?.let { AnyEvidenceBadge(it) }
-                    }
-                }
-                // Los avisos de normativa no se muestran (fase 7.5): el horario ya lo controla la app.
-                value.warnings.filterNot { it.evidence == Evidence.REGULATION }.forEach { w ->
-                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                        Text(w.text, modifier = Modifier.weight(1f))
-                        w.evidence?.let { AnyEvidenceBadge(it) }
-                    }
-                }
-                Caption(stringResource(R.string.strategy_ai_plan_note))
-            }
-            outcome.exchange.error != null -> Caption(stringResource(R.string.strategy_ai_plan_error))
-            else -> Caption(
-                stringResource(
-                    R.string.strategy_ai_plan_invalid,
-                    outcome.exchange.issues.map { res.getString(it.titleRes()) }.distinct().joinToString(", "),
-                ),
-            )
-        }
-    }
-}
+private const val MAX_AI_TIPS = 3
 
 /** Consejos de la IA agrupados por apartado (dónde, cuándo, cebado…), cada uno con su evidencia. */
 @Composable
@@ -500,7 +431,6 @@ private fun AiAdviceCard(advice: List<AiAdvice>) {
     }
 }
 
-/** Próxima ventana legal sugerida y el botón para empezar la sesión guiada. */
 /** «Primera caída · encaje 2/3 · a 40 m · 3,5 m de fondo · viento a favor · te ha funcionado». */
 @Composable
 private fun spotPickText(p: SpotPick): String = listOfNotNull(
@@ -518,23 +448,21 @@ private fun spotWindRes(p: SpotPick): Int = when {
     else -> (p.wind ?: WindRelation.CALM).shortRes()
 }
 
-/**
- * Embalse y puesto donde vas a pescar (fase 7.10). El desplegable muestra tus embalses (los que
- * tienen puestos) y al elegir uno aparecen sus puestos; «Otro embalse…» abre la lista completa.
- * Cambiar de embalse es cambiar la ubicación (como en Lugar); el puesto se recuerda por embalse.
- */
-@OptIn(ExperimentalLayoutApi::class)
+/** Número de paso y título («① Embalse»). */
 @Composable
-private fun PlaceCard(
-    state: StrategyUiState,
-    onChooseReservoir: (Reservoir) -> Unit,
-    onOpenReservoirs: () -> Unit,
-    onChooseSpot: (Long?) -> Unit,
-    onOpenSpots: () -> Unit,
-) {
+private fun StepTitle(number: Int, title: String) {
+    Text(stringResource(R.string.strategy_step, number, title), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+}
+
+/**
+ * ① Embalse: desplegable con tus embalses (los que tienen puestos) y «Otro embalse…» para la
+ * lista completa. Cambiar de embalse es cambiar la ubicación, como en Lugar.
+ */
+@Composable
+private fun ReservoirStep(state: StrategyUiState, actions: StrategyActions) {
     var menuOpen by remember { mutableStateOf(false) }
     CarpCard {
-        Caption(stringResource(R.string.reservoirs_place_title))
+        StepTitle(1, stringResource(R.string.reservoirs_place_title))
         Box {
             OutlinedButton(onClick = { menuOpen = true }, modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -553,7 +481,7 @@ private fun PlaceCard(
                         },
                         onClick = {
                             menuOpen = false
-                            if (reservoir.id != state.reservoir?.reservoir?.id) onChooseReservoir(reservoir)
+                            if (reservoir.id != state.reservoir?.reservoir?.id) actions.onChooseReservoir(reservoir)
                         },
                     )
                 }
@@ -562,69 +490,248 @@ private fun PlaceCard(
                     text = { Text(stringResource(R.string.strategy_place_other)) },
                     onClick = {
                         menuOpen = false
-                        onOpenReservoirs()
+                        actions.onOpenReservoirs()
                     },
                 )
             }
         }
-        Text(stringResource(R.string.guided_start_spot), style = MaterialTheme.typography.titleSmall)
+        state.reservoir?.takeIf { it.sheet == null && !it.isBrovales }?.let {
+            Caption(stringResource(R.string.advice_no_sheet))
+            TextButton(onClick = actions.onOpenReservoir) { Text(stringResource(R.string.reservoir_sheet_open)) }
+        }
+    }
+}
+
+/**
+ * ② Puesto y cañas: la recomendación (de la IA si ya ha contestado para lo elegido; si no, de la
+ * app) con su porqué y un botón para cambiarte; tus puestos del embalse y cuántas cañas.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SpotStep(state: StrategyUiState, dayPlan: DayPlan?, aiBest: AiSpotPick?, actions: StrategyActions) {
+    val cs = MaterialTheme.colorScheme
+    CarpCard {
+        StepTitle(2, stringResource(R.string.guided_start_spot))
         if (state.spots.isEmpty()) {
             Caption(stringResource(R.string.strategy_place_no_spots))
-            TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+            TextButton(onClick = actions.onOpenSpots) { Text(stringResource(R.string.spots_open)) }
         } else {
+            val appBest = state.advice?.spots?.firstOrNull()
+            val aiSpot = aiBest?.let { b -> state.spots.firstOrNull { it.name.trim().equals(b.spotName.trim(), ignoreCase = true) } }
+            val recommended = aiSpot ?: appBest?.spot
+            if (recommended != null) {
+                Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    Column(Modifier.weight(1f)) {
+                        Caption(stringResource(if (aiSpot != null) R.string.strategy_recommended_ai else R.string.strategy_recommended_app))
+                        Text(recommended.name, style = MaterialTheme.typography.titleMedium, color = cs.primary)
+                        if (aiSpot != null && aiBest != null) Caption(aiBest.reason) else appBest?.let { Caption(spotPickText(it)) }
+                    }
+                    (if (aiSpot != null) aiBest?.evidence else Evidence.YELLOW)?.let { AnyEvidenceBadge(it) }
+                }
+                if (state.chosenSpotId != null && state.chosenSpotId != recommended.id) {
+                    OutlinedButton(onClick = { actions.onChooseSpot(recommended.id) }) { Text(stringResource(R.string.strategy_ai_best_use, recommended.name)) }
+                }
+            }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                FilterChip(selected = state.chosenSpotId == null, onClick = { onChooseSpot(null) }, label = { Text(stringResource(R.string.strategy_place_auto)) })
+                FilterChip(selected = state.chosenSpotId == null, onClick = { actions.onChooseSpot(null) }, label = { Text(stringResource(R.string.strategy_place_auto)) })
                 state.spots.forEach { spot ->
-                    FilterChip(selected = state.chosenSpotId == spot.id, onClick = { onChooseSpot(spot.id) }, label = { Text(spot.name) })
+                    FilterChip(selected = state.chosenSpotId == spot.id, onClick = { actions.onChooseSpot(spot.id) }, label = { Text(spot.name) })
                 }
             }
-            Caption(stringResource(if (state.chosenSpotId == null) R.string.strategy_place_auto_hint else R.string.strategy_place_spot_hint))
+            if (state.chosenSpotId == null) dayPlan?.spot?.let { Caption(stringResource(R.string.strategy_auto_spot, it.spot.name)) }
+        }
+        Text(stringResource(R.string.strategy_rods_title), style = MaterialTheme.typography.titleSmall)
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            (1..DayPlans.MAX_RODS).forEach { n -> FilterChip(selected = state.rods == n, onClick = { actions.onChooseRods(n) }, label = { Text("$n") }) }
         }
     }
 }
 
+/**
+ * ③ Tu plan para hoy: condiciones y mejor rato, de dónde sale el plan (app o IA), una línea por
+ * caña con su porqué y evidencia, cebado y qué hacer si cambia algo.
+ */
 @Composable
-private fun SummaryActions(state: StrategyUiState, onStartGuided: () -> Unit) {
-    val now = state.result?.evaluatedAt ?: return
+private fun PlanStep(
+    state: StrategyUiState,
+    plan: PlanUiState,
+    currentAi: AiOutcome<AiPlan>?,
+    dayPlan: DayPlan,
+    advice: FishingAdvice,
+    actions: StrategyActions,
+) {
+    val cs = MaterialTheme.colorScheme
+    val res = LocalContext.current.resources
     CarpCard {
-        val window = nextWindow(state.windows, now)
-        if (window != null) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                Column(Modifier.weight(1f)) {
-                    Caption(stringResource(R.string.strategy_next_window))
-                    Text("${Formatting.clock(window.start)} – ${Formatting.clock(window.end)}", style = MaterialTheme.typography.titleLarge)
-                    Caption(stringResource(window.kind.labelRes()))
+        StepTitle(3, if (advice.deferred) stringResource(R.string.strategy_plan_title_next, Formatting.clock(advice.forTime)) else stringResource(R.string.strategy_plan_title))
+        // Condiciones y mejor rato.
+        state.result?.band?.let { band -> Text(stringResource(R.string.strategy_band_title, stringResource(band.labelRes())), style = MaterialTheme.typography.titleSmall) }
+        state.result?.evaluatedAt?.let { now ->
+            nextWindow(state.windows, now)?.let { w ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    Text(stringResource(R.string.strategy_best_time, Formatting.clock(w.start), Formatting.clock(w.end), stringResource(w.kind.labelRes()).lowercase()), modifier = Modifier.weight(1f))
+                    AnyEvidenceBadge(w.evidence)
                 }
-                AnyEvidenceBadge(window.evidence)
             }
-        } else {
-            Caption(stringResource(R.string.strategy_windows_none))
         }
-        Button(onClick = onStartGuided, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.strategy_start_guided)) }
-        Caption(stringResource(R.string.strategy_start_guided_hint))
+        dayPlan.spot?.let { p ->
+            Text(stringResource(R.string.strategy_plan_spot, p.spot.name), style = MaterialTheme.typography.titleSmall)
+            Caption(spotPickText(p))
+        }
+
+        // De dónde sale el plan.
+        HorizontalDivider(color = cs.outlineVariant)
+        when {
+            plan.running -> {
+                LinearProgressIndicator(Modifier.fillMaxWidth())
+                Caption(stringResource(R.string.strategy_plan_asking))
+            }
+            dayPlan.source == PlanSource.AI -> Row(verticalAlignment = Alignment.CenterVertically) {
+                Caption(stringResource(R.string.strategy_plan_by_ai, Formatting.clock(currentAi?.exchange?.time ?: advice.forTime)), Modifier.weight(1f))
+                TextButton(onClick = actions.onAskAgain) { Text(stringResource(R.string.strategy_plan_ask_again)) }
+            }
+            !plan.configured -> {
+                Caption(stringResource(R.string.strategy_plan_by_app_no_ai))
+                TextButton(onClick = actions.onOpenAssistant) { Text(stringResource(R.string.ai_settings_open)) }
+            }
+            currentAi != null && currentAi.value == null -> Row(verticalAlignment = Alignment.CenterVertically) {
+                Caption(
+                    if (currentAi.exchange.error != null) stringResource(R.string.strategy_plan_ai_error)
+                    else stringResource(R.string.strategy_plan_ai_invalid, currentAi.exchange.issues.map { res.getString(it.titleRes()) }.distinct().joinToString(", ")),
+                    Modifier.weight(1f),
+                )
+                TextButton(onClick = actions.onAskAgain) { Text(stringResource(R.string.strategy_plan_ask_again)) }
+            }
+            else -> Row(verticalAlignment = Alignment.CenterVertically) {
+                Caption(stringResource(R.string.strategy_plan_by_app), Modifier.weight(1f))
+                TextButton(onClick = actions.onAskAgain) { Text(stringResource(R.string.strategy_plan_ask_ai)) }
+            }
+        }
+        dayPlan.aiSummary?.let { Text(it) }
+
+        // Una línea por caña.
+        dayPlan.rods.forEach { r -> RodLineRow(r, dayPlan.spot?.spot?.name) }
+
+        // Cebado y especies.
+        HorizontalDivider(color = cs.outlineVariant)
+        val groundbait = dayPlan.groundbait
+        Text(if (groundbait == null) stringResource(R.string.advice_no_groundbait) else stringResource(R.string.advice_groundbait, stringResource(groundbait.titleRes())))
+        if (advice.groundbaitDoubt) Caption(stringResource(R.string.advice_groundbait_doubt), color = cs.error)
+        advice.species.notes.forEach { (sp, evidence) ->
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                Caption(stringResource(sp.effectRes()), Modifier.weight(1f))
+                AnyEvidenceBadge(evidence)
+            }
+        }
+
+        // La IA añade (como mucho 3 consejos), y qué hacer si cambia algo.
+        currentAi?.value?.advice?.filter { it.field != StrategyField.WHERE }?.take(MAX_AI_TIPS)?.takeIf { it.isNotEmpty() }?.let { tips ->
+            Text(stringResource(R.string.strategy_plan_ai_tips), style = MaterialTheme.typography.titleSmall)
+            tips.forEach { a ->
+                Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    Text(a.text, modifier = Modifier.weight(1f))
+                    a.evidence?.let { AnyEvidenceBadge(it) }
+                }
+            }
+        }
+        if (dayPlan.contingencies.isNotEmpty()) {
+            Text(stringResource(R.string.strategy_plan_if), style = MaterialTheme.typography.titleSmall)
+            dayPlan.contingencies.forEach { c ->
+                Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    Text(contingencyText(c), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                    AnyEvidenceBadge(c.evidence)
+                }
+            }
+        }
+        if (advice.lessons.isNotEmpty() || state.pendingLessons > 0) {
+            TextButton(onClick = actions.onOpenLessons) {
+                Text(
+                    if (state.pendingLessons > 0) stringResource(R.string.lessons_open_pending, state.pendingLessons)
+                    else stringResource(R.string.strategy_plan_lessons, advice.lessons.size),
+                )
+            }
+        }
+        Caption(stringResource(R.string.strategy_disclaimer))
     }
 }
 
-/** Tus puestos y cómo les da el viento dominante de las últimas 24 h (desempate, §5.4 🟡). */
+/** «Caña 1 · Chufa (chufa) · pop-up · a 40 m» y debajo el porqué (de la IA o de tus datos). */
 @Composable
-private fun SpotsCard(state: StrategyUiState, onOpenSpots: () -> Unit) {
-    val wind = state.derived?.wind24h
-    CarpCard {
-        Text(stringResource(R.string.strategy_spots_title), style = MaterialTheme.typography.titleSmall)
-        if (state.spots.isEmpty()) {
-            Caption(stringResource(R.string.strategy_spots_empty))
-        } else {
-            wind?.let { Caption(stringResource(R.string.strategy_spots_wind, Formatting.compass(it.dominantDirectionDeg), Formatting.number(it.meanSpeedKmh, 0))) }
-            state.spots.forEach { spot ->
-                val relation = Spots.windRelation(spot.facingDeg, wind?.dominantDirectionDeg, wind?.meanSpeedKmh)
-                Column {
-                    Text(spot.name, style = MaterialTheme.typography.bodyLarge)
-                    Caption(spotSummary(spot))
-                    relation?.let { Caption(stringResource(it.shortRes())) }
-                }
+private fun RodLineRow(r: RodLine, planSpot: String?) {
+    val res = LocalContext.current.resources
+    var open by rememberSaveable(r.rod) { mutableStateOf(false) }
+    Row(
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+        modifier = Modifier.fillMaxWidth().clickable { open = !open },
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.strategy_ai_plan_rod, r.rod), style = MaterialTheme.typography.titleSmall)
+            val parts = listOfNotNull(
+                r.spotName?.takeIf { !it.trim().equals(planSpot?.trim(), ignoreCase = true) },
+                res.baitText(r.baitType, r.baitName),
+                r.rigName,
+                stringResource(r.column.titleRes()),
+                r.distanceM?.let { stringResource(R.string.strategy_ai_plan_distance, Formatting.number(it, 0)) } ?: stringResource(r.distance.titleRes()),
+            )
+            Text(parts.joinToString(" · "))
+            if (open) {
+                val why = r.reason
+                    ?: r.proven?.let { stringResource(R.string.advice_bait_proven, it.catches, it.sessions) }
+                    ?: stringResource(R.string.strategy_rod_why_app, stringResource(r.depth.titleRes()), stringResource(r.distance.titleRes()))
+                Caption(why)
+                if (r.baitName == null && r.source == PlanSource.APP) Caption(stringResource(R.string.advice_bait_not_in_gear))
+            } else {
+                Caption(stringResource(R.string.strategy_rod_why_show))
             }
         }
-        TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+        AnyEvidenceBadge(r.evidence)
+    }
+}
+
+/** Qué hacer si pasa algo, en una frase. */
+@Composable
+private fun contingencyText(c: ContingencyLine): String {
+    val after = c.after?.let { durationText(it) }
+    return when (c.kind) {
+        Contingency.NO_SIGNALS -> stringResource(
+            R.string.strategy_if_no_signals,
+            after.orEmpty(),
+            stringResource(if (c.step == StepKind.COLUMN) R.string.strategy_if_step_column else R.string.strategy_if_step_distance),
+        )
+        Contingency.NO_SIGNALS_ZONE -> stringResource(R.string.strategy_if_no_signals_zone, after.orEmpty())
+        Contingency.SIGNALS_NO_BITES -> stringResource(R.string.strategy_if_signals, after.orEmpty())
+        Contingency.CARP_UP -> stringResource(R.string.strategy_if_carp_up)
+        Contingency.OTHER_SPECIES -> stringResource(if (c.step == StepKind.ANTI_CRAB) R.string.strategy_if_crab else R.string.strategy_if_other_species)
+        Contingency.WIND -> c.windTip?.let { stringResource(it.titleRes()) }.orEmpty()
+    }
+}
+
+/** «45 min», «1 h», «1 h 30 min». */
+@Composable
+private fun durationText(d: Duration): String {
+    val h = d.toHours().toInt()
+    val m = (d.toMinutes() % 60).toInt()
+    return when {
+        h == 0 -> stringResource(R.string.duration_m, m)
+        m == 0 -> stringResource(R.string.duration_h, h)
+        else -> stringResource(R.string.duration_hm, h, m)
+    }
+}
+
+/**
+ * Final del camino: con embalse, puesto, cañas y plan ya elegidos, empezar la sesión guiada.
+ * Viene con el puesto y las cañas marcados, y el plan de la IA se copia en la sesión.
+ */
+@Composable
+private fun StartStep(state: StrategyUiState, dayPlan: DayPlan, onStartGuided: () -> Unit) {
+    CarpCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+        Text(
+            stringResource(R.string.strategy_start_summary, state.reservoir?.reservoir?.name ?: stringResource(R.string.strategy_place_no_reservoir), dayPlan.spot?.spot?.name ?: "—", state.rods),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        Button(onClick = onStartGuided, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.strategy_start_with_plan)) }
+        Caption(stringResource(R.string.strategy_start_guided_hint), color = MaterialTheme.colorScheme.onPrimaryContainer)
     }
 }
 
