@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -46,7 +47,7 @@ import com.nachojerez.carpstrategy.ui.theme.Spacing
 
 /** «Mis puestos»: estructura, profundidad y distancia medidas por el usuario y orientación de la orilla. */
 @Composable
-fun SpotsScreen(onBack: () -> Unit, viewModel: SpotsViewModel = hiltViewModel()) {
+fun SpotsScreen(onBack: () -> Unit, onOpenMap: () -> Unit = {}, viewModel: SpotsViewModel = hiltViewModel()) {
     val spots by viewModel.spots.collectAsStateWithLifecycle()
     val reservoirName by viewModel.reservoirName.collectAsStateWithLifecycle()
     var draft by remember { mutableStateOf<SpotDraft?>(null) }
@@ -71,8 +72,9 @@ fun SpotsScreen(onBack: () -> Unit, viewModel: SpotsViewModel = hiltViewModel())
                     }
                 }
             }
-            OutlinedButton(onClick = { draft = SpotDraft() }, modifier = Modifier.padding(top = Spacing.sm)) {
-                Text(stringResource(R.string.spots_add))
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.sm)) {
+                OutlinedButton(onClick = { draft = SpotDraft() }) { Text(stringResource(R.string.spots_add)) }
+                Button(onClick = onOpenMap) { Text(stringResource(R.string.spots_map_open)) }
             }
         }
     }
@@ -104,7 +106,15 @@ fun spotSummary(spot: Spot): String = listOfNotNull(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SpotDialog(draft: SpotDraft, onChange: (SpotDraft) -> Unit, onSave: () -> Unit, onDelete: (() -> Unit)?, onDismiss: () -> Unit) {
+internal fun SpotDialog(
+    draft: SpotDraft,
+    onChange: (SpotDraft) -> Unit,
+    onSave: () -> Unit,
+    onDelete: (() -> Unit)?,
+    onDismiss: () -> Unit,
+    /** Volver al mapa para tocar de nuevo el puesto y la orilla de enfrente (fase 7.9). */
+    onRelocate: (() -> Unit)? = null,
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (draft.id == null) R.string.spots_add else R.string.spots_edit)) },
@@ -157,6 +167,10 @@ private fun SpotDialog(draft: SpotDraft, onChange: (SpotDraft) -> Unit, onSave: 
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(stringResource(R.string.spots_facing), style = MaterialTheme.typography.titleSmall)
+                if (draft.point != null && draft.facingDeg != null) {
+                    Caption(stringResource(R.string.spots_map_from_map, Formatting.compass(draft.facingDeg.toDouble()), draft.facingDeg))
+                }
+                onRelocate?.let { TextButton(onClick = it) { Text(stringResource(R.string.spots_map_relocate)) } }
                 Caption(stringResource(R.string.spots_facing_help))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                     FilterChip(selected = draft.facingDeg == null, onClick = { onChange(draft.copy(facingDeg = null)) }, label = { Text(stringResource(R.string.spots_facing_none)) })

@@ -1252,5 +1252,30 @@
     <string name="session_wind_hint">Con el aire y el agua medidos se sabe si el viento era cálido o frío respecto al agua. Los problemas separan «no había peces» de «no pude pescar bien».</string>
     <string name="spots_fetch">Agua abierta delante (m)</string>
     <string name="spots_fetch_help">Fetch: metros de agua hasta la otra orilla hacia donde mira tu puesto (míralo en el mapa). Con menos de 500 m apenas hay oleaje.</string>
+
+    <!-- Mapa de puestos (fase 7.9) -->
+    <string name="spots_map_open">Ver en el mapa</string>
+    <string name="spots_map_title">Mapa de puestos</string>
+    <string name="spots_map_no_key">El mapa necesita la clave de Google Maps (MAPS_API_KEY) al compilar. Mientras, puedes anotar los puestos a mano.</string>
+    <string name="spots_map_no_place">Elige antes un embalse o una ubicación en Lugar.</string>
+    <string name="spots_map_hint">Toca un puesto para ver cómo le da el viento; toca su globo para editarlo.</string>
+    <string name="spots_map_add">Nuevo puesto en el mapa</string>
+    <string name="spots_map_place">Situar «%1$s»</string>
+    <string name="spots_map_step_spot">1/2 · Toca dónde está tu puesto (en la orilla)</string>
+    <string name="spots_map_step_opposite">2/2 · Toca la orilla de enfrente, hacia donde lanzas</string>
+    <string name="spots_map_too_short">Está demasiado cerca: toca la orilla de enfrente.</string>
+    <string name="spots_map_new_spot">Nuevo puesto</string>
+    <string name="spots_map_relocate">Volver a situar en el mapa</string>
+    <string name="spots_map_from_map">Del mapa: mira al %1$s (%2$d°); el agua abierta delante es el fetch</string>
+    <string name="spots_map_wind">Viento del %1$s a %2$s km/h (24 h): recibe el viento la orilla que mira al %1$s; resguardada la que mira al %3$s</string>
+    <string name="spots_map_wind_warm"> · más cálido que el agua</string>
+    <string name="spots_map_wind_cold"> · más frío que el agua</string>
+    <string name="spots_map_wind_unknown">Sin datos de viento todavía</string>
+    <string name="spots_map_legend">Verde: el viento le favorece (§5.4, desempate) · Azul: recibe el viento · Morado: resguardado · Naranja: lateral · Rosa: flojo o sin orientación. El tiempo previsto es el mismo para todo el embalse.</string>
+    <string name="spot_wind_favoured">El viento le favorece (desempate) 🟡</string>
+    <string name="spot_wind_receives">Recibe el viento</string>
+    <string name="spot_wind_sheltered">Resguardado del viento</string>
+    <string name="spot_wind_side">Viento lateral</string>
+    <string name="spot_wind_neutral">Viento flojo o sin orientación</string>
 </resources>
 

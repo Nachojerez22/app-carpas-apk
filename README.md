@@ -167,6 +167,15 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
+### Mapa de puestos (fase 7.9)
+
+En **Mis puestos → Ver en el mapa** aparece el embalse en satélite:
+- **Nuevo puesto en el mapa**: tocas tu puesto y luego la orilla de enfrente, hacia donde lanzas. La app calcula hacia dónde mira el puesto y el agua abierta que tiene delante (fetch).
+- Cada puesto sale con su línea de lance y un color según cómo le da el viento de las últimas 24 h: verde si le favorece (§5.4), azul si lo recibe, morado si está resguardado y naranja si le da de lado.
+- Los puestos que ya tenías se pueden situar en el mapa, y cualquiera se puede volver a situar.
+
+El tiempo previsto es el mismo para todo el embalse; lo que cambia es cómo le da el viento a cada puesto. Necesita la clave de Google Maps (docs/CUENTA_GOOGLE.md); sin ella, la app avisa y todo lo demás funciona igual. Las coordenadas de los puestos se quedan en tu móvil y en tu Drive, y nunca se mandan a la IA.
+
 ### Viento (fase 7.8)
 
 El viento cuenta como **desempate**, según si está más caliente o más frío que el agua (CONOCIMIENTO.md §5.4):
@@ -292,6 +301,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.1**: lluvia, tormenta y entrada de agua durante la sesión
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
+- [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
 - [x] **Fase 7.8**: viento (cálido o frío respecto al agua, avisos prácticos y campos del diario)
 - [x] **Fase 7.7**: chat con la IA durante la sesión
 - [x] **Fase 7.6**: varios embalses (catálogo de cotos de Extremadura, ficha con especies preparada por la IA)

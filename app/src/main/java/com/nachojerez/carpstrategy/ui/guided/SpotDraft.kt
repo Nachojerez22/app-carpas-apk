@@ -3,6 +3,7 @@ package com.nachojerez.carpstrategy.ui.guided
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
+import com.nachojerez.carpstrategy.domain.model.GeoPoint
 
 /** Formulario de un puesto (nuevo si [id] es null). Profundidad y distancia como texto (coma o punto). */
 data class SpotDraft(
@@ -17,6 +18,8 @@ data class SpotDraft(
     /** Embalse del puesto (al crearlo, el activo). */
     val reservoirId: String? = null,
     val fetch: String = "",
+    /** Punto del mapa (fase 7.9). */
+    val point: GeoPoint? = null,
 ) {
     val depthM: Double? get() = parse(depth)
     val distanceM: Double? get() = parse(distance)
@@ -40,6 +43,7 @@ data class SpotDraft(
         notes = notes.trim(),
         reservoirId = reservoirId,
         fetchM = fetchM,
+        point = point,
     )
 
     companion object {
@@ -65,6 +69,7 @@ data class SpotDraft(
             notes = spot.notes,
             reservoirId = spot.reservoirId,
             fetch = format(spot.fetchM),
+            point = spot.point,
         )
     }
 }

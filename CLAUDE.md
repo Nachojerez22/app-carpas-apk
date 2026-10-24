@@ -229,6 +229,17 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - Diario: `SessionContext.observed` (`WindObservation`: viento en el puesto, oleaje, espuma, aire en la orilla, problemas), en el JSON del contexto (`observacion_viento`): **sin cambio de esquema**. `completeSession` lo conserva al recalcular. `Spot.fetchM` (`fetch_m`).
 - El informe completo está en `docs/investigacion/2026-10-viento.md`.
 
+## Mapa de puestos (fase 7.9)
+
+- `domain/guided/SpotGeometry.kt` (puro):
+  - `SpotMap.geometry`: puesto + orilla de enfrente → `facingDeg` y `fetchM`;
+  - `destination`: línea de lance;
+  - `windKind` → `SpotWindKind` para el color del marcador;
+  - `MapWind`: viento de 24 h, aire y agua.
+  `Geo.bearingDeg`. `Spot.point` (`lat`/`lon` en `SpotDto`): **nunca va a la IA**.
+- `ui/guided/SpotsMapScreen` (maps-compose 9.0.1 + play-services-maps 20.1.0, satélite híbrido). `SpotDialog` es `internal` y tiene `onRelocate`. `SpotsViewModel` expone `center` y `wind`.
+- Clave `MAPS_API_KEY` (local.properties, entorno o secreto de la CI) → `manifestPlaceholders` y `BuildConfig.MAPS_CONFIGURED`. Sin clave no se crea el mapa: hay que mostrar el aviso, porque el SDK falla sin clave. Pasos en docs/CUENTA_GOOGLE.md.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

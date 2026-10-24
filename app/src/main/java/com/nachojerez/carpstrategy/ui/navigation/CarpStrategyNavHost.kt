@@ -34,6 +34,7 @@ import com.nachojerez.carpstrategy.ui.conditions.ConditionsScreen
 import com.nachojerez.carpstrategy.ui.diary.DiaryScreen
 import com.nachojerez.carpstrategy.ui.guided.GearScreen
 import com.nachojerez.carpstrategy.ui.guided.GuidedScreen
+import com.nachojerez.carpstrategy.ui.guided.SpotsMapScreen
 import com.nachojerez.carpstrategy.ui.guided.SpotsScreen
 import com.nachojerez.carpstrategy.ui.lessons.LessonsScreen
 import com.nachojerez.carpstrategy.ui.manual.DataScreen
@@ -71,6 +72,9 @@ import kotlinx.serialization.Serializable
 
 /** Lo aprendido (fase 7.5). */
 @Serializable data object LessonsRoute
+
+/** Mapa de puestos (fase 7.9). */
+@Serializable data object SpotsMapRoute
 
 /** Elegir embalse y ficha del activo (fase 7.6). */
 @Serializable data object ReservoirsRoute
@@ -183,7 +187,8 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                 )
             }
             composable<GearRoute> { GearScreen(onBack = { navController.popBackStack() }) }
-            composable<SpotsRoute> { SpotsScreen(onBack = { navController.popBackStack() }) }
+            composable<SpotsRoute> { SpotsScreen(onBack = { navController.popBackStack() }, onOpenMap = { navController.navigate(SpotsMapRoute) }) }
+            composable<SpotsMapRoute> { SpotsMapScreen(onBack = { navController.popBackStack() }) }
             composable<AssistantRoute> { AssistantScreen(onBack = { navController.popBackStack() }) }
             composable<LessonsRoute> { LessonsScreen(onBack = { navController.popBackStack() }) }
             composable<ReservoirsRoute> {

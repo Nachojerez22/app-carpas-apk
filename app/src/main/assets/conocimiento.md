@@ -562,6 +562,7 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - **Más consejos de equipo (🟡):** hundir el hilo nada más caer el plomo con la puntera bajo el agua; nylon o fluorocarbono que se hunda (el trenzado flota y coge viento); backleads con resaca, sabiendo que restan sensibilidad; alinear las cañas con el hilo y anclar el rod-pod; con 3 cañas en 10 m y viento lateral, separar las líneas; en la orilla batida, cebar un poco «aguas arriba» del viento respecto al punto (sin fuente formal).
 - **«Ha cambiado el viento» (🟣):** se mantiene el recordatorio de 2 h de §5.9.8.
 - **Fetch por puesto:** cada puesto guarda los metros de agua abierta hacia donde mira (estimados en el mapa). Sin fetch (≥500 m, 🟣) no hay oleaje que remueva el fondo.
+- *(Añadido oct. 2026, mapa de puestos.)* En el mapa (satélite) el usuario toca su puesto y la orilla de enfrente, hacia donde lanza: el rumbo entre los dos es la orientación exacta y la distancia es el fetch. El mapa colorea cada puesto según cómo le da el viento (le favorece, lo recibe, resguardado, lateral). **El tiempo previsto es el mismo para todo el embalse** (los modelos trabajan con cuadrículas de 1–11 km): lo que cambia de un puesto a otro es cómo le da el viento, no el aire ni la temperatura.
 
 ### 5.10 Pescar más: recomendación concreta y conocimiento aprendido (oct. 2026, petición del usuario)
 
