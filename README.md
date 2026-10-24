@@ -169,7 +169,7 @@ El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla
 
 ### Estrategia por embalse y puesto (fase 7.10)
 
-Arriba de **Estrategia** tocas el embalse y se despliegan tus embalses (los que tienen puestos guardados; «Otro embalse…» abre la lista completa). Al elegir uno aparecen sus puestos: «Automático» ordena tus puestos de mejor a peor; si eliges uno, «Qué hago ahora» se hace para él (estructura, distancia, profundidad, fetch, cómo le da el viento y avisos prácticos) y solo te avisa si otro encaja claramente mejor hoy. El plan de la IA y la sesión guiada usan ese puesto. La elección se recuerda por embalse en el móvil. Las reglas son del embalse entero: el tiempo previsto es el mismo en todos los puestos.
+Arriba de **Estrategia** tocas el embalse y se despliegan tus embalses (los que tienen puestos guardados; «Otro embalse…» abre la lista completa). Al elegir uno aparecen sus puestos: «Automático» ordena tus puestos de mejor a peor; si eliges uno, «Qué hago ahora» se hace para él (estructura, distancia, profundidad, fetch, cómo le da el viento y avisos prácticos) y solo te avisa si otro encaja claramente mejor hoy. El plan de la IA compara todos tus puestos del embalse y te recomienda el mejor para hoy con el porqué (botón «Pescar en …» para cambiarte); el plan por caña es para el puesto que elijas. La sesión guiada usa ese puesto. La elección se recuerda por embalse en el móvil. Las reglas son del embalse entero: el tiempo previsto es el mismo en todos los puestos.
 
 Cada puesto pertenece a un embalse: si lo sitúas en el mapa, al más cercano a ese punto; si no, al embalse activo.
 

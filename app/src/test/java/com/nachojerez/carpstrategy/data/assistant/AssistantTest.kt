@@ -97,6 +97,16 @@ class AssistantTest {
     }
 
     @Test
+    fun `plan con el puesto que recomienda la IA`() {
+        val text = """{"resumen":"A fondo","evidencia":"🟡","puesto_recomendado":{"puesto":"Punta","motivo":"Recibe el viento cálido","evidencia":"🟡"},"canas":[]}"""
+        val best = AssistantJson.parsePlan(text)!!.bestSpot!!
+        assertEquals("Punta", best.spotName)
+        assertEquals("Recibe el viento cálido", best.reason)
+        assertEquals(Evidence.YELLOW, best.evidence)
+        assertNull(AssistantJson.parsePlan("""{"resumen":"A fondo","puesto_recomendado":null,"canas":[]}""")!!.bestSpot)
+    }
+
+    @Test
     fun `repaso de sesion con lecciones validas y descartadas`() {
         server.enqueue(
             gemini(

@@ -164,7 +164,7 @@ class StrategyViewModel @Inject constructor(
             }
             // Se guarda para copiarlo en la sesión guiada si empieza en las próximas horas.
             localSettings.put(GuidedSessionManager.KEY_LAST_PLAN, GuidedJson.encodeAi(outcome.exchange))
-            planFlow.value = PlanUiState(outcome = outcome)
+            planFlow.value = PlanUiState(outcome = outcome, spotName = input.chosenSpot?.name)
         }
     }
 }
@@ -186,4 +186,6 @@ data class PlanUiState(
     val configured: Boolean = false,
     val running: Boolean = false,
     val outcome: AiOutcome<AiPlan>? = null,
+    /** Puesto elegido cuando se pidió el plan (null = automático o plan restaurado). */
+    val spotName: String? = null,
 )

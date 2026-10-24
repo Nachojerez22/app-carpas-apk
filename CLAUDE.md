@@ -248,8 +248,9 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   (`local_strategy_spot_…`, no se sincroniza); un puesto borrado o de otro embalse vuelve a automático.
 - `AdvisorInput.chosenSpotId` → `FishingAdvice.chosen` y `better` (otro puesto con ≥ `BETTER_SPOT_MARGIN`
   puntos más: solo se avisa). Las reglas siguen siendo del embalse entero (el tiempo es el mismo).
-- La IA recibe `puesto_elegido` (sin coordenadas) en el plan; la sesión guiada lo trae marcado
-  (`GuidedUiState.preferredSpotId`).
+- La IA también ayuda a elegir: compara tus puestos y devuelve `puesto_recomendado` (`AiPlan.bestSpot`,
+  validado: puesto tuyo y con evidencia) con botón «Pescar en …»; con `puesto_elegido` (sin coordenadas)
+  el plan por caña es para ese puesto. La sesión guiada lo trae marcado (`GuidedUiState.preferredSpotId`).
 - Un puesto nuevo pertenece al embalse más cercano a su punto del mapa (`Reservoirs.forSpot`); sin punto, al activo.
 
 ## Stack

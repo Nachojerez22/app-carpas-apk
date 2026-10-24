@@ -12,6 +12,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiNote
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiRodPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiSheetDraft
+import com.nachojerez.carpstrategy.domain.assistant.AiSpotPick
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.StepKind
@@ -102,7 +103,10 @@ object AssistantJson {
             val a = e as? JsonObject ?: return@mapNotNull null
             AiAdvice(field(a.string("apartado")), a.string("texto").orEmpty(), evidence(a.string("evidencia")))
         }
-        return AiPlan(o.string("resumen").orEmpty(), evidence(o.string("evidencia")), rods, warnings, advice)
+        val best = (o["puesto_recomendado"] as? JsonObject)?.let { b ->
+            b.string("puesto")?.takeIf { it.isNotBlank() }?.let { AiSpotPick(it, b.string("motivo").orEmpty(), evidence(b.string("evidencia"))) }
+        }
+        return AiPlan(o.string("resumen").orEmpty(), evidence(o.string("evidencia")), rods, warnings, advice, best)
     }
 
     /** Apartado de Estrategia por nombre (WHERE…) o en español (dónde, cuándo…). */

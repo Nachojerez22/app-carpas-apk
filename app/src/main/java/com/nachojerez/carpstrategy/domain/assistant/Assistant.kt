@@ -122,7 +122,12 @@ data class AiPlan(
     val warnings: List<AiNote> = emptyList(),
     /** Consejos por apartado, además del plan por caña. */
     val advice: List<AiAdvice> = emptyList(),
+    /** El mejor de tus puestos del embalse para hoy según la IA (fase 7.10); null si no tienes. */
+    val bestSpot: AiSpotPick? = null,
 )
+
+/** Puesto que recomienda la IA, con el porqué (para ayudarte a elegir). */
+data class AiSpotPick(val spotName: String, val reason: String, val evidence: Evidence?)
 
 /** Lección que propone la IA al repasar una sesión, antes de validarla. */
 data class AiLessonDraft(
@@ -296,6 +301,11 @@ object AiValidator {
             if (a.field == null) add(AiIssue.UNKNOWN_FIELD)
             if (a.evidence == null) add(AiIssue.MISSING_EVIDENCE)
             checkText(a.text, ctx)
+        }
+        plan.bestSpot?.let { b ->
+            if (ctx.spots.none { same(it.name, b.spotName) }) add(AiIssue.UNKNOWN_SPOT)
+            if (b.evidence == null) add(AiIssue.MISSING_EVIDENCE)
+            checkText(b.reason, ctx)
         }
     }
 

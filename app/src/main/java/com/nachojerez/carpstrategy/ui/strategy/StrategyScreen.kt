@@ -165,7 +165,7 @@ fun StrategyContent(
                     item { SectionTitle(stringResource(R.string.strategy_ai_section), subtitle = stringResource(R.string.strategy_ai_section_subtitle)) }
                     item {
                         if (plan.configured) {
-                            AiPlanCard(plan, onPlan)
+                            AiPlanCard(plan, onPlan, state, onChooseSpot)
                         } else {
                             CarpCard {
                                 Caption(stringResource(R.string.strategy_ai_off))
@@ -390,7 +390,7 @@ private const val MAX_LESSONS = 4
 /** Plan con IA: cuántas cañas, pedirlo y el resultado validado (o por qué se descartó). */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AiPlanCard(plan: PlanUiState, onPlan: (Int) -> Unit) {
+private fun AiPlanCard(plan: PlanUiState, onPlan: (Int) -> Unit, state: StrategyUiState, onChooseSpot: (Long?) -> Unit) {
     val res = LocalContext.current.resources
     var rods by rememberSaveable { mutableStateOf(2) }
     CarpCard {
@@ -416,6 +416,29 @@ private fun AiPlanCard(plan: PlanUiState, onPlan: (Int) -> Unit) {
                     value.evidence?.let { AnyEvidenceBadge(it) }
                 }
                 Text(value.summary)
+                val chosenName = state.spots.firstOrNull { it.id == state.chosenSpotId }?.name
+                plan.spotName?.let { name ->
+                    Caption(stringResource(R.string.strategy_ai_plan_for, name))
+                    if (!name.equals(chosenName, ignoreCase = true)) Caption(stringResource(R.string.strategy_ai_plan_spot_changed), color = MaterialTheme.colorScheme.error)
+                }
+                // La IA también ayuda a elegir: el mejor de tus puestos para hoy (fase 7.10).
+                value.bestSpot?.let { best ->
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Text(stringResource(R.string.strategy_ai_best_spot), style = MaterialTheme.typography.titleSmall)
+                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        Column(Modifier.weight(1f)) {
+                            Text(best.spotName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+                            Caption(best.reason)
+                        }
+                        best.evidence?.let { AnyEvidenceBadge(it) }
+                    }
+                    val spot = state.spots.firstOrNull { it.name.trim().equals(best.spotName.trim(), ignoreCase = true) }
+                    when {
+                        spot == null -> Unit
+                        spot.id == state.chosenSpotId -> Caption(stringResource(R.string.strategy_ai_best_is_chosen))
+                        else -> Button(onClick = { onChooseSpot(spot.id) }) { Text(stringResource(R.string.strategy_ai_best_use, spot.name)) }
+                    }
+                }
                 value.rods.forEach { r ->
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
