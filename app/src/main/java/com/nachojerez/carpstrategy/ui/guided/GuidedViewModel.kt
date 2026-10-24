@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nachojerez.carpstrategy.data.assistant.AssistantSettings
 import com.nachojerez.carpstrategy.data.reservoir.ReservoirRepository
+import com.nachojerez.carpstrategy.data.userdata.LocalSettings
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
@@ -13,25 +14,30 @@ import com.nachojerez.carpstrategy.domain.guided.WeatherQuestion
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
+import com.nachojerez.carpstrategy.ui.strategy.chosenSpotKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
 import java.time.Instant
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class GuidedViewModel @Inject constructor(
     private val manager: GuidedSessionManager,
     settings: SettingsRepository,
     reservoirs: ReservoirRepository,
     assistantSettings: AssistantSettings,
+    localSettings: LocalSettings,
     private val clock: Clock,
 ) : ViewModel() {
     private val starting = MutableStateFlow(false)
@@ -55,18 +61,28 @@ class GuidedViewModel @Inject constructor(
         }
     }
 
+    /** Puestos del embalse activo y el elegido en Estrategia (viene marcado al empezar, fase 7.10). */
+    private val spotsAndPreferred = reservoirs.observeActive().flatMapLatest { r ->
+        val reservoirId = r?.reservoir?.id
+        combine(settings.observeSpots(), localSettings.observe(chosenSpotKey(reservoirId))) { all, chosen ->
+            val spots = Spots.of(all, reservoirId)
+            spots to chosen?.toLongOrNull()?.takeIf { id -> spots.any { it.id == id } }
+        }
+    }
+
     val uiState: StateFlow<GuidedUiState> =
         combine(
             manager.observeActive(),
-            combine(settings.observeGear(), combine(settings.observeSpots(), reservoirs.observeActive()) { spots, r -> Spots.of(spots, r?.reservoir?.id) }, ::Pair),
+            combine(settings.observeGear(), spotsAndPreferred) { gear, (spots, preferred) -> Triple(gear, spots, preferred) },
             manager.nextCheckIn,
             ticker,
             combine(starting, saved, permissions, assistantSettings.observeKeyHint(), combine(manager.aiBusy, manager.chatBusy, ::Pair)) { st, sv, pm, hint, (ai, chat) ->
                 AuxState(st, sv, pm, hint, ai, chat)
             },
-        ) { session, (gear, spots), next, now, aux ->
+        ) { session, (gear, spots, preferred), next, now, aux ->
             val (isStarting, lastSaved, perms) = Triple(aux.starting, aux.saved, aux.permissions)
             buildGuidedState(session, gear, now, next, Formatting.MADRID, spots).copy(
+                preferredSpotId = preferred,
                 aiConfigured = aux.aiKeyHint != null,
                 aiBusy = aux.aiBusy,
                 chatBusy = aux.chatBusy,

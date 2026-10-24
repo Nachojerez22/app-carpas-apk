@@ -89,6 +89,13 @@ object Reservoirs {
     fun nearest(point: GeoPoint, all: List<Reservoir>, maxKm: Double = MATCH_KM): Reservoir? =
         all.map { it to Geo.haversineKm(point, it.point) }.filter { it.second <= maxKm }.minByOrNull { it.second }?.first
 
+    /**
+     * Embalse de un puesto nuevo (fase 7.10): el más cercano a su punto del mapa; si no tiene
+     * punto o no cae cerca de ninguno, el embalse activo.
+     */
+    fun forSpot(point: GeoPoint?, all: List<Reservoir>, activeId: String?): String? =
+        point?.let { nearest(it, all)?.id } ?: activeId
+
     /** El embalse de una sesión, por su ubicación. */
     fun of(session: Session, all: List<Reservoir>): Reservoir? = nearest(session.location, all)
 

@@ -240,6 +240,17 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - `ui/guided/SpotsMapScreen` (maps-compose 9.0.1 + play-services-maps 20.1.0, satélite híbrido). `SpotDialog` es `internal` y tiene `onRelocate`. `SpotsViewModel` expone `center` y `wind`.
 - Clave `MAPS_API_KEY` (local.properties, entorno o secreto de la CI) → `manifestPlaceholders` y `BuildConfig.MAPS_CONFIGURED`. Sin clave no se crea el mapa: hay que mostrar el aviso, porque el SDK falla sin clave. Pasos en docs/CUENTA_GOOGLE.md.
 
+## Estrategia por embalse y puesto (fase 7.10)
+
+- Estrategia empieza con `PlaceCard`: el embalse (cambiarlo = `ReservoirsRoute`, como en Lugar) y el puesto
+  («Automático» o uno de los del embalse). La elección va en el ajuste local `chosenSpotKey(reservoirId)`
+  (`local_strategy_spot_…`, no se sincroniza); un puesto borrado o de otro embalse vuelve a automático.
+- `AdvisorInput.chosenSpotId` → `FishingAdvice.chosen` y `better` (otro puesto con ≥ `BETTER_SPOT_MARGIN`
+  puntos más: solo se avisa). Las reglas siguen siendo del embalse entero (el tiempo es el mismo).
+- La IA recibe `puesto_elegido` (sin coordenadas) en el plan; la sesión guiada lo trae marcado
+  (`GuidedUiState.preferredSpotId`).
+- Un puesto nuevo pertenece al embalse más cercano a su punto del mapa (`Reservoirs.forSpot`); sin punto, al activo.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

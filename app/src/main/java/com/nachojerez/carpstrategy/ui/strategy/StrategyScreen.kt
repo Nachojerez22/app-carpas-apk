@@ -38,10 +38,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
+import com.nachojerez.carpstrategy.domain.advice.SpotPick
 import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.Spots
+import com.nachojerez.carpstrategy.domain.guided.WindRelation
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
 import com.nachojerez.carpstrategy.domain.rules.ActiveRule
 import com.nachojerez.carpstrategy.domain.rules.AdviceItem
@@ -82,11 +84,12 @@ fun StrategyScreen(
     onOpenAssistant: () -> Unit = {},
     onOpenLessons: () -> Unit = {},
     onOpenReservoir: () -> Unit = {},
+    onOpenReservoirs: () -> Unit = {},
     viewModel: StrategyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan by viewModel.plan.collectAsStateWithLifecycle()
-    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant, onOpenLessons, onOpenReservoir)
+    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant, onOpenLessons, onOpenReservoir, onOpenReservoirs, viewModel::chooseSpot)
 }
 
 /**
@@ -104,6 +107,8 @@ fun StrategyContent(
     onOpenAssistant: () -> Unit = {},
     onOpenLessons: () -> Unit = {},
     onOpenReservoir: () -> Unit = {},
+    onOpenReservoirs: () -> Unit = {},
+    onChooseSpot: (Long?) -> Unit = {},
 ) {
     var whyOpen by rememberSaveable { mutableStateOf(false) }
     LazyColumn(
@@ -112,6 +117,8 @@ fun StrategyContent(
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item { ScreenHeader(stringResource(R.string.strategy_title), stringResource(R.string.strategy_overline)) }
+        // Dónde vas a pescar: embalse y puesto (fase 7.10). La estrategia se hace para ellos.
+        if (!state.isLoading) item { PlaceCard(state, onOpenReservoirs, onChooseSpot, onOpenSpots) }
         when {
             state.isLoading -> item {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
@@ -325,24 +332,27 @@ private fun AdviceCard(
             }
         }
 
-        Text(stringResource(R.string.advice_spots), style = MaterialTheme.typography.titleSmall)
+        val chosen = advice.chosen
+        Text(stringResource(if (chosen != null) R.string.advice_chosen_title else R.string.advice_spots), style = MaterialTheme.typography.titleSmall)
         Text(stringResource(R.string.advice_where_generic, stringResource(advice.depth.titleRes()), stringResource(advice.distance.titleRes())))
-        if (advice.spots.isEmpty()) {
-            Caption(stringResource(R.string.advice_no_spots))
-            TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
-        }
-        advice.spots.take(MAX_SPOTS).forEachIndexed { i, p ->
-            val details = listOfNotNull(
-                p.spot.distanceM?.let { stringResource(R.string.advice_spot_distance, Formatting.number(it, 0)) },
-                p.spot.depthM?.let { stringResource(R.string.advice_spot_depth, Formatting.number(it)) },
-                if (p.windBonus) stringResource(R.string.advice_spot_wind) else null,
-                p.proven?.let { stringResource(R.string.advice_spot_proven, it.catches) },
-            )
-            Text("${i + 1}. ${p.spot.name}", style = MaterialTheme.typography.bodyLarge, color = if (i == 0) cs.primary else cs.onSurface)
-            Caption(
-                (listOf(stringResource(R.string.advice_spot_reasons, stringResource(p.spot.structure.titleRes()), p.structureFit)) + details).joinToString(" · "),
-            )
-            if (i == 0) p.windTips.forEach { Caption(stringResource(it.titleRes())) }
+        if (chosen != null) {
+            // Puesto elegido: todo para él; si otro encaja claramente mejor hoy, solo se avisa.
+            Text(chosen.spot.name, style = MaterialTheme.typography.bodyLarge, color = cs.primary)
+            Caption(spotPickText(chosen))
+            chosen.spot.fetchM?.let { Caption(stringResource(R.string.advice_spot_fetch, Formatting.number(it, 0))) }
+            Caption(stringResource(spotWindRes(chosen)))
+            chosen.windTips.forEach { Caption(stringResource(it.titleRes())) }
+            advice.better?.let { b -> Caption(stringResource(R.string.advice_better_spot, b.spot.name, spotPickText(b)), color = CarpTheme.colors.onWarnContainer) }
+        } else {
+            if (advice.spots.isEmpty()) {
+                Caption(stringResource(R.string.advice_no_spots))
+                TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+            }
+            advice.spots.take(MAX_SPOTS).forEachIndexed { i, p ->
+                Text("${i + 1}. ${p.spot.name}", style = MaterialTheme.typography.bodyLarge, color = if (i == 0) cs.primary else cs.onSurface)
+                Caption(spotPickText(p))
+                if (i == 0) p.windTips.forEach { Caption(stringResource(it.titleRes())) }
+            }
         }
 
         if (advice.bestDayParts.isNotEmpty()) {
@@ -462,6 +472,54 @@ private fun AiAdviceCard(advice: List<AiAdvice>) {
 }
 
 /** Próxima ventana legal sugerida y el botón para empezar la sesión guiada. */
+/** «Primera caída · encaje 2/3 · a 40 m · 3,5 m de fondo · viento a favor · te ha funcionado». */
+@Composable
+private fun spotPickText(p: SpotPick): String = listOfNotNull(
+    stringResource(R.string.advice_spot_reasons, stringResource(p.spot.structure.titleRes()), p.structureFit),
+    p.spot.distanceM?.let { stringResource(R.string.advice_spot_distance, Formatting.number(it, 0)) },
+    p.spot.depthM?.let { stringResource(R.string.advice_spot_depth, Formatting.number(it)) },
+    if (p.windBonus) stringResource(R.string.advice_spot_wind) else null,
+    p.proven?.let { stringResource(R.string.advice_spot_proven, it.catches) },
+).joinToString(" · ")
+
+/** Cómo le da el viento al puesto elegido (desempate, §5.4). */
+private fun spotWindRes(p: SpotPick): Int = when {
+    p.windBonus -> R.string.spot_wind_favoured
+    p.spot.facingDeg == null -> R.string.advice_spot_no_facing
+    else -> (p.wind ?: WindRelation.CALM).shortRes()
+}
+
+/**
+ * Embalse y puesto donde vas a pescar (fase 7.10). Cambiar de embalse es cambiar la ubicación
+ * (como en Lugar); el puesto se recuerda por embalse y solo en este móvil.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PlaceCard(state: StrategyUiState, onOpenReservoirs: () -> Unit, onChooseSpot: (Long?) -> Unit, onOpenSpots: () -> Unit) {
+    CarpCard {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            Column(Modifier.weight(1f)) {
+                Caption(stringResource(R.string.reservoirs_place_title))
+                Text(state.reservoir?.reservoir?.name ?: stringResource(R.string.strategy_place_no_reservoir), style = MaterialTheme.typography.titleMedium)
+            }
+            TextButton(onClick = onOpenReservoirs) { Text(stringResource(R.string.strategy_place_change)) }
+        }
+        Text(stringResource(R.string.guided_start_spot), style = MaterialTheme.typography.titleSmall)
+        if (state.spots.isEmpty()) {
+            Caption(stringResource(R.string.strategy_place_no_spots))
+            TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+        } else {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                FilterChip(selected = state.chosenSpotId == null, onClick = { onChooseSpot(null) }, label = { Text(stringResource(R.string.strategy_place_auto)) })
+                state.spots.forEach { spot ->
+                    FilterChip(selected = state.chosenSpotId == spot.id, onClick = { onChooseSpot(spot.id) }, label = { Text(spot.name) })
+                }
+            }
+            Caption(stringResource(if (state.chosenSpotId == null) R.string.strategy_place_auto_hint else R.string.strategy_place_spot_hint))
+        }
+    }
+}
+
 @Composable
 private fun SummaryActions(state: StrategyUiState, onStartGuided: () -> Unit) {
     val now = state.result?.evaluatedAt ?: return

@@ -67,6 +67,8 @@ data class StrategyUiState(
     val pendingLessons: Int = 0,
     /** Embalse donde vas a pescar (el más cercano a la ubicación) con su ficha. */
     val reservoir: ReservoirContext? = null,
+    /** Puesto elegido en Estrategia para este embalse; null = automático (fase 7.10). */
+    val chosenSpotId: Long? = null,
 )
 
 /**
@@ -180,6 +182,7 @@ fun planInput(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: Inst
         rain24hMm = derived?.rain?.last24hMm,
         gear = gear,
         spots = state.spots,
+        chosenSpot = state.advice?.chosen?.spot,
         extras = AiExtras(state.advice?.experience ?: ExperienceSummary.EMPTY, state.advice?.lessons ?: state.lessons, state.advice, state.reservoir),
     )
 }
@@ -219,6 +222,7 @@ fun adviceFor(
     lessons: List<Lesson>,
     reservoir: ReservoirContext? = null,
     reservoirs: List<Reservoir> = emptyList(),
+    chosenSpotId: Long? = null,
 ): FishingAdvice? {
     derived ?: return null
     val phase = phaseOf(derived)
@@ -240,6 +244,7 @@ fun adviceFor(
             experience = Experience.forReservoir(sessions, reservoir?.reservoir, reservoirs, phase, water, Formatting.MADRID),
             lessons = lessons,
             reservoir = reservoir,
+            chosenSpotId = chosenSpotId,
         ),
     )
 }

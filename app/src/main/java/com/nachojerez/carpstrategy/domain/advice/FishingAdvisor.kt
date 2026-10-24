@@ -65,6 +65,8 @@ data class AdvisorInput(
     val lessons: List<Lesson> = emptyList(),
     /** Embalse activo con su ficha (especies, si se puede cebar). */
     val reservoir: ReservoirContext? = null,
+    /** Puesto elegido en Estrategia (fase 7.10); null = automático (se ordenan todos). */
+    val chosenSpotId: Long? = null,
 )
 
 /** «Qué hago ahora»: todo lo necesario para empezar a pescar, de una vez. */
@@ -92,6 +94,10 @@ data class FishingAdvice(
     val bestDayParts: List<Stat<DayPart>>,
     val lessons: List<Lesson>,
     val experience: ExperienceSummary,
+    /** Puesto elegido con su análisis; null en automático o si ya no existe. */
+    val chosen: SpotPick? = null,
+    /** Otro puesto que hoy encaja claramente mejor que el elegido (solo se avisa, no se impone). */
+    val better: SpotPick? = null,
 )
 
 /**
@@ -106,6 +112,9 @@ object FishingAdvisor {
 
     /** 🟣 Puntos extra de un puesto que te ha funcionado en condiciones parecidas. */
     const val PROVEN_SPOT_BONUS = 3
+
+    /** 🟣 Diferencia de puntos para avisar de que otro puesto encaja claramente mejor que el elegido. */
+    const val BETTER_SPOT_MARGIN = 2
 
     /** Margen tras el inicio del día para aconsejar «el próximo amanecer». */
     private val NEXT_DAWN_OFFSET: Duration = Duration.ofMinutes(30)
@@ -126,6 +135,7 @@ object FishingAdvisor {
         val spots = input.spots.map { spot -> pick(spot, input, dayPart, exp, lessons) }
             .sortedWith(compareByDescending<SpotPick> { it.score }.thenByDescending { it.structureFit }.thenBy { it.spot.name })
 
+        val chosen = input.chosenSpotId?.let { id -> spots.firstOrNull { it.spot.id == id } }
         val (distance, depth) = distanceDepth(phase, dayPart)
         return FishingAdvice(
             forTime = forTime,
@@ -144,8 +154,14 @@ object FishingAdvisor {
             bestDayParts = exp.dayParts.filter { exp.proven(it) && it.value != DayPart.NIGHT },
             lessons = lessons,
             experience = exp,
+            chosen = chosen,
+            better = chosen?.let { better(it, spots) },
         )
     }
+
+    /** El mejor de los demás si supera al elegido por [BETTER_SPOT_MARGIN] o más. */
+    fun better(chosen: SpotPick, ranked: List<SpotPick>): SpotPick? =
+        ranked.firstOrNull { it.spot.id != chosen.spot.id }?.takeIf { it.score - chosen.score >= BETTER_SPOT_MARGIN }
 
     /** Ahora si es de día; si no, el próximo amanecer (no se aconseja pescar de noche). */
     private fun moment(input: AdvisorInput): Pair<Instant, DayPart> {

@@ -65,6 +65,8 @@ data class PlanInput(
     val gear: List<GearItem>,
     val spots: List<Spot>,
     val extras: AiExtras = AiExtras(),
+    /** Puesto elegido en Estrategia (fase 7.10): el plan se hace para él. */
+    val chosenSpot: Spot? = null,
 )
 
 /**
@@ -97,7 +99,7 @@ Con MANTENER, "cambios" va vacío. No propongas cambios en cañas con "propuesta
 """
 
     val PLAN_SYSTEM = RULES + """
-Tarea: estrategia concreta para hoy con las cañas indicadas, para sacar el máximo de carpas. Da un plan por caña (puesto, cebo, montaje, columna y distancia en metros si el puesto la tiene) y consejos por apartado: dónde (WHERE), cuándo (WHEN: mejores horas dentro de "horario_de_pesca"), cebado (BAIT: poco, normal o mucho y cada cuánto recebar), presentación (PRESENTATION), qué evitar (AVOID) y notas (NOTES). Como mucho 2 consejos por apartado. Responde con este JSON:
+Tarea: estrategia concreta para hoy con las cañas indicadas, para sacar el máximo de carpas. Si hay "puesto_elegido", el usuario va a pescar ahí: todas las cañas van en ese puesto y el plan se adapta a su estructura, profundidad, distancia, orientación y a cómo le da el viento; si otro de "mis_puestos" encaja claramente mejor hoy, dilo en un consejo WHERE sin cambiarle el puesto. Da un plan por caña (puesto, cebo, montaje, columna y distancia en metros si el puesto la tiene) y consejos por apartado: dónde (WHERE), cuándo (WHEN: mejores horas dentro de "horario_de_pesca"), cebado (BAIT: poco, normal o mucho y cada cuánto recebar), presentación (PRESENTATION), qué evitar (AVOID) y notas (NOTES). Como mucho 2 consejos por apartado. Responde con este JSON:
 {"resumen":"…","evidencia":"🟡","canas":[{"cana":1,"puesto":"nombre exacto o null","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","distancia_m":40 o null,"motivo":"…","evidencia":"🟡"}],"consejos":[{"apartado":"WHERE","texto":"…","evidencia":"🟡"}],"avisos":[]}
 """
 
@@ -320,6 +322,7 @@ Normas (si no las cumples, la app descarta la respuesta):
             input.rain24hMm?.let { put("lluvia_24h_mm", it) }
         }
         val wind = WeatherSnapshot(time = input.now, windKmh = input.windKmh, windFromDeg = input.windFromDeg)
+        input.chosenSpot?.let { s -> putJsonObject("puesto_elegido") { spot(s, wind) } }
         putJsonArray("mis_puestos") { input.spots.forEach { s -> addJsonObject { spot(s, wind) } } }
         gear(input.gear)
     }.toString()

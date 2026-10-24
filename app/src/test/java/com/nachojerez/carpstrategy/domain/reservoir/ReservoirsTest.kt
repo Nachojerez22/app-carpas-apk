@@ -98,4 +98,12 @@ class ReservoirsTest {
         val list = listOf(Reservoir("a", "Embalse de Cáceres", point = GeoPoint(39.4, -6.4)), Reservoir("b", "Embalse de Brovales", point = GeoPoint(38.35, -6.7)))
         assertEquals(listOf("a"), Reservoirs.search(list, "caceres", null).map { it.id })
     }
+
+    @Test
+    fun `el embalse de un puesto sale de su punto del mapa`() {
+        assertEquals("burguillos", Reservoirs.forSpot(GeoPoint(38.405, -6.604), all, Reservoirs.BROVALES_ID))
+        // Sin punto, o lejos de cualquier embalse del catálogo: el activo.
+        assertEquals(Reservoirs.BROVALES_ID, Reservoirs.forSpot(null, all, Reservoirs.BROVALES_ID))
+        assertEquals("propio-1", Reservoirs.forSpot(GeoPoint(39.5, -6.0), all, "propio-1"))
+    }
 }
