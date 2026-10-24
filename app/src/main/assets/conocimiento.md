@@ -106,6 +106,31 @@ Fuente completa: [investigación de alternativas, oct. 2026](investigacion/2026-
 | 47 | A 17 °C eligen más grasa y a 25 °C más proteína; la grasa se digiere peor a 17 °C | **CONFIRMADA (acuicultura)** | 🟢 | Yamamoto et al. 🟣 En frío: cebos digeribles y poca cantidad; no trasladar la «preferencia por grasa» al anzuelo |
 | 48 | Existe una regla probada de cada cuánto cambiar de puesto, cebo o montaje durante una sesión | **SIN DATOS** | 🔴 | Ningún estudio compara rotar con mantener. Los tiempos de §5.9 son 🟣 a calibrar |
 
+### 3.3 Viento (afirmaciones añadidas, oct. 2026)
+
+Fuente completa: [informe de viento, oct. 2026](investigacion/2026-10-viento.md). Numeración continua con la tabla anterior.
+
+| # | Afirmación | Veredicto | Etiqueta | Fuente y matiz |
+|---|---|---|---|---|
+| 49 | El viento empuja el agua superficial hacia la orilla que lo recibe y engrosa allí la capa de arriba (termoclina inclinada) | CONFIRMADA | 🟢 | Física de lagos (HESS 2020; número de Wedderburn, Imberger y Patterson). [copernicus](https://hess.copernicus.org/articles/24/3399/2020/) En Brovales la magnitud es pequeña por el fetch corto y no está medida. |
+| 50 | El agua cálida de superficie se acumula a sotavento | CONFIRMADA en lagos estratificados; magnitud en Brovales SIN DATOS | 🟢 física / 🟣 local | Tesis de la Univ. de Toronto sobre el lago Opeongo: «zooplankton and warm water both accumulate downwind, but… the time scales… are different». [scholaris](https://utoronto.scholaris.ca/server/api/core/bitstreams/ad77494b-6253-46e5-9693-4e2665fef357/content) Requiere días de sol con capa cálida arriba. Con mezcla completa no hay nada que acumular. |
+| 51 | El alimento (plancton) se acumula en la orilla que recibe el viento | PARCIAL | 🟡 | Zooplancton pequeño +8–34 % a sotavento (Opeongo, 22,1 km²). El grande no depende del viento. [harvard](https://ui.adsabs.harvard.edu/abs/2022FrBio..67..991C/abstract) [researchgate](https://www.researchgate.net/publication/228524241_Towards_understanding_the_relationship_between_wind_conditions_and_plankton_patchiness) En el fitoplancton el efecto se debe sobre todo a la dilución en barlovento (Cyr 2017). [sciencedirect](https://www.sciencedirect.com/science/article/abs/pii/S004313541730430X) Medido en lagos más de 10 veces mayores que Brovales. |
+| 52 | En la orilla de donde viene el viento aflora agua profunda (upwelling) | CONFIRMADA si hay estratificación | 🟢 física / 🟣 local | Upwelling a barlovento y downwelling a sotavento. [copernicus](https://hess.copernicus.org/articles/24/3399/2020/) En verano, si el fondo de Brovales tuviera poco oxígeno, el afloramiento llevaría agua fría y pobre en O₂ a esa orilla. Es una hipótesis: no hay perfiles de O₂. |
+| 53 | El oleaje en orillas someras y blandas enturbia y destapa alimento | CONFIRMADA (física) / PLAUSIBLE (atracción de carpa) | 🟢 / 🟡 | Umbrales de resuspensión: 3,7–4,0 m/s con fetch largo (Taihu; Zheng et al. 2015) y >2 m/s en un lago de 1,5 m y 1,6 km (Thomsons Lake; Bailey y Hamilton 1997). En alevines de ciprínido (dace) más oleaje = más contenido intestinal (Stoll et al. 2010). [wiley](https://onlinelibrary.wiley.com/doi/10.1111/j.1095-8649.2010.02611.x) No hay datos de carpa adulta. |
+| 54 | El viento oxigena y mezcla | CONFIRMADA la mezcla; efecto sobre la pesca SIN DATOS | 🟢 / 🔴 peso 0 para «oxígeno → capturas» | Con menos viento hay más estratificación diurna (Martinsen et al. 2019). [researchgate](https://www.researchgate.net/publication/327100188_Water_temperature_dynamics_and_the_prevalence_of_daytime_stratification_in_small_temperate_shallow_lakes) Que eso suba las capturas de carpa no está medido. |
+| 55 | Las seiches crean momentos de pesca («cuando el agua vuelve») | CONTRADICHA para Brovales | 🔴 | Seiche superficial de ≈7–8 min y cm de amplitud (Merian). La interna depende de una estratificación no verificada. |
+| 56 | «La carpa sigue al viento» (regla general) | SIN DATOS científicos | 🔴 como regla / 🟡 como experiencia | Ningún estudio de telemetría ni de capturas de carpa lo prueba. Los propios autores de carpfishing lo matizan: «Carp that inhabit smaller lakes are less influenced by the strength and direction of the wind» (Haiths 🟡). [haiths](https://haiths.com/blogs/fishing/wind-and-wuthering-haiths) En un lago de 10 acres todas las carpas siguieron toda la semana en la misma zona aunque el viento cambió varias veces (Angling Lines 🟡). [anglinglines](https://www.anglinglines.com/blog/set-in-stone-i-dont-think-so-part-1/) |
+| 57 | Un «viento nuevo» (cambio de dirección) mueve y activa a las carpas | SIN DATOS | 🔴 peso 0 / 🟡 experiencia | «they will almost always move from their current position when a new wind arrives» (Tom Dove, Korda, fabricante 🟡). [kordatackle](https://kordatackle.com/knowledge/location-is-key-tom-dove) No hay estudios. |
+| 58 | El viento frío aleja a las carpas de la orilla que lo recibe y se van a la zona resguardada y soleada | PLAUSIBLE | 🟡 | Mecanismo físico coherente: enfría la orilla batida. Lo apoya la experiencia (Carpology, CARPdiem 🟡). [carpology](https://www.carpology.net/article/features/how-to-use-the-weather-as-an-advantage/) [carpdiem](https://carpdiem.es/estrategias-tecnicas-para-escenarios-masificados/) Sin estudios. |
+| 59 | «Viento cálido de cara» funciona igual en el verano de Extremadura | SIN DATOS; probablemente depende de la temperatura del agua | 🟣 | La regla viene de aguas británicas frescas. Con el agua ya caliente, amontonar más calor puede no ayudar. El solano (E) es caliente y seco y aumenta la evaporación. Validar con datos propios. |
+| 60 | «Cuanto más viento, más capturas» | CONTRADICHA como regla general | 🔴 | En Escanaba Lake (119 ha, 4,3 m), la CPUE de muskellunge bajó de 0,15 a 0,09 peces/h al pasar de ≤1 a ≥9 m/s (Shaw et al. 2021). [nih](https://pmc.ncbi.nlm.nih.gov/articles/PMC8483380/) Las cifras de black bass («más del doble con >15 mph») vienen de un libro divulgativo, no de un estudio revisado. [bassforecast](https://bassforecast.com/high-percentage-fishing-wind) |
+| 61 | La duración importa: un viento de 24–48 h vale más que una racha | PLAUSIBLE | 🟡 | La acumulación de plancton a escala pequeña depende de la velocidad y la persistencia (Blukacz et al. 2010, Limnology & Oceanography, 150 transectos en el lago Opeongo). El umbral exacto de horas no tiene fuente: es una convención del documento. |
+| 62 | Con fetch corto (cientos de m a 1,5 km) los efectos del viento son pequeños | CONFIRMADA en lo cualitativo | 🟢 | La termoclina depende sobre todo de la superficie (Gorham y Boyce 1989). [sciencedirect](https://sciencedirect.com/science/article/abs/pii/S0380133089714799?via=ihub%3D) La ola necesita fetch para remover el fondo. Las orillas de Brovales con más fetch serán las únicas con oleaje apreciable. |
+| 63 | De cara se lanza más corto y con menos precisión; de espaldas, más lejos | CONFIRMADA (física y experiencia) | 🟡 | «El viento a tu espalda ayuda; el viento de cara hace que la precisión sea casi imposible» (FishRadar 🟡). [fishradar](https://fishradar.ai/es/learn/how-wind-affects-fishing/) Sin estudio formal, pero el mecanismo es obvio. |
+| 64 | El viento lateral y el oleaje forman comba, arrastran el plomo y dan avisos falsos | CONFIRMADA (experiencia) | 🟡 | Con viento fuerte o lateral se recomiendan bobbins más pesados (Korda 🟡). [kordatackle](https://kordatackle.com/knowledge/the-complete-guide-to-bite-indication-for-carp-fishing) Los backleads ayudan con resaca («undertow») (Total Fishing 🟡), [total-fishing](https://www.total-fishing.com/bite-indication/) pero restan sensibilidad (Rob Hughes, Angling Times 🟡). [anglingtimes](https://www.anglingtimes.co.uk/advice/tips/carp-fishing-tips-or-slack-line-or-backlead-for-carp-rob-hughes/) |
+| 65 | Con tormenta, la caña de carbono es un peligro y hay que dejar de pescar | CONFIRMADA | 🟢 | NOAA/NWS: la pesca es la primera actividad acuática recreativa en muertes por rayo (43 % de 76 casos, 2006–2016); esperar 30 min tras el último trueno. |
+| 66 | La dirección y la velocidad del viento influyen en las capturas de pesca recreativa | PARCIAL | 🟡 | Sí en walleye y muskellunge (Escanaba), con efectos distintos según la especie. [doaj](https://doaj.org/article/fed3b791cae846e0b6f5b3d4532e11de) [plos](https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0257882) No se puede extrapolar a la carpa. |
+
 ### 3.1 Correcciones a las fuentes originales (para no reintroducir errores)
 
 **Errores de Gemini:** convertir mecanismos físicos reales (plunging, seiches, vuelco) en reglas 🟢 de localización sin estudios en peces; asfixia "segura" en el hipolimnion; putrefacción intestinal; tensión superficial y "Factor x2"; reglas lunares tras haberlas descartado; contradicciones sobre turbidez; presentar como hechos conocimientos locales de Brovales inexistentes; la "Demasía Hidrográfica del Guadiana" **no existe** (el organismo es la **Confederación Hidrográfica del Guadiana, CHG**).
@@ -183,11 +208,47 @@ Reglas de diseño:
   evidencia: amarillo
   descripcion: Lluvia relevante (escorrentía real) puede cambiar temperatura/oxigeno/alimento en colas; 20 mm sin escorrentia no cuentan
   peso_inicial: bajo
-- id: viento_sotavento
+# Viento (corregido oct. 2026, §5.4): sustituye a «viento_sotavento». Cálido o frío respecto al agua.
+- id: viento_calido_orilla_receptora
   nivel: 3
   evidencia: amarillo
-  descripcion: Viento cálido sostenido acumula agua cálida a sotavento. Fetch corto en Brovales
+  descripcion: Viento más cálido que el agua (aire − agua ≥ 2 °C, 🟣), ≥10 km/h, sostenido ≥12 h y agua por debajo del óptimo → orilla que lo recibe (física 🟢 de arrastre y plancton; sin estudios en carpa). Fetch corto en Brovales
+  peso_inicial: bajo (desempate)
+- id: viento_frio_resguardo
+  nivel: 3
+  evidencia: amarillo
+  descripcion: Viento más frío que el agua (aire − agua ≤ −2 °C) → orilla resguardada y soleada, con el viento a la espalda
   peso_inicial: bajo
+- id: viento_calido_agua_caliente
+  nivel: 3
+  evidencia: morado
+  descripcion: Con el agua ya en el óptimo o por encima (verano), la orilla que recibe el viento cálido NO suma por temperatura; valorar sombra, profundidad, entradas y oleaje (oxígeno)
+  peso_inicial: 0 (hasta tener datos)
+- id: oleaje_orilla_somera_blanda
+  nivel: 3
+  evidencia: amarillo
+  descripcion: De cara ≥15 km/h, fondo blando, orilla ≤2 m y fetch ≥500 m → el oleaje remueve el fondo (🟢 física; 🟡 alimento en ciprínidos jóvenes, Stoll et al. 2010; sin datos en carpa adulta)
+  peso_inicial: muy bajo
+- id: viento_nuevo
+  nivel: 3
+  evidencia: rojo
+  descripcion: Cambio de dirección del viento. Sin estudios: registrar, no mover el puesto solo por eso
+  peso_inicial: 0
+- id: seiche
+  nivel: 3
+  evidencia: rojo
+  descripcion: En Brovales la seiche superficial dura ≈7–8 min y mide centímetros (Merian); la interna exige estratificación no verificada
+  peso_inicial: 0
+- id: seguridad_tormenta
+  nivel: 0
+  evidencia: verde
+  descripcion: Trueno audible o aviso de tormenta eléctrica → dejar de pescar (caña de carbono = conductor); volver 30 min después del último trueno (NOAA/NWS). Filtro de seguridad, no puntúa
+  peso_inicial: filtro
+- id: avisos_practicos_viento
+  nivel: 4
+  evidencia: amarillo
+  descripcion: Lance, comba, indicación de picada y cebado según el viento (§5.9.12). Ayudan a pescar bien; no cambian dónde está el pez
+  peso_inicial: 0
 - id: hora_amanecer_anochecer
   nivel: 4
   evidencia: amarillo
@@ -239,7 +300,27 @@ Reglas de diseño:
 - Registrar cota o % en cada sesión.
 
 ### 5.4 Por viento
-- 🟢 física: el agua calentada se acumula a sotavento. 🟡 experiencia: pescar "de cara al viento" cálido. 🔴/🟡 no demostrados: seiches y "viento nuevo". Tratarlo como **desempate**, no como regla principal.
+
+> *(Ampliado oct. 2026 con el [informe de viento](investigacion/2026-10-viento.md); tabla #49–#66 en §3.3.)* Lo que importa no es si el aire te da de cara o en la espalda, sino **hacia qué orilla empuja el agua de arriba, si ese viento está más caliente o más frío que el agua y cuántas horas lleva soplando**.
+
+**Modificador físico de segundo orden (desempate), no regla principal.**
+
+- **Qué está demostrado (🟢, física de lagos):**
+  1. El viento empuja la capa superficial hacia la orilla que lo recibe. Allí se engrosa la capa templada y, si hay estratificación, aflora agua profunda y fría en la orilla de donde viene el viento.
+  2. El zooplancton pequeño y los flotantes tienden a acumularse en la orilla que recibe el viento (medido en lagos de más de 20 km², con matices).
+  3. El oleaje remueve el fondo en orillas someras a partir de vientos bajos (≈2–4 m/s, según profundidad y fetch).
+  4. El viento mezcla la columna: con calma, los lagos someros se estratifican de día.
+- **Qué NO está demostrado:** que la carpa adulta «siga al viento» (🔴 como regla, 🟡 como experiencia), el «viento nuevo» (🔴, peso 0) y las seiches como momento de pesca (🔴, peso 0; en Brovales la seiche superficial dura ≈7–8 min y mide centímetros).
+- **Escala local (🟣):** Brovales (~1,5 km², fetch ≤1–1,5 km, estratificación no verificada) tendrá efectos de orilla pequeños y que se disipan rápido. Antes que la dirección, mira la temperatura del agua y el hábitat.
+- **Viento cálido o frío se define respecto al agua:** cálido si el aire está más caliente que el agua superficial; frío si está más frío (umbral inicial 2 °C, 🟣). Las etiquetas por dirección (solano E, cálido y seco en verano; ábrego SO, templado y húmedo; norte) son solo orientativas. Un viento muy seco también enfría por evaporación.
+- **Según la estación (🟡 experiencia + física, no demostrada en carpa):**
+  - Agua por debajo del óptimo (primavera, otoño, invierno templado) con viento cálido sostenido (≥10 km/h, 12–24 h) → la orilla que lo recibe. En España: «a ser posible nos situaremos con viento cálido de cara o frío de espalda» (CARPdiem 🟡).
+  - Viento frío o entrada de frente frío → orilla resguardada y soleada (🟡).
+  - Agua ya muy caliente (verano extremeño) → la orilla que recibe el viento cálido **no suma** (peso 0, 🟣 pendiente de validar). Valora en su lugar el oleaje (oxígeno y alimento removido) y la sombra.
+  - Viento fuerte con oleaje → la orilla batida de fondo blando puede ser buena para los peces pero mala para ti (lance, comba, seguridad).
+- **Prioridad práctica:** si el viento de cara impide lanzar, mantener el montaje o ver las picadas, la orilla resguardada gana aunque el viento «favorezca» la batida.
+- **Vocabulario:** usar siempre «orilla que recibe el viento» y «orilla resguardada». «Sotavento» también se usa para «al abrigo» y lleva a confusión.
+- **Qué te hace a ti (no cambia dónde está el pez):** con viento de cara lanzas más corto y con menos precisión, el hilo hace más comba, las alarmas dan más avisos falsos y te mojas. Con viento de espaldas lanzas más lejos y cebas mejor. Con viento lateral se forma un seno en el hilo que arrastra el montaje. Avisos concretos en §5.9.12.
 
 ### 5.5 Cebado y cebos (con normativa)
 - Ley 11/2010 (art. 40) autoriza cebado previo con productos no tóxicos.
@@ -293,11 +374,15 @@ Reglas de diseño:
 | Verano + tormenta con entrada más fresca | Entrada fría y oxigenada se hunde por el cauce: una caña en la caída frente a la desembocadura | 🟣 (física 🟢, efecto en carpa sin demostrar) |
 | Invierno + lluvia fría fuerte | Evitar entrada y cola (agua helada); zonas estables y protegidas, cebado mínimo | 🟡 |
 | Primavera/otoño + lluvia templada + nivel subiendo | Litoral recién inundado: cañas someras junto a nueva orilla y entrada, cebado pequeño | 🟡 |
-| **Viento** cálido sostenido 24–48 h hacia orilla con fetch | Priorizar orilla a sotavento (acumula agua cálida y alimento); en Brovales el fetch es corto: desempate | 🟡 |
-| Frente frío o viento frío súbito | Bajar cebado, zonas protegidas y soleadas, esperar (la demanda cae con el agua más fría) | 🟡 |
+| **Viento** cálido (aire > agua) sostenido ≥12–24 h, ≥10 km/h, agua por debajo del óptimo | Probar primero la orilla que lo recibe, sobre todo zonas someras que se calientan antes; mantener una caña de control en la zona habitual. En Brovales el fetch es corto: desempate *(corregido oct. 2026: antes 24–48 h y sin comparar con el agua)* | 🟢 física + 🟡 experiencia · peso bajo |
+| Frente frío o viento frío súbito (aire < agua) | Bajar cebado, orilla resguardada y soleada, cebos de alta atracción y poco volumen, esperar (la demanda cae con el agua más fría) | 🟡 · peso bajo |
+| Verano con agua muy caliente + viento cálido y seco (solano) | No priorizar la orilla batida por temperatura; valorar sombra, profundidad, entradas de agua y orilla con oleaje (oxígeno) | 🟣 · peso 0 hasta tener datos |
+| Viento lateral fuerte | No cambia la ubicación del pez; ajustar equipo: hilo hundido, bobbins pesados, puntas bajas, cebado compensado | 🟡 · práctico |
+| Cambio de dirección del viento («viento nuevo») | Registrar; no mover el puesto solo por eso | 🔴 · peso 0 |
+| Trueno audible o previsión de tormenta eléctrica | Recoger, tumbar las cañas, salir de la orilla; volver 30 min después del último trueno | 🟢 · filtro de seguridad (no puntúa) |
 | Verano + calma + sol + calor | Amanecer y anochecer, sombra y vegetación, cebos a media agua si hay actividad; no insistir a mediodía | 🟡 |
 | Nublado o presión bajando | No usar la presión como regla; registrar nubosidad y presión con **peso 0** | 🔴 |
-| Viento fuerte con oleaje en orilla expuesta | Probar orilla batida con fondo blando (remueve alimento) o recula protegida si no hay señales | 🟣 |
+| Viento fuerte (≥15 km/h) con oleaje sobre orilla somera de fondo blando | Probar la orilla batida si se puede pescar con seguridad (agua turbia = alimento removido); si no, recula protegida | 🟢 física / 🟡 carpa · peso bajo *(antes 🟣)* |
 | **Temperatura** subiendo 3 días (15→19 °C) | Subir cebado progresivamente, buscar someras que se calientan; 17–21 °C vigilar desove | 🟢 |
 | Temperatura bajando 3 días (21→17 °C) | Reducir cebado, volver a zonas estables, dejar que el agua se estabilice | 🟡 |
 | Agua >28 °C y calma | Bajar confianza de cualquier predicción; sesión corta en el amanecer; medir temperatura y registrar profundidad | 🟡 |
@@ -428,7 +513,7 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - **Una pista por caña** (decisión del usuario): cada caña lleva nombre («fija», «carrete»), su plan, sus avisos y sus propuestas, porque en cada peldaño se cambia una sola variable por caña (§5.9.2). La segunda caña empieza por el segundo cebo de la fase si el usuario lo lleva, para comparar (🟣).
 - **Otras especies** (Brovales, §6: boga, barbo, black bass; más «pequeño sin identificar»): se anotan con su especie y **no cuentan como captura** para el plan ni para las capturas por hora-caña. Dos capturas de otras especies o cebos mordisqueados en un tramo ⇒ cebo de anzuelo más grande o selectivo (chufa, boilie duro o grande) (🟡, §5.9.1 «mordisqueado»; el maíz es poco selectivo frente a barbos y bogas, 🟡). El umbral de dos es 🟣.
 - **Cebado sin gramos** (poco · normal · mucho), al empezar y en cada recebado por caña. Con cebado abundante y entrada de otras especies o pequeños ⇒ «ceba menos y más selectivo» (🟡 + 🟣). En invierno, con cebado abundante ⇒ aviso de cebado mínimo (🟢, §5.5).
-- **Viento**: el usuario anota «ha cambiado el viento»; durante 2 h la app recuerda valorar la orilla que lo recibe (🟡, §5.9.1; las 2 h son 🟣).
+- **Viento**: el usuario anota «ha cambiado el viento»; durante 2 h la app recuerda valorar la orilla que lo recibe (🟡, §5.9.1; las 2 h son 🟣). *(Oct. 2026, §5.9.12:)* el texto pide además registrar si cambian las señales (saltos, burbujas, picadas): no está demostrado que el cambio mueva a las carpas.
 - Black bass: **no hay normativa verificada** en este documento sobre su captura o devolución en Brovales; la app no dice nada legal sobre él hasta verificarlo (§6.3).
 
 #### 5.9.9 Lluvia, tormenta y entrada de agua durante la sesión (oct. 2026, sesión del usuario)
@@ -445,7 +530,7 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 > Añadido para que cada aviso diga qué ha cambiado y para usar puestos reales en lugar de suponer la batimetría (§6.3).
 
 - **Mis puestos**: nombre, zona, estructura (borde somero, primera caída, antiguo cauce, recula o entrada, punta, llano, otra), profundidad y distancia **medidas por el usuario**, orientación de la orilla (hacia dónde mira, rumbo al agua) y notas. La app no inventa profundidades ni zonas.
-- **Viento respecto al puesto**: si el viento viene de la dirección a la que mira la orilla, sopla desde el agua hacia ti: *de cara*, tu orilla lo recibe (sotavento, §5.4 🟡: desempate, no regla principal); de espaldas, orilla resguardada; lateral; flojo por debajo de 6 km/h (🟣).
+- **Viento respecto al puesto**: si el viento viene de la dirección a la que mira la orilla, sopla desde el agua hacia ti: *de cara*, tu orilla lo recibe (§5.4 🟡: desempate, no regla principal; definiciones y avisos prácticos en §5.9.12); de espaldas, orilla resguardada; lateral; flojo por debajo de 6 km/h (🟣).
 - **Tiempo en cada aviso**: al empezar y en cada aviso se guarda la previsión de la hora en curso (serie combinada según tu prioridad de fuentes; aire corregido con el sesgo frente a AEMET), el código de tiempo de Open-Meteo (tormenta = 95–99; se usa el más severo de los modelos), el agua (medida o estimada), el ocaso y el fin legal. Se muestran los cambios desde el aviso anterior y desde el inicio con umbrales 🟣: aire ±1,5 °C, viento ±8 km/h, giro ≥ 60° (con viento ≥ 6 km/h), rachas ≥ 40 km/h, lluvia ≥ 0,2 mm/h, agua ±0,3 °C. **Nubosidad (±40 %) y presión (±2 hPa) se muestran con peso 0 (🔴)**.
 - **Lo que ves manda**: es una previsión; si no cuadra con lo anotado (o da tormenta), la app pregunta «¿Llueve?» / «¿Hay tormenta?» y la respuesta activa o termina la condición (§5.9.9). Un giro o subida clara del viento previsto cuenta como cambio de viento (§5.9.8, 🟡).
 - Todo queda con la sesión para aprender después (§9). Ningún dato de tiempo cambia la valoración de las reglas durante la sesión.
@@ -460,6 +545,24 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - **Nunca se envía** la ubicación GPS, la cuenta ni la clave. La clave se guarda solo en el móvil (no se sincroniza ni se exporta).
 - Cada consulta queda en la sesión (respuesta, validez, motivos de descarte o error) y cada propuesta lleva su origen (reglas o IA) con la decisión del usuario: base de la comparación «¿IA o reglas?» de la fase 8. Lo que diga la IA es 🟣 hasta que tus datos lo respalden.
 
+#### 5.9.12 Viento respecto al puesto y avisos prácticos (oct. 2026, informe de viento)
+
+> Añadido con el [informe de viento](investigacion/2026-10-viento.md). Completa §5.9.10 (que sigue igual): aquí van las definiciones sin ambigüedad, cómo puntúa el viento y los avisos que ayudan a pescar bien.
+
+- **Definiciones:** *de cara* = el viento sopla desde el agua hacia tu orilla (tu orilla lo recibe); *de espaldas* = sopla desde tierra hacia el agua (tu orilla queda resguardada y en calma); *lateral* = el resto; *flojo* < 6 km/h (sin efecto, 🟣). En la interfaz, «orilla que recibe el viento» y «orilla resguardada», nunca «sotavento».
+- **Cálculo:** ángulo entre la dirección de procedencia del viento y hacia dónde mira el puesto (al agua). ≤ 45° → de cara; ≥ 135° → de espaldas; resto → lateral.
+- **Puntuación sobre el pez (solo desempate, §5.4):** según estación, aire − agua y duración. De cara solo suma con viento cálido sostenido y agua por debajo del óptimo (22 °C, §5.1). Con viento frío, «resguardado» = favorable (🟡). Con el agua en el óptimo o por encima (verano), la dirección = 0 (🟣).
+- **Avisos prácticos (no puntúan al pez; sí aparecen en la app):**
+  - De cara ≥15 km/h: «Lance más corto: plomo más pesado o aerodinámico, trayectoria baja. Cebo en bolas o PVA sólido; el pellet suelto se quedará corto.»
+  - Lateral ≥10 km/h: «Comba: hunde el hilo, puntas bajas, bobbins más pesados; separa las líneas.»
+  - Oleaje visible (de cara ≥15 km/h): «Posibles pitidos falsos: sube el peso del indicador antes de bajar la sensibilidad; mira el hilo antes de descartar una caída del bobbin.»
+  - De espaldas: «Buen momento para cebar lejos; ojo, el cebo flotante deriva hacia fuera.»
+  - Rachas ≥40 km/h: «Ancla el bivvy y el paraguas; cuidado en la sacada en orilla batida.»
+  - Tormenta: «Si oyes un trueno, deja de pescar; caña de carbono = conductor. Vuelve 30 min después del último trueno.» (§5.9.9, 🟢 NOAA/NWS)
+- **Más consejos de equipo (🟡):** hundir el hilo nada más caer el plomo con la puntera bajo el agua; nylon o fluorocarbono que se hunda (el trenzado flota y coge viento); backleads con resaca, sabiendo que restan sensibilidad; alinear las cañas con el hilo y anclar el rod-pod; con 3 cañas en 10 m y viento lateral, separar las líneas; en la orilla batida, cebar un poco «aguas arriba» del viento respecto al punto (sin fuente formal).
+- **«Ha cambiado el viento» (🟣):** se mantiene el recordatorio de 2 h de §5.9.8.
+- **Fetch por puesto:** cada puesto guarda los metros de agua abierta hacia donde mira (estimados en el mapa). Sin fetch (≥500 m, 🟣) no hay oleaje que remueva el fondo.
+
 ### 5.10 Pescar más: recomendación concreta y conocimiento aprendido (oct. 2026, petición del usuario)
 
 > El usuario quiere que la app le diga qué hacer para sacar el máximo de carpas, sin dejar nada al azar, y que este documento mejore con sus vivencias. El horario de pesca se sigue respetando, pero sin recordarlo en cada pantalla.
@@ -473,7 +576,7 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
     - verano: someras al amanecer y al anochecer, caída en las horas centrales;
     - calor: lo más hondo y las entradas;
     - otoño: reculas, caída y litoral nuevo.
-    - Además: +1 con viento a favor (de cara; en invierno, resguardado); +3 si te ha funcionado; +1 si hay una lección tuya.
+    - Además: +1 si el viento favorece el puesto según §5.4 (de cara con viento cálido sostenido y agua por debajo del óptimo; resguardado con viento frío; nada con el agua ya caliente); +3 si te ha funcionado; +1 si hay una lección tuya.
   - **Distancia y profundidad por fase y hora** (🟣): en verano, cerca y somero con luz baja, lejos y hondo a mediodía; en invierno, lejos y hondo salvo a mediodía. Los metros salen de tus puestos (la batimetría no está verificada, §6.3).
   - **Cebado según la demanda** (🟢, §5.8).
 - **Lo que te ha funcionado** (🟣, datos propios): capturas por hora-caña por cebo, puesto, columna y momento del día, en sesiones parecidas (misma fase o agua ± 3 °C).
@@ -601,6 +704,25 @@ Sesión guiada (añadido oct. 2026, §5.9):
 - **Franja horaria de cada tramo:** el plan B suele coincidir con el atardecer; sin registrarla, la hora se confunde con el plan.
 - Protocolo de tres cañas (🟣): A = recomendación, B = alternativa de un peldaño, C = exploración; rotar la posición física. ⚖ Las tres en ≤10 m de orilla, así que C solo puede explorar otra distancia o columna; otra zona exige mover las tres.
 
+Viento (añadido oct. 2026, [informe de viento](investigacion/2026-10-viento.md)):
+
+| Campo | Cómo | Por qué |
+|---|---|---|
+| Dirección de procedencia del viento (8 rumbos o grados) | AEMET (estación más cercana) + observación en la orilla | La estación puede no reflejar el viento real en el embalse |
+| Velocidad media y racha máxima (km/h) | AEMET o anemómetro de mano | Umbrales de 6/10/15/40 km/h |
+| Horas con dirección similar (±45°) | Calculado por la app con el histórico | Prueba la regla de duración (#61) |
+| Azimut del puesto (hacia dónde miras al agua) | Brújula del móvil, guardado por puesto | Calcular de cara / espaldas / lateral |
+| Fetch en la dirección del viento (m) | Estimado sobre el mapa por puesto | Separa orillas con oleaje real de las que no lo tienen |
+| T aire y T agua superficial en la orilla (°C) | Termómetro a ~30 cm en la orilla + T aire | Define viento cálido o frío (aire − agua) |
+| Oleaje (0 = plano, 1 = rizado, 2 = olas pequeñas, 3 = olas con espuma) | Observación | Resuspensión y problemas de indicación |
+| Turbidez de la orilla | Observación (la escala de turbidez de la ficha) | Prueba la hipótesis de alimento removido |
+| Línea de espuma o flotantes en tu orilla (sí/no) | Observación | Indicador visible de acumulación |
+| Problemas prácticos (pitidos falsos, plomo arrastrado, lance corto, comba) | Casillas | Separar «no había peces» de «no pude pescar bien» |
+| Señales de peces (saltos, burbujas, barro) y su orilla | Observación con hora (avisos de la sesión guiada) | Comparar la orilla batida con la resguardada aunque no haya capturas |
+| Capturas y picadas con hora, y caña-hora pescada | Ya existente | La medida que se compara es picadas por caña-hora |
+
+**Cómo usarlo (🟣):** compara las picadas por caña-hora entre «de cara / de espaldas / lateral», separando por estación y por el signo de aire − agua. No subas el peso de ninguna regla de viento hasta tener bastantes sesiones en cada grupo; como orientación, unas 20–30 por categoría (criterio propuesto, no un dato con fuente). Mientras tanto, la temperatura del agua manda.
+
 ---
 
 ## 10. Validación y aprendizaje con pocos datos
@@ -651,6 +773,8 @@ Sesión guiada (añadido oct. 2026, §5.9):
 - Normativa citada: Orden de 2022 con modificaciones conocidas hasta marzo de 2026. Confirmar en DOE antes de cada temporada.
 - *(Añadido oct. 2026.)* La telemetría de §5.9 procede de lagos de Norteamérica y Centroeuropa o del Ebro: su transferencia a un embalse monomíctico del suroeste es 🟣. La fisiología (ingesta, digestibilidad, gusto) viene de acuicultura o laboratorio con peces jóvenes. La eficacia comparada de cebos se basa en un solo estudio con caña. Las fuentes de pescadores (Eurocarp, fabricantes, blogs) son 🟡 y algunas tienen interés comercial.
 
+- *(Añadido oct. 2026, viento.)* La física del viento viene de revistas de limnología y de NOAA/NWS; lo de carpas «siguiendo al viento» viene de revistas de pesca, tiendas y fabricantes (🟡, a veces con interés comercial y contradictorios entre sí). Los estudios de plancton son de lagos canadienses estratificados de más de 20 km²; el de capturas (Escanaba) es de un lago de tamaño parecido pero con depredadores visuales. La seiche de ≈7–8 min está calculada (Merian), no medida. Los umbrales de 2 °C, 10/15 km/h y 12 h son propuestas 🟣. Burguillos no se ha analizado por separado: aplicar la misma lógica con su fetch y orientación.
+
 ## 14. Referencias clave
 
 - Benito, Benejam, Zamora y García-Berthou 2015. *Diel cycle and effects of water flow on activity and use of depth by common carp.* Trans. Am. Fish. Soc. 144:491–501.
@@ -680,3 +804,13 @@ Sesión guiada (añadido oct. 2026, §5.9):
 - Yamamoto et al. Aquaculture (autoselección de macronutrientes).
 - Ateşşahin y Dürrani 2023. Fisheries Research 261:106640.
 - Pérez-Bote, Pula y Cascos 2000. Graellsia 56:71–78.
+- *(Añadidas oct. 2026, viento; lista completa en `investigacion/2026-10-viento.md`.)*
+- HESS 2020, 24:3399. *Evolution and dynamics of the vertical temperature profile in an oligotrophic lake.*
+- Blukacz, Sprules, Shuter y Richards 2010. Limnology & Oceanography (zooplancton y viento, lago Opeongo).
+- Freshwater Biology 2022, 67:991 (zooplancton a sotavento, lago Opeongo); Cyr 2017, Water Research (fitoplancton).
+- Zheng et al. 2015. J. Environ. Sci. (resuspensión, Taihu); Bailey y Hamilton 1997. Ecological Modelling (Thomsons Lake).
+- Stoll, Hofmann y Fischer 2010. J. Fish Biol. (oleaje y alimentación de ciprínidos jóvenes); Stoll y Fischer 2011. Oecologia.
+- Shaw, Renik y Sass 2021. PLOS ONE 16:e0257882 (viento y capturas, Escanaba Lake).
+- Gorham y Boyce 1989. J. Great Lakes Res.; Martinsen, Andersen y Sand-Jensen 2019. Hydrobiologia (estratificación diurna en lagos someros).
+- Brownscombe et al. 2023. Hydrobiologia (hábitat de carpa, Toronto Harbour); Bzonek, Kim y Mandrak 2021. Mar. Freshw. Res.
+- NOAA/NWS, seguridad frente a rayos («When thunder roars, go indoors»).
