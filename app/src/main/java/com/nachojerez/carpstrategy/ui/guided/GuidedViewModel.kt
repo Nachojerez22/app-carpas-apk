@@ -7,6 +7,7 @@ import com.nachojerez.carpstrategy.data.reservoir.ReservoirRepository
 import com.nachojerez.carpstrategy.data.userdata.LocalSettings
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
+import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.Spots
@@ -14,6 +15,7 @@ import com.nachojerez.carpstrategy.domain.guided.WeatherQuestion
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
+import com.nachojerez.carpstrategy.ui.strategy.KEY_RODS
 import com.nachojerez.carpstrategy.ui.strategy.chosenSpotKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
@@ -61,28 +63,32 @@ class GuidedViewModel @Inject constructor(
         }
     }
 
+    /** Puestos del embalse activo, el puesto y las cañas elegidos en Estrategia (fase 7.12). */
+    private data class StartPrefs(val spots: List<Spot>, val spotId: Long?, val rods: Int?)
+
     /** Puestos del embalse activo y el elegido en Estrategia (viene marcado al empezar, fase 7.10). */
     private val spotsAndPreferred = reservoirs.observeActive().flatMapLatest { r ->
         val reservoirId = r?.reservoir?.id
-        combine(settings.observeSpots(), localSettings.observe(chosenSpotKey(reservoirId))) { all, chosen ->
+        combine(settings.observeSpots(), localSettings.observe(chosenSpotKey(reservoirId)), localSettings.observe(KEY_RODS)) { all, chosen, rods ->
             val spots = Spots.of(all, reservoirId)
-            spots to chosen?.toLongOrNull()?.takeIf { id -> spots.any { it.id == id } }
+            StartPrefs(spots, chosen?.toLongOrNull()?.takeIf { id -> spots.any { it.id == id } }, rods?.toIntOrNull())
         }
     }
 
     val uiState: StateFlow<GuidedUiState> =
         combine(
             manager.observeActive(),
-            combine(settings.observeGear(), spotsAndPreferred) { gear, (spots, preferred) -> Triple(gear, spots, preferred) },
+            combine(settings.observeGear(), spotsAndPreferred, ::Pair),
             manager.nextCheckIn,
             ticker,
             combine(starting, saved, permissions, assistantSettings.observeKeyHint(), combine(manager.aiBusy, manager.chatBusy, ::Pair)) { st, sv, pm, hint, (ai, chat) ->
                 AuxState(st, sv, pm, hint, ai, chat)
             },
-        ) { session, (gear, spots, preferred), next, now, aux ->
+        ) { session, (gear, prefs), next, now, aux ->
             val (isStarting, lastSaved, perms) = Triple(aux.starting, aux.saved, aux.permissions)
-            buildGuidedState(session, gear, now, next, Formatting.MADRID, spots).copy(
-                preferredSpotId = preferred,
+            buildGuidedState(session, gear, now, next, Formatting.MADRID, prefs.spots).copy(
+                preferredSpotId = prefs.spotId,
+                preferredRods = prefs.rods?.coerceIn(1, GuidedSessions.MAX_RODS),
                 aiConfigured = aux.aiKeyHint != null,
                 aiBusy = aux.aiBusy,
                 chatBusy = aux.chatBusy,

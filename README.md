@@ -168,6 +168,20 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
+### Estrategia en 3 pasos (fase 7.12)
+
+La pestaña **Estrategia** ya no muestra todo en bruto: es un camino que termina en un plan.
+1. **Embalse** (desplegable con tus embalses).
+2. **Puesto y cañas**: la app (o la IA, en cuanto contesta) te recomienda un puesto con su porqué.
+3. **Tu plan para hoy**: condiciones, mejor rato y una línea por caña (cebo, montaje, columna,
+   distancia) con su etiqueta de evidencia y su porqué, el cebado y **qué hacer si cambia algo**
+   (sin señales, señales sin picada, carpas arriba, otras especies, viento). Lo hace la app con el
+   conocimiento y tus datos; si tienes la IA configurada, se consulta sola al elegir y lo afina (una
+   vez por puesto, cañas y franja del día; «Volver a preguntar» para otra consulta).
+
+Lo técnico (valoración, reglas, horas, cadena de filtros) está en «Ver detalles» y, al final, con todo
+elegido, **«Empezar sesión guiada con este plan»** (puesto y cañas ya marcados).
+
 ### Estrategia por embalse y puesto (fase 7.10)
 
 Arriba de **Estrategia** tocas el embalse y se despliegan tus embalses (los que tienen puestos guardados; «Otro embalse…» abre la lista completa). Al elegir uno aparecen sus puestos: «Automático» ordena tus puestos de mejor a peor; si eliges uno, «Qué hago ahora» se hace para él (estructura, distancia, profundidad, fetch, cómo le da el viento y avisos prácticos) y solo te avisa si otro encaja claramente mejor hoy. El plan de la IA compara todos tus puestos del embalse y te recomienda el mejor para hoy con el porqué (botón «Pescar en …» para cambiarte); el plan por caña es para el puesto que elijas. La sesión guiada usa ese puesto. La elección se recuerda por embalse en el móvil. Las reglas son del embalse entero: el tiempo previsto es el mismo en todos los puestos.
@@ -309,6 +323,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
 - [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
+- [x] **Fase 7.12**: Estrategia en 3 pasos (embalse → puesto y cañas → un solo plan con la IA; sesión guiada al final)
 - [x] **Fase 7.10**: estrategia por embalse y puesto (elegir los dos en Estrategia; plan de la IA y sesión guiada para ese puesto)
 - [x] **Fase 7.8**: viento (cálido o frío respecto al agua, avisos prácticos y campos del diario)
 - [x] **Fase 7.7**: chat con la IA durante la sesión

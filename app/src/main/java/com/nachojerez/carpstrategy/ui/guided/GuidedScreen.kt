@@ -198,7 +198,8 @@ private fun PermissionCard(text: String, action: String?, onAction: (() -> Unit)
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots: () -> Unit, onStart: (List<String>, FishingZone?, GroundbaitLevel?, Spot?) -> Unit) {
-    var rods by rememberSaveable { mutableStateOf(2) }
+    // Las cañas elegidas en Estrategia vienen marcadas (fase 7.12).
+    var rods by rememberSaveable(state.preferredRods) { mutableStateOf(state.preferredRods ?: 2) }
     var names by rememberSaveable { mutableStateOf(listOf("", "", "")) }
     // El puesto elegido en Estrategia viene marcado (y con él, su zona).
     val preferred = state.spots.firstOrNull { it.id == state.preferredSpotId }

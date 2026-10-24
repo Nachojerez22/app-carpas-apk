@@ -12,6 +12,7 @@ import com.nachojerez.carpstrategy.data.reservoir.ReservoirRepository
 import com.nachojerez.carpstrategy.data.userdata.GuidedJson
 import com.nachojerez.carpstrategy.data.userdata.LocalSettings
 import com.nachojerez.carpstrategy.di.IoDispatcher
+import com.nachojerez.carpstrategy.domain.advice.DayPlans
 import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.advice.LessonStatus
 import com.nachojerez.carpstrategy.domain.advice.Lessons
@@ -33,13 +34,17 @@ import com.nachojerez.carpstrategy.ui.guided.GuidedSessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -50,7 +55,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class StrategyViewModel @Inject constructor(
     observeRawWeather: ObserveRawWeatherUseCase,
@@ -80,6 +85,8 @@ class StrategyViewModel @Inject constructor(
     private val chosenSpot = reservoirs.observeActive().map { it?.reservoir?.id }.distinctUntilChanged()
         .flatMapLatest { id -> localSettings.observe(chosenSpotKey(id)).map { it?.toLongOrNull() } }
 
+    private val rods = localSettings.observe(KEY_RODS).map { it?.toIntOrNull()?.coerceIn(1, DayPlans.MAX_RODS) ?: DEFAULT_RODS }
+
     private val adviceInputs = combine(
         combine(settings.observeSpots(), settings.observeGear(), settings.observeLessons(), journal.observeSessions()) { spots, gear, lessons, sessions ->
             AdviceInputs(spots, gear, lessons, sessions)
@@ -87,7 +94,8 @@ class StrategyViewModel @Inject constructor(
         reservoirs.observeActive(),
         reservoirs.observeAll(),
         chosenSpot,
-    ) { inputs, active, all, chosen -> inputs.copy(reservoir = active, reservoirs = all, chosenSpotId = chosen) }
+        rods,
+    ) { inputs, active, all, chosen, n -> inputs.copy(reservoir = active, reservoirs = all, chosenSpotId = chosen, rods = n) }
 
     private val placeAndRaw = location.flatMapLatest { place -> observeRawWeather(place.point).map { place to it } }
 
@@ -108,6 +116,8 @@ class StrategyViewModel @Inject constructor(
                 state.copy(
                     spots = spots,
                     chosenSpotId = chosenId,
+                    rods = inputs.rods,
+                    gear = inputs.gear,
                     myReservoirs = Reservoirs.withSpots(inputs.spots, inputs.reservoirs, inputs.reservoir?.reservoir),
                     lessons = accepted,
                     pendingLessons = inputs.lessons.count { it.status == LessonStatus.PROPOSED },
@@ -135,36 +145,81 @@ class StrategyViewModel @Inject constructor(
         }
     }
 
+    /** Cañas que vas a pescar (se recuerda en este móvil). */
+    fun chooseRods(n: Int) {
+        viewModelScope.launch { localSettings.put(KEY_RODS, n.coerceIn(1, DayPlans.MAX_RODS).toString()) }
+    }
+
+    /** Planes ya pedidos en esta pantalla: si uno falla, no se vuelve a pedir solo (no gastar cuota). */
+    private val attempted = mutableSetOf<String>()
+
+    private var planJob: Job? = null
+
     init {
-        // El último plan válido de hoy se vuelve a mostrar sin gastar otra consulta.
         viewModelScope.launch {
-            val last = GuidedJson.decodeAi(localSettings.get(GuidedSessionManager.KEY_LAST_PLAN)) ?: return@launch
-            val today = clock.instant().atZone(Formatting.MADRID).toLocalDate()
-            if (!last.valid || last.time.atZone(Formatting.MADRID).toLocalDate() != today) return@launch
-            val plan = last.response?.let(AssistantJson::parsePlan) ?: return@launch
-            if (planFlow.value.outcome == null) planFlow.value = PlanUiState(outcome = AiOutcome(last, plan))
+            // El último plan válido de hoy se vuelve a mostrar sin gastar otra consulta.
+            restoreLastPlan()
+            // Opción A (fase 7.12): al elegir embalse, puesto y cañas, la IA se consulta sola una vez
+            // por día, puesto, cañas y franja; esperar a que dejes de tocar evita consultas de más.
+            uiState.map { planKey(it) to it }
+                .distinctUntilChanged { a, b -> a.first == b.first }
+                .debounce(AUTO_PLAN_DELAY_MS)
+                .collect { (key, state) ->
+                    if (key == null || key in attempted || planFlow.value.key == key) return@collect
+                    if (assistantSettings.apiKey() == null) return@collect
+                    startRequest(state, key)
+                }
         }
+    }
+
+    private suspend fun restoreLastPlan() {
+        val last = GuidedJson.decodeAi(localSettings.get(GuidedSessionManager.KEY_LAST_PLAN)) ?: return
+        val today = clock.instant().atZone(Formatting.MADRID).toLocalDate()
+        if (!last.valid || last.time.atZone(Formatting.MADRID).toLocalDate() != today) return
+        val plan = last.response?.let(AssistantJson::parsePlan) ?: return
+        if (planFlow.value.outcome == null) planFlow.value = PlanUiState(outcome = AiOutcome(last, plan), key = localSettings.get(KEY_PLAN_KEY))
     }
 
     /** Plan con IA: solo si hay clave; la respuesta se valida y, si no vale, mandan las reglas. */
     val plan: StateFlow<PlanUiState> = combine(planFlow, assistantSettings.observeKeyHint()) { p, hint -> p.copy(configured = hint != null) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PlanUiState())
 
-    fun requestPlan(rods: Int) {
-        if (planFlow.value.running) return
+    /** «Volver a preguntar»: nueva consulta para lo elegido ahora. */
+    fun requestPlan() {
         val state = uiState.value
-        viewModelScope.launch {
-            val key = assistantSettings.apiKey() ?: return@launch
-            val now = clock.instant()
-            val gear = settings.observeGear().first()
-            val input = planInput(state, rods, gear, now) ?: return@launch
-            planFlow.value = PlanUiState(running = true)
+        val key = planKey(state) ?: return
+        startRequest(state, key)
+    }
+
+    /** Una consulta a la vez: si cambias de puesto mientras pregunta, manda la última elección. */
+    private fun startRequest(state: StrategyUiState, planKey: String) {
+        planJob?.cancel()
+        planJob = viewModelScope.launch { request(state, planKey) }
+    }
+
+    private suspend fun request(state: StrategyUiState, planKey: String) {
+        val apiKey = assistantSettings.apiKey() ?: return
+        val now = clock.instant()
+        val input = planInput(state, state.rods, state.gear, now) ?: return
+        attempted += planKey
+        planFlow.value = planFlow.value.copy(running = true)
+        try {
             val outcome = withContext(io) {
-                assistant.plan(assistantSettings.config(), key, AssistantPrompts.planState(input), planContext(state, rods, gear, now), knowledge.forPlan(state.reservoir?.isBrovales ?: true))
+                assistant.plan(
+                    assistantSettings.config(), apiKey, AssistantPrompts.planState(input), planContext(state, state.rods, state.gear, now),
+                    knowledge.forPlan(state.reservoir?.isBrovales ?: true),
+                )
             }
             // Se guarda para copiarlo en la sesión guiada si empieza en las próximas horas.
             localSettings.put(GuidedSessionManager.KEY_LAST_PLAN, GuidedJson.encodeAi(outcome.exchange))
-            planFlow.value = PlanUiState(outcome = outcome, spotName = input.chosenSpot?.name)
+            localSettings.put(KEY_PLAN_KEY, planKey)
+            planFlow.value = PlanUiState(outcome = outcome, key = planKey)
+        } catch (e: CancellationException) {
+            // Cancelada por otra elección: si vuelves a esta, se podrá pedir.
+            attempted -= planKey
+            throw e
+        } finally {
+            if (planFlow.value.running) planFlow.value = planFlow.value.copy(running = false)
         }
     }
 }
@@ -177,15 +232,15 @@ private data class AdviceInputs(
     val reservoir: ReservoirContext? = null,
     val reservoirs: List<Reservoir> = emptyList(),
     val chosenSpotId: Long? = null,
+    val rods: Int = DEFAULT_RODS,
 )
+
+/** Ajustes locales (no se sincronizan) de Estrategia. */
+const val KEY_RODS = "strategy_rods"
+private const val KEY_PLAN_KEY = "strategy_plan_key"
+
+/** Espera tras el último cambio de embalse, puesto o cañas antes de consultar a la IA. */
+private const val AUTO_PLAN_DELAY_MS = 1_500L
 
 /** Clave local (no se sincroniza) del puesto elegido en Estrategia para cada embalse. */
 fun chosenSpotKey(reservoirId: String?): String = "strategy_spot_" + (reservoirId ?: "sin_embalse")
-
-data class PlanUiState(
-    val configured: Boolean = false,
-    val running: Boolean = false,
-    val outcome: AiOutcome<AiPlan>? = null,
-    /** Puesto elegido cuando se pidió el plan (null = automático o plan restaurado). */
-    val spotName: String? = null,
-)
