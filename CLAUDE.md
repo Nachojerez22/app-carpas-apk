@@ -242,8 +242,9 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 
 ## Estrategia por embalse y puesto (fase 7.10)
 
-- Estrategia empieza con `PlaceCard`: el embalse (cambiarlo = `ReservoirsRoute`, como en Lugar) y el puesto
-  («Automático» o uno de los del embalse). La elección va en el ajuste local `chosenSpotKey(reservoirId)`
+- Estrategia empieza con `PlaceCard`: desplegable con tus embalses (`Reservoirs.withSpots`: los que tienen
+  puestos, más el activo; elegir uno = cambiar la ubicación) y «Otro embalse…» (`ReservoirsRoute`); debajo,
+  los puestos de ese embalse («Automático» o uno). La elección va en el ajuste local `chosenSpotKey(reservoirId)`
   (`local_strategy_spot_…`, no se sincroniza); un puesto borrado o de otro embalse vuelve a automático.
 - `AdvisorInput.chosenSpotId` → `FishingAdvice.chosen` y `better` (otro puesto con ≥ `BETTER_SPOT_MARGIN`
   puntos más: solo se avisa). Las reglas siguen siendo del embalse entero (el tiempo es el mismo).

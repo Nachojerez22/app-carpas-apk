@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
@@ -26,12 +28,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -44,6 +48,7 @@ import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.guided.WindRelation
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
 import com.nachojerez.carpstrategy.domain.rules.ActiveRule
 import com.nachojerez.carpstrategy.domain.rules.AdviceItem
@@ -89,7 +94,7 @@ fun StrategyScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan by viewModel.plan.collectAsStateWithLifecycle()
-    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant, onOpenLessons, onOpenReservoir, onOpenReservoirs, viewModel::chooseSpot)
+    StrategyContent(state, onStartGuided, onOpenSpots, plan, viewModel::requestPlan, onOpenAssistant, onOpenLessons, onOpenReservoir, onOpenReservoirs, viewModel::chooseSpot, viewModel::chooseReservoir)
 }
 
 /**
@@ -109,6 +114,7 @@ fun StrategyContent(
     onOpenReservoir: () -> Unit = {},
     onOpenReservoirs: () -> Unit = {},
     onChooseSpot: (Long?) -> Unit = {},
+    onChooseReservoir: (Reservoir) -> Unit = {},
 ) {
     var whyOpen by rememberSaveable { mutableStateOf(false) }
     LazyColumn(
@@ -118,7 +124,7 @@ fun StrategyContent(
     ) {
         item { ScreenHeader(stringResource(R.string.strategy_title), stringResource(R.string.strategy_overline)) }
         // Dónde vas a pescar: embalse y puesto (fase 7.10). La estrategia se hace para ellos.
-        if (!state.isLoading) item { PlaceCard(state, onOpenReservoirs, onChooseSpot, onOpenSpots) }
+        if (!state.isLoading) item { PlaceCard(state, onChooseReservoir, onOpenReservoirs, onChooseSpot, onOpenSpots) }
         when {
             state.isLoading -> item {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
@@ -490,19 +496,53 @@ private fun spotWindRes(p: SpotPick): Int = when {
 }
 
 /**
- * Embalse y puesto donde vas a pescar (fase 7.10). Cambiar de embalse es cambiar la ubicación
- * (como en Lugar); el puesto se recuerda por embalse y solo en este móvil.
+ * Embalse y puesto donde vas a pescar (fase 7.10). El desplegable muestra tus embalses (los que
+ * tienen puestos) y al elegir uno aparecen sus puestos; «Otro embalse…» abre la lista completa.
+ * Cambiar de embalse es cambiar la ubicación (como en Lugar); el puesto se recuerda por embalse.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PlaceCard(state: StrategyUiState, onOpenReservoirs: () -> Unit, onChooseSpot: (Long?) -> Unit, onOpenSpots: () -> Unit) {
+private fun PlaceCard(
+    state: StrategyUiState,
+    onChooseReservoir: (Reservoir) -> Unit,
+    onOpenReservoirs: () -> Unit,
+    onChooseSpot: (Long?) -> Unit,
+    onOpenSpots: () -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
     CarpCard {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            Column(Modifier.weight(1f)) {
-                Caption(stringResource(R.string.reservoirs_place_title))
-                Text(state.reservoir?.reservoir?.name ?: stringResource(R.string.strategy_place_no_reservoir), style = MaterialTheme.typography.titleMedium)
+        Caption(stringResource(R.string.reservoirs_place_title))
+        Box {
+            OutlinedButton(onClick = { menuOpen = true }, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    (state.reservoir?.reservoir?.name ?: stringResource(R.string.strategy_place_no_reservoir)) + " ▾",
+                    style = MaterialTheme.typography.titleMedium,
+                )
             }
-            TextButton(onClick = onOpenReservoirs) { Text(stringResource(R.string.strategy_place_change)) }
+            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                state.myReservoirs.forEach { (reservoir, count) ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(reservoir.name)
+                                Caption(pluralStringResource(R.plurals.strategy_place_spots_count, count, count))
+                            }
+                        },
+                        onClick = {
+                            menuOpen = false
+                            if (reservoir.id != state.reservoir?.reservoir?.id) onChooseReservoir(reservoir)
+                        },
+                    )
+                }
+                if (state.myReservoirs.isNotEmpty()) HorizontalDivider()
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.strategy_place_other)) },
+                    onClick = {
+                        menuOpen = false
+                        onOpenReservoirs()
+                    },
+                )
+            }
         }
         Text(stringResource(R.string.guided_start_spot), style = MaterialTheme.typography.titleSmall)
         if (state.spots.isEmpty()) {

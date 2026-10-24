@@ -25,6 +25,7 @@ import com.nachojerez.carpstrategy.domain.repository.JournalRepository
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
+import com.nachojerez.carpstrategy.domain.reservoir.Reservoirs
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
@@ -107,6 +108,7 @@ class StrategyViewModel @Inject constructor(
                 state.copy(
                     spots = spots,
                     chosenSpotId = chosenId,
+                    myReservoirs = Reservoirs.withSpots(inputs.spots, inputs.reservoirs, inputs.reservoir?.reservoir),
                     lessons = accepted,
                     pendingLessons = inputs.lessons.count { it.status == LessonStatus.PROPOSED },
                     reservoir = inputs.reservoir,
@@ -119,6 +121,11 @@ class StrategyViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StrategyUiState())
 
     private val planFlow = MutableStateFlow(PlanUiState())
+
+    /** Cambia de embalse desde Estrategia: es cambiar la ubicación, como en Lugar. */
+    fun chooseReservoir(reservoir: Reservoir) {
+        viewModelScope.launch { reservoirs.select(reservoir) }
+    }
 
     /** Elige el puesto para el embalse activo; null = automático (la app ordena todos). */
     fun chooseSpot(id: Long?) {

@@ -1123,12 +1123,16 @@
     <string name="advice_spot_proven">te ha funcionado (%1$d carpas)</string>
     <string name="advice_spot_distance">a %1$s m</string>
     <string name="advice_spot_depth">%1$s m de fondo</string>
+    <plurals name="strategy_place_spots_count">
+        <item quantity="one">%1$d puesto</item>
+        <item quantity="other">%1$d puestos</item>
+    </plurals>
     <string name="advice_chosen_title">Tu puesto</string>
     <string name="advice_spot_fetch">Fetch (agua hasta la otra orilla): %1$s m</string>
     <string name="advice_spot_no_facing">Sin orientación: márcala en el mapa o en Mis puestos para saber cómo le da el viento</string>
     <string name="advice_better_spot">Hoy encaja mejor: %1$s (%2$s). Solo es un aviso: tú decides 🟣</string>
     <string name="strategy_place_no_reservoir">Ubicación sin embalse conocido</string>
-    <string name="strategy_place_change">Cambiar</string>
+    <string name="strategy_place_other">Otro embalse…</string>
     <string name="strategy_place_auto">Automático</string>
     <string name="strategy_place_no_spots">No tienes puestos en este embalse. Añádelos (mejor en el mapa) para que la estrategia sea para tu puesto.</string>
     <string name="strategy_place_auto_hint">Automático: la app ordena tus puestos de mejor a peor para ahora.</string>

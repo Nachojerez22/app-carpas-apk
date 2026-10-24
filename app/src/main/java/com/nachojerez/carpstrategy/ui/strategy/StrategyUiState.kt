@@ -69,6 +69,8 @@ data class StrategyUiState(
     val reservoir: ReservoirContext? = null,
     /** Puesto elegido en Estrategia para este embalse; null = automático (fase 7.10). */
     val chosenSpotId: Long? = null,
+    /** Tus embalses (con puestos guardados, y cuántos) para el desplegable de Estrategia. */
+    val myReservoirs: List<Pair<Reservoir, Int>> = emptyList(),
 )
 
 /**
