@@ -50,4 +50,8 @@ interface SettingsRepository {
     /** Conocimiento aprendido (ajuste `lessons`, se sincroniza). */
     fun observeLessons(): Flow<List<Lesson>>
     suspend fun setLessons(lessons: List<Lesson>)
+
+    /** Tu cebado «normal» en kg por caña y sesión (fase 7.13; se sincroniza); null sin medida. */
+    fun observeGroundbaitNormalKg(): Flow<Double?>
+    suspend fun setGroundbaitNormalKg(kg: Double?)
 }

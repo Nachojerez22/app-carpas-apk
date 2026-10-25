@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.domain.advice
 
+import com.nachojerez.carpstrategy.domain.assistant.AiGroundbait
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.Column
@@ -76,6 +77,10 @@ data class DayPlan(
     val contingencies: List<ContingencyLine>,
     /** Resumen de la IA (null si el plan es solo de la app). */
     val aiSummary: String? = null,
+    /** Cebado en kilos con tu medida (fase 7.13); null sin medida o si no se ceba. */
+    val groundbaitAmount: GroundbaitAmount? = null,
+    /** Engodo con lo que llevas, si lo propone la IA (ya validado). */
+    val aiGroundbait: AiGroundbait? = null,
 ) {
     val source: PlanSource get() = if (rods.any { it.source == PlanSource.AI }) PlanSource.AI else PlanSource.APP
 }
@@ -96,6 +101,7 @@ object DayPlans {
         gear: List<GearItem>,
         ai: AiPlan? = null,
         spot: SpotPick? = advice.chosen ?: advice.spots.firstOrNull(),
+        groundbaitNormalKg: Double? = null,
     ): DayPlan {
         val count = rods.coerceIn(1, MAX_RODS)
         val app = (1..count).map { rod ->
@@ -116,13 +122,30 @@ object DayPlans {
             )
         }
         val lines = if (ai == null) app else app.map { line -> merge(line, ai, gear) }
-        return DayPlan(spot, lines, advice.groundbait, contingencies(advice, phase, spot), ai?.summary?.takeIf { it.isNotBlank() })
+        // Kilos: los que dice la IA (validados con tu medida) o los de tu medida y el nivel.
+        val amount = advice.groundbait?.let { level ->
+            val base = GroundbaitAmounts.amount(level, groundbaitNormalKg, count)
+            val aiKg = ai?.groundbait?.perRodKg
+            if (base != null && aiKg != null) {
+                val initial = aiKg * GroundbaitAmounts.INITIAL_SHARE
+                base.copy(perRodKg = aiKg, totalKg = aiKg * count, initialPerRodKg = initial, rebaitPerRodKg = aiKg - initial)
+            } else {
+                base
+            }
+        }
+        return DayPlan(
+            spot, lines, advice.groundbait, contingencies(advice, phase, spot), ai?.summary?.takeIf { it.isNotBlank() },
+            groundbaitAmount = amount,
+            aiGroundbait = ai?.groundbait?.takeIf { advice.groundbait != null },
+        )
     }
 
     /** La IA manda en lo que dice; lo que no dice lo pone la app. */
     private fun merge(line: RodLine, ai: AiPlan, gear: List<GearItem>): RodLine {
         val r = ai.rods.firstOrNull { it.rod == line.rod } ?: return line
-        val baitItem = r.baitName?.let { name -> gear.firstOrNull { it.category == GearCategory.BAIT && it.name.trim().equals(name.trim(), ignoreCase = true) } }
+        val baitItem = r.baitName?.let { name ->
+            gear.firstOrNull { it.category == GearCategory.BAIT && (it.name.trim().equals(name.trim(), ignoreCase = true) || it.fullName.equals(name.trim(), ignoreCase = true)) }
+        }
         return line.copy(
             spotName = r.spotName ?: line.spotName,
             baitType = baitItem?.baitType ?: if (r.baitName != null) null else line.baitType,

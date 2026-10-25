@@ -20,6 +20,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.Spots
+import com.nachojerez.carpstrategy.domain.guided.today
 import com.nachojerez.carpstrategy.domain.journal.JournalStats
 import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.repository.JournalRepository
@@ -30,7 +31,11 @@ import com.nachojerez.carpstrategy.domain.reservoir.Reservoirs
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
+import com.nachojerez.carpstrategy.ui.guided.BaitSheetResult
+import com.nachojerez.carpstrategy.ui.guided.GearDraft
+import com.nachojerez.carpstrategy.ui.guided.GearEditor
 import com.nachojerez.carpstrategy.ui.guided.GuidedSessionManager
+import com.nachojerez.carpstrategy.ui.guided.SheetUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
 import javax.inject.Inject
@@ -68,6 +73,7 @@ class StrategyViewModel @Inject constructor(
     private val localSettings: LocalSettings,
     private val knowledge: KnowledgeAsset,
     private val reservoirs: ReservoirRepository,
+    private val gearEditor: GearEditor,
     @param:IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
     private val location = settings.observeLocation()
@@ -88,8 +94,8 @@ class StrategyViewModel @Inject constructor(
     private val rods = localSettings.observe(KEY_RODS).map { it?.toIntOrNull()?.coerceIn(1, DayPlans.MAX_RODS) ?: DEFAULT_RODS }
 
     private val adviceInputs = combine(
-        combine(settings.observeSpots(), settings.observeGear(), settings.observeLessons(), journal.observeSessions()) { spots, gear, lessons, sessions ->
-            AdviceInputs(spots, gear, lessons, sessions)
+        combine(settings.observeSpots(), settings.observeGear(), settings.observeLessons(), journal.observeSessions(), settings.observeGroundbaitNormalKg()) { spots, gear, lessons, sessions, normal ->
+            AdviceInputs(spots, gear, lessons, sessions, groundbaitNormalKg = normal)
         },
         reservoirs.observeActive(),
         reservoirs.observeAll(),
@@ -117,13 +123,15 @@ class StrategyViewModel @Inject constructor(
                     spots = spots,
                     chosenSpotId = chosenId,
                     rods = inputs.rods,
-                    gear = inputs.gear,
+                    gear = inputs.gear.today(),
+                    allGear = inputs.gear,
+                    groundbaitNormalKg = inputs.groundbaitNormalKg,
                     myReservoirs = Reservoirs.withSpots(inputs.spots, inputs.reservoirs, inputs.reservoir?.reservoir),
                     lessons = accepted,
                     pendingLessons = inputs.lessons.count { it.status == LessonStatus.PROPOSED },
                     reservoir = inputs.reservoir,
                     advice = adviceFor(
-                        state.derived, state.result?.evaluatedAt ?: clock.instant(), inputs.sessions, inputs.gear, spots, accepted,
+                        state.derived, state.result?.evaluatedAt ?: clock.instant(), inputs.sessions, inputs.gear.today(), spots, accepted,
                         inputs.reservoir, inputs.reservoirs, chosenId,
                     ),
                 )
@@ -143,6 +151,42 @@ class StrategyViewModel @Inject constructor(
             val reservoirId = reservoirs.observeActive().first()?.reservoir?.id
             localSettings.put(chosenSpotKey(reservoirId), id?.toString())
         }
+    }
+
+    /** Marca o desmarca un cebo como «hoy lo llevo» (fase 7.13): no se borra del inventario. */
+    fun toggleToday(id: String) {
+        viewModelScope.launch { gearEditor.toggleToday(id) }
+    }
+
+    fun saveGear(draft: GearDraft) {
+        viewModelScope.launch { gearEditor.save(draft) }
+    }
+
+    fun deleteGear(id: String) {
+        viewModelScope.launch { gearEditor.delete(id) }
+    }
+
+    private val sheet = MutableStateFlow(SheetUiState())
+    val sheetState: StateFlow<SheetUiState> = sheet
+
+    /** Ficha del cebo con la IA (Google y enlace); [onDone] recibe el borrador con la ficha. */
+    fun fetchSheet(draft: GearDraft, onDone: (GearDraft) -> Unit) {
+        if (sheet.value.running) return
+        sheet.value = SheetUiState(running = true)
+        viewModelScope.launch {
+            val result = gearEditor.fetchSheet(draft)
+            sheet.value = SheetUiState(result = result)
+            if (result is BaitSheetResult.Ok) onDone(GearDraft.of(result.item))
+        }
+    }
+
+    fun clearSheetState() {
+        sheet.value = SheetUiState()
+    }
+
+    /** Tu cebado «normal» en kg por caña y sesión (null = sin medida). */
+    fun setGroundbaitNormalKg(kg: Double?) {
+        viewModelScope.launch { settings.setGroundbaitNormalKg(kg) }
     }
 
     /** Cañas que vas a pescar (se recuerda en este móvil). */
@@ -233,6 +277,7 @@ private data class AdviceInputs(
     val reservoirs: List<Reservoir> = emptyList(),
     val chosenSpotId: Long? = null,
     val rods: Int = DEFAULT_RODS,
+    val groundbaitNormalKg: Double? = null,
 )
 
 /** Ajustes locales (no se sincronizan) de Estrategia. */

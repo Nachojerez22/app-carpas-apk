@@ -1,5 +1,7 @@
 package com.nachojerez.carpstrategy.domain.guided
 
+import com.nachojerez.carpstrategy.domain.rules.Evidence
+
 /**
  * Funciones de un cebo (CONOCIMIENTO.md §5.9.5). Un sustituto debe cumplir la misma función,
  * no tener el mismo aspecto: 🟢 el olor atrae y el gusto decide (#46).
@@ -35,6 +37,15 @@ enum class BaitType(
     POPUP(setOf(BaitFunction.VISIBILITY, BaitFunction.SELECTIVITY), FishingPhase.entries.toSet(), 2, 2),
     PVA(setOf(BaitFunction.ATTRACTION, BaitFunction.RETENTION), FishingPhase.entries.toSet(), 1, 1, hookBait = false),
     WORM(setOf(BaitFunction.ATTRACTION), setOf(FishingPhase.WINTER, FishingPhase.SPRING), 1, 1),
+
+    /** Engodo o mix comercial para cebar (fase 7.13): atrae y retiene; no va en el anzuelo. */
+    GROUNDBAIT_MIX(setOf(BaitFunction.ATTRACTION, BaitFunction.RETENTION), FishingPhase.entries.toSet(), 1, 1, hookBait = false),
+
+    /** Harinas para hacer el engodo (maíz, galleta, girasol…). */
+    FLOUR(setOf(BaitFunction.ATTRACTION), FishingPhase.entries.toSet(), 1, 1, hookBait = false),
+
+    /** Líquidos y aditivos (boosters, melazas, aminoácidos). */
+    LIQUID(setOf(BaitFunction.ATTRACTION), FishingPhase.entries.toSet(), 1, 1, hookBait = false),
     OTHER(emptySet(), FishingPhase.entries.toSet(), 1, 1),
 }
 
@@ -60,7 +71,44 @@ data class GearItem(
     val name: String,
     val baitType: BaitType? = null,
     val rigType: RigType? = null,
+    /** Marca (fase 7.13), escrita por el usuario. */
+    val brand: String = "",
+    /** Qué lleva: sabor, composición… escrito por el usuario (manda sobre la ficha de la IA). */
+    val description: String = "",
+    /** Enlace a una tienda o a la ficha del fabricante, para que la IA saque la descripción. */
+    val url: String = "",
+    /** Lo llevas hoy: los que no, se quedan en el inventario pero no entran en el plan. */
+    val available: Boolean = true,
+    /** Ficha que preparó la IA (🟣, compruébala). */
+    val sheet: BaitSheet? = null,
+) {
+    /** «Sonubaits · Supercrush Green»: marca y nombre, para la pantalla y la IA. */
+    val fullName: String get() = listOf(brand.trim(), name.trim()).filter { it.isNotEmpty() }.joinToString(" · ")
+}
+
+/** Solubilidad de un cebo o engodo (cuánto tarda en deshacerse y soltar atracción). */
+enum class Solubility { HIGH, MEDIUM, LOW }
+
+/**
+ * Ficha de un cebo preparada por la IA (fase 7.13) a partir de la marca, el nombre y, si lo hay,
+ * el enlace de la tienda (con búsqueda en Google si la clave lo permite). Es información 🟣 «según
+ * la IA»: lo que escribe el usuario manda.
+ */
+data class BaitSheet(
+    val type: BaitType?,
+    val composition: String,
+    val profile: String = "",
+    val functions: Set<BaitFunction> = emptySet(),
+    val solubility: Solubility? = null,
+    val phases: Set<FishingPhase> = emptySet(),
+    val notes: String = "",
+    val sources: List<String> = emptyList(),
+    val evidence: Evidence,
+    val updatedAt: java.time.Instant,
 )
+
+/** Lo que llevas hoy (fase 7.13): solo eso entra en el plan, en la IA y en la sesión guiada. */
+fun List<GearItem>.today(): List<GearItem> = filter { it.available }
 
 /** Cebo elegido para una propuesta: del equipo del usuario si lo tiene. */
 data class BaitChoice(

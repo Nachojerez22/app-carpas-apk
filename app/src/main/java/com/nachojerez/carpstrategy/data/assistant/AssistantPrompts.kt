@@ -3,6 +3,7 @@ package com.nachojerez.carpstrategy.data.assistant
 import com.nachojerez.carpstrategy.domain.advice.DayPart
 import com.nachojerez.carpstrategy.domain.advice.ExperienceSummary
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
+import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmounts
 import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.advice.Stat
 import com.nachojerez.carpstrategy.domain.assistant.AiKind
@@ -12,6 +13,7 @@ import com.nachojerez.carpstrategy.domain.guided.FieldWeather
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.Spot
@@ -67,6 +69,9 @@ data class PlanInput(
     val extras: AiExtras = AiExtras(),
     /** Puesto elegido en Estrategia (fase 7.10): el plan se hace para él. */
     val chosenSpot: Spot? = null,
+    /** Nivel de cebado de la app (null = no se ceba) y tu medida en kg por caña (fase 7.13). */
+    val groundbait: GroundbaitLevel? = null,
+    val groundbaitNormalKg: Double? = null,
 )
 
 /**
@@ -85,7 +90,7 @@ Cómo decidir:
 - Presión atmosférica, nubosidad y luna pesan 0: no las uses como motivo.
 Formato y límites (si no los cumples, la app descarta tu respuesta):
 1. No prometas peces: habla de opciones mejores o peores.
-2. Sin porcentajes ni probabilidades. Sin gramos ni kilos de cebado: di poco, normal o mucho.
+2. Sin porcentajes ni probabilidades. En los textos, sin gramos ni kilos de cebado: di poco, normal o mucho. Los kilos solo van en "engodo.kg_por_cana" (número) y solo si existe "cebado.tu_normal_kg_por_cana" (la medida del usuario).
 3. Usa solo cebos y montajes de "equipo" y puestos de "mis_puestos", con su nombre exacto. No inventes profundidades ni estructuras.
 4. La app ya controla el horario: no hables de normativa, permisos ni horario legal. No propongas horas de noche ni fuera de "horario_de_pesca".
 5. Cada motivo lleva etiqueta de evidencia en "evidencia": 🟢 demostrado, 🟡 indicio o experiencia, 🔴 sin evidencia, 🟣 hipótesis local o datos propios, 🔵 variabilidad individual.
@@ -99,14 +104,41 @@ Con MANTENER, "cambios" va vacío. No propongas cambios en cañas con "propuesta
 """
 
     val PLAN_SYSTEM = RULES + """
-Tarea: estrategia concreta para hoy con las cañas indicadas, para sacar el máximo de carpas. Ayúdale también a decidir dónde pescar: compara todos los puestos de "mis_puestos" (estructura, profundidad, distancia, orientación, fetch, cómo les da el viento con el agua y el aire de hoy, y lo que le ha funcionado en "lo_que_te_ha_funcionado", "lecciones_aceptadas" y "recomendacion_de_la_app") y elige el mejor para hoy en "puesto_recomendado" con un motivo concreto (si no hay puestos, null). Si hay "puesto_elegido", es el que el usuario tiene pensado: el plan por caña es para ese puesto (adaptado a su estructura, profundidad, distancia y viento), y si recomiendas otro, explica en el motivo qué gana con el cambio; si el elegido ya es el mejor, recomiéndalo y di por qué. Sin "puesto_elegido", el plan es para el puesto que recomiendas. Da un plan por caña (puesto, cebo, montaje, columna y distancia en metros si el puesto la tiene) y consejos por apartado: dónde (WHERE), cuándo (WHEN: mejores horas dentro de "horario_de_pesca"), cebado (BAIT: poco, normal o mucho y cada cuánto recebar), presentación (PRESENTATION), qué evitar (AVOID) y notas (NOTES). Como mucho 2 consejos por apartado. Responde con este JSON:
-{"resumen":"…","evidencia":"🟡","puesto_recomendado":{"puesto":"nombre exacto","motivo":"…","evidencia":"🟡"} o null,"canas":[{"cana":1,"puesto":"nombre exacto o null","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","distancia_m":40 o null,"motivo":"…","evidencia":"🟡"}],"consejos":[{"apartado":"WHERE","texto":"…","evidencia":"🟡"}],"avisos":[]}
+Tarea: estrategia concreta para hoy con las cañas indicadas, para sacar el máximo de carpas. Ayúdale también a decidir dónde pescar: compara todos los puestos de "mis_puestos" (estructura, profundidad, distancia, orientación, fetch, cómo les da el viento con el agua y el aire de hoy, y lo que le ha funcionado en "lo_que_te_ha_funcionado", "lecciones_aceptadas" y "recomendacion_de_la_app") y elige el mejor para hoy en "puesto_recomendado" con un motivo concreto (si no hay puestos, null). Si hay "puesto_elegido", es el que el usuario tiene pensado: el plan por caña es para ese puesto (adaptado a su estructura, profundidad, distancia y viento), y si recomiendas otro, explica en el motivo qué gana con el cambio; si el elegido ya es el mejor, recomiéndalo y di por qué. Sin "puesto_elegido", el plan es para el puesto que recomiendas. Da un plan por caña (puesto, cebo, montaje, columna y distancia en metros si el puesto la tiene) y consejos por apartado: dónde (WHERE), cuándo (WHEN: mejores horas dentro de "horario_de_pesca"), cebado (BAIT: poco, normal o mucho y cada cuánto recebar), presentación (PRESENTATION), qué evitar (AVOID) y notas (NOTES). Como mucho 2 consejos por apartado. Propón también el engodo con lo que lleva hoy ("equipo.cebos": engodos y mixes, harinas, pellet, partícula, líquidos, boilies triturados), teniendo en cuenta su marca, "que_lleva" y "ficha_ia", la fase, el agua y las especies: qué mezcla, en partes (de 1 a 10), cuántos kilos por caña según "cebado" (solo si hay "tu_normal_kg_por_cana"; si no, null) y cómo recebar. Si "embalse.se_puede_cebar" es false o "cebado.nivel" es "sin_cebar", "engodo" es null. Responde con este JSON:
+{"resumen":"…","evidencia":"🟡","puesto_recomendado":{"puesto":"nombre exacto","motivo":"…","evidencia":"🟡"} o null,"engodo":{"mezcla":[{"cebo":"nombre exacto","partes":2}],"kg_por_cana":1.5 o null,"recebado":"cómo y cuándo recebar, sin gramos","motivo":"…","evidencia":"🟡"} o null,"canas":[{"cana":1,"puesto":"nombre exacto o null","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","distancia_m":40 o null,"motivo":"…","evidencia":"🟡"}],"consejos":[{"apartado":"WHERE","texto":"…","evidencia":"🟡"}],"avisos":[]}
 """
 
     val REVIEW_SYSTEM = RULES + """
 Tarea: repasa la sesión terminada ("sesion") y saca como mucho 3 lecciones útiles para pescar más la próxima vez en este embalse: qué funcionó, qué no y en qué condiciones. Compáralas con "conocimiento_base": si una lección confirma o corrige un apartado, indícalo ("apartado": "§5.8", "corrige": true o false). No repitas "lecciones_aceptadas". Si la sesión no enseña nada nuevo, devuelve la lista vacía. Usa 🟣 salvo que haya algo más sólido. Responde con este JSON:
 {"lecciones":[{"tema":"BAIT|WHERE|DISTANCE|PRESENTATION|WHEN|GROUNDBAIT|AVOID|OTHER","texto":"…","condiciones":{"fase":"WINTER|SPRING|SUMMER|HEAT|AUTUMN o null","agua_min_c":14 o null,"agua_max_c":18 o null,"momento":"DAWN|MORNING|MIDDAY|AFTERNOON|DUSK o null","puesto":"nombre exacto o null"},"evidencia":"🟣","apartado":"§5.8 o null","corrige":false}]}
 """
+
+    /**
+     * Ficha de un cebo (fase 7.13): con búsqueda en Google y el enlace de la tienda si el proveedor
+     * lo permite. Aquí no van datos de la pesca ni la ubicación: solo la marca, el nombre, lo que
+     * escribió el usuario y el enlace.
+     */
+    val BAIT_SYSTEM = """
+Eres un experto en cebos para la pesca de la carpa. Busca el producto de "cebo" (marca y nombre) en internet y, si viene "enlace", lee esa página (tienda o fabricante). Describe qué es y cómo sirve para la carpa.
+Normas (si no las cumples, la app descarta la respuesta):
+1. No inventes. Si no encuentras el producto, di lo que sepas por el tipo de cebo con evidencia 🔴 o 🟣 y deja vacío lo que no sepas.
+2. Respeta lo que el usuario escribió en "que_lleva": complétalo, no lo contradigas sin decirlo.
+3. No prometas capturas.
+4. Evidencia: 🟢 ficha oficial del fabricante, 🟡 tiendas o reseñas coinciden, 🟣 deducido o sin fuente, 🔴 no encontrado.
+5. Responde en español y SOLO con este JSON, sin texto alrededor:
+{"tipo":"BOILIE|BOILIE_HARD|PELLET|MAIZE|HEMP|TIGERNUT|PASTE|BREAD|POPUP|PVA|WORM|GROUNDBAIT_MIX|FLOUR|LIQUID|OTHER o null","composicion":"ingredientes, sabor, tamaño o formato (como mucho 500 caracteres)","perfil":"dulce, frutal, pescado, especiado, lácteo, neutro…","funciones":["ATTRACTION","RETENTION","SELECTIVITY","VISIBILITY"],"solubilidad":"HIGH|MEDIUM|LOW o null","fases":["WINTER","SPRING","SUMMER","HEAT","AUTUMN"],"notas":"cómo usarlo para la carpa (como mucho 300 caracteres)","fuentes":["https://…"],"evidencia":"🟣"}
+"""
+
+    /** Estado para la ficha de un cebo: solo el producto (nunca la ubicación ni la pesca). */
+    fun baitState(item: GearItem): String = buildJsonObject {
+        putJsonObject("cebo") {
+            if (item.brand.isNotBlank()) put("marca", item.brand.trim())
+            put("nombre", item.name.trim())
+            item.baitType?.let { put("tipo_actual", it.name) }
+            if (item.description.isNotBlank()) put("que_lleva", item.description.trim().take(AiValidator.MAX_COMPOSITION))
+            if (item.url.isNotBlank()) put("enlace", item.url.trim())
+        }
+    }.toString()
 
     val CHAT_SYSTEM = RULES + """
 Tarea: eres un experto en la pesca de la carpa y estás conversando con el usuario, que está pescando ahora. Ya sabes dónde está ("embalse" y "puesto_actual"), qué estrategia lleva ("estrategia_del_dia", "recomendacion_de_la_app" y la configuración de cada caña en "canas") y lo que ha pasado en la sesión: no le pidas datos que ya tienes. Contesta a "mensaje_del_usuario" teniendo en cuenta "conversacion". Responde como un pescador experto que está a su lado: claro, concreto y breve (como mucho 1000 caracteres). Si lo que cuenta pide cambiar algo, propónlo en "cambios" (un cambio por caña, tipos PRESENTATION, RIG, COLUMN, DISTANCE, ZONE, ANTI_CRAB, SELECTIVE, INFLOW; nada de ZONE ni INFLOW si "zona_permitida" es false; no en cañas con "propuesta_pendiente"); si no, deja "cambios" vacío. Si te pregunta algo que no sabes, dilo. Responde con este JSON:
@@ -322,6 +354,13 @@ Normas (si no las cumples, la app descarta la respuesta):
             input.rain24hMm?.let { put("lluvia_24h_mm", it) }
         }
         val wind = WeatherSnapshot(time = input.now, windKmh = input.windKmh, windFromDeg = input.windFromDeg)
+        putJsonObject("cebado") {
+            put("nivel", input.groundbait?.name ?: "sin_cebar")
+            input.groundbaitNormalKg?.let { normal ->
+                put("tu_normal_kg_por_cana", normal)
+                input.groundbait?.let { put("la_app_calcula_kg_por_cana", round1(GroundbaitAmounts.factor(it) * normal)) }
+            }
+        }
         input.chosenSpot?.let { s -> putJsonObject("puesto_elegido") { spot(s, wind) } }
         putJsonArray("mis_puestos") { input.spots.forEach { s -> addJsonObject { spot(s, wind) } } }
         gear(input.gear)
@@ -526,6 +565,16 @@ Normas (si no las cumples, la app descarta la respuesta):
                     addJsonObject {
                         put("nombre", g.name)
                         g.baitType?.let { put("tipo", it.name) }
+                        g.brand.takeIf { it.isNotBlank() }?.let { put("marca", it.trim()) }
+                        g.description.takeIf { it.isNotBlank() }?.let { put("que_lleva", it.trim().take(AiValidator.MAX_TEXT)) }
+                        g.sheet?.let { sh ->
+                            putJsonObject("ficha_ia") {
+                                put("composicion", sh.composition.take(AiValidator.MAX_TEXT))
+                                if (sh.profile.isNotBlank()) put("perfil", sh.profile)
+                                sh.solubility?.let { put("solubilidad", it.name) }
+                                if (sh.notes.isNotBlank()) put("notas", sh.notes.take(AiValidator.MAX_TEXT))
+                            }
+                        }
                     }
                 }
             }

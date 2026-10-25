@@ -262,8 +262,9 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 
 ## Estrategia en 3 pasos (fase 7.12)
 
-- `StrategyContent`: ① embalse (`ReservoirStep`) → ② puesto y cañas (`SpotStep`, con la recomendación de
-  la IA o de la app) → ③ un solo plan (`PlanStep`) → «Detalles» plegado (valoración, «Qué hago ahora»
+- `StrategyContent`: arriba, siempre, `ResultCard` («Condiciones para hoy»: escala y nivel que limita) →
+  ① embalse (`ReservoirStep`) → ② puesto y cañas (`SpotStep`, con la recomendación de
+  la IA o de la app) → ③ cebos de hoy (`BaitsStep`, fase 7.13) → ④ un solo plan (`PlanStep`) → «Detalles» plegado («Qué hago ahora»
   completo, reglas, horas, porqué) → al final `StartStep` («Empezar sesión guiada con este plan»).
 - `domain/advice/DayPlan.kt` (puro): `DayPlans.build` hace el plan de la app por caña con `FishingAdvice`
   (3.ª caña con la columna alternativa) y, con un `AiPlan` válido, la IA manda en lo que dice
@@ -273,6 +274,22 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `dayPlanFor` (el plan de la IA solo cuenta si su clave coincide). `StrategyViewModel` consulta sola
   una vez por clave (espera 1,5 s, cancela la anterior; si falla no reintenta sola) y guarda la clave
   en `local_strategy_plan_key`. Cañas en `local_strategy_rods` (`KEY_RODS`); la guiada las trae marcadas.
+
+## Mis cebos y engodo (fase 7.13)
+
+- `GearItem`: `brand`, `description` (qué lleva, del usuario), `url` (tienda), `available` («hoy lo llevo»;
+  `List<GearItem>.today()` es lo único que usan el plan, la IA y la guiada) y `sheet` (`BaitSheet` de la IA, 🟣).
+  Tipos nuevos `GROUNDBAIT_MIX`, `FLOUR`, `LIQUID` (no van al anzuelo). JSON del ajuste `gear` con campos nuevos
+  y valores por defecto (equipo antiguo = se lleva hoy).
+- `domain/advice/Groundbait.kt`: `GroundbaitAmounts` (tu medida `groundbait_normal_kg`, se sincroniza:
+  poco ¼, mucho 2×, la mitad al empezar, 🟣); sin medida no hay kilos. `DayPlan.groundbaitAmount`/`aiGroundbait`.
+- IA: el plan recibe `cebado` (nivel y tu medida) y los cebos con marca, `que_lleva` y `ficha_ia`, y devuelve
+  `engodo` (`AiGroundbait`: mezcla en partes con tus cebos, `kg_por_cana` solo con tu medida y ≤ 1,5 × «mucho»;
+  los textos siguen sin gramos). `AiKind.BAIT`: `Assistant.baitSheet` con Gemini y herramientas
+  `google_search` + `url_context` (`AiClient.complete(web = true)`, sin JSON estricto); solo van marca,
+  nombre, lo que escribió el usuario y el enlace.
+- UI: `GearEditor` (singleton: guardar, borrar, hoy, ficha) para Estrategia (paso ③) y Mi equipo;
+  `GearDialog`, `BaitRow` y `GroundbaitNormalRow` son `internal` en `ui/guided/GearScreen.kt`.
 
 ## Stack
 

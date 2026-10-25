@@ -1,17 +1,23 @@
 package com.nachojerez.carpstrategy.domain.assistant
 
+import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmounts
 import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.advice.LessonConditions
 import com.nachojerez.carpstrategy.domain.advice.LessonSource
 import com.nachojerez.carpstrategy.domain.advice.LessonStatus
 import com.nachojerez.carpstrategy.domain.advice.LessonTopic
+import com.nachojerez.carpstrategy.domain.guided.BaitFunction
+import com.nachojerez.carpstrategy.domain.guided.BaitSheet
+import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.Column
+import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.ProposalSource
 import com.nachojerez.carpstrategy.domain.guided.Situation
+import com.nachojerez.carpstrategy.domain.guided.Solubility
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.reservoir.FishSpecies
@@ -26,7 +32,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 
 /** Para qué se consultó a la IA. */
-enum class AiKind { CHECK_IN, PLAN, REVIEW, SHEET, CHAT }
+enum class AiKind { CHECK_IN, PLAN, REVIEW, SHEET, CHAT, BAIT }
 
 /**
  * Una consulta a la IA tal como quedó (fase 8: «¿IA o reglas?»): la respuesta (recortada), si
@@ -124,6 +130,36 @@ data class AiPlan(
     val advice: List<AiAdvice> = emptyList(),
     /** El mejor de tus puestos del embalse para hoy según la IA (fase 7.10); null si no tienes. */
     val bestSpot: AiSpotPick? = null,
+    /** Engodo con lo que llevas y cuánto (fase 7.13); null si no lo propone. */
+    val groundbait: AiGroundbait? = null,
+)
+
+/** Una parte del engodo: un cebo de tu equipo (por nombre) y cuántas partes de la mezcla. */
+data class AiMixPart(val baitName: String, val parts: Int)
+
+/**
+ * Engodo que propone la IA (fase 7.13): mezcla con tus cebos, kilos por caña (solo si has puesto
+ * tu medida) y cómo recebar.
+ */
+data class AiGroundbait(
+    val mix: List<AiMixPart>,
+    val perRodKg: Double? = null,
+    val rebait: String = "",
+    val reason: String = "",
+    val evidence: Evidence? = null,
+)
+
+/** Ficha de un cebo tal como la devuelve la IA, antes de validarla. */
+data class AiBaitDraft(
+    val type: BaitType?,
+    val composition: String,
+    val profile: String = "",
+    val functions: Set<BaitFunction> = emptySet(),
+    val solubility: Solubility? = null,
+    val phases: Set<FishingPhase> = emptySet(),
+    val notes: String = "",
+    val sources: List<String> = emptyList(),
+    val evidence: Evidence? = null,
 )
 
 /** Puesto que recomienda la IA, con el porqué (para ayudarte a elegir). */
@@ -166,6 +202,9 @@ enum class AiIssue {
     UNKNOWN_FIELD,
     /** Menciona una hora fuera del horario legal (⚖). */
     OUTSIDE_LEGAL_HOURS,
+
+    /** Cantidad de engodo o partes de la mezcla fuera de lo razonable para tu medida (fase 7.13). */
+    AMOUNT_OUT_OF_RANGE,
 }
 
 /** Lo que la app sabe para validar una respuesta: cañas, equipo, puestos, hora legal y tormenta. */
@@ -181,6 +220,8 @@ data class AiContext(
     /** Inicio legal de hoy: con él y [legalEnd] se comprueban las horas que cite la IA. */
     val legalStart: Instant? = null,
     val zone: ZoneId = ZoneId.of("Europe/Madrid"),
+    /** Tu medida de cebado normal (kg por caña y sesión); sin ella la IA no puede dar kilos. */
+    val groundbaitNormalKg: Double? = null,
 )
 
 /**
@@ -307,7 +348,58 @@ object AiValidator {
             if (b.evidence == null) add(AiIssue.MISSING_EVIDENCE)
             checkText(b.reason, ctx)
         }
+        plan.groundbait?.let { addAll(validate(it, ctx)) }
     }
+
+    /**
+     * Engodo (fase 7.13): solo cebos de tu equipo, partes de 1 a [MAX_MIX_PARTS], kilos solo con
+     * tu medida y como mucho [GroundbaitAmounts.maxPerRodKg]; los textos, sin gramos.
+     */
+    fun validate(g: AiGroundbait, ctx: AiContext): Set<AiIssue> = buildSet {
+        if (g.evidence == null) add(AiIssue.MISSING_EVIDENCE)
+        if (g.mix.isEmpty()) add(AiIssue.EMPTY_TEXT)
+        g.mix.forEach { part ->
+            if (ctx.gear.none { it.category == GearCategory.BAIT && (same(it.name, part.baitName) || same(it.fullName, part.baitName)) }) add(AiIssue.UNKNOWN_BAIT)
+            if (part.parts !in 1..MAX_MIX_PARTS) add(AiIssue.AMOUNT_OUT_OF_RANGE)
+        }
+        g.perRodKg?.let { kg ->
+            val normal = ctx.groundbaitNormalKg
+            if (normal == null) add(AiIssue.GRAMS) else if (kg <= 0.0 || kg > GroundbaitAmounts.maxPerRodKg(normal)) add(AiIssue.AMOUNT_OUT_OF_RANGE)
+        }
+        checkText(g.rebait, ctx, required = false)
+        checkText(g.reason, ctx, required = false)
+    }
+
+    const val MAX_MIX_PARTS = 10
+    const val MAX_COMPOSITION = 600
+    const val MAX_SOURCES = 5
+
+    /**
+     * Ficha de un cebo (fase 7.13). Las descripciones de producto llevan porcentajes y gramos,
+     * así que aquí solo se pide longitud, evidencia, enlaces http(s) y nada de promesas.
+     */
+    fun validate(draft: AiBaitDraft): Set<AiIssue> = buildSet {
+        if (draft.evidence == null) add(AiIssue.MISSING_EVIDENCE)
+        val composition = draft.composition.trim()
+        if (composition.isEmpty()) add(AiIssue.EMPTY_TEXT)
+        if (composition.length > MAX_COMPOSITION || draft.notes.length > MAX_TEXT || draft.profile.length > MAX_TEXT) add(AiIssue.TEXT_TOO_LONG)
+        if (PROMISE.containsMatchIn(draft.notes) || PROMISE.containsMatchIn(composition)) add(AiIssue.PROMISE)
+        if (draft.sources.size > MAX_SOURCES || draft.sources.any { !it.startsWith("https://") && !it.startsWith("http://") }) add(AiIssue.UNREADABLE)
+    }
+
+    /** Ficha válida → la que se guarda en el cebo. */
+    fun toSheet(draft: AiBaitDraft, now: Instant): BaitSheet = BaitSheet(
+        type = draft.type,
+        composition = draft.composition.trim(),
+        profile = draft.profile.trim(),
+        functions = draft.functions,
+        solubility = draft.solubility,
+        phases = draft.phases,
+        notes = draft.notes.trim(),
+        sources = draft.sources,
+        evidence = draft.evidence ?: Evidence.PURPLE,
+        updatedAt = now,
+    )
 
     private fun gearIssues(bait: String?, rig: String?, spot: String?, ctx: AiContext): Set<AiIssue> = buildSet {
         if (bait != null && ctx.gear.find(GearCategory.BAIT, bait) == null) add(AiIssue.UNKNOWN_BAIT)
@@ -318,7 +410,7 @@ object AiValidator {
     internal fun same(a: String, b: String): Boolean = a.trim().equals(b.trim(), ignoreCase = true)
 
     internal fun List<GearItem>.find(category: GearCategory, name: String): GearItem? =
-        firstOrNull { it.category == category && same(it.name, name) }
+        firstOrNull { it.category == category && (same(it.name, name) || same(it.fullName, name)) }
 
     /** Una lección: tema conocido, texto válido, evidencia y, si cita un puesto, que sea tuyo. */
     fun validate(draft: AiLessonDraft, spots: List<Spot>): Set<AiIssue> = buildSet {

@@ -4,12 +4,15 @@ import com.nachojerez.carpstrategy.domain.assistant.AiExchange
 import com.nachojerez.carpstrategy.domain.assistant.AiIssue
 import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import com.nachojerez.carpstrategy.domain.guided.ActivityPlace
+import com.nachojerez.carpstrategy.domain.guided.BaitFunction
+import com.nachojerez.carpstrategy.domain.guided.BaitSheet
 import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
+import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
@@ -24,6 +27,7 @@ import com.nachojerez.carpstrategy.domain.guided.RigType
 import com.nachojerez.carpstrategy.domain.guided.RodTrack
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Situation
+import com.nachojerez.carpstrategy.domain.guided.Solubility
 import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.SpotStructure
@@ -150,5 +154,25 @@ class GuidedJsonTest {
         assertNull(GuidedJson.decode("{no es json"))
         assertNull(GuidedJson.decode("""{"tramos":[]}"""))
         assertEquals(emptyList<GearItem>(), GuidedJson.decodeGear("basura"))
+    }
+
+    @Test
+    fun `cebo con marca, que lleva, enlace, hoy y ficha de la IA ida y vuelta`() {
+        val sheet = BaitSheet(
+            type = BaitType.GROUNDBAIT_MIX, composition = "Harinas, pellet triturado y cáñamo", profile = "dulce",
+            functions = setOf(BaitFunction.ATTRACTION), solubility = Solubility.HIGH, phases = setOf(FishingPhase.SUMMER),
+            notes = "Húmedo para bolas", sources = listOf("https://tienda.example/mix"), evidence = Evidence.YELLOW,
+            updatedAt = Instant.parse("2026-10-25T08:00:00Z"),
+        )
+        val gear = listOf(
+            GearItem(
+                "1", GearCategory.BAIT, "Supercrush", baitType = BaitType.GROUNDBAIT_MIX, brand = "Marca", description = "Verde",
+                url = "https://tienda.example/mix", available = false, sheet = sheet,
+            ),
+        )
+        assertEquals(gear, GuidedJson.decodeGear(GuidedJson.encodeGear(gear)))
+        // Equipo guardado antes de la fase 7.13: sin campos nuevos, se lleva hoy.
+        val old = """[{"id":"1","categoria":"BAIT","nombre":"Maíz","tipo_cebo":"MAIZE"}]"""
+        assertTrue(GuidedJson.decodeGear(old).single().available)
     }
 }

@@ -24,6 +24,7 @@ import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.RigType
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Situation
+import com.nachojerez.carpstrategy.domain.guided.Solubility
 import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.guided.StepKind
@@ -70,6 +71,9 @@ fun BaitType.titleRes(): Int = when (this) {
     BaitType.POPUP -> R.string.bait_popup
     BaitType.PVA -> R.string.bait_pva
     BaitType.WORM -> R.string.bait_worm
+    BaitType.GROUNDBAIT_MIX -> R.string.bait_groundbait_mix
+    BaitType.FLOUR -> R.string.bait_flour
+    BaitType.LIQUID -> R.string.bait_liquid
     BaitType.OTHER -> R.string.bait_other
 }
 
@@ -401,6 +405,7 @@ fun AiIssue.titleRes(): Int = when (this) {
     AiIssue.DISTANCE_OUT_OF_RANGE -> R.string.ai_issue_distance
     AiIssue.UNKNOWN_FIELD -> R.string.ai_issue_field
     AiIssue.OUTSIDE_LEGAL_HOURS -> R.string.ai_issue_hours
+    AiIssue.AMOUNT_OUT_OF_RANGE -> R.string.ai_issue_amount
 }
 
 /** «IA: mantener — motivo» o por qué se descartó / falló (mandan las reglas). */
@@ -409,4 +414,10 @@ fun Resources.aiLine(e: AiExchange): String = when {
     !e.valid -> getString(R.string.ai_line_invalid, e.issues.map { getString(it.titleRes()) }.distinct().joinToString(", "))
     e.summary == "MANTENER" -> getString(R.string.ai_line_keep, e.note.orEmpty())
     else -> getString(R.string.ai_line_change, e.note.orEmpty())
+}
+
+fun Solubility.titleRes(): Int = when (this) {
+    Solubility.HIGH -> R.string.solubility_high
+    Solubility.MEDIUM -> R.string.solubility_medium
+    Solubility.LOW -> R.string.solubility_low
 }

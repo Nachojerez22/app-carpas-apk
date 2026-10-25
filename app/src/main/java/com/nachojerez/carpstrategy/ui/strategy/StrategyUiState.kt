@@ -1,7 +1,6 @@
 package com.nachojerez.carpstrategy.ui.strategy
 
 import com.nachojerez.carpstrategy.data.assistant.AiExtras
-import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.data.assistant.AiOutcome
 import com.nachojerez.carpstrategy.data.assistant.PlanInput
 import com.nachojerez.carpstrategy.domain.advice.AdvisorInput
@@ -13,6 +12,7 @@ import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvisor
 import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.assistant.AiContext
+import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.derived.DerivedCalculator
 import com.nachojerez.carpstrategy.domain.derived.DerivedConditions
 import com.nachojerez.carpstrategy.domain.derived.Freshness
@@ -20,6 +20,7 @@ import com.nachojerez.carpstrategy.domain.derived.FreshnessPolicy
 import com.nachojerez.carpstrategy.domain.derived.SeasonByWater
 import com.nachojerez.carpstrategy.domain.derived.WaterTempSource
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
+import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
@@ -77,8 +78,12 @@ data class StrategyUiState(
     val myReservoirs: List<Pair<Reservoir, Int>> = emptyList(),
     /** Cañas que vas a pescar (paso ② de Estrategia, fase 7.12). */
     val rods: Int = DEFAULT_RODS,
-    /** Tu equipo, para el plan del día. */
+    /** Lo que llevas hoy (fase 7.13): solo esto entra en el plan y en la IA. */
     val gear: List<GearItem> = emptyList(),
+    /** Todo tu equipo, para marcar qué llevas hoy (paso ③). */
+    val allGear: List<GearItem> = emptyList(),
+    /** Tu cebado «normal» en kg por caña y sesión; null sin medida. */
+    val groundbaitNormalKg: Double? = null,
 )
 
 data class PlanUiState(
@@ -101,7 +106,11 @@ fun planKey(state: StrategyUiState): String? {
     state.result?.takeIf { !it.blocked } ?: return null
     val advice = state.advice ?: return null
     val day = advice.forTime.atZone(Formatting.MADRID).toLocalDate()
-    return listOf(day, state.reservoir?.reservoir?.id ?: "sin_embalse", state.chosenSpotId ?: "auto", state.rods, advice.dayPart).joinToString("|")
+    // Los cebos de hoy y tu medida también cuentan: si cambian, el plan (y el engodo) cambia.
+    val baits = state.gear.filter { it.category == GearCategory.BAIT }.map { it.id }.sorted().joinToString(",")
+    return listOf(
+        day, state.reservoir?.reservoir?.id ?: "sin_embalse", state.chosenSpotId ?: "auto", state.rods, advice.dayPart, baits, state.groundbaitNormalKg ?: "-",
+    ).joinToString("|")
 }
 
 /**
@@ -115,7 +124,7 @@ fun dayPlanFor(state: StrategyUiState, plan: PlanUiState): DayPlan? {
     val ai = plan.outcome?.value?.takeIf { plan.key != null && plan.key == planKey(state) }
     val aiSpot = ai?.bestSpot?.let { best -> advice.spots.firstOrNull { it.spot.name.trim().equals(best.spotName.trim(), ignoreCase = true) } }
     val spot = advice.chosen ?: aiSpot ?: advice.spots.firstOrNull()
-    return DayPlans.build(advice, state.rods, phaseOf(derived), state.gear, ai, spot)
+    return DayPlans.build(advice, state.rods, phaseOf(derived), state.gear, ai, spot, state.groundbaitNormalKg)
 }
 
 /**
@@ -230,6 +239,8 @@ fun planInput(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: Inst
         gear = gear,
         spots = state.spots,
         chosenSpot = state.advice?.chosen?.spot,
+        groundbait = state.advice?.groundbait,
+        groundbaitNormalKg = state.groundbaitNormalKg,
         extras = AiExtras(state.advice?.experience ?: ExperienceSummary.EMPTY, state.advice?.lessons ?: state.lessons, state.advice, state.reservoir),
     )
 }
@@ -243,6 +254,7 @@ fun planContext(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: In
     spots = state.spots,
     legalStart = state.derived?.legalToday?.start,
     zone = Formatting.MADRID,
+    groundbaitNormalKg = state.groundbaitNormalKg,
 )
 
 /** Estación de las reglas en el texto que usa la sesión guiada (`estacion` de rules.json). */

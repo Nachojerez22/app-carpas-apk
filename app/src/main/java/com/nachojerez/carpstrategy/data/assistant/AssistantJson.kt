@@ -4,17 +4,23 @@ import com.nachojerez.carpstrategy.domain.advice.DayPart
 import com.nachojerez.carpstrategy.domain.advice.LessonConditions
 import com.nachojerez.carpstrategy.domain.advice.LessonTopic
 import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
+import com.nachojerez.carpstrategy.domain.assistant.AiBaitDraft
 import com.nachojerez.carpstrategy.domain.assistant.AiChange
 import com.nachojerez.carpstrategy.domain.assistant.AiChatReply
 import com.nachojerez.carpstrategy.domain.assistant.AiDecision
+import com.nachojerez.carpstrategy.domain.assistant.AiGroundbait
 import com.nachojerez.carpstrategy.domain.assistant.AiLessonDraft
+import com.nachojerez.carpstrategy.domain.assistant.AiMixPart
 import com.nachojerez.carpstrategy.domain.assistant.AiNote
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiRodPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiSheetDraft
 import com.nachojerez.carpstrategy.domain.assistant.AiSpotPick
+import com.nachojerez.carpstrategy.domain.guided.BaitFunction
+import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
+import com.nachojerez.carpstrategy.domain.guided.Solubility
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.reservoir.FishSpecies
 import com.nachojerez.carpstrategy.domain.rules.Evidence
@@ -106,7 +112,42 @@ object AssistantJson {
         val best = (o["puesto_recomendado"] as? JsonObject)?.let { b ->
             b.string("puesto")?.takeIf { it.isNotBlank() }?.let { AiSpotPick(it, b.string("motivo").orEmpty(), evidence(b.string("evidencia"))) }
         }
-        return AiPlan(o.string("resumen").orEmpty(), evidence(o.string("evidencia")), rods, warnings, advice, best)
+        return AiPlan(o.string("resumen").orEmpty(), evidence(o.string("evidencia")), rods, warnings, advice, best, groundbait(o))
+    }
+
+    /** «engodo»: mezcla con tus cebos (partes), kilos por caña y recebado (fase 7.13). */
+    private fun groundbait(o: JsonObject): AiGroundbait? {
+        val g = o["engodo"] as? JsonObject ?: return null
+        val mix = g.array("mezcla").mapNotNull { e ->
+            val m = e as? JsonObject ?: return@mapNotNull null
+            val name = m.string("cebo")?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+            AiMixPart(name, m.int("partes") ?: 1)
+        }
+        return AiGroundbait(
+            mix = mix,
+            perRodKg = (g["kg_por_cana"] as? JsonPrimitive)?.let { it.doubleOrNull ?: it.contentOrNull?.trim()?.replace(',', '.')?.toDoubleOrNull() },
+            rebait = g.string("recebado").orEmpty(),
+            reason = g.string("motivo").orEmpty(),
+            evidence = evidence(g.string("evidencia")),
+        )
+    }
+
+    /** Ficha de un cebo (fase 7.13); el JSON puede venir dentro de texto (búsqueda en Google). */
+    fun parseBait(text: String): AiBaitDraft? {
+        val o = objectIn(text) ?: return null
+        fun <E : Enum<E>> names(key: String, values: Array<E>): Set<E> =
+            o.array(key).mapNotNull { e -> (e as? JsonPrimitive)?.contentOrNull?.trim()?.let { n -> values.firstOrNull { it.name.equals(n, ignoreCase = true) } } }.toSet()
+        return AiBaitDraft(
+            type = o.string("tipo")?.trim()?.let { n -> BaitType.entries.firstOrNull { it.name.equals(n, ignoreCase = true) } },
+            composition = o.string("composicion").orEmpty(),
+            profile = o.string("perfil").orEmpty(),
+            functions = names("funciones", BaitFunction.entries.toTypedArray()),
+            solubility = o.string("solubilidad")?.trim()?.let { n -> Solubility.entries.firstOrNull { it.name.equals(n, ignoreCase = true) } },
+            phases = names("fases", FishingPhase.entries.toTypedArray()),
+            notes = o.string("notas").orEmpty(),
+            sources = o.array("fuentes").mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { u -> u.isNotEmpty() } },
+            evidence = evidence(o.string("evidencia")),
+        )
     }
 
     /** Apartado de Estrategia por nombre (WHERE…) o en español (dónde, cuándo…). */

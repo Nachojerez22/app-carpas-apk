@@ -4,6 +4,8 @@ import com.nachojerez.carpstrategy.domain.assistant.AiExchange
 import com.nachojerez.carpstrategy.domain.assistant.AiIssue
 import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import com.nachojerez.carpstrategy.domain.guided.ActivityPlace
+import com.nachojerez.carpstrategy.domain.guided.BaitFunction
+import com.nachojerez.carpstrategy.domain.guided.BaitSheet
 import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.ChangedVariable
@@ -13,6 +15,7 @@ import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.ConditionChange
 import com.nachojerez.carpstrategy.domain.guided.Decision
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
+import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
@@ -29,6 +32,7 @@ import com.nachojerez.carpstrategy.domain.guided.RodTrack
 import com.nachojerez.carpstrategy.domain.guided.Segment
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Situation
+import com.nachojerez.carpstrategy.domain.guided.Solubility
 import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.SpotStructure
@@ -199,6 +203,26 @@ object GuidedJson {
         @SerialName("nombre") val name: String,
         @SerialName("tipo_cebo") val baitType: String? = null,
         @SerialName("tipo_montaje") val rigType: String? = null,
+        @SerialName("marca") val brand: String = "",
+        @SerialName("descripcion") val description: String = "",
+        @SerialName("enlace") val url: String = "",
+        @SerialName("hoy") val available: Boolean = true,
+        @SerialName("ficha") val sheet: BaitSheetDto? = null,
+    )
+
+    /** Ficha de un cebo preparada por la IA (fase 7.13). */
+    @Serializable
+    data class BaitSheetDto(
+        @SerialName("tipo") val type: String? = null,
+        @SerialName("composicion") val composition: String,
+        @SerialName("perfil") val profile: String = "",
+        @SerialName("funciones") val functions: List<String> = emptyList(),
+        @SerialName("solubilidad") val solubility: String? = null,
+        @SerialName("fases") val phases: List<String> = emptyList(),
+        @SerialName("notas") val notes: String = "",
+        @SerialName("fuentes") val sources: List<String> = emptyList(),
+        @SerialName("evidencia") val evidence: String,
+        @SerialName("fecha") val updatedAt: String,
     )
 
     private inline fun <reified E : Enum<E>> enumOf(name: String?): E? = name?.let { n -> enumValues<E>().firstOrNull { it.name == n } }
@@ -387,7 +411,7 @@ object GuidedJson {
         runCatching { JournalJson.json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(SpotDto.serializer()), it) }.getOrNull()
     }.orEmpty().mapNotNull { it.toDomain() }
 
-    fun GearItem.toDto() = GearDto(id, category.name, name, baitType?.name, rigType?.name)
+    fun GearItem.toDto() = GearDto(id, category.name, name, baitType?.name, rigType?.name, brand, description, url, available, sheet?.toDto())
 
     fun GearDto.toDomain(): GearItem? = GearItem(
         id = id,
@@ -395,6 +419,28 @@ object GuidedJson {
         name = name,
         baitType = enumOf<BaitType>(baitType),
         rigType = enumOf<RigType>(rigType),
+        brand = brand,
+        description = description,
+        url = url,
+        available = available,
+        sheet = sheet?.toDomain(),
+    )
+
+    fun BaitSheet.toDto() = BaitSheetDto(
+        type?.name, composition, profile, functions.map { it.name }, solubility?.name, phases.map { it.name }, notes, sources, evidence.name, updatedAt.toString(),
+    )
+
+    fun BaitSheetDto.toDomain(): BaitSheet? = BaitSheet(
+        type = enumOf<BaitType>(type),
+        composition = composition,
+        profile = profile,
+        functions = functions.mapNotNull { enumOf<BaitFunction>(it) }.toSet(),
+        solubility = enumOf<Solubility>(solubility),
+        phases = phases.mapNotNull { enumOf<FishingPhase>(it) }.toSet(),
+        notes = notes,
+        sources = sources,
+        evidence = enumOf<Evidence>(evidence) ?: return null,
+        updatedAt = instant(updatedAt) ?: return null,
     )
 
     fun encodeGear(items: List<GearItem>): String =

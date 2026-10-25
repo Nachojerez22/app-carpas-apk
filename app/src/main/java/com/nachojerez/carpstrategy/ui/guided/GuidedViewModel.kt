@@ -12,6 +12,7 @@ import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.guided.WeatherQuestion
+import com.nachojerez.carpstrategy.domain.guided.today
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -78,7 +80,7 @@ class GuidedViewModel @Inject constructor(
     val uiState: StateFlow<GuidedUiState> =
         combine(
             manager.observeActive(),
-            combine(settings.observeGear(), spotsAndPreferred, ::Pair),
+            combine(settings.observeGear().map { it.today() }, spotsAndPreferred, ::Pair),
             manager.nextCheckIn,
             ticker,
             combine(starting, saved, permissions, assistantSettings.observeKeyHint(), combine(manager.aiBusy, manager.chatBusy, ::Pair)) { st, sv, pm, hint, (ai, chat) ->

@@ -1,5 +1,7 @@
 package com.nachojerez.carpstrategy.domain.advice
 
+import com.nachojerez.carpstrategy.domain.assistant.AiGroundbait
+import com.nachojerez.carpstrategy.domain.assistant.AiMixPart
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiRodPlan
 import com.nachojerez.carpstrategy.domain.derived.LegalWindow
@@ -13,6 +15,7 @@ import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.guided.StepKind
+import com.nachojerez.carpstrategy.domain.guided.today
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import java.time.LocalDate
@@ -93,5 +96,26 @@ class DayPlanTest {
         assertTrue(list.any { it.kind == Contingency.CARP_UP })
         // La caída mira al E y el viento viene del O: de espaldas → cebar lejos.
         assertTrue(list.any { it.kind == Contingency.WIND && it.windTip == WindTip.BAIT_FAR })
+    }
+
+    @Test
+    fun `cebado en kilos con tu medida y el engodo de la IA`() {
+        val a = advice(chosen = 2)
+        val plan = DayPlans.build(a, rods = 2, phase = FishingPhase.SUMMER, gear = gear, groundbaitNormalKg = 1.0)
+        // Verano al amanecer: mucho (2×).
+        assertEquals(2.0, plan.groundbaitAmount!!.perRodKg)
+        assertEquals(4.0, plan.groundbaitAmount!!.totalKg)
+        assertNull(DayPlans.build(a, rods = 2, phase = FishingPhase.SUMMER, gear = gear).groundbaitAmount)
+        val ai = AiPlan("Plan", Evidence.YELLOW, emptyList(), groundbait = AiGroundbait(listOf(AiMixPart("Maíz", 1)), perRodKg = 1.5, evidence = Evidence.YELLOW))
+        val withAi = DayPlans.build(a, rods = 2, phase = FishingPhase.SUMMER, gear = gear, ai = ai, groundbaitNormalKg = 1.0)
+        assertEquals(1.5, withAi.groundbaitAmount!!.perRodKg)
+        assertEquals(0.75, withAi.groundbaitAmount!!.initialPerRodKg)
+        assertEquals("Maíz", withAi.aiGroundbait!!.mix.single().baitName)
+    }
+
+    @Test
+    fun `solo lo que llevas hoy`() {
+        val list = listOf(gear[0], gear[1].copy(available = false))
+        assertEquals(listOf("Boilie fresa"), list.today().map { it.name })
     }
 }
