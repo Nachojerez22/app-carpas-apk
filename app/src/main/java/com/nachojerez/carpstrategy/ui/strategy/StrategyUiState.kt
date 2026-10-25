@@ -4,6 +4,7 @@ import com.nachojerez.carpstrategy.data.assistant.AiExtras
 import com.nachojerez.carpstrategy.data.assistant.AiOutcome
 import com.nachojerez.carpstrategy.data.assistant.PlanInput
 import com.nachojerez.carpstrategy.domain.advice.AdvisorInput
+import com.nachojerez.carpstrategy.domain.advice.BaitUsage
 import com.nachojerez.carpstrategy.domain.advice.DayPlan
 import com.nachojerez.carpstrategy.domain.advice.DayPlans
 import com.nachojerez.carpstrategy.domain.advice.Experience
@@ -84,6 +85,8 @@ data class StrategyUiState(
     val allGear: List<GearItem> = emptyList(),
     /** Tu cebado «normal» en kg por caña y sesión; null sin medida. */
     val groundbaitNormalKg: Double? = null,
+    /** Cebos usados en el diario (para ordenar tus cebos guardados y ofrecer los que faltan). */
+    val baitUsage: List<BaitUsage> = emptyList(),
 )
 
 data class PlanUiState(

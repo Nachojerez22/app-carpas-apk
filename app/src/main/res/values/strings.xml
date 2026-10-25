@@ -1158,6 +1158,9 @@
     <string name="gear_sheet_sources">Fuentes:\n%1$s</string>
     <string name="gear_sheet_no_key">Configura la IA (Lugar → Asistente de IA) para buscar la ficha.</string>
     <string name="gear_sheet_failed">No se pudo preparar la ficha (%1$s).</string>
+    <string name="gear_sheet_quota">Gemini no deja más consultas ahora mismo (cuota agotada), ni siquiera sin buscar en Google. Suele ser por demasiadas consultas seguidas: espera un par de minutos y vuelve a probar; si no, mañana se renueva.</string>
+    <string name="gear_sheet_offline">Sin conexión: prueba cuando tengas cobertura.</string>
+    <string name="gear_sheet_not_searched">Sin búsqueda en Google: tu clave no la permite ahora (cuota de la versión gratuita). Ficha solo con lo que sabe la IA 🟣; vuelve a buscarla otro día o pon tú lo que lleva.</string>
     <string name="groundbait_normal_title">Tu cebado «normal»</string>
     <string name="groundbait_normal_value">%1$s kg por caña y sesión</string>
     <string name="groundbait_normal_none">Sin medida: la app dice poco, normal o mucho.</string>
@@ -1169,8 +1172,19 @@
     <string name="groundbait_normal_hint">Con tu medida, la app pasa a kilos 🟣: poco ≈ ¼, mucho ≈ el doble; la mitad al empezar y el resto en recebados tras captura o señales. Calíbrala con tu diario.</string>
     <string name="strategy_baits_title">Cebos que llevas hoy</string>
     <string name="strategy_baits_none">No tienes cebos en tu equipo. Añádelos para que el plan y la IA usen lo que llevas.</string>
-    <string name="strategy_baits_count">Hoy llevas %1$d de %2$d. Solo esos entran en el plan y en la IA.</string>
-    <string name="strategy_baits_add">Añadir cebo</string>
+    <string name="strategy_baits_count">Solo los de «Hoy llevo» entran en el plan, en la IA y en la sesión guiada.</string>
+    <string name="strategy_baits_add">Añadir cebo nuevo</string>
+    <string name="strategy_baits_today">Hoy llevo (%1$d)</string>
+    <string name="strategy_baits_today_empty">Marca abajo los que llevas hoy: no hace falta volver a escribirlos.</string>
+    <string name="strategy_baits_clear">Empezar de cero hoy</string>
+    <string name="strategy_baits_saved">Mis cebos guardados (%1$d)</string>
+    <plurals name="strategy_baits_used">
+        <item quantity="one">usado en %1$d sesión · última: %2$s</item>
+        <item quantity="other">usado en %1$d sesiones · última: %2$s</item>
+    </plurals>
+    <string name="strategy_baits_from_diary">De tu diario</string>
+    <string name="strategy_baits_from_diary_hint">Cebos que apuntaste en tus sesiones y no están en tu lista: tócalos para guardarlos y llevarlos hoy.</string>
+    <string name="strategy_baits_add_from_diary">+ %1$s (%2$d)</string>
     <string name="strategy_baits_all">Mi equipo</string>
     <string name="strategy_groundbait_kg">Cebado %1$s: ≈ %2$s por caña (%3$s en total) 🟣</string>
     <string name="strategy_groundbait_split">Al empezar ≈ %1$s por caña; el resto (≈ %2$s) en recebados tras captura o señales.</string>

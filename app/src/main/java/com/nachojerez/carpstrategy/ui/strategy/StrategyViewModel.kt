@@ -12,6 +12,8 @@ import com.nachojerez.carpstrategy.data.reservoir.ReservoirRepository
 import com.nachojerez.carpstrategy.data.userdata.GuidedJson
 import com.nachojerez.carpstrategy.data.userdata.LocalSettings
 import com.nachojerez.carpstrategy.di.IoDispatcher
+import com.nachojerez.carpstrategy.domain.advice.BaitShelf
+import com.nachojerez.carpstrategy.domain.advice.BaitUsage
 import com.nachojerez.carpstrategy.domain.advice.DayPlans
 import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.advice.LessonStatus
@@ -126,6 +128,7 @@ class StrategyViewModel @Inject constructor(
                     gear = inputs.gear.today(),
                     allGear = inputs.gear,
                     groundbaitNormalKg = inputs.groundbaitNormalKg,
+                    baitUsage = BaitShelf.usage(inputs.sessions),
                     myReservoirs = Reservoirs.withSpots(inputs.spots, inputs.reservoirs, inputs.reservoir?.reservoir),
                     lessons = accepted,
                     pendingLessons = inputs.lessons.count { it.status == LessonStatus.PROPOSED },
@@ -156,6 +159,14 @@ class StrategyViewModel @Inject constructor(
     /** Marca o desmarca un cebo como «hoy lo llevo» (fase 7.13): no se borra del inventario. */
     fun toggleToday(id: String) {
         viewModelScope.launch { gearEditor.toggleToday(id) }
+    }
+
+    fun clearToday() {
+        viewModelScope.launch { gearEditor.clearToday() }
+    }
+
+    fun addFromDiary(usage: BaitUsage) {
+        viewModelScope.launch { gearEditor.addFromDiary(usage) }
     }
 
     fun saveGear(draft: GearDraft) {
