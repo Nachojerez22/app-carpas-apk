@@ -25,6 +25,7 @@ import com.nachojerez.carpstrategy.domain.rules.RuleLoadResult
 import com.nachojerez.carpstrategy.domain.rules.TimeWindow
 import com.nachojerez.carpstrategy.domain.rules.WindowKind
 import com.nachojerez.carpstrategy.domain.usecase.RawWeather
+import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import java.io.File
 import java.time.Duration
 import java.time.Instant
@@ -109,5 +110,47 @@ class StrategyUiStateTest {
         val stale = dayPlanFor(state, PlanUiState(outcome = outcome, key = "otra"))!!
         assertEquals(PlanSource.APP, stale.source)
         assertEquals(DEFAULT_RODS, stale.rods.size)
+    }
+
+    @Test
+    fun `plan preparado - vale toda la salida aunque cambie la franja, no si cambia lo elegido`() {
+        val key = "2026-10-26|brovales|auto|2|DAWN|1|-"
+        assertEquals(outingKey(key), outingKey("2026-10-26|brovales|auto|2|MORNING|1|-"))
+        assertTrue(outingKey(key) != outingKey("2026-10-26|brovales|auto|3|MORNING|1|-"))
+        assertTrue(outingKey(key) != outingKey("2026-10-27|brovales|auto|2|DAWN|1|-"))
+
+        val water = ManualRecord(
+            period = RecordPeriod.At(now.minus(Duration.ofHours(1))), location = point, source = "termómetro",
+            origin = ManualOrigin.Typed, values = mapOf(ManualField.WATER_TEMP_SURFACE to 18.0), createdAt = now,
+        )
+        val base = buildStrategyState(RawWeather(null, emptyList(), null, manualRecords = listOf(water)), rules, now, point)
+        val gear = listOf(GearItem("1", GearCategory.BAIT, "Chufa", baitType = BaitType.TIGERNUT))
+        val state = base.copy(gear = gear, advice = adviceFor(base.derived, now, emptyList(), gear, emptyList(), emptyList()))
+        val current = planKey(state)!!
+        val parts = current.split("|").toMutableList()
+        parts[4] = if (parts[4] == "DAWN") "EVENING" else "DAWN"
+        val preparedKey = parts.joinToString("|")
+        val ai = AiPlan("Preparado", Evidence.YELLOW, listOf(AiRodPlan(1, null, "Chufa", reason = "Fondo duro", evidence = Evidence.YELLOW)))
+        val prepared = AiOutcome(AiExchange(now, AiKind.PLAN, "GEMINI", "modelo", valid = true), ai)
+        assertEquals(prepared, aiPlanFor(state, PlanUiState(prepared = prepared, preparedKey = preparedKey)))
+        assertEquals(PlanSource.AI, dayPlanFor(state, PlanUiState(prepared = prepared, preparedKey = preparedKey))!!.source)
+        // Preparado con 3 cañas y ahora llevas otras: no vale.
+        parts[3] = "3"
+        assertEquals(null, aiPlanFor(state, PlanUiState(prepared = prepared, preparedKey = parts.joinToString("|"))))
+    }
+
+    @Test
+    fun `proxima salida - hoy si aun no ha empezado el horario legal, si no manana`() {
+        val zone = Formatting.MADRID
+        // 25/10/2026 en Brovales: orto ~08:10 (hora de invierno) ⇒ inicio legal ~07:10.
+        val night = Instant.parse("2026-10-25T03:00:00Z")
+        val evening = Instant.parse("2026-10-25T19:00:00Z")
+        val forNight = nextOuting(night, point, zone)!!
+        val forEvening = nextOuting(evening, point, zone)!!
+        assertEquals(java.time.LocalDate.of(2026, 10, 25), forNight.atZone(zone).toLocalDate())
+        assertEquals(java.time.LocalDate.of(2026, 10, 26), forEvening.atZone(zone).toLocalDate())
+        // Media hora después del inicio legal (1 h antes del orto).
+        val sun = com.nachojerez.carpstrategy.domain.derived.SolarCalculator.sunTimes(java.time.LocalDate.of(2026, 10, 26), point)
+        assertEquals(sun.sunrise!!.minus(Duration.ofHours(1)).plus(PREP_AFTER_LEGAL_START), forEvening)
     }
 }

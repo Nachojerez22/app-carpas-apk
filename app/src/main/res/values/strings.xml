@@ -1022,7 +1022,11 @@
     <string name="ai_key_account">Guardar la clave en mi cuenta de Google</string>
     <string name="ai_key_account_on">La clave se guarda en la carpeta privada de la app en tu Drive y la tendrás en todos los móviles con tu cuenta. No va en las exportaciones. «Borrar clave» la quita de la cuenta y de este móvil.</string>
     <string name="ai_key_account_off">La clave se queda solo en este móvil.</string>
-    <string name="ai_auto">Consultar en cada aviso de la sesión guiada</string>
+    <string name="ai_auto">Consultar a la IA en los avisos de la sesión guiada</string>
+    <string name="ai_auto_never">Nunca</string>
+    <string name="ai_auto_on_change">Si cambia algo (recomendado)</string>
+    <string name="ai_auto_always">En cada aviso</string>
+    <string name="ai_auto_hint">«Si cambia algo»: la primera vez, cuando cambia el tiempo o entra lluvia o agua turbia, cuando marcas «No funciona», salen otras especies o hay toques sin clavar, y como mucho cada 2 horas si todo sigue igual. Gasta mucha menos cuota que «En cada aviso»; el resto lo resuelven las reglas de la app. Siempre puedes preguntar a mano.</string>
     <string name="ai_test">Probar conexión</string>
     <string name="ai_testing">Probando…</string>
     <string name="ai_test_ok">Conexión correcta ✓</string>
@@ -1151,6 +1155,7 @@
     <string name="ai_usage_requests">Consultas</string>
     <string name="ai_usage_searches">Búsquedas en Google</string>
     <string name="ai_usage_tokens">Tokens</string>
+    <string name="ai_usage_search_blocked">Búsquedas en Google agotadas hasta las %1$s. Mientras tanto, las fichas de cebos con enlace se hacen leyendo la tienda y las demás, solo con lo que sabe la IA.</string>
     <string name="ai_usage_of">%1$s: %2$s de %3$s</string>
     <string name="ai_usage_plain">%1$s: %2$s</string>
     <string name="ai_usage_tokens_detail">Entrada %1$s · salida %2$s · razonamiento %3$s</string>
@@ -1191,6 +1196,10 @@
     <string name="gear_sheet_sources">Fuentes:\n%1$s</string>
     <string name="gear_sheet_no_key">Configura la IA (Lugar → Asistente de IA) para buscar la ficha.</string>
     <string name="gear_sheet_failed">No se pudo preparar la ficha (%1$s).</string>
+    <string name="gear_pending_hint">Hay fichas hechas sin búsqueda en Google. Las que tienen enlace se rehacen leyendo la tienda; las demás, cuando vuelva a haber búsquedas.</string>
+    <string name="gear_pending_button">Buscar de nuevo las fichas pendientes (%1$d)</string>
+    <string name="gear_pending_running">Buscando las fichas…</string>
+    <string name="gear_pending_done">Fichas mejoradas con búsqueda o con la tienda: %1$d.</string>
     <string name="gear_sheet_failed_http">Google respondió con un error y no se pudo preparar la ficha (ni buscando ni sin buscar). Si es 503 o 500 el servidor está saturado: prueba en un rato.</string>
     <string name="gear_sheet_quota">Gemini no deja más consultas ahora mismo (cuota agotada), ni siquiera sin buscar en Google. Suele ser por demasiadas consultas seguidas: espera un par de minutos y vuelve a probar; si no, mañana se renueva.</string>
     <string name="gear_sheet_offline">Sin conexión: prueba cuando tengas cobertura.</string>
@@ -1240,6 +1249,23 @@
     <string name="strategy_best_time">Mejor rato: %1$s–%2$s (%3$s)</string>
     <string name="strategy_plan_spot">En %1$s</string>
     <string name="strategy_plan_asking">Consultando a la IA con tu embalse, tu puesto y tus datos…</string>
+    <string name="strategy_plan_by_ai_prepared">Plan de la IA preparado para esta salida y comprobado por la app ✓</string>
+    <!-- Preparar la próxima salida (fase 7.15) -->
+    <string name="prep_title">Preparar la próxima salida</string>
+    <string name="prep_hint">Hazlo con cobertura (en casa, la noche antes): descarga la previsión, pide el plan de la IA para el embalse, puesto, cañas y cebos que tienes elegidos y completa las fichas de cebos pendientes. En el embalse lo tendrás todo aunque no haya red, sin gastar otra consulta.</string>
+    <string name="prep_button">Preparar la próxima salida</string>
+    <string name="prep_button_again">Volver a preparar</string>
+    <string name="prep_step_forecast">Descargando la previsión…</string>
+    <string name="prep_step_plan">Pidiendo el plan de la IA…</string>
+    <string name="prep_step_sheets">Completando las fichas de cebos…</string>
+    <string name="prep_done">Preparada la salida del %1$s.</string>
+    <string name="prep_forecast_ok">Previsión actualizada ✓</string>
+    <string name="prep_forecast_failed">No se pudo descargar la previsión: se usará la que ya tenías.</string>
+    <string name="prep_plan_ready">Plan de la IA listo ✓: lo verás en «Tu plan» al llegar, aunque no haya red, y se copia en la sesión guiada.</string>
+    <string name="prep_plan_failed">No se pudo pedir el plan a la IA: al llegar tendrás el plan de la app.</string>
+    <string name="prep_plan_no_key">Sin clave de IA: al llegar tendrás el plan de la app (con tus datos y el conocimiento).</string>
+    <string name="prep_plan_nothing">No hay datos suficientes para planificar esa salida.</string>
+    <string name="prep_sheets">Fichas de cebos: %1$d mejoradas, %2$d pendientes.</string>
     <string name="strategy_plan_by_ai">Plan afinado por la IA a las %1$s y comprobado por la app ✓</string>
     <string name="strategy_plan_ask_again">Volver a preguntar</string>
     <string name="strategy_plan_by_app_no_ai">Plan de la app (conocimiento y tus datos). Configura la IA para que lo afine.</string>

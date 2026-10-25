@@ -134,6 +134,10 @@ Normas (si no las cumples, la app descarta la respuesta):
         .replace("Busca el producto de \"cebo\" (marca y nombre) en internet y, si viene \"enlace\", lee esa página (tienda o fabricante).", "No puedes buscar en internet: usa lo que sepas del producto de \"cebo\" (marca y nombre) y lo que escribió el usuario.")
         .replace("\"fuentes\":[\"https://…\"],", "\"fuentes\":[],")
 
+    /** Con enlace (fase 7.15): solo se lee la página, sin buscar en Google (no gasta búsquedas). */
+    val BAIT_SYSTEM_URL_ONLY = BAIT_SYSTEM
+        .replace("Busca el producto de \"cebo\" (marca y nombre) en internet y, si viene \"enlace\", lee esa página (tienda o fabricante).", "No busques en internet: lee la página de \"enlace\" (tienda o fabricante) y usa lo que sepas del producto de \"cebo\" (marca y nombre).")
+
     /** Estado para la ficha de un cebo: solo el producto (nunca la ubicación ni la pesca). */
     fun baitState(item: GearItem): String = buildJsonObject {
         putJsonObject("cebo") {

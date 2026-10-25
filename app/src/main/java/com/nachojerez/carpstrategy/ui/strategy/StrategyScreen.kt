@@ -115,6 +115,7 @@ fun StrategyScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan by viewModel.plan.collectAsStateWithLifecycle()
     val sheet by viewModel.sheetState.collectAsStateWithLifecycle()
+    val prep by viewModel.prep.collectAsStateWithLifecycle()
     StrategyContent(
         state, plan,
         StrategyActions(
@@ -137,8 +138,10 @@ fun StrategyScreen(
             onSetGroundbaitNormal = viewModel::setGroundbaitNormalKg,
             onClearToday = viewModel::clearToday,
             onAddFromDiary = viewModel::addFromDiary,
+            onPrepare = viewModel::prepareNextOuting,
         ),
         sheet,
+        prep,
     )
 }
 
@@ -163,6 +166,7 @@ data class StrategyActions(
     val onSetGroundbaitNormal: (Double?) -> Unit = {},
     val onClearToday: () -> Unit = {},
     val onAddFromDiary: (BaitUsage) -> Unit = {},
+    val onPrepare: () -> Unit = {},
 )
 
 /**
@@ -174,11 +178,17 @@ data class StrategyActions(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StrategyContent(state: StrategyUiState, plan: PlanUiState = PlanUiState(), actions: StrategyActions = StrategyActions(), sheet: SheetUiState = SheetUiState()) {
+fun StrategyContent(
+    state: StrategyUiState,
+    plan: PlanUiState = PlanUiState(),
+    actions: StrategyActions = StrategyActions(),
+    sheet: SheetUiState = SheetUiState(),
+    prep: PrepUiState = PrepUiState(),
+) {
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
     val dayPlan = remember(state, plan) { dayPlanFor(state, plan) }
-    // El plan de la IA solo cuenta si se pidió para lo que tienes elegido ahora.
-    val currentAi = plan.outcome?.takeIf { plan.key != null && plan.key == planKey(state) }
+    // El plan de la IA solo cuenta si se pidió (o se preparó) para lo que tienes elegido ahora.
+    val currentAi = aiPlanFor(state, plan)
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = Spacing.screen, vertical = Spacing.sm),
@@ -242,6 +252,45 @@ fun StrategyContent(state: StrategyUiState, plan: PlanUiState = PlanUiState(), a
                 // Al final, con todo elegido: empezar la sesión guiada con este plan.
                 if (!result.blocked && dayPlan != null) item { StartStep(state, dayPlan, actions.onStartGuided) }
             }
+        }
+        // Fase 7.15: con cobertura (la noche antes), dejar lista la próxima salida.
+        item { PrepareStep(prep, actions.onPrepare) }
+    }
+}
+
+/** «Preparar la próxima salida»: previsión, plan de la IA y fichas, para tenerlo todo sin cobertura. */
+@Composable
+private fun PrepareStep(prep: PrepUiState, onPrepare: () -> Unit) {
+    CarpCard {
+        Text(stringResource(R.string.prep_title), style = MaterialTheme.typography.titleMedium)
+        Caption(stringResource(R.string.prep_hint))
+        prep.step?.let { step ->
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+            Caption(
+                stringResource(
+                    when (step) {
+                        PrepStep.FORECAST -> R.string.prep_step_forecast
+                        PrepStep.PLAN -> R.string.prep_step_plan
+                        PrepStep.SHEETS -> R.string.prep_step_sheets
+                    },
+                ),
+            )
+        }
+        prep.result?.let { r ->
+            Text(stringResource(R.string.prep_done, Formatting.hour(r.target)), style = MaterialTheme.typography.titleSmall)
+            Caption(stringResource(if (r.forecastOk) R.string.prep_forecast_ok else R.string.prep_forecast_failed))
+            Caption(
+                when (r.plan) {
+                    PrepPlan.READY -> stringResource(R.string.prep_plan_ready)
+                    PrepPlan.FAILED -> stringResource(R.string.prep_plan_failed) + (r.planDetail?.let { "\n" + stringResource(R.string.ai_error_detail, it) } ?: "")
+                    PrepPlan.NO_KEY -> stringResource(R.string.prep_plan_no_key)
+                    PrepPlan.NOTHING -> stringResource(R.string.prep_plan_nothing)
+                },
+            )
+            if (r.sheetsImproved > 0 || r.sheetsPending > 0) Caption(stringResource(R.string.prep_sheets, r.sheetsImproved, r.sheetsPending))
+        }
+        OutlinedButton(onClick = onPrepare, enabled = !prep.running, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(if (prep.result == null) R.string.prep_button else R.string.prep_button_again))
         }
     }
 }
@@ -620,7 +669,11 @@ private fun PlanStep(
                 Caption(stringResource(R.string.strategy_plan_asking))
             }
             dayPlan.source == PlanSource.AI -> Row(verticalAlignment = Alignment.CenterVertically) {
-                Caption(stringResource(R.string.strategy_plan_by_ai, Formatting.clock(currentAi?.exchange?.time ?: advice.forTime)), Modifier.weight(1f))
+                Caption(
+                    if (currentAi != null && currentAi === plan.prepared) stringResource(R.string.strategy_plan_by_ai_prepared)
+                    else stringResource(R.string.strategy_plan_by_ai, Formatting.clock(currentAi?.exchange?.time ?: advice.forTime)),
+                    Modifier.weight(1f),
+                )
                 TextButton(onClick = actions.onAskAgain) { Text(stringResource(R.string.strategy_plan_ask_again)) }
             }
             !plan.configured -> {

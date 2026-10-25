@@ -314,6 +314,22 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - 0.20.3: una ficha sin búsqueda guarda por qué (`BaitSheet.searchError`/`searchErrorDetail`, JSON
   `motivo_sin_busqueda`/`detalle_sin_busqueda`): cuota (con la hora de renovación) u otro rechazo de Google.
 
+## Preparar la salida y gastar menos IA (fase 7.15)
+
+- Ficha del cebo (`Assistant.baitSheet(…, searchAllowed)`): con enlace solo `url_context` (`AiClient.complete(search =
+  false)`, `BAIT_SYSTEM_URL_ONLY`: no gasta búsquedas de Google); sin enlace, `google_search`. Tras un «cuota agotada»
+  de la búsqueda, `AiUsageStore` guarda `ai_search_blocked_until` (se sincroniza) hasta `AiUsage.nextReset` y no se
+  vuelve a intentar. `List<GearItem>.pendingSheets` + `GearEditor.refreshPendingSheets` («Buscar de nuevo las fichas
+  pendientes» en Mi equipo; lo pulsa el usuario). El consumo avisa de las búsquedas agotadas.
+- `domain/guided/AiCheckInPolicy` (puro): `AiCheckInMode` (NEVER, ON_CHANGE por defecto, ALWAYS) en `AiConfig.checkInMode`
+  (JSON `modo_avisos`; el antiguo `en_cada_aviso` sí ⇒ ON_CHANGE). ON_CHANGE pregunta la primera vez y si cambia el
+  tiempo o las condiciones, «No funciona», otras especies, toques/fallos o tras `MAX_QUIET` (2 h, 🟣).
+- `ui/strategy/TripPrep.kt` (puro): `nextOuting` (inicio legal de la próxima salida + 30 min), `outingKey` (`planKey` sin
+  la franja) y `aiPlanFor` (plan pedido para lo elegido o, si no, el preparado para la misma salida).
+  `StrategyViewModel.prepareNextOuting`: previsión, plan de la IA evaluado a esa hora (`withInputs`) y fichas pendientes.
+  El plan preparado va en el ajuste local `ai_prepared_plan` (+ `strategy_prepared_key`): no se pisa con el automático,
+  evita la consulta automática de esa salida y la sesión guiada lo copia si es de hoy. `PrepareStep` al final de Estrategia.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

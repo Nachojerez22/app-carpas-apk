@@ -3,6 +3,7 @@ package com.nachojerez.carpstrategy.data.assistant
 import com.nachojerez.carpstrategy.data.userdata.LocalSettings
 import com.nachojerez.carpstrategy.data.userdata.SettingDao
 import com.nachojerez.carpstrategy.data.userdata.SettingEntity
+import com.nachojerez.carpstrategy.domain.guided.AiCheckInMode
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +27,9 @@ class AssistantSettings @Inject constructor(private val local: LocalSettings, pr
         @SerialName("proveedor") val provider: String = AiProvider.GEMINI.name,
         @SerialName("modelo") val model: String = AiConfig.DEFAULT_GEMINI_MODEL,
         @SerialName("url_base") val baseUrl: String = "",
+        /** Versiones anteriores a la 0.21.0 (el otro móvil puede seguir leyéndolo). */
         @SerialName("en_cada_aviso") val autoCheckIn: Boolean = true,
+        @SerialName("modo_avisos") val checkInMode: String? = null,
     )
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -47,7 +50,7 @@ class AssistantSettings @Inject constructor(private val local: LocalSettings, pr
     suspend fun setConfig(config: AiConfig) = dao.upsert(
         SettingEntity(
             ACCOUNT_CONFIG,
-            json.encodeToString(ConfigDto.serializer(), ConfigDto(config.provider.name, config.model.trim(), config.baseUrl.trim(), config.autoCheckIn)),
+            json.encodeToString(ConfigDto.serializer(), ConfigDto(config.provider.name, config.model.trim(), config.baseUrl.trim(), config.checkInMode != AiCheckInMode.NEVER, config.checkInMode.name)),
         ),
     )
 
@@ -91,7 +94,9 @@ class AssistantSettings @Inject constructor(private val local: LocalSettings, pr
             provider = AiProvider.entries.firstOrNull { it.name == dto.provider } ?: AiProvider.GEMINI,
             model = dto.model,
             baseUrl = dto.baseUrl,
-            autoCheckIn = dto.autoCheckIn,
+            // «En cada aviso» de antes pasa a «si cambia algo» (gasta mucha menos cuota).
+            checkInMode = AiCheckInMode.entries.firstOrNull { it.name == dto.checkInMode }
+                ?: if (dto.autoCheckIn) AiCheckInMode.ON_CHANGE else AiCheckInMode.NEVER,
         )
     }
 

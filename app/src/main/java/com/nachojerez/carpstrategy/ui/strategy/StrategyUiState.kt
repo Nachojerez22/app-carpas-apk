@@ -95,6 +95,9 @@ data class PlanUiState(
     val outcome: AiOutcome<AiPlan>? = null,
     /** [planKey] para el que se pidió (o se guardó) el plan; si no coincide, el plan ya no vale. */
     val key: String? = null,
+    /** Plan preparado con «Preparar mañana» (fase 7.15) y su [planKey]: vale toda esa salida. */
+    val prepared: AiOutcome<AiPlan>? = null,
+    val preparedKey: String? = null,
 )
 
 /** Cañas por defecto si aún no has elegido. */
@@ -124,7 +127,7 @@ fun planKey(state: StrategyUiState): String? {
 fun dayPlanFor(state: StrategyUiState, plan: PlanUiState): DayPlan? {
     val advice = state.advice ?: return null
     val derived = state.derived ?: return null
-    val ai = plan.outcome?.value?.takeIf { plan.key != null && plan.key == planKey(state) }
+    val ai = aiPlanFor(state, plan)?.value
     val aiSpot = ai?.bestSpot?.let { best -> advice.spots.firstOrNull { it.spot.name.trim().equals(best.spotName.trim(), ignoreCase = true) } }
     val spot = advice.chosen ?: aiSpot ?: advice.spots.firstOrNull()
     return DayPlans.build(advice, state.rods, phaseOf(derived), state.gear, ai, spot, state.groundbaitNormalKg)

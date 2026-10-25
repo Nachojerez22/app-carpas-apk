@@ -168,6 +168,19 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
+### Preparar la salida y gastar menos IA (fase 7.15)
+
+- **Preparar la próxima salida** (al final de Estrategia): con cobertura, la noche antes, descarga la previsión, pide
+  el plan de la IA para el embalse, puesto, cañas y cebos elegidos (evaluado a primera hora de la salida) y completa
+  las fichas de cebos pendientes. En el embalse, sin red, el plan preparado aparece en «Tu plan», no se vuelve a
+  preguntar solo y la sesión guiada lo trae.
+- **Fichas de cebos sin gastar búsquedas**: con el enlace de la tienda, la IA solo lee esa página; sin enlace busca en
+  Google. Si Google dice que no quedan búsquedas, no se vuelve a intentar hasta que se renueve la cuota, y en Mi equipo
+  aparece «Buscar de nuevo las fichas pendientes».
+- **IA en la sesión guiada solo si cambia algo** (por defecto): la primera vez, si cambia el tiempo, entra lluvia o
+  agua turbia, marcas «No funciona», salen otras especies o hay toques sin clavar, y como mucho cada 2 horas. También
+  «Nunca» o «En cada aviso» en Ajustes del asistente.
+
 ### Consumo de la IA (fase 7.14)
 
 En **Lugar → Asistente de IA**, al final, ves lo que ha gastado la app **hoy** (día de cuota de Google,
@@ -345,6 +358,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
 - [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
+- [x] **Fase 7.15**: preparar la salida (previsión, plan de la IA y fichas sin cobertura) y gastar menos IA
 - [x] **Fase 7.14**: consumo de la IA (consultas, búsquedas y tokens de hoy en tus móviles, límites con aviso, últimos 7 días)
 - [x] **Fase 7.13**: mis cebos y engodo (cebos de hoy, marca y composición, ficha con Google, cebado en kilos con tu medida, engodo de la IA)
 - [x] **Fase 7.12**: Estrategia en 3 pasos (embalse → puesto y cañas → un solo plan con la IA; sesión guiada al final)

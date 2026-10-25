@@ -112,6 +112,15 @@ data class BaitSheet(
     val searchErrorDetail: String? = null,
 )
 
+/**
+ * Fichas hechas sin búsqueda porque Google no dejó (fase 7.15): se pueden rehacer. Las de cebos sin
+ * enlace, solo si hoy quedan búsquedas ([searchAllowed]); con enlace basta leer la tienda.
+ */
+fun List<GearItem>.pendingSheets(searchAllowed: Boolean): List<GearItem> = filter { item ->
+    val sheet = item.sheet ?: return@filter false
+    !sheet.searched && sheet.searchError != null && (item.url.isNotBlank() || searchAllowed)
+}
+
 /** Lo que llevas hoy (fase 7.13): solo eso entra en el plan, en la IA y en la sesión guiada. */
 fun List<GearItem>.today(): List<GearItem> = filter { it.available }
 
