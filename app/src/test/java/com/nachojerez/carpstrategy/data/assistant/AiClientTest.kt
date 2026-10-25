@@ -177,4 +177,16 @@ class AiClientTest {
         server.enqueue(MockResponse(body = """{"candidates":[{"content":{"parts":[{"text":"{}"}]}}]}"""))
         assertEquals("{}", broken.complete(gemini, "k", "s", "u"))
     }
+
+    @Test
+    fun `un 503 de Google se repite una vez y un 400 no`() {
+        server.enqueue(MockResponse(code = 503, body = """{"error":{"message":"overloaded"}}"""))
+        server.enqueue(MockResponse(body = """{"candidates":[{"content":{"parts":[{"text":"{}"}]}}]}"""))
+        assertEquals("{}", client.complete(gemini, "k", "s", "u"))
+        assertEquals(2, server.requestCount)
+        server.enqueue(MockResponse(code = 400, body = """{"error":{"message":"bad"}}"""))
+        val error = assertThrows<AiException.Failed> { client.complete(gemini, "k", "s", "u") }
+        assertEquals("HTTP 400: bad", error.description)
+        assertEquals(3, server.requestCount)
+    }
 }

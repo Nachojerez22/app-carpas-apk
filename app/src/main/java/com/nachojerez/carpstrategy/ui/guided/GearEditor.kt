@@ -20,7 +20,8 @@ import kotlinx.coroutines.withContext
 sealed interface BaitSheetResult {
     data class Ok(val item: GearItem) : BaitSheetResult
     data object NoKey : BaitSheetResult
-    data class Failed(val error: String?, val issues: List<AiIssue>) : BaitSheetResult
+    /** [detail]: lo que dijo Google (código y mensaje), si lo dijo. */
+    data class Failed(val error: String?, val issues: List<AiIssue>, val detail: String? = null) : BaitSheetResult
 }
 
 /**
@@ -60,7 +61,7 @@ class GearEditor @Inject constructor(
         val item = save(draft) ?: return BaitSheetResult.Failed(null, listOf(AiIssue.EMPTY_TEXT))
         val key = assistantSettings.apiKey() ?: return BaitSheetResult.NoKey
         val outcome = withContext(io) { assistant.baitSheet(assistantSettings.config(), key, item, clock.instant()) }
-        val sheet = outcome.value ?: return BaitSheetResult.Failed(outcome.exchange.error, outcome.exchange.issues)
+        val sheet = outcome.value ?: return BaitSheetResult.Failed(outcome.exchange.error, outcome.exchange.issues, outcome.exchange.errorDetail)
         // Se relee por si el usuario cambió algo mientras la IA contestaba.
         val current = settings.observeGear().first()
         val updated = (current.firstOrNull { it.id == item.id } ?: item).withSheet(sheet)

@@ -200,4 +200,16 @@ class AssistantTest {
         assertNull(failed.value)
         assertEquals("Quota", failed.exchange.error)
     }
+
+    @Test
+    fun `si Google falla con y sin buscar, el codigo y su mensaje llegan a la pantalla`() {
+        val item = GearItem("1", GearCategory.BAIT, "Supercrush", baitType = BaitType.GROUNDBAIT_MIX)
+        // Cada intento con un 503 se repite una vez: búsqueda (2) + sin buscar (2).
+        repeat(4) { server.enqueue(MockResponse(code = 503, body = """{"error":{"message":"The model is overloaded."}}""")) }
+        val failed = assistant.baitSheet(config, "k", item, now)
+        assertNull(failed.value)
+        assertEquals("Failed", failed.exchange.error)
+        assertEquals("HTTP 503: The model is overloaded.", failed.exchange.errorDetail)
+        assertEquals(4, server.requestCount)
+    }
 }

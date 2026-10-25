@@ -309,6 +309,8 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - 0.20.1: `AiException.Offline` lleva `OfflineReason` (DNS, tiempo, TLS, rechazo, corte) y el detalle técnico
   sin la clave; un corte se repite una vez (`NETWORK_ATTEMPTS`), DNS y tiempo agotado no. Apuntar el consumo
   nunca rompe una consulta (`note` con `runCatching`; `AiUsageStore` con `CoroutineExceptionHandler`).
+- 0.20.2: los 500/502/503/504 del proveedor también se repiten una vez (`SERVER_ERRORS`). `AiException.description`
+  (código y mensaje) llega a `AiExchange.errorDetail` (no se guarda) y se muestra en la ficha del cebo y en Estrategia.
 
 ## Stack
 

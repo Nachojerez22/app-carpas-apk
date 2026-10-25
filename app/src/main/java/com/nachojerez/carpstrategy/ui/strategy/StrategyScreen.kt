@@ -629,7 +629,10 @@ private fun PlanStep(
             }
             currentAi != null && currentAi.value == null -> Row(verticalAlignment = Alignment.CenterVertically) {
                 Caption(
-                    if (currentAi.exchange.error != null) stringResource(R.string.strategy_plan_ai_error)
+                    if (currentAi.exchange.error != null) {
+                        stringResource(R.string.strategy_plan_ai_error) +
+                            (currentAi.exchange.errorDetail?.let { "\n" + stringResource(R.string.ai_error_detail, it) } ?: "")
+                    }
                     else stringResource(R.string.strategy_plan_ai_invalid, currentAi.exchange.issues.map { res.getString(it.titleRes()) }.distinct().joinToString(", ")),
                     Modifier.weight(1f),
                 )
