@@ -45,7 +45,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = ciVersionCode
-        versionName = "0.22.0"
+        versionName = "0.23.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -132,6 +132,10 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
+    // Aviso «Mañana pinta bien» (fase 7.17): tarea diaria que sobrevive a reinicios.
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

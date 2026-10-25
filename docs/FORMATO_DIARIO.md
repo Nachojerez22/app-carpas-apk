@@ -52,7 +52,7 @@ conviene exportar de vez en cuando. Es JSON legible en UTF-8.
 | `canas` | entero | ⚖ La normativa permite como máximo 3 |
 | `horas_cana` | número | Esfuerzo: tecleado (`horas_cana_tecleadas`) o cañas × duración. Solo informativo al importar |
 | `picadas`, `perdidas` | entero | |
-| `capturas` | lista | `hora` (UTC), `peso_kg`, `cana`, `especie`; todo opcional |
+| `capturas` | lista | `hora` (UTC), `peso_kg`, `cana`, `especie`, `foto` (nombre del archivo de la foto en el móvil donde se hizo; la foto no viaja en la exportación ni en la cuenta); todo opcional |
 | `bolo` | booleano | Respuesta explícita; una sesión sin capturas es un dato |
 | `valoracion_previa` | objeto | Copia fija de lo que dijo la app **antes** de la sesión. `tramo`: `VERY_UNFAVORABLE` … `VERY_FAVORABLE`; `nivel_limitante`: `HABITAT`, `TEMPERATURE`, `PHYSICAL`, `CATCHABILITY`. Desde 0.7.0 también `parametros`, `niveles` (valor 0–1 de cada nivel), `reglas_activas` (id → factor aplicado) y `huella_reglas` (versión de rules.json) |
 | `contexto` | objeto | Rellenado al guardar: agua (y si era medida), aire 24 h, viento, lluvia 72 h, nivel %, horario legal, y con peso 0 la luna y la presión. Desde 0.7.0, `parametros` con todos los parámetros de las reglas al inicio de la sesión |

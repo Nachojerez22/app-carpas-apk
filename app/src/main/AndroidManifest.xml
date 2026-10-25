@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Ubicación solo mientras se usa la app (botón "Usar mi ubicación"); nunca en segundo plano. -->
@@ -42,6 +43,29 @@
         <receiver
             android:name=".ui.guided.GuidedActionReceiver"
             android:exported="false" />
+
+        <!-- Fotos de las capturas (fase 7.17): la cámara del sistema escribe en la carpeta privada «fotos». -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fotos"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/fotos_paths" />
+        </provider>
+
+        <!-- WorkManager se configura en CarpStrategyApp (con Hilt): sin el inicializador por defecto. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
     </application>
 
 </manifest>

@@ -34,7 +34,7 @@ class SessionFormTest {
         zone = FishingZone.NORTH,
         rods = "3",
         depth = "2,5",
-        catches = listOf(CatchInput("08:05", "8,4", "2", "Carpa común")),
+        catches = listOf(CatchInput("08:05", "8,4", "2", "Carpa común", "captura_ab12cd.jpg")),
         bites = 4,
     )
 
@@ -45,7 +45,9 @@ class SessionFormTest {
         assertEquals(Instant.parse("2026-09-27T05:20:00Z"), s.start)
         assertEquals(Instant.parse("2026-09-27T10:40:00Z"), s.end)
         assertEquals(2.5, s.depthM)
-        assertEquals(listOf(Catch(Instant.parse("2026-09-27T06:05:00Z"), 8.4, 2, "Carpa común")), s.catches)
+        assertEquals(listOf(Catch(Instant.parse("2026-09-27T06:05:00Z"), 8.4, 2, "Carpa común", "captura_ab12cd.jpg")), s.catches)
+        // La foto (solo el nombre del archivo) va en el JSON de las capturas.
+        assertEquals(s.catches, com.nachojerez.carpstrategy.data.userdata.JournalJson.decodeCatches(com.nachojerez.carpstrategy.data.userdata.JournalJson.encodeCatches(s.catches)))
         assertEquals(false, s.blank)
         assertEquals(16.0, s.rodHours!!, 1e-9)
         assertEquals(now, s.createdAt)

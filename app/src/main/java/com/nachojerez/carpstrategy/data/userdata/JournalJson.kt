@@ -43,6 +43,7 @@ object JournalJson {
         @SerialName("peso_kg") val weightKg: Double? = null,
         @SerialName("cana") val rod: Int? = null,
         @SerialName("especie") val species: String? = null,
+        @SerialName("foto") val photo: String? = null,
     )
 
     @Serializable
@@ -135,8 +136,8 @@ object JournalJson {
 
     private fun instant(text: String?): Instant? = text?.let { runCatching { Instant.parse(it) }.getOrNull() }
 
-    fun Catch.toDto() = CatchDto(time?.toString(), weightKg, rod, species)
-    fun CatchDto.toDomain() = Catch(instant(time), weightKg, rod, species?.takeIf { it.isNotBlank() })
+    fun Catch.toDto() = CatchDto(time?.toString(), weightKg, rod, species, photo)
+    fun CatchDto.toDomain() = Catch(instant(time), weightKg, rod, species?.takeIf { it.isNotBlank() }, photo?.takeIf { it.isNotBlank() })
 
     fun FeatureSnapshot.toDto() = FeaturesDto(numbers, booleans, texts)
     fun FeaturesDto.toDomain() = FeatureSnapshot(numbers, booleans, texts)

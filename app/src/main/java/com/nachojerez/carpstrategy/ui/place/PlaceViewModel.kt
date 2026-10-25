@@ -14,6 +14,7 @@ import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
 import com.nachojerez.carpstrategy.domain.rules.RuleLoadResult
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
+import com.nachojerez.carpstrategy.ui.outlook.OutlookScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +37,8 @@ data class PlaceUiState(
     val regulationReviewed: String? = null,
     /** Embalse de la ubicación (fase 7.6). */
     val reservoir: ReservoirContext? = null,
+    /** Aviso «Mañana pinta bien» activado en este móvil (fase 7.17). */
+    val outlookEnabled: Boolean = false,
 )
 
 @HiltViewModel
@@ -44,6 +47,7 @@ class PlaceViewModel @Inject constructor(
     private val device: DeviceLocationProvider,
     rulesRepository: RulesRepository,
     reservoirs: ReservoirRepository,
+    private val outlook: OutlookScheduler,
 ) : ViewModel() {
     private val gps = MutableStateFlow(GpsStatus.IDLE)
     private val coordinateError = MutableStateFlow<CoordinateError?>(null)
@@ -58,6 +62,7 @@ class PlaceViewModel @Inject constructor(
     ) { location, appearance, gps, error, reviewed ->
         PlaceUiState(location, appearance, gps, error, reviewed)
     }.combine(reservoirs.observeActive()) { state, reservoir -> state.copy(reservoir = reservoir) }
+        .combine(outlook.observeEnabled()) { state, enabled -> state.copy(outlookEnabled = enabled) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PlaceUiState())
 
     /** Se llama tras conceder el permiso: una única lectura, sin seguimiento. */
@@ -74,6 +79,10 @@ class PlaceViewModel @Inject constructor(
                 LocationResult.Unavailable -> GpsStatus.UNAVAILABLE
             }
         }
+    }
+
+    fun setOutlook(enabled: Boolean) {
+        viewModelScope.launch { outlook.setEnabled(enabled) }
     }
 
     fun onPermissionDenied() {

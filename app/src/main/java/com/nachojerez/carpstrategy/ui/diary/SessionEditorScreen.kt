@@ -1,6 +1,11 @@
 package com.nachojerez.carpstrategy.ui.diary
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -9,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -28,8 +34,16 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -59,6 +73,7 @@ import com.nachojerez.carpstrategy.ui.theme.Spacing
 import java.time.Duration
 import java.time.Instant
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
 
 private val COMPUTED_AT: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM 'a las' HH:mm", Formatting.SPANISH)
 
@@ -73,6 +88,7 @@ fun SessionEditorScreen(
     onSave: () -> Unit,
     onCancel: () -> Unit,
     onDelete: (() -> Unit)?,
+    photos: CatchPhotoActions? = null,
 ) {
     val form = editor.form
     val errors = editor.fieldErrors
@@ -116,7 +132,7 @@ fun SessionEditorScreen(
                 }
             }
             form.catches.forEachIndexed { index, c ->
-                CatchRow(index, c, errors, onChange)
+                CatchRow(index, c, errors, onChange, photos)
             }
             if (form.catches.isEmpty()) {
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -329,7 +345,7 @@ private fun PredictionCard(prediction: PredictionSnapshot?, isNew: Boolean) {
 }
 
 @Composable
-private fun CatchRow(index: Int, c: CatchInput, errors: Set<FormField>, onChange: ((SessionForm) -> SessionForm) -> Unit) {
+private fun CatchRow(index: Int, c: CatchInput, errors: Set<FormField>, onChange: ((SessionForm) -> SessionForm) -> Unit, photos: CatchPhotoActions?) {
     CarpCard(contentPadding = Spacing.sm, containerColor = MaterialTheme.colorScheme.surfaceVariant) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Pill(stringResource(R.string.session_catch_number, index + 1), MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.onPrimary)
@@ -352,6 +368,58 @@ private fun CatchRow(index: Int, c: CatchInput, errors: Set<FormField>, onChange
         TextField(c.species, stringResource(R.string.session_catch_species), false) { v ->
             onChange { f -> f.copy(catches = f.catches.mapIndexed { i, x -> if (i == index) x.copy(species = v) else x }) }
         }
+        photos?.let { actions ->
+            CatchPhoto(c.photo, actions) { name -> onChange { f -> f.copy(catches = f.catches.mapIndexed { i, x -> if (i == index) x.copy(photo = name) else x }) } }
+        }
+    }
+}
+
+/** Lo que necesita la ficha para las fotos de las capturas (fase 7.17); lo da el ViewModel. */
+class CatchPhotoActions(
+    val captureTarget: () -> Pair<String, Uri>,
+    val finishCapture: suspend (String) -> String?,
+    val importFrom: suspend (Uri) -> String?,
+    val thumbnail: suspend (String) -> ImageBitmap?,
+)
+
+/** Foto de una captura: miniatura y «Hacer foto», «Galería» y «Quitar foto». */
+@Composable
+private fun CatchPhoto(photo: String, actions: CatchPhotoActions, onPhoto: (String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var pending by rememberSaveable { mutableStateOf<String?>(null) }
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { taken ->
+        val name = pending ?: return@rememberLauncherForActivityResult
+        pending = null
+        // Si se canceló, el archivo vacío se borra y no cambia nada.
+        scope.launch { actions.finishCapture(name)?.takeIf { taken }?.let(onPhoto) }
+    }
+    val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { scope.launch { actions.importFrom(it)?.let(onPhoto) } }
+    }
+    val image by produceState<ImageBitmap?>(null, photo) { value = if (photo.isBlank()) null else actions.thumbnail(photo) }
+    if (photo.isNotBlank()) {
+        val shown = image
+        if (shown != null) {
+            Image(
+                shown,
+                contentDescription = stringResource(R.string.session_catch_photo),
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp),
+            )
+        } else {
+            Caption(stringResource(R.string.session_catch_photo_elsewhere))
+        }
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+        TextButton(onClick = {
+            val (name, uri) = actions.captureTarget()
+            pending = name
+            camera.launch(uri)
+        }) { Text(stringResource(R.string.session_catch_photo_take)) }
+        TextButton(onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
+            Text(stringResource(R.string.session_catch_photo_pick))
+        }
+        if (photo.isNotBlank()) TextButton(onClick = { onPhoto("") }) { Text(stringResource(R.string.session_catch_photo_remove)) }
     }
 }
 

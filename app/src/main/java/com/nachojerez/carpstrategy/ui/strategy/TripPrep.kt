@@ -5,8 +5,10 @@ import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.derived.LegalWindow
 import com.nachojerez.carpstrategy.domain.derived.SolarCalculator
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
+import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 
 /*
@@ -41,6 +43,13 @@ fun aiPlanFor(state: StrategyUiState, plan: PlanUiState): AiOutcome<AiPlan>? {
     plan.outcome?.takeIf { plan.key == key }?.let { return it }
     return plan.prepared?.takeIf { plan.preparedKey != null && outingKey(plan.preparedKey) == outingKey(key) }
 }
+
+/**
+ * Aviso «Mañana pinta bien» (fase 7.17): solo si la próxima salida sale favorable o muy favorable
+ * (y legal), y una vez por salida.
+ */
+fun shouldNotifyOutlook(band: FavorabilityBand?, blocked: Boolean, outingDate: LocalDate, lastNotified: LocalDate?): Boolean =
+    !blocked && (band == FavorabilityBand.FAVORABLE || band == FavorabilityBand.VERY_FAVORABLE) && lastNotified != outingDate
 
 /** Pasos de «Preparar mañana». */
 enum class PrepStep { FORECAST, PLAN, SHEETS }
