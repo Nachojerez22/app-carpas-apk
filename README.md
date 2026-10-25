@@ -168,6 +168,19 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
+### Mis cebos y engodo (fase 7.13)
+
+- En **Estrategia → ③ Cebos que llevas hoy** (y en Mi equipo) marcas qué llevas hoy sin borrar nada, y
+  añades o editas un cebo ahí mismo: marca, qué lleva, enlace de cualquier tienda y tipo (también
+  **engodo o mix, harinas y líquidos**). Solo lo que llevas hoy entra en el plan, en la IA y en la
+  sesión guiada.
+- **Ficha con la IA**: busca el producto en Google y lee el enlace de la tienda para sacar la
+  composición, el perfil y cómo usarlo (🟣 «según la IA»; lo que escribes tú manda).
+- **Cebado en kilos**: pones tu cebado «normal» en kg por caña y sesión, y la app lo traduce (poco ≈ ¼,
+  mucho ≈ 2×, la mitad al empezar y el resto en recebados; 🟣, a calibrar con tu diario). Sin medida,
+  sigue diciendo poco, normal o mucho.
+- **Engodo con lo que llevas**: la IA propone la mezcla en partes con tus cebos de hoy y los kilos por caña.
+
 ### Estrategia en 3 pasos (fase 7.12)
 
 La pestaña **Estrategia** ya no muestra todo en bruto: es un camino que termina en un plan.
@@ -323,6 +336,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
 - [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
+- [x] **Fase 7.13**: mis cebos y engodo (cebos de hoy, marca y composición, ficha con Google, cebado en kilos con tu medida, engodo de la IA)
 - [x] **Fase 7.12**: Estrategia en 3 pasos (embalse → puesto y cañas → un solo plan con la IA; sesión guiada al final)
 - [x] **Fase 7.10**: estrategia por embalse y puesto (elegir los dos en Estrategia; plan de la IA y sesión guiada para ese puesto)
 - [x] **Fase 7.8**: viento (cálido o frío respecto al agua, avisos prácticos y campos del diario)

@@ -5,29 +5,58 @@ import androidx.lifecycle.viewModelScope
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.UUID
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class GearViewModel @Inject constructor(private val settings: SettingsRepository) : ViewModel() {
+class GearViewModel @Inject constructor(
+    private val settings: SettingsRepository,
+    private val editor: GearEditor,
+) : ViewModel() {
     val gear: StateFlow<List<GearItem>> = settings.observeGear().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    /** Tu cebado «normal» en kg por caña y sesión (fase 7.13). */
+    val groundbaitNormalKg: StateFlow<Double?> = settings.observeGroundbaitNormalKg().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    private val sheet = MutableStateFlow(SheetUiState())
+    val sheetState: StateFlow<SheetUiState> = sheet.asStateFlow()
+
     fun save(draft: GearDraft) {
-        if (!draft.isValid) return
-        viewModelScope.launch {
-            val current = settings.observeGear().first()
-            settings.setGear(current.upsert(draft.toItem { UUID.randomUUID().toString() }))
-        }
+        viewModelScope.launch { editor.save(draft) }
     }
 
     fun delete(id: String) {
+        viewModelScope.launch { editor.delete(id) }
+    }
+
+    fun toggleToday(id: String) {
+        viewModelScope.launch { editor.toggleToday(id) }
+    }
+
+    fun setGroundbaitNormalKg(kg: Double?) {
+        viewModelScope.launch { settings.setGroundbaitNormalKg(kg) }
+    }
+
+    /** Ficha del cebo con la IA; [onDone] recibe el borrador con la ficha para seguir editando. */
+    fun fetchSheet(draft: GearDraft, onDone: (GearDraft) -> Unit) {
+        if (sheet.value.running) return
+        sheet.value = SheetUiState(running = true)
         viewModelScope.launch {
-            settings.setGear(settings.observeGear().first().filterNot { it.id == id })
+            val result = editor.fetchSheet(draft)
+            sheet.value = SheetUiState(result = result)
+            if (result is BaitSheetResult.Ok) onDone(GearDraft.of(result.item))
         }
     }
+
+    fun clearSheetState() {
+        sheet.value = SheetUiState()
+    }
 }
+
+/** Estado de la consulta de la ficha de un cebo. */
+data class SheetUiState(val running: Boolean = false, val result: BaitSheetResult? = null)

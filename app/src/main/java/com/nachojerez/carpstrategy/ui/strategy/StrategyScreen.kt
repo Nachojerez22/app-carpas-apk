@@ -55,6 +55,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiSpotPick
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
+import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.guided.WindRelation
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
@@ -81,6 +82,11 @@ import com.nachojerez.carpstrategy.ui.components.WarningChip
 import com.nachojerez.carpstrategy.ui.components.WarningType
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.zoneLabelRes
+import com.nachojerez.carpstrategy.ui.guided.BaitRow
+import com.nachojerez.carpstrategy.ui.guided.GearDialog
+import com.nachojerez.carpstrategy.ui.guided.GearDraft
+import com.nachojerez.carpstrategy.ui.guided.GroundbaitNormalRow
+import com.nachojerez.carpstrategy.ui.guided.SheetUiState
 import com.nachojerez.carpstrategy.ui.guided.baitText
 import com.nachojerez.carpstrategy.ui.guided.shortRes
 import com.nachojerez.carpstrategy.ui.guided.titleRes
@@ -98,10 +104,12 @@ fun StrategyScreen(
     onOpenLessons: () -> Unit = {},
     onOpenReservoir: () -> Unit = {},
     onOpenReservoirs: () -> Unit = {},
+    onOpenGear: () -> Unit = {},
     viewModel: StrategyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan by viewModel.plan.collectAsStateWithLifecycle()
+    val sheet by viewModel.sheetState.collectAsStateWithLifecycle()
     StrategyContent(
         state, plan,
         StrategyActions(
@@ -115,7 +123,15 @@ fun StrategyScreen(
             onChooseSpot = viewModel::chooseSpot,
             onChooseRods = viewModel::chooseRods,
             onAskAgain = viewModel::requestPlan,
+            onOpenGear = onOpenGear,
+            onToggleBait = viewModel::toggleToday,
+            onSaveGear = viewModel::saveGear,
+            onDeleteGear = viewModel::deleteGear,
+            onFetchSheet = viewModel::fetchSheet,
+            onClearSheet = viewModel::clearSheetState,
+            onSetGroundbaitNormal = viewModel::setGroundbaitNormalKg,
         ),
+        sheet,
     )
 }
 
@@ -131,6 +147,13 @@ data class StrategyActions(
     val onChooseSpot: (Long?) -> Unit = {},
     val onChooseRods: (Int) -> Unit = {},
     val onAskAgain: () -> Unit = {},
+    val onOpenGear: () -> Unit = {},
+    val onToggleBait: (String) -> Unit = {},
+    val onSaveGear: (GearDraft) -> Unit = {},
+    val onDeleteGear: (String) -> Unit = {},
+    val onFetchSheet: (GearDraft, (GearDraft) -> Unit) -> Unit = { _, _ -> },
+    val onClearSheet: () -> Unit = {},
+    val onSetGroundbaitNormal: (Double?) -> Unit = {},
 )
 
 /**
@@ -142,7 +165,7 @@ data class StrategyActions(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StrategyContent(state: StrategyUiState, plan: PlanUiState = PlanUiState(), actions: StrategyActions = StrategyActions()) {
+fun StrategyContent(state: StrategyUiState, plan: PlanUiState = PlanUiState(), actions: StrategyActions = StrategyActions(), sheet: SheetUiState = SheetUiState()) {
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
     val dayPlan = remember(state, plan) { dayPlanFor(state, plan) }
     // El plan de la IA solo cuenta si se pidió para lo que tienes elegido ahora.
@@ -168,6 +191,8 @@ fun StrategyContent(state: StrategyUiState, plan: PlanUiState = PlanUiState(), a
         item { ReservoirStep(state, actions) }
         // ② Puesto (con la recomendación de la app o de la IA) y cañas.
         item { SpotStep(state, dayPlan, currentAi?.value?.bestSpot, actions) }
+        // ③ Cebos que llevas hoy (y tu medida de cebado).
+        item { BaitsStep(state, actions, sheet) }
         when {
             state.ruleIssues.isNotEmpty() -> {
                 item {
@@ -563,7 +588,7 @@ private fun PlanStep(
     val cs = MaterialTheme.colorScheme
     val res = LocalContext.current.resources
     CarpCard {
-        StepTitle(3, if (advice.deferred) stringResource(R.string.strategy_plan_title_next, Formatting.clock(advice.forTime)) else stringResource(R.string.strategy_plan_title))
+        StepTitle(4, if (advice.deferred) stringResource(R.string.strategy_plan_title_next, Formatting.clock(advice.forTime)) else stringResource(R.string.strategy_plan_title))
         // Mejor rato (las condiciones están arriba, en su tarjeta).
         state.result?.evaluatedAt?.let { now ->
             nextWindow(state.windows, now)?.let { w ->
@@ -614,8 +639,31 @@ private fun PlanStep(
         // Cebado y especies.
         HorizontalDivider(color = cs.outlineVariant)
         val groundbait = dayPlan.groundbait
-        Text(if (groundbait == null) stringResource(R.string.advice_no_groundbait) else stringResource(R.string.advice_groundbait, stringResource(groundbait.titleRes())))
+        val amount = dayPlan.groundbaitAmount
+        when {
+            groundbait == null -> Text(stringResource(R.string.advice_no_groundbait))
+            amount != null -> {
+                Text(stringResource(R.string.strategy_groundbait_kg, stringResource(groundbait.titleRes()).lowercase(), kgText(amount.perRodKg), kgText(amount.totalKg)))
+                Caption(stringResource(R.string.strategy_groundbait_split, kgText(amount.initialPerRodKg), kgText(amount.rebaitPerRodKg)))
+            }
+            else -> {
+                Text(stringResource(R.string.advice_groundbait, stringResource(groundbait.titleRes())))
+                Caption(stringResource(R.string.strategy_groundbait_no_measure))
+            }
+        }
         if (advice.groundbaitDoubt) Caption(stringResource(R.string.advice_groundbait_doubt), color = cs.error)
+        // Engodo con lo que llevas (de la IA, ya validado).
+        dayPlan.aiGroundbait?.let { g ->
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.strategy_groundbait_mix), style = MaterialTheme.typography.titleSmall)
+                    Text(g.mix.joinToString(" + ") { res.getString(R.string.strategy_groundbait_part, it.parts, it.baitName) })
+                    if (g.rebait.isNotBlank()) Caption(g.rebait)
+                    if (g.reason.isNotBlank()) Caption(g.reason)
+                }
+                g.evidence?.let { AnyEvidenceBadge(it) }
+            }
+        }
         advice.species.notes.forEach { (sp, evidence) ->
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 Caption(stringResource(sp.effectRes()), Modifier.weight(1f))
@@ -717,6 +765,53 @@ private fun durationText(d: Duration): String {
         else -> stringResource(R.string.duration_hm, h, m)
     }
 }
+
+/**
+ * ③ Cebos que llevas hoy (fase 7.13): la lista de tu equipo con su casilla «hoy lo llevo» (no se
+ * borra nada), añadir o editar uno ahí mismo (marca, qué lleva, enlace y ficha con la IA) y tu
+ * medida de cebado en kilos.
+ */
+@Composable
+private fun BaitsStep(state: StrategyUiState, actions: StrategyActions, sheet: SheetUiState) {
+    var draft by remember { mutableStateOf<GearDraft?>(null) }
+    val baits = state.allGear.filter { it.category == GearCategory.BAIT }
+    CarpCard {
+        StepTitle(3, stringResource(R.string.strategy_baits_title))
+        if (baits.isEmpty()) {
+            Caption(stringResource(R.string.strategy_baits_none))
+        } else {
+            Caption(stringResource(R.string.strategy_baits_count, baits.count { it.available }, baits.size))
+            baits.forEach { item ->
+                BaitRow(item, onToggle = { actions.onToggleBait(item.id) }, onEdit = { actions.onClearSheet(); draft = GearDraft.of(item) })
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            OutlinedButton(onClick = { actions.onClearSheet(); draft = GearDraft(category = GearCategory.BAIT) }) { Text(stringResource(R.string.strategy_baits_add)) }
+            TextButton(onClick = actions.onOpenGear) { Text(stringResource(R.string.strategy_baits_all)) }
+        }
+        GroundbaitNormalRow(state.groundbaitNormalKg, actions.onSetGroundbaitNormal)
+    }
+    draft?.let { current ->
+        GearDialog(
+            draft = current,
+            onChange = { draft = it },
+            onSave = {
+                actions.onSaveGear(current)
+                draft = null
+            },
+            onDelete = current.id?.let { id -> { actions.onDeleteGear(id); draft = null } },
+            onDismiss = { draft = null },
+            sheet = sheet,
+            onFetchSheet = { actions.onFetchSheet(current) { updated -> draft = updated } },
+        )
+    }
+}
+
+/** «750 g» por debajo de 1 kg (de 50 en 50 g); si no, «1,5 kg». */
+@Composable
+private fun kgText(kg: Double): String =
+    if (kg < 1.0) stringResource(R.string.g_value, (Math.round(kg * 20) * 50).coerceAtLeast(50L).toString())
+    else stringResource(R.string.kg_value, Formatting.number(kg, 1))
 
 /**
  * Final del camino: con embalse, puesto, cañas y plan ya elegidos, empezar la sesión guiada.

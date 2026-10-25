@@ -149,4 +149,37 @@ class AiValidatorTest {
         val bad = plan.copy(advice = listOf(AiAdvice(null, "Algo", null), AiAdvice(StrategyField.BAIT, "Echa 2 kilos", Evidence.YELLOW)))
         assertEquals(setOf(AiIssue.UNKNOWN_FIELD, AiIssue.MISSING_EVIDENCE, AiIssue.GRAMS), AiValidator.validate(bad, ctx))
     }
+
+    @Test
+    fun `engodo solo con tus cebos y kilos solo con tu medida`() {
+        val baits = listOf(
+            GearItem("m", GearCategory.BAIT, "Mix verde", baitType = BaitType.GROUNDBAIT_MIX, brand = "Marca"),
+            GearItem("p", GearCategory.BAIT, "Pellet 4 mm", baitType = BaitType.PELLET),
+        )
+        val withGear = ctx.copy(gear = baits)
+        val ok = AiGroundbait(listOf(AiMixPart("Mix verde", 2), AiMixPart("Marca · Pellet 4 mm".substringAfter("· "), 1)), null, "Un puñado tras cada carpa", "Agua templada", Evidence.YELLOW)
+        assertTrue(AiValidator.validate(ok, withGear).isEmpty())
+        assertTrue(AiValidator.validate(ok.copy(mix = listOf(AiMixPart("Marca · Mix verde", 1))), withGear).isEmpty())
+        assertEquals(setOf(AiIssue.UNKNOWN_BAIT), AiValidator.validate(ok.copy(mix = listOf(AiMixPart("Harina de otro", 1))), withGear))
+        assertEquals(setOf(AiIssue.AMOUNT_OUT_OF_RANGE), AiValidator.validate(ok.copy(mix = listOf(AiMixPart("Mix verde", 30))), withGear))
+        // Kilos sin medida: no; con medida, hasta 1,5 × «mucho».
+        assertEquals(setOf(AiIssue.GRAMS), AiValidator.validate(ok.copy(perRodKg = 1.0), withGear))
+        val measured = withGear.copy(groundbaitNormalKg = 1.0)
+        assertTrue(AiValidator.validate(ok.copy(perRodKg = 1.5), measured).isEmpty())
+        assertEquals(setOf(AiIssue.AMOUNT_OUT_OF_RANGE), AiValidator.validate(ok.copy(perRodKg = 5.0), measured))
+        // Los textos siguen sin gramos.
+        assertEquals(setOf(AiIssue.GRAMS), AiValidator.validate(ok.copy(rebait = "Echa 200 g cada hora"), measured))
+    }
+
+    @Test
+    fun `ficha de un cebo con porcentajes en la composicion pero con evidencia y enlaces validos`() {
+        val draft = AiBaitDraft(BaitType.BOILIE, "Harina de pescado 30 %, 20 mm", notes = "Bueno en otoño", sources = listOf("https://fabricante.example/b"), evidence = Evidence.GREEN)
+        assertTrue(AiValidator.validate(draft).isEmpty())
+        assertEquals(setOf(AiIssue.MISSING_EVIDENCE), AiValidator.validate(draft.copy(evidence = null)))
+        assertEquals(setOf(AiIssue.UNREADABLE), AiValidator.validate(draft.copy(sources = listOf("ftp://x"))))
+        assertEquals(setOf(AiIssue.PROMISE), AiValidator.validate(draft.copy(notes = "Garantiza capturas")))
+        val sheet = AiValidator.toSheet(draft, now)
+        assertEquals(BaitType.BOILIE, sheet.type)
+        assertEquals(Evidence.GREEN, sheet.evidence)
+    }
 }

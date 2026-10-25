@@ -3,7 +3,11 @@ package com.nachojerez.carpstrategy.data.assistant
 import com.nachojerez.carpstrategy.domain.assistant.AiContext
 import com.nachojerez.carpstrategy.domain.assistant.AiIssue
 import com.nachojerez.carpstrategy.domain.assistant.AiKind
+import com.nachojerez.carpstrategy.domain.assistant.AiMixPart
+import com.nachojerez.carpstrategy.domain.guided.BaitFunction
+import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.Column
+import com.nachojerez.carpstrategy.domain.guided.Solubility
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.domain.rules.StrategyField
@@ -142,5 +146,23 @@ class AssistantTest {
         assertEquals("RESPUESTA 1:DISTANCE", outcome.exchange.summary)
         val body = server.takeRequest().body!!.utf8()
         assertTrue(body.contains("experto en la pesca de la carpa"))
+    }
+
+    @Test
+    fun `plan con engodo y ficha de un cebo dentro de texto`() {
+        val text = """{"resumen":"A fondo","evidencia":"🟡","engodo":{"mezcla":[{"cebo":"Mix verde","partes":2},{"cebo":"Pellet","partes":"1"}],"kg_por_cana":"1,5","recebado":"Tras cada carpa","motivo":"Agua templada","evidencia":"🟡"},"canas":[]}"""
+        val g = AssistantJson.parsePlan(text)!!.groundbait!!
+        assertEquals(listOf(AiMixPart("Mix verde", 2), AiMixPart("Pellet", 1)), g.mix)
+        assertEquals(1.5, g.perRodKg)
+        assertEquals(Evidence.YELLOW, g.evidence)
+        val bait = AssistantJson.parseBait(
+            "Aquí tienes la ficha:\n```json\n" +
+                """{"tipo":"groundbait_mix","composicion":"Harinas y pellet","funciones":["ATTRACTION","RARA"],"solubilidad":"high","fases":["SUMMER"],"fuentes":["https://t.example"],"evidencia":"🟣"}""" +
+                "\n```",
+        )!!
+        assertEquals(BaitType.GROUNDBAIT_MIX, bait.type)
+        assertEquals(setOf(BaitFunction.ATTRACTION), bait.functions)
+        assertEquals(Solubility.HIGH, bait.solubility)
+        assertEquals(Evidence.PURPLE, bait.evidence)
     }
 }

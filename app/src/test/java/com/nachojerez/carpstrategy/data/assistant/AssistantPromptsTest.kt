@@ -14,6 +14,7 @@ import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedEnv
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.JumpCount
@@ -104,7 +105,9 @@ class AssistantPromptsTest {
         listOf(AssistantPrompts.CHECK_IN_SYSTEM, AssistantPrompts.PLAN_SYSTEM, AssistantPrompts.REVIEW_SYSTEM).forEach { s ->
             assertTrue(s.contains("MÁXIMO de carpas"))
             assertTrue(s.contains("Sin porcentajes"))
-            assertTrue(s.contains("Sin gramos"))
+            // Fase 7.13: en los textos, sin gramos; los kilos solo en el engodo y con la medida del usuario.
+            assertTrue(s.contains("sin gramos ni kilos"))
+            assertTrue(s.contains("tu_normal_kg_por_cana"))
             assertTrue(s.contains("No propongas horas de noche"))
             assertTrue(s.contains("no hables de normativa"))
             assertTrue(s.contains("pesan 0"))
@@ -153,5 +156,29 @@ class AssistantPromptsTest {
         val tramo = session["canas_detalle"]!!.jsonArray.single().jsonObject["tramos"]!!.jsonArray.single().jsonObject
         assertEquals("Maíz dulce", tramo["cebo"]!!.jsonPrimitive.content)
         assertEquals(1, tramo["carpas"]!!.jsonPrimitive.content.toInt())
+    }
+
+    @Test
+    fun `el plan lleva tus cebos con marca y que lleva, y el cebado con tu medida`() {
+        val baits = listOf(GearItem("m", GearCategory.BAIT, "Mix verde", baitType = BaitType.GROUNDBAIT_MIX, brand = "Marca", description = "Harinas y cáñamo"))
+        val input = PlanInput(
+            now = t0, zone = madrid, rods = 2, band = null, limitingLevel = null, legalStart = null, legalEnd = null,
+            windows = emptyList(), advice = emptyList(), waterC = 19.5, waterMeasured = false, waterTrend3dC = null, season = null,
+            windFromDeg = null, windKmh = null, rain24hMm = null, gear = baits, spots = spots,
+            groundbait = GroundbaitLevel.NORMAL, groundbaitNormalKg = 1.5,
+        )
+        val o = Json.parseToJsonElement(AssistantPrompts.planState(input)).jsonObject
+        val cebado = o["cebado"]!!.jsonObject
+        assertEquals("NORMAL", cebado["nivel"]!!.jsonPrimitive.content)
+        assertEquals(1.5, cebado["tu_normal_kg_por_cana"]!!.jsonPrimitive.content.toDouble())
+        val bait = o["equipo"]!!.jsonObject["cebos"]!!.jsonArray.single().jsonObject
+        assertEquals("Marca", bait["marca"]!!.jsonPrimitive.content)
+        assertEquals("Harinas y cáñamo", bait["que_lleva"]!!.jsonPrimitive.content)
+        // Sin medida: el nivel, pero sin kilos.
+        val noMeasure = Json.parseToJsonElement(AssistantPrompts.planState(input.copy(groundbaitNormalKg = null))).jsonObject["cebado"]!!.jsonObject
+        assertFalse(noMeasure.containsKey("tu_normal_kg_por_cana"))
+        // La ficha de un cebo solo lleva el producto.
+        val state = AssistantPrompts.baitState(baits.single().copy(url = "https://t.example/mix"))
+        assertTrue(state.contains("https://t.example/mix") && state.contains("Marca") && !state.contains("lat"))
     }
 }

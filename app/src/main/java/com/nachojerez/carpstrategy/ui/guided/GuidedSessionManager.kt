@@ -27,6 +27,7 @@ import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.guided.WeatherQuestion
 import com.nachojerez.carpstrategy.domain.guided.WeatherSnapshot
+import com.nachojerez.carpstrategy.domain.guided.today
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
@@ -110,7 +111,7 @@ class GuidedSessionManager @Inject constructor(
         val now = clock.instant()
         val location = settings.observeLocation().first().point
         val sessions = journal.observeSessions().first()
-        val gear = settings.observeGear().first()
+        val gear = settings.observeGear().first().today()
         val (reservoir, all) = reservoirAt(location)
         val lessons = Lessons.forReservoir(settings.observeLessons().first(), reservoir?.reservoir?.id)
         val (base, weather, advice) = withContext(io) {
@@ -180,7 +181,7 @@ class GuidedSessionManager @Inject constructor(
         val key = assistantSettings.apiKey() ?: return null
         val sessions = journal.observeSessions().first()
         val session = sessions.firstOrNull { it.id == sessionId && it.end != null } ?: return null
-        val gear = settings.observeGear().first()
+        val gear = settings.observeGear().first().today()
         val (reservoir, all) = reservoirAt(session.location)
         val reservoirId = reservoir?.reservoir?.id
         val spots = Spots.of(settings.observeSpots().first(), reservoirId)
@@ -231,7 +232,7 @@ class GuidedSessionManager @Inject constructor(
                 airC = session.guided?.weather?.lastOrNull()?.airC,
                 gustKmh = session.guided?.weather?.lastOrNull()?.gustKmh,
                 spots = spots,
-                gear = settings.observeGear().first(),
+                gear = settings.observeGear().first().today(),
                 experience = experience,
                 lessons = lessons,
                 reservoir = reservoir,
@@ -377,7 +378,7 @@ class GuidedSessionManager @Inject constructor(
 
     private suspend fun active(): Session? = GuidedSessions.active(journal.observeSessions().first())
 
-    private suspend fun env(now: Instant) = GuidedEnv(now, settings.observeGear().first(), Formatting.MADRID)
+    private suspend fun env(now: Instant) = GuidedEnv(now, settings.observeGear().first().today(), Formatting.MADRID)
 
     private suspend fun change(saveOnlyIfProposal: Boolean = false, action: (Session, GuidedEnv) -> GuidedUpdate): Unit = mutex.withLock {
         val session = active() ?: return@withLock

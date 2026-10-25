@@ -70,10 +70,15 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
     private val json = Json { ignoreUnknownKeys = true }
     private val mediaJson = "application/json; charset=utf-8".toMediaType()
 
-    fun complete(config: AiConfig, apiKey: String, system: String, user: String): String {
+    /**
+     * [web]: con Gemini, deja que el modelo busque en Google y lea los enlaces del mensaje
+     * (herramientas `google_search` y `url_context`, fase 7.13). Con herramientas no se puede pedir
+     * JSON estricto, así que el JSON se busca dentro del texto. Otros proveedores lo ignoran.
+     */
+    fun complete(config: AiConfig, apiKey: String, system: String, user: String, web: Boolean = false): String {
         if (apiKey.isBlank() || config.model.isBlank()) throw AiException.NotConfigured()
         return when (config.provider) {
-            AiProvider.GEMINI -> gemini(config, apiKey, system, user)
+            AiProvider.GEMINI -> gemini(config, apiKey, system, user, web)
             AiProvider.OPENAI_COMPATIBLE -> openAi(config, apiKey, system, user)
         }
     }
@@ -103,7 +108,7 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
         }.distinct().sortedWith(compareBy({ !it.contains("flash") }, { it }))
     }
 
-    private fun gemini(config: AiConfig, apiKey: String, system: String, user: String): String {
+    private fun gemini(config: AiConfig, apiKey: String, system: String, user: String, web: Boolean = false): String {
         val key = apiKey.trim()
         fun url(base: String) = base.toHttpUrlOrNull()?.newBuilder()
             ?.addPathSegment("models")
@@ -117,9 +122,15 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
                     putJsonArray("parts") { addJsonObject { put("text", user) } }
                 }
             }
+            if (web) {
+                putJsonArray("tools") {
+                    addJsonObject { putJsonObject("google_search") {} }
+                    addJsonObject { putJsonObject("url_context") {} }
+                }
+            }
             putJsonObject("generationConfig") {
                 put("temperature", TEMPERATURE)
-                put("responseMimeType", "application/json")
+                if (!web) put("responseMimeType", "application/json")
             }
         }
         val payload = body.toString()

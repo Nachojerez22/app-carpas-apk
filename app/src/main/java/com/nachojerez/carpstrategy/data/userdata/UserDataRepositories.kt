@@ -85,9 +85,17 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setLessons(lessons: List<Lesson>) =
         dao.upsert(SettingEntity(KEY_LESSONS, LessonsJson.encode(lessons)))
 
+    override fun observeGroundbaitNormalKg(): Flow<Double?> =
+        dao.observe(KEY_GROUNDBAIT_NORMAL_KG).map { it?.toDoubleOrNull() }.distinctUntilChanged()
+
+    override suspend fun setGroundbaitNormalKg(kg: Double?) {
+        if (kg == null) dao.delete(KEY_GROUNDBAIT_NORMAL_KG) else dao.upsert(SettingEntity(KEY_GROUNDBAIT_NORMAL_KG, kg.toString()))
+    }
+
     companion object {
         const val KEY_LESSONS = "lessons"
         const val KEY_GEAR = "gear"
+        const val KEY_GROUNDBAIT_NORMAL_KG = "groundbait_normal_kg"
         const val KEY_SPOTS = "spots"
         const val KEY_SOURCE_PRIORITY = "source_priority"
         const val KEY_APPEARANCE = "appearance"

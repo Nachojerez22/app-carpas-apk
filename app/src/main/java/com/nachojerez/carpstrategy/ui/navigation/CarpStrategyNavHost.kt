@@ -163,6 +163,7 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                     onOpenLessons = { navController.navigate(LessonsRoute) },
                     onOpenReservoir = { navController.navigate(ReservoirSheetRoute) },
                     onOpenReservoirs = { navController.navigate(ReservoirsRoute) },
+                    onOpenGear = { navController.navigate(GearRoute) },
                 )
             }
             composable<DataRoute> { entry ->

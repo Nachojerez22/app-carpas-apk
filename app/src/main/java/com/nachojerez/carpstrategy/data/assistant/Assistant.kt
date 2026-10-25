@@ -1,6 +1,7 @@
 package com.nachojerez.carpstrategy.data.assistant
 
 import com.nachojerez.carpstrategy.domain.advice.Lesson
+import com.nachojerez.carpstrategy.domain.assistant.AiBaitDraft
 import com.nachojerez.carpstrategy.domain.assistant.AiChatReply
 import com.nachojerez.carpstrategy.domain.assistant.AiContext
 import com.nachojerez.carpstrategy.domain.assistant.AiDecision
@@ -10,6 +11,8 @@ import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiSheetDraft
 import com.nachojerez.carpstrategy.domain.assistant.AiValidator
+import com.nachojerez.carpstrategy.domain.guided.BaitSheet
+import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirSheet
@@ -87,6 +90,22 @@ class Assistant(private val client: AiClient) {
         return AiOutcome(outcome.exchange, outcome.value?.let { AiValidator.toSheet(it, reservoir.id, previous, now) })
     }
 
+    /**
+     * Ficha de un cebo (fase 7.13): marca, nombre y enlace; con Gemini busca en Google y lee el
+     * enlace. Si no es válida, el cebo se queda como estaba.
+     */
+    fun baitSheet(config: AiConfig, apiKey: String, item: GearItem, now: Instant): AiOutcome<BaitSheet> {
+        val outcome = run(
+            config, apiKey, AiKind.BAIT, AssistantPrompts.BAIT_SYSTEM, AssistantPrompts.baitState(item), now,
+            parse = AssistantJson::parseBait,
+            validate = { draft: AiBaitDraft -> AiValidator.validate(draft) },
+            summary = { "CEBO ${it.type?.name ?: "?"}" },
+            note = { it.composition },
+            web = true,
+        )
+        return AiOutcome(outcome.exchange, outcome.value?.let { AiValidator.toSheet(it, now) })
+    }
+
     /** Prueba de conexión: pide un JSON mínimo. Devuelve el error o null si todo va bien. */
     fun test(config: AiConfig, apiKey: String): AiException? = try {
         val text = client.complete(config, apiKey, TEST_SYSTEM, TEST_USER)
@@ -113,10 +132,11 @@ class Assistant(private val client: AiClient) {
         validate: (T) -> Set<AiIssue>,
         summary: (T) -> String,
         note: (T) -> String?,
+        web: Boolean = false,
     ): AiOutcome<T> {
         val base = AiExchange(time = now, kind = kind, provider = config.provider.name, model = config.model)
         val text = try {
-            client.complete(config, apiKey, system, user)
+            client.complete(config, apiKey, system, user, web)
         } catch (e: AiException) {
             return AiOutcome(base.copy(error = e::class.simpleName), null)
         }

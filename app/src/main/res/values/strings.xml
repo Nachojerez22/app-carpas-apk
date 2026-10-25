@@ -753,6 +753,9 @@
     <string name="bait_popup">Pop-up</string>
     <string name="bait_pva">Bolsa de PVA</string>
     <string name="bait_worm">Lombriz</string>
+    <string name="bait_groundbait_mix">Engodo o mix</string>
+    <string name="bait_flour">Harinas</string>
+    <string name="bait_liquid">Líquido o aditivo</string>
     <string name="bait_other">Otro cebo</string>
 
     <string name="rig_hair_bottom">Pelo a fondo</string>
@@ -1045,6 +1048,7 @@
     <string name="strategy_ai_advice_title">Consejos de la IA</string>
     <string name="strategy_ai_advice_note">Son una ayuda que parte de tus datos y de las reglas: no prometen peces. Si contradicen a las reglas, decides tú.</string>
     <string name="ai_issue_field">consejo sin apartado</string>
+    <string name="ai_issue_amount">cantidad de engodo fuera de lo razonable para tu medida</string>
     <string name="ai_issue_hours">cita horas fuera del horario legal ⚖</string>
     <string name="ai_models_title">Modelos disponibles</string>
     <string name="ai_models_hint">Lista los modelos que admite tu clave. Toca uno para usarlo; se guarda y se prueba la conexión. Los «flash» son rápidos y entran en el nivel gratuito.</string>
@@ -1136,6 +1140,45 @@
     <string name="advice_better_spot">Hoy encaja mejor: %1$s (%2$s). Solo es un aviso: tú decides 🟣</string>
     <string name="strategy_place_no_reservoir">Ubicación sin embalse conocido</string>
     <string name="strategy_place_other">Otro embalse…</string>
+    <!-- Mis cebos y engodo (fase 7.13) -->
+    <string name="solubility_high">alta</string>
+    <string name="solubility_medium">media</string>
+    <string name="solubility_low">baja</string>
+    <string name="gear_brand">Marca</string>
+    <string name="gear_description">Qué lleva (sabor, composición, tamaño…)</string>
+    <string name="gear_url">Enlace de la tienda o del fabricante (opcional)</string>
+    <string name="gear_today">Lo llevo hoy</string>
+    <string name="gear_sheet_fetch">Buscar ficha con la IA (Google)</string>
+    <string name="gear_sheet_refetch">Volver a buscar la ficha</string>
+    <string name="gear_sheet_running">Buscando el producto en Google y leyendo el enlace…</string>
+    <string name="gear_sheet_hint">La IA busca la marca y el nombre en Google y, si pones un enlace de cualquier tienda, lo lee para sacar la descripción. Es información 🟣 «según la IA»: lo que escribes tú manda.</string>
+    <string name="gear_sheet_title">Ficha de la IA (%1$s)</string>
+    <string name="gear_sheet_profile">Perfil: %1$s</string>
+    <string name="gear_sheet_solubility">Solubilidad: %1$s</string>
+    <string name="gear_sheet_sources">Fuentes:\n%1$s</string>
+    <string name="gear_sheet_no_key">Configura la IA (Lugar → Asistente de IA) para buscar la ficha.</string>
+    <string name="gear_sheet_failed">No se pudo preparar la ficha (%1$s).</string>
+    <string name="groundbait_normal_title">Tu cebado «normal»</string>
+    <string name="groundbait_normal_value">%1$s kg por caña y sesión</string>
+    <string name="groundbait_normal_none">Sin medida: la app dice poco, normal o mucho.</string>
+    <string name="groundbait_normal_set">Poner mi medida</string>
+    <string name="groundbait_normal_change">Cambiar</string>
+    <string name="groundbait_normal_field">Kg por caña y sesión</string>
+    <string name="groundbait_normal_help">Lo que sueles echar en una sesión normal, por caña. Vacío = sin medida.</string>
+    <string name="groundbait_normal_invalid">Entre 0,05 y 20 kg.</string>
+    <string name="groundbait_normal_hint">Con tu medida, la app pasa a kilos 🟣: poco ≈ ¼, mucho ≈ el doble; la mitad al empezar y el resto en recebados tras captura o señales. Calíbrala con tu diario.</string>
+    <string name="strategy_baits_title">Cebos que llevas hoy</string>
+    <string name="strategy_baits_none">No tienes cebos en tu equipo. Añádelos para que el plan y la IA usen lo que llevas.</string>
+    <string name="strategy_baits_count">Hoy llevas %1$d de %2$d. Solo esos entran en el plan y en la IA.</string>
+    <string name="strategy_baits_add">Añadir cebo</string>
+    <string name="strategy_baits_all">Mi equipo</string>
+    <string name="strategy_groundbait_kg">Cebado %1$s: ≈ %2$s por caña (%3$s en total) 🟣</string>
+    <string name="strategy_groundbait_split">Al empezar ≈ %1$s por caña; el resto (≈ %2$s) en recebados tras captura o señales.</string>
+    <string name="strategy_groundbait_no_measure">Pon tu medida en kg (paso 3) para verlo en kilos.</string>
+    <string name="strategy_groundbait_mix">Engodo con lo que llevas</string>
+    <string name="strategy_groundbait_part">%1$d × %2$s</string>
+    <string name="kg_value">%1$s kg</string>
+    <string name="g_value">%1$s g</string>
     <!-- Estrategia en 3 pasos (fase 7.12) -->
     <string name="strategy_step">%1$d · %2$s</string>
     <string name="strategy_recommended_ai">La IA te recomienda hoy</string>
