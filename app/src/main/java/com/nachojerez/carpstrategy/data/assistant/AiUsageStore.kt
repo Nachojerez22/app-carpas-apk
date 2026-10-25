@@ -8,6 +8,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiCall
 import com.nachojerez.carpstrategy.domain.assistant.AiLimits
 import com.nachojerez.carpstrategy.domain.assistant.AiUsage
 import com.nachojerez.carpstrategy.domain.assistant.UsageDay
+import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -59,11 +60,23 @@ class AiUsageStore @Inject constructor(
 
     suspend fun setLimits(limits: AiLimits) = dao.upsert(SettingEntity(KEY_LIMITS, AiUsageJson.encodeLimits(limits)))
 
+    /**
+     * Hasta cuándo no quedan búsquedas en Google (fase 7.15): tras un «cuota agotada» de la búsqueda
+     * no se vuelve a intentar hasta la renovación. Se sincroniza: la cuota es de la clave.
+     */
+    fun observeSearchBlockedUntil(): Flow<Instant?> =
+        dao.observe(KEY_SEARCH_BLOCKED).map { it?.let { v -> runCatching { Instant.parse(v) }.getOrNull() } }.distinctUntilChanged()
+
+    suspend fun searchAllowed(now: Instant): Boolean = observeSearchBlockedUntil().first()?.let { now >= it } ?: true
+
+    suspend fun blockSearchUntil(until: Instant) = dao.upsert(SettingEntity(KEY_SEARCH_BLOCKED, until.toString()))
+
     private suspend fun deviceId(): String = local.get(KEY_DEVICE) ?: UUID.randomUUID().toString().take(8).also { local.put(KEY_DEVICE, it) }
 
     companion object {
         const val PREFIX = "ai_usage_"
         const val KEY_LIMITS = "ai_limits"
+        const val KEY_SEARCH_BLOCKED = "ai_search_blocked_until"
 
         /** Id de este móvil (ajuste local, no se sincroniza). */
         const val KEY_DEVICE = "device_id"

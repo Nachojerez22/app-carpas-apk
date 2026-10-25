@@ -50,9 +50,11 @@ data class AssistantUiState(
     val usage: List<UsageDay> = emptyList(),
     val limits: AiLimits = AiLimits(),
     val now: Instant = Instant.EPOCH,
+    /** Hasta cuándo no quedan búsquedas en Google (fase 7.15). */
+    val searchBlockedUntil: Instant? = null,
 )
 
-private data class UsageState(val days: List<UsageDay>, val limits: AiLimits, val now: Instant)
+private data class UsageState(val days: List<UsageDay>, val limits: AiLimits, val now: Instant, val searchBlockedUntil: Instant?)
 
 private data class KeyState(val hint: String?, val inAccount: Boolean)
 
@@ -83,9 +85,9 @@ class AssistantViewModel @Inject constructor(
             combine(settings.observeKeyHint(), settings.observeInAccount(), ::KeyState),
             test,
             models,
-            combine(usageStore.observeDays(), usageStore.observeLimits(), ticker) { days, limits, now -> UsageState(days, limits, now) },
+            combine(usageStore.observeDays(), usageStore.observeLimits(), ticker, usageStore.observeSearchBlockedUntil(), ::UsageState),
         ) { config, key, t, m, u ->
-            AssistantUiState(true, config, key.hint, key.inAccount, t, m.list, m.loading, m.error, u.days, u.limits, u.now)
+            AssistantUiState(true, config, key.hint, key.inAccount, t, m.list, m.loading, m.error, u.days, u.limits, u.now, u.searchBlockedUntil)
         }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AssistantUiState())
 

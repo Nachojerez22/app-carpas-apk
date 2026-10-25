@@ -169,11 +169,11 @@ class AssistantTest {
     }
 
     @Test
-    fun `ficha de un cebo con busqueda y, si Google la rechaza por cuota, sin buscar`() {
-        val item = GearItem("1", GearCategory.BAIT, "Supercrush", baitType = BaitType.GROUNDBAIT_MIX, brand = "Marca", url = "https://t.example/mix")
+    fun `ficha de un cebo sin enlace con busqueda y, si Google la rechaza por cuota, sin buscar`() {
+        val item = GearItem("1", GearCategory.BAIT, "Supercrush", baitType = BaitType.GROUNDBAIT_MIX, brand = "Marca")
         val json = """{"tipo":"GROUNDBAIT_MIX","composicion":"Harinas y pellet","fuentes":["https://t.example/mix"],"evidencia":"🟡"}"""
 
-        // Con búsqueda: herramientas de Google y JSON dentro del texto.
+        // Sin enlace: busca en Google (y JSON dentro del texto).
         server.enqueue(gemini(json))
         val ok = assistant.baitSheet(config, "k", item, now).value!!
         assertTrue(ok.searched)
@@ -201,6 +201,33 @@ class AssistantTest {
         val failed = assistant.baitSheet(config, "k", item, now)
         assertNull(failed.value)
         assertEquals("Quota", failed.exchange.error)
+    }
+
+    @Test
+    fun `con enlace solo se lee la tienda, sin gastar busquedas`() {
+        val item = GearItem("1", GearCategory.BAIT, "Supercrush", baitType = BaitType.GROUNDBAIT_MIX, brand = "Marca", url = "https://t.example/mix")
+        server.enqueue(gemini("""{"tipo":"GROUNDBAIT_MIX","composicion":"Harinas y pellet","fuentes":["https://t.example/mix"],"evidencia":"🟢"}"""))
+        // Aunque la cuota de búsquedas esté agotada: leer el enlace no la gasta.
+        val sheet = assistant.baitSheet(config, "k", item, now, searchAllowed = false).value!!
+        assertTrue(sheet.searched)
+        assertEquals(listOf("https://t.example/mix"), sheet.sources)
+        val body = server.takeRequest().body!!.utf8()
+        assertTrue(body.contains("url_context"))
+        assertFalse(body.contains("google_search"))
+        assertTrue(body.contains("No busques en internet"))
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test
+    fun `sin enlace y sin busquedas hoy ni se intenta buscar`() {
+        val item = GearItem("1", GearCategory.BAIT, "Supercrush", baitType = BaitType.GROUNDBAIT_MIX)
+        server.enqueue(gemini("""{"tipo":"GROUNDBAIT_MIX","composicion":"Harinas","evidencia":"🟡"}"""))
+        val sheet = assistant.baitSheet(config, "k", item, now, searchAllowed = false).value!!
+        assertFalse(sheet.searched)
+        assertEquals("Quota", sheet.searchError)
+        assertEquals(Evidence.PURPLE, sheet.evidence)
+        assertFalse(server.takeRequest().body!!.utf8().contains("google_search"))
+        assertEquals(1, server.requestCount)
     }
 
     @Test

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -22,6 +23,19 @@ class GearViewModel @Inject constructor(
 
     /** Tu cebado «normal» en kg por caña y sesión (fase 7.13). */
     val groundbaitNormalKg: StateFlow<Double?> = settings.observeGroundbaitNormalKg().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Fichas hechas sin búsqueda que ya se pueden rehacer (fase 7.15). */
+    val pendingSheets: StateFlow<Int> = editor.observePendingSheets().map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
+    private val refreshing = MutableStateFlow<PendingRefresh>(PendingRefresh.Idle)
+    val pendingRefresh: StateFlow<PendingRefresh> = refreshing.asStateFlow()
+
+    fun refreshPendingSheets() {
+        if (refreshing.value == PendingRefresh.Running) return
+        refreshing.value = PendingRefresh.Running
+        viewModelScope.launch { refreshing.value = PendingRefresh.Done(editor.refreshPendingSheets()) }
+    }
 
     private val sheet = MutableStateFlow(SheetUiState())
     val sheetState: StateFlow<SheetUiState> = sheet.asStateFlow()
@@ -56,6 +70,13 @@ class GearViewModel @Inject constructor(
     fun clearSheetState() {
         sheet.value = SheetUiState()
     }
+}
+
+/** Rehacer las fichas pendientes: en marcha o hecho (cuántas salieron con búsqueda o enlace). */
+sealed interface PendingRefresh {
+    data object Idle : PendingRefresh
+    data object Running : PendingRefresh
+    data class Done(val improved: Int) : PendingRefresh
 }
 
 /** Estado de la consulta de la ficha de un cebo. */

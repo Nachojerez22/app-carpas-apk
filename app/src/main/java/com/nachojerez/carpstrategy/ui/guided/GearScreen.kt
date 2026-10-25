@@ -67,6 +67,8 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
     val gear by viewModel.gear.collectAsStateWithLifecycle()
     val normalKg by viewModel.groundbaitNormalKg.collectAsStateWithLifecycle()
     val sheet by viewModel.sheetState.collectAsStateWithLifecycle()
+    val pending by viewModel.pendingSheets.collectAsStateWithLifecycle()
+    val refresh by viewModel.pendingRefresh.collectAsStateWithLifecycle()
     var draft by remember { mutableStateOf<GearDraft?>(null) }
 
     LazyColumn(
@@ -77,6 +79,10 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
         item {
             TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
             ScreenHeader(stringResource(R.string.gear_title), stringResource(R.string.gear_overline))
+        }
+        // Fase 7.15: fichas hechas sin búsqueda que ya se pueden rehacer (lo pulsas tú: gasta cuota).
+        if (pending > 0 || refresh != PendingRefresh.Idle) {
+            item { PendingSheetsCard(pending, refresh, viewModel::refreshPendingSheets) }
         }
         GearCategory.entries.forEach { category ->
             item {
@@ -117,6 +123,24 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
             sheet = sheet,
             onFetchSheet = { viewModel.fetchSheet(current) { updated -> draft = updated } },
         )
+    }
+}
+
+/** «Buscar de nuevo las fichas pendientes (N)» y cómo fue la última vez. */
+@Composable
+internal fun PendingSheetsCard(pending: Int, refresh: PendingRefresh, onRefresh: () -> Unit) {
+    CarpCard {
+        if (pending > 0) Caption(stringResource(R.string.gear_pending_hint))
+        when (refresh) {
+            PendingRefresh.Running -> Caption(stringResource(R.string.gear_pending_running))
+            is PendingRefresh.Done -> Caption(stringResource(R.string.gear_pending_done, refresh.improved))
+            PendingRefresh.Idle -> Unit
+        }
+        if (pending > 0) {
+            OutlinedButton(onClick = onRefresh, enabled = refresh != PendingRefresh.Running) {
+                Text(stringResource(R.string.gear_pending_button, pending))
+            }
+        }
     }
 }
 

@@ -2,6 +2,7 @@ package com.nachojerez.carpstrategy.data.assistant
 
 import com.nachojerez.carpstrategy.domain.assistant.AiCall
 import com.nachojerez.carpstrategy.domain.assistant.AiKind
+import com.nachojerez.carpstrategy.domain.guided.AiCheckInMode
 import java.io.IOException
 import java.io.InterruptedIOException
 import java.net.ConnectException
@@ -43,8 +44,8 @@ data class AiConfig(
     val model: String = DEFAULT_GEMINI_MODEL,
     /** Solo para OPENAI_COMPATIBLE (p. ej. `https://api.openai.com/v1`). */
     val baseUrl: String = "",
-    /** Consultar automáticamente en cada aviso de la sesión guiada. */
-    val autoCheckIn: Boolean = true,
+    /** Cuándo consultar en los avisos de la sesión guiada (fase 7.15: por defecto, si cambia algo). */
+    val checkInMode: AiCheckInMode = AiCheckInMode.ON_CHANGE,
 ) {
     companion object {
         /** Modelo por defecto; se puede cambiar por el que muestre Google AI Studio. */
@@ -124,12 +125,14 @@ class AiClient(
      * [web]: con Gemini, deja que el modelo busque en Google y lea los enlaces del mensaje
      * (herramientas `google_search` y `url_context`, fase 7.13). Con herramientas no se puede pedir
      * JSON estricto, así que el JSON se busca dentro del texto. Otros proveedores lo ignoran.
+     * [search] = false: solo lee los enlaces (`url_context`), sin buscar en Google, que tiene su
+     * propia cuota (fase 7.15).
      */
-    fun complete(config: AiConfig, apiKey: String, system: String, user: String, web: Boolean = false, kind: AiKind? = null): String {
+    fun complete(config: AiConfig, apiKey: String, system: String, user: String, web: Boolean = false, kind: AiKind? = null, search: Boolean = true): String {
         if (apiKey.isBlank() || config.model.isBlank()) throw AiException.NotConfigured()
         try {
             return when (config.provider) {
-                AiProvider.GEMINI -> gemini(config, apiKey, system, user, web, kind)
+                AiProvider.GEMINI -> gemini(config, apiKey, system, user, web, kind, search)
                 AiProvider.OPENAI_COMPATIBLE -> openAi(config, apiKey, system, user, kind)
             }
         } catch (e: AiException.Quota) {
@@ -163,7 +166,7 @@ class AiClient(
         }.distinct().sortedWith(compareBy({ !it.contains("flash") }, { it }))
     }
 
-    private fun gemini(config: AiConfig, apiKey: String, system: String, user: String, web: Boolean = false, kind: AiKind? = null): String {
+    private fun gemini(config: AiConfig, apiKey: String, system: String, user: String, web: Boolean = false, kind: AiKind? = null, search: Boolean = true): String {
         val key = apiKey.trim()
         fun url(base: String) = base.toHttpUrlOrNull()?.newBuilder()
             ?.addPathSegment("models")
@@ -179,7 +182,7 @@ class AiClient(
             }
             if (web) {
                 putJsonArray("tools") {
-                    addJsonObject { putJsonObject("google_search") {} }
+                    if (search) addJsonObject { putJsonObject("google_search") {} }
                     addJsonObject { putJsonObject("url_context") {} }
                 }
             }

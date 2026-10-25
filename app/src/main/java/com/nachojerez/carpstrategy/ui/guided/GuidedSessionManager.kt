@@ -15,6 +15,7 @@ import com.nachojerez.carpstrategy.domain.advice.FishingAdvisor
 import com.nachojerez.carpstrategy.domain.advice.Lessons
 import com.nachojerez.carpstrategy.domain.derived.LegalWindow
 import com.nachojerez.carpstrategy.domain.derived.SolarCalculator
+import com.nachojerez.carpstrategy.domain.guided.AiCheckInPolicy
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
 import com.nachojerez.carpstrategy.domain.guided.FieldCondition
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
@@ -128,7 +129,11 @@ class GuidedSessionManager @Inject constructor(
         // El primer tiempo se guarda sin reevaluar: el plan A de cada caña sigue pendiente.
         val withWeather = weather?.let { w -> started.copy(session = started.session.copy(guided = started.session.guided?.withWeather(w))) } ?: started
         // El plan con IA de Estrategia (si es reciente) queda con la sesión para comparar después.
+        // Si no hay uno reciente, el preparado con «Preparar mañana» para hoy (fase 7.15).
         val plan = GuidedJson.decodeAi(localSettings.get(KEY_LAST_PLAN))?.takeIf { Duration.between(it.time, now) <= PLAN_MAX_AGE && !it.time.isAfter(now) }
+            ?: GuidedJson.decodeAi(localSettings.get(KEY_PREPARED_PLAN))?.takeIf {
+                it.valid && it.time.atZone(Formatting.MADRID).toLocalDate() == now.atZone(Formatting.MADRID).toLocalDate()
+            }
         val update = plan?.let { p -> withWeather.copy(session = withWeather.session.copy(guided = withWeather.session.guided?.let { it.copy(ai = it.ai + p) })) } ?: withWeather
         val id = journal.save(update.session)
         afterChange(update.copy(session = update.session.copy(id = id)), now, alert = false)
@@ -251,7 +256,11 @@ class GuidedSessionManager @Inject constructor(
         val weather = location?.let { fieldWeather(it, refresh = true) }
         onAlarmLocked(weather)
         // La IA puede tardar más de lo que dura el receptor: va aparte y avisa si propone algo.
-        if (assistantSettings.config().autoCheckIn && assistantSettings.apiKey() != null) {
+        // Fase 7.15: por defecto solo si algo cambió desde la última consulta (ahorra cuota).
+        val record = active()?.guided
+        if (record != null && assistantSettings.apiKey() != null &&
+            AiCheckInPolicy.shouldConsult(record, assistantSettings.config().checkInMode, clock.instant())
+        ) {
             scope.launch { consultAi(fromAlarm = true) }
         }
     }
@@ -408,6 +417,9 @@ class GuidedSessionManager @Inject constructor(
 
         /** Último plan con IA de Estrategia (ajuste local). */
         const val KEY_LAST_PLAN = "ai_last_plan"
+
+        /** Plan preparado la noche antes para la salida (fase 7.15, ajuste local). */
+        const val KEY_PREPARED_PLAN = "ai_prepared_plan"
 
         /** Un plan sirve para la sesión que empieza en las 3 h siguientes. */
         private val PLAN_MAX_AGE: Duration = Duration.ofHours(3)

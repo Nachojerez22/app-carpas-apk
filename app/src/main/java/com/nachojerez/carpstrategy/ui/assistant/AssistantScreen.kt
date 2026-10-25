@@ -36,6 +36,7 @@ import com.nachojerez.carpstrategy.data.assistant.AiConfig
 import com.nachojerez.carpstrategy.data.assistant.AiException
 import com.nachojerez.carpstrategy.data.assistant.AiProvider
 import com.nachojerez.carpstrategy.data.assistant.OfflineReason
+import com.nachojerez.carpstrategy.domain.guided.AiCheckInMode
 import com.nachojerez.carpstrategy.ui.components.Caption
 import com.nachojerez.carpstrategy.ui.components.CarpCard
 import com.nachojerez.carpstrategy.ui.components.ScreenHeader
@@ -52,7 +53,7 @@ fun AssistantScreen(onBack: () -> Unit, viewModel: AssistantViewModel = hiltView
     var provider by rememberSaveable { mutableStateOf(AiProvider.GEMINI) }
     var model by rememberSaveable { mutableStateOf("") }
     var baseUrl by rememberSaveable { mutableStateOf("") }
-    var auto by rememberSaveable { mutableStateOf(true) }
+    var mode by rememberSaveable { mutableStateOf(AiCheckInMode.ON_CHANGE) }
     var key by rememberSaveable { mutableStateOf("") }
     // Mientras no haya clave, el interruptor viene activado (lo que se pidió: tenerla en todos los móviles).
     var inAccount by rememberSaveable(state.keyInAccount, state.keyHint != null) { mutableStateOf(state.keyInAccount || state.keyHint == null) }
@@ -64,11 +65,11 @@ fun AssistantScreen(onBack: () -> Unit, viewModel: AssistantViewModel = hiltView
             provider = state.config.provider
             model = state.config.model
             baseUrl = state.config.baseUrl
-            auto = state.config.autoCheckIn
+            mode = state.config.checkInMode
         }
     }
     fun save() {
-        if (state.ready) viewModel.saveConfig(AiConfig(provider, model, baseUrl, auto))
+        if (state.ready) viewModel.saveConfig(AiConfig(provider, model, baseUrl, mode))
     }
 
     LazyColumn(
@@ -112,10 +113,14 @@ fun AssistantScreen(onBack: () -> Unit, viewModel: AssistantViewModel = hiltView
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    Text(stringResource(R.string.ai_auto), modifier = Modifier.weight(1f))
-                    Switch(checked = auto, onCheckedChange = { auto = it })
+                // Fase 7.15: cuándo se pregunta en los avisos de la sesión guiada.
+                Text(stringResource(R.string.ai_auto), style = MaterialTheme.typography.titleSmall)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    AiCheckInMode.entries.forEach { m ->
+                        FilterChip(selected = mode == m, onClick = { mode = m }, label = { Text(stringResource(m.titleRes())) })
+                    }
                 }
+                Caption(stringResource(R.string.ai_auto_hint))
                 Button(onClick = ::save, enabled = model.isNotBlank()) { Text(stringResource(R.string.action_save)) }
             }
         }
@@ -195,8 +200,14 @@ fun AssistantScreen(onBack: () -> Unit, viewModel: AssistantViewModel = hiltView
             }
         }
         // Consumo de la IA (fase 7.14).
-        item { AiUsageCard(state.usage, state.limits, state.now, viewModel::saveLimits) }
+        item { AiUsageCard(state.usage, state.limits, state.now, viewModel::saveLimits, state.searchBlockedUntil) }
     }
+}
+
+private fun AiCheckInMode.titleRes(): Int = when (this) {
+    AiCheckInMode.NEVER -> R.string.ai_auto_never
+    AiCheckInMode.ON_CHANGE -> R.string.ai_auto_on_change
+    AiCheckInMode.ALWAYS -> R.string.ai_auto_always
 }
 
 @Composable

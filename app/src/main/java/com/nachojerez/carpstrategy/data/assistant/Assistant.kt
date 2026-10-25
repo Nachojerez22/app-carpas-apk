@@ -92,31 +92,49 @@ class Assistant(private val client: AiClient) {
     }
 
     /**
-     * Ficha de un cebo (fase 7.13): marca, nombre y enlace; con Gemini busca en Google y lee el
-     * enlace. Si no es válida, el cebo se queda como estaba.
+     * Ficha de un cebo (fase 7.13): marca, nombre y enlace. Con Gemini (fase 7.15): con enlace solo
+     * se lee esa página (no gasta búsquedas de Google); sin enlace se busca en Google si
+     * [searchAllowed] (false: la cuota de búsquedas ya se agotó hoy). Si no es válida, el cebo se
+     * queda como estaba.
      */
-    fun baitSheet(config: AiConfig, apiKey: String, item: GearItem, now: Instant): AiOutcome<BaitSheet> {
-        fun ask(web: Boolean) = run(
-            config, apiKey, AiKind.BAIT, if (web) AssistantPrompts.BAIT_SYSTEM else AssistantPrompts.BAIT_SYSTEM_NO_SEARCH, AssistantPrompts.baitState(item), now,
+    fun baitSheet(config: AiConfig, apiKey: String, item: GearItem, now: Instant, searchAllowed: Boolean = true): AiOutcome<BaitSheet> {
+        fun ask(web: Boolean, search: Boolean) = run(
+            config, apiKey, AiKind.BAIT,
+            when {
+                !web -> AssistantPrompts.BAIT_SYSTEM_NO_SEARCH
+                search -> AssistantPrompts.BAIT_SYSTEM
+                else -> AssistantPrompts.BAIT_SYSTEM_URL_ONLY
+            },
+            AssistantPrompts.baitState(item), now,
             parse = AssistantJson::parseBait,
             validate = { draft: AiBaitDraft -> AiValidator.validate(draft) },
             summary = { "CEBO ${it.type?.name ?: "?"}" },
             note = { it.composition },
             web = web,
+            search = search,
         )
-        val searched = ask(web = config.provider == AiProvider.GEMINI)
-        searched.value?.let { return AiOutcome(searched.exchange, AiValidator.toSheet(it, now).copy(searched = config.provider == AiProvider.GEMINI)) }
-        // La búsqueda en Google tiene su propia cuota (en el nivel gratuito, no en todos los
-        // modelos): si Google la rechaza, se pide la ficha solo con lo que sabe la IA.
-        if (config.provider != AiProvider.GEMINI || searched.exchange.error !in SEARCH_REFUSED) return AiOutcome(searched.exchange, null)
-        val plain = ask(web = false)
-        val sheet = plain.value?.let { draft ->
-            // Sin búsqueda no hay fuentes que valgan: fuera los enlaces y, como mucho, 🟣.
-            val evidence = if (draft.evidence == Evidence.GREEN || draft.evidence == Evidence.YELLOW) Evidence.PURPLE else draft.evidence
-            AiValidator.toSheet(draft.copy(sources = emptyList(), evidence = evidence), now)
-                .copy(searched = false, searchError = searched.exchange.error, searchErrorDetail = searched.exchange.errorDetail)
+
+        /** Sin búsqueda ni enlace no hay fuentes que valgan: fuera los enlaces y, como mucho, 🟣. */
+        fun plain(searchError: String?, searchErrorDetail: String?): AiOutcome<BaitSheet> {
+            val plain = ask(web = false, search = false)
+            val sheet = plain.value?.let { draft ->
+                val evidence = if (draft.evidence == Evidence.GREEN || draft.evidence == Evidence.YELLOW) Evidence.PURPLE else draft.evidence
+                AiValidator.toSheet(draft.copy(sources = emptyList(), evidence = evidence), now)
+                    .copy(searched = false, searchError = searchError, searchErrorDetail = searchErrorDetail)
+            }
+            return AiOutcome(plain.exchange, sheet)
         }
-        return AiOutcome(plain.exchange, sheet)
+
+        if (config.provider != AiProvider.GEMINI) return plain(null, null)
+        val withUrl = item.url.isNotBlank()
+        // Cuota de búsquedas agotada y sin enlace: ni se intenta (sería una consulta perdida).
+        if (!withUrl && !searchAllowed) return plain(AiException.Quota::class.simpleName, null)
+        val web = ask(web = true, search = !withUrl)
+        web.value?.let { return AiOutcome(web.exchange, AiValidator.toSheet(it, now)) }
+        // Si Google rechaza la búsqueda o la lectura del enlace (cuota del nivel gratuito, modelo
+        // que no admite la herramienta…), se pide la ficha solo con lo que sabe la IA.
+        if (web.exchange.error !in SEARCH_REFUSED) return AiOutcome(web.exchange, null)
+        return plain(web.exchange.error, web.exchange.errorDetail)
     }
 
     /** Prueba de conexión: pide un JSON mínimo. Devuelve el error o null si todo va bien. */
@@ -146,10 +164,11 @@ class Assistant(private val client: AiClient) {
         summary: (T) -> String,
         note: (T) -> String?,
         web: Boolean = false,
+        search: Boolean = true,
     ): AiOutcome<T> {
         val base = AiExchange(time = now, kind = kind, provider = config.provider.name, model = config.model)
         val text = try {
-            client.complete(config, apiKey, system, user, web, kind)
+            client.complete(config, apiKey, system, user, web, kind, search)
         } catch (e: AiException) {
             return AiOutcome(base.copy(error = e::class.simpleName, errorDetail = e.description), null)
         }

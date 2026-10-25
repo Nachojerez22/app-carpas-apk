@@ -40,7 +40,7 @@ import java.time.format.DateTimeFormatter
  * dice cuánto te queda: son las cuentas de la app.
  */
 @Composable
-fun AiUsageCard(days: List<UsageDay>, limits: AiLimits, now: Instant, onSaveLimits: (AiLimits) -> Unit) {
+fun AiUsageCard(days: List<UsageDay>, limits: AiLimits, now: Instant, onSaveLimits: (AiLimits) -> Unit, searchBlockedUntil: Instant? = null) {
     val today = AiUsage.today(days, now)
     var editing by rememberSaveable { mutableStateOf(false) }
     CarpCard {
@@ -50,6 +50,10 @@ fun AiUsageCard(days: List<UsageDay>, limits: AiLimits, now: Instant, onSaveLimi
         // Hoy, frente a tus límites.
         UsageLine(stringResource(R.string.ai_usage_requests), today.requests.toLong(), limits.requestsPerDay?.toLong())
         UsageLine(stringResource(R.string.ai_usage_searches), today.searches.toLong(), limits.searchesPerDay?.toLong())
+        // Fase 7.15: Google dijo que no quedan búsquedas; hasta la renovación no se vuelve a intentar.
+        searchBlockedUntil?.takeIf { now < it }?.let {
+            Caption(stringResource(R.string.ai_usage_search_blocked, Formatting.clock(it)), color = CarpTheme.colors.warnStrong)
+        }
         UsageLine(stringResource(R.string.ai_usage_tokens), today.tokens, limits.tokensPerDay)
         Caption(
             stringResource(
