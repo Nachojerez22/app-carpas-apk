@@ -58,7 +58,7 @@ fun AiUsageCard(days: List<UsageDay>, limits: AiLimits, now: Instant, onSaveLimi
             ),
         )
         if (today.byKind.isNotEmpty()) {
-            Caption(today.byKind.entries.sortedByDescending { it.value }.joinToString(" · ") { (k, n) -> "${kindText(k)}: $n" })
+            Caption(today.byKind.entries.sortedByDescending { it.value }.map { (k, n) -> "${kindText(k)}: $n" }.joinToString(" · "))
         }
         if (today.quotaErrors > 0) {
             Text(
