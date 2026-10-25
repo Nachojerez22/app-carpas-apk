@@ -12,6 +12,7 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +35,8 @@ class AiUsageStore @Inject constructor(
     private val local: LocalSettings,
     @param:IoDispatcher io: CoroutineDispatcher,
 ) : AiUsageRecorder {
-    private val scope = CoroutineScope(SupervisorJob() + io)
+    // Si falla al guardar, se pierde ese apunte y nada más (sin cerrar la app).
+    private val scope = CoroutineScope(SupervisorJob() + io + CoroutineExceptionHandler { _, _ -> })
     private val mutex = Mutex()
 
     /** Lo llama [AiClient] desde su hilo: se guarda aparte, en orden, sin bloquear la consulta. */

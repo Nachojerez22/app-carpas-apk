@@ -306,6 +306,9 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `AiUsageRecorder`. `AiUsageStore` guarda en el ajuste sincronizado `ai_usage_<móvil>` (id en el
   ajuste local `device_id`; cada móvil solo escribe el suyo) y la pantalla suma todos. Límites en `ai_limits`
   (`AiUsageJson`). UI: `AiUsageCard` al final de Ajustes del asistente. Sin Claude: decisión del propietario.
+- 0.20.1: `AiException.Offline` lleva `OfflineReason` (DNS, tiempo, TLS, rechazo, corte) y el detalle técnico
+  sin la clave; un corte se repite una vez (`NETWORK_ATTEMPTS`), DNS y tiempo agotado no. Apuntar el consumo
+  nunca rompe una consulta (`note` con `runCatching`; `AiUsageStore` con `CoroutineExceptionHandler`).
 
 ## Stack
 

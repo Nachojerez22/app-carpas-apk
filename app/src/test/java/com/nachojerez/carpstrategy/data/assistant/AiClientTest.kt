@@ -4,6 +4,12 @@ import com.nachojerez.carpstrategy.domain.assistant.AiCall
 import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
+import mockwebserver3.SocketEffect
+import java.io.IOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
+import javax.net.ssl.SSLHandshakeException
 import okhttp3.OkHttpClient
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -138,5 +144,37 @@ class AiClientTest {
         val quota = calls.last()
         assertTrue(quota.quota)
         assertEquals("Quota exceeded for requests per day", quota.quotaDetail)
+    }
+
+    @Test
+    fun `si se corta la conexion lo repite una vez`() {
+        server.enqueue(MockResponse.Builder().onRequestStart(SocketEffect.CloseSocket()).build())
+        server.enqueue(MockResponse(body = """{"candidates":[{"content":{"parts":[{"text":"{}"}]}}]}"""))
+        assertEquals("{}", client.complete(gemini, "k", "s", "u"))
+        assertEquals(2, server.requestCount)
+    }
+
+    @Test
+    fun `dos cortes seguidos dan sin conexion con el motivo y el detalle`() {
+        repeat(2) { server.enqueue(MockResponse.Builder().onRequestStart(SocketEffect.CloseSocket()).build()) }
+        val error = assertThrows<AiException.Offline> { client.complete(gemini, "k", "s", "u") }
+        assertEquals(OfflineReason.CUT, error.reason)
+        assertTrue(error.detail!!.isNotBlank())
+    }
+
+    @Test
+    fun `motivo de cada fallo de red`() {
+        assertEquals(OfflineReason.NO_DNS, AiException.Offline(UnknownHostException("x")).reason)
+        assertEquals(OfflineReason.TIMEOUT, AiException.Offline(SocketTimeoutException("x")).reason)
+        assertEquals(OfflineReason.TLS, AiException.Offline(SSLHandshakeException("x")).reason)
+        assertEquals(OfflineReason.REFUSED, AiException.Offline(ConnectException("x")).reason)
+        assertEquals(OfflineReason.CUT, AiException.Offline(IOException("x")).reason)
+    }
+
+    @Test
+    fun `un fallo al apuntar el consumo no estropea la consulta`() {
+        val broken = AiClient(OkHttpClient(), server.url("/v1beta/").toString(), recorder = { error("BD") })
+        server.enqueue(MockResponse(body = """{"candidates":[{"content":{"parts":[{"text":"{}"}]}}]}"""))
+        assertEquals("{}", broken.complete(gemini, "k", "s", "u"))
     }
 }

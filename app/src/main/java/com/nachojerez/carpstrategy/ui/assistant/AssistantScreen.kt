@@ -35,6 +35,7 @@ import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.data.assistant.AiConfig
 import com.nachojerez.carpstrategy.data.assistant.AiException
 import com.nachojerez.carpstrategy.data.assistant.AiProvider
+import com.nachojerez.carpstrategy.data.assistant.OfflineReason
 import com.nachojerez.carpstrategy.ui.components.Caption
 import com.nachojerez.carpstrategy.ui.components.CarpCard
 import com.nachojerez.carpstrategy.ui.components.ScreenHeader
@@ -202,7 +203,15 @@ fun AssistantScreen(onBack: () -> Unit, viewModel: AssistantViewModel = hiltView
 fun aiErrorText(error: AiException): String = when (error) {
     is AiException.Unauthorized -> stringResource(R.string.ai_error_unauthorized)
     is AiException.Quota -> stringResource(R.string.ai_error_quota)
-    is AiException.Offline -> stringResource(R.string.ai_error_offline)
+    is AiException.Offline -> stringResource(
+        when (error.reason) {
+            OfflineReason.NO_DNS -> R.string.ai_error_offline_dns
+            OfflineReason.TIMEOUT -> R.string.ai_error_offline_timeout
+            OfflineReason.TLS -> R.string.ai_error_offline_tls
+            OfflineReason.REFUSED -> R.string.ai_error_offline_refused
+            OfflineReason.CUT -> R.string.ai_error_offline
+        },
+    ) + (error.detail?.let { "\n" + stringResource(R.string.ai_error_network_detail, it) } ?: "")
     is AiException.Failed -> stringResource(R.string.ai_error_failed, error.code) +
         (error.detail?.let { "\n" + stringResource(R.string.ai_error_detail, it) } ?: "")
     is AiException.Empty -> stringResource(R.string.ai_error_empty)

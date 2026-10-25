@@ -3,8 +3,13 @@ package com.nachojerez.carpstrategy.data.assistant
 import com.nachojerez.carpstrategy.domain.assistant.AiCall
 import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import java.io.IOException
+import java.io.InterruptedIOException
+import java.net.ConnectException
+import java.net.NoRouteToHostException
+import java.net.UnknownHostException
 import java.time.Clock
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -57,7 +62,19 @@ sealed class AiException(message: String) : Exception(message) {
     /** [detail]: el mensaje de Google (sin la clave), p. ej. qué cuota se ha agotado. */
     class Quota(val detail: String? = null) : AiException("Cuota agotada o demasiadas consultas")
 
-    class Offline(cause: IOException) : AiException(cause.message ?: "Sin conexión")
+    /**
+     * No se pudo hablar con el proveedor. [reason] dice por qué (para no quedarse en «Sin conexión»)
+     * y [detail] es el error técnico, sin la clave.
+     */
+    class Offline(cause: IOException, val detail: String? = null) : AiException(cause.message ?: "Sin conexión") {
+        val reason: OfflineReason = when (cause) {
+            is UnknownHostException -> OfflineReason.NO_DNS
+            is InterruptedIOException -> OfflineReason.TIMEOUT
+            is SSLException -> OfflineReason.TLS
+            is ConnectException, is NoRouteToHostException -> OfflineReason.REFUSED
+            else -> OfflineReason.CUT
+        }
+    }
 
     /** [detail]: el mensaje del proveedor (sin la clave), para saber qué ha pasado. */
     class Failed(val code: Int, val detail: String? = null) : AiException("El proveedor respondió $code")
@@ -67,6 +84,12 @@ sealed class AiException(message: String) : Exception(message) {
 
     class NotConfigured : AiException("Falta la clave o el modelo")
 }
+
+/**
+ * Por qué falló la red: el móvil no encuentra el servidor (sin datos, DNS privado o bloqueador),
+ * tardó demasiado, falló la conexión segura (fecha y hora del móvil), no se pudo conectar o se cortó.
+ */
+enum class OfflineReason { NO_DNS, TIMEOUT, TLS, REFUSED, CUT }
 
 /** Quien guarda el consumo de cada consulta (fase 7.14); por defecto, nadie. */
 fun interface AiUsageRecorder {
@@ -101,7 +124,7 @@ class AiClient(
                 AiProvider.OPENAI_COMPATIBLE -> openAi(config, apiKey, system, user, kind)
             }
         } catch (e: AiException.Quota) {
-            recorder.record(AiCall(clock.instant(), kind, quota = true, quotaDetail = e.detail))
+            note(AiCall(clock.instant(), kind, quota = true, quotaDetail = e.detail))
             throw e
         }
     }
@@ -180,7 +203,7 @@ class AiClient(
         val candidate = response["candidates"]?.jsonArray?.firstOrNull()?.jsonObject
         // Consumo (fase 7.14): tokens de usageMetadata y búsquedas de groundingMetadata.
         val usage = response["usageMetadata"] as? JsonObject
-        recorder.record(
+        note(
             AiCall(
                 time = clock.instant(),
                 kind = kind,
@@ -224,7 +247,7 @@ class AiClient(
         val response = execute(request, apiKey.trim())
         val usage = response["usage"] as? JsonObject
         val reasoning = (usage?.get("completion_tokens_details") as? JsonObject).long("reasoning_tokens")
-        recorder.record(
+        note(
             AiCall(
                 time = clock.instant(),
                 kind = kind,
@@ -238,7 +261,29 @@ class AiClient(
         return text?.ifBlank { null } ?: throw AiException.Empty()
     }
 
+    /** Apuntar el consumo nunca debe estropear la consulta. */
+    private fun note(call: AiCall) {
+        runCatching { recorder.record(call) }
+    }
+
+    /**
+     * Con cobertura justa la conexión se corta a veces a mitad: se repite una vez. No se repite si
+     * el móvil no encuentra el servidor (no va a cambiar en un segundo) ni si ya se agotó el tiempo.
+     */
     private fun execute(request: Request, secret: String): JsonObject {
+        var attempt = 1
+        while (true) {
+            try {
+                return executeOnce(request, secret)
+            } catch (e: AiException.Offline) {
+                if (attempt >= NETWORK_ATTEMPTS || e.reason == OfflineReason.NO_DNS || e.reason == OfflineReason.TIMEOUT) throw e
+                attempt++
+                Thread.sleep(RETRY_DELAY_MS)
+            }
+        }
+    }
+
+    private fun executeOnce(request: Request, secret: String): JsonObject {
         try {
             http.newCall(request).execute().use { response ->
                 val text = response.body.string()
@@ -252,7 +297,8 @@ class AiClient(
                 return runCatching { json.parseToJsonElement(text).jsonObject }.getOrElse { throw AiException.Empty() }
             }
         } catch (e: IOException) {
-            throw AiException.Offline(e)
+            val detail = listOfNotNull(e::class.java.simpleName, e.message).joinToString(": ")
+            throw AiException.Offline(e, detail.replace(secret, "…").take(MAX_DETAIL))
         }
     }
 
@@ -269,6 +315,10 @@ class AiClient(
 
     private companion object {
         const val MAX_DETAIL = 300
+
+        /** Intentos ante un corte de red (el primero más un reintento). */
+        const val NETWORK_ATTEMPTS = 2
+        const val RETRY_DELAY_MS = 1_000L
 
         /** Respuestas estables: poca creatividad. */
         const val TEMPERATURE = 0.2
