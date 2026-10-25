@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fotos de las capturas (fase 7.17): solo la carpeta privada «fotos», para la cámara del sistema. -->
+<paths>
+    <files-path name="fotos" path="fotos/" />
+</paths>

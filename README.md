@@ -168,6 +168,14 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
+### Aviso de la próxima salida y fotos (fase 7.17)
+
+- **Aviso por la tarde** (Lugar → «Aviso de la próxima salida», desactivado por defecto): hacia las 19:00 la app mira
+  la próxima salida con las mismas reglas que Estrategia y solo si sale favorable o muy favorable según tus datos te
+  avisa una vez para que la prepares. No promete peces.
+- **Fotos de las capturas** en la ficha del diario («Hacer foto» o «Galería»). Se guardan solo en el móvil donde se
+  hacen, reducidas para que ocupen poco; no se suben a tu cuenta ni van en las exportaciones.
+
 ### ¿Acierta la app? y registro rápido (fase 7.16)
 
 - En **Diario**, «¿Acierta la app con tus datos?»: capturas y picadas por hora-caña según lo que valoró la app antes de
@@ -367,6 +375,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
 - [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
+- [x] **Fase 7.17**: aviso por la tarde si la próxima salida pinta bien y fotos de las capturas (solo en el móvil)
 - [x] **Fase 7.16**: ¿acierta la app? (intervalos y veredicto honesto) y registro rápido (Carpa por caña, agua al empezar)
 - [x] **Fase 7.15**: preparar la salida (previsión, plan de la IA y fichas sin cobertura) y gastar menos IA
 - [x] **Fase 7.14**: consumo de la IA (consultas, búsquedas y tokens de hoy en tus móviles, límites con aviso, últimos 7 días)

@@ -153,4 +153,15 @@ class StrategyUiStateTest {
         val sun = com.nachojerez.carpstrategy.domain.derived.SolarCalculator.sunTimes(java.time.LocalDate.of(2026, 10, 26), point)
         assertEquals(sun.sunrise!!.minus(Duration.ofHours(1)).plus(PREP_AFTER_LEGAL_START), forEvening)
     }
+
+    @Test
+    fun `aviso de la proxima salida - solo favorable, legal y una vez por salida`() {
+        val day = java.time.LocalDate.of(2026, 10, 26)
+        assertTrue(shouldNotifyOutlook(com.nachojerez.carpstrategy.domain.rules.FavorabilityBand.FAVORABLE, false, day, null))
+        assertTrue(shouldNotifyOutlook(com.nachojerez.carpstrategy.domain.rules.FavorabilityBand.VERY_FAVORABLE, false, day, day.minusDays(1)))
+        assertFalse(shouldNotifyOutlook(com.nachojerez.carpstrategy.domain.rules.FavorabilityBand.FAVORABLE, false, day, day))
+        assertFalse(shouldNotifyOutlook(com.nachojerez.carpstrategy.domain.rules.FavorabilityBand.INTERMEDIATE, false, day, null))
+        assertFalse(shouldNotifyOutlook(com.nachojerez.carpstrategy.domain.rules.FavorabilityBand.FAVORABLE, true, day, null))
+        assertFalse(shouldNotifyOutlook(null, false, day, null))
+    }
 }

@@ -32,6 +32,8 @@ data class CatchInput(
     val weight: String = "",
     val rod: String = "",
     val species: String = "",
+    /** Foto (fase 7.17): nombre del archivo en este móvil; vacío = sin foto. */
+    val photo: String = "",
 )
 
 /**
@@ -125,7 +127,7 @@ data class SessionForm(
                 if (c.time.isBlank()) null else time(c.time, FormField.CATCH_TIME),
                 number(c.weight, FormField.CATCH_WEIGHT),
                 integer(c.rod, FormField.CATCH_ROD),
-            ) to c.species.trim()
+            ) to (c.species.trim() to c.photo)
         }
         if (errors.isNotEmpty() || day == null || startLocal == null || rodCount == null) return Result(null, errors)
 
@@ -147,12 +149,14 @@ data class SessionForm(
             otherAnglers = anglers,
             bites = bites,
             losses = losses,
-            catches = parsedCatches.map { (values, species) ->
+            catches = parsedCatches.map { (values, extra) ->
+                val (species, photo) = extra
                 Catch(
                     time = values.first?.let { day.atTime(it).atZone(zoneId).toInstant() },
                     weightKg = values.second,
                     rod = values.third,
                     species = species.ifBlank { null },
+                    photo = photo.ifBlank { null },
                 )
             },
             // Con capturas no hay bolo, aunque se hubiera marcado antes de anotarlas.
@@ -224,7 +228,7 @@ data class SessionForm(
                 bites = session.bites,
                 losses = session.losses,
                 catches = session.catches.map { c ->
-                    CatchInput(c.time?.let(::clock).orEmpty(), num(c.weightKg), c.rod?.toString().orEmpty(), c.species.orEmpty())
+                    CatchInput(c.time?.let(::clock).orEmpty(), num(c.weightKg), c.rod?.toString().orEmpty(), c.species.orEmpty(), c.photo.orEmpty())
                 },
                 blank = session.blank,
                 fulfilled = session.fulfilled,

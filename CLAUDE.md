@@ -340,6 +340,16 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   una; máximo 3 botones) y el agua medida al empezar (`parseWaterInput`, `waterMeasurementRecord`): se guarda en Datos
   con fuente `SessionForm.MEASUREMENT_SOURCE` antes de calcular, así manda sobre la estimada.
 
+## Aviso de la próxima salida y fotos (fase 7.17)
+
+- `ui/outlook`: `OutlookScheduler` (WorkManager, tarea diaria ~19:00 Madrid, ajuste local `outlook_enabled`, desactivado
+  por defecto; interruptor en Lugar) y `OutlookWorker` (`@HiltWorker`: evalúa `nextOuting` con `buildStrategyState`;
+  avisa si `shouldNotifyOutlook`: favorable o muy favorable, legal, una vez por salida; fuera de 17–22 h no avisa).
+  WorkManager con Hilt: `CarpStrategyApp` es `Configuration.Provider` y el manifiesto quita `WorkManagerInitializer`.
+- `data/photos/CatchPhotos`: fotos de las capturas **solo en el móvil** (`filesDir/fotos`, reducidas a 1600 px y
+  enderezadas con EXIF; cámara del sistema por `FileProvider` `${applicationId}.fotos` y selector de fotos, sin permisos).
+  `Catch.photo` (JSON `foto`, solo el nombre) viaja con la sesión; en otro móvil se avisa de que la foto no está.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

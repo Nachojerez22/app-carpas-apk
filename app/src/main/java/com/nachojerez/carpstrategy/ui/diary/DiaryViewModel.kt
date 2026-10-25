@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nachojerez.carpstrategy.data.manual.DocumentReader
 import com.nachojerez.carpstrategy.data.manual.DocumentWriter
+import com.nachojerez.carpstrategy.data.photos.CatchPhotos
 import com.nachojerez.carpstrategy.data.userdata.JournalJson
 import com.nachojerez.carpstrategy.di.IoDispatcher
 import com.nachojerez.carpstrategy.domain.journal.Session
@@ -53,12 +54,21 @@ class DiaryViewModel @Inject constructor(
     private val writer: DocumentWriter,
     private val reader: DocumentReader,
     private val clock: Clock,
+    private val catchPhotos: CatchPhotos,
     settings: SettingsRepository,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val location: StateFlow<FishingLocation> =
         settings.observeLocation().stateIn(viewModelScope, SharingStarted.Eagerly, DefaultLocation.value)
     private val editor = MutableStateFlow<SessionEditor?>(null)
+
+    /** Fotos de las capturas (fase 7.17): solo en este móvil. */
+    val photos = CatchPhotoActions(
+        captureTarget = catchPhotos::captureTarget,
+        finishCapture = { catchPhotos.finishCapture(it) },
+        importFrom = { catchPhotos.importFrom(it) },
+        thumbnail = { catchPhotos.thumbnail(it) },
+    )
     private val pendingDelete = MutableStateFlow<Session?>(null)
     private val export = MutableStateFlow<ExportStatus>(ExportStatus.Idle)
 

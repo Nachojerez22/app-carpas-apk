@@ -91,6 +91,7 @@ fun DiaryScreen(
             onSave = viewModel::save,
             onCancel = viewModel::close,
             onDelete = editor.original?.let { session -> { viewModel.askDelete(session) } },
+            photos = viewModel.photos,
         )
     } else {
         DiaryList(

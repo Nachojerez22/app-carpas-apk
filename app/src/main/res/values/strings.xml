@@ -562,6 +562,11 @@
     <string name="session_catch_time">Hora</string>
     <string name="session_catch_weight">Peso (kg)</string>
     <string name="session_catch_rod">Caña</string>
+    <string name="session_catch_photo">Foto de la captura</string>
+    <string name="session_catch_photo_take">Hacer foto</string>
+    <string name="session_catch_photo_pick">Galería</string>
+    <string name="session_catch_photo_remove">Quitar foto</string>
+    <string name="session_catch_photo_elsewhere">La foto está en el móvil donde se hizo (las fotos no se suben a tu cuenta).</string>
     <string name="session_catch_species">Especie</string>
     <string name="session_blank_question">¿Bolo?</string>
     <string name="session_blank_hint">Márcalo aunque no hubiera picadas: una sesión sin capturas también es un dato.</string>
@@ -1258,6 +1263,16 @@
     <string name="strategy_plan_spot">En %1$s</string>
     <string name="strategy_plan_asking">Consultando a la IA con tu embalse, tu puesto y tus datos…</string>
     <string name="strategy_plan_by_ai_prepared">Plan de la IA preparado para esta salida y comprobado por la app ✓</string>
+    <!-- Aviso «Mañana pinta bien» (fase 7.17) -->
+    <string name="outlook_settings_title">Aviso de la próxima salida</string>
+    <string name="outlook_settings_switch">Avisarme por la tarde si la próxima salida pinta bien</string>
+    <string name="outlook_settings_hint">Hacia las 19:00 la app mira la próxima salida (primera hora legal) con las mismas reglas que Estrategia y, solo si sale favorable o muy favorable según tus datos, te avisa una vez para que la prepares. No promete peces. Solo en este móvil.</string>
+    <string name="outlook_channel_name">Próxima salida</string>
+    <string name="outlook_channel_description">Aviso por la tarde si la próxima salida sale favorable según tus datos</string>
+    <string name="outlook_title">Pinta bien en %1$s</string>
+    <string name="outlook_text">%1$s: condiciones %2$s según tus datos (no es promesa de peces). Abre Estrategia y pulsa «Preparar la próxima salida».</string>
+    <string name="outlook_favorable">favorables</string>
+    <string name="outlook_very_favorable">muy favorables</string>
     <!-- Preparar la próxima salida (fase 7.15) -->
     <string name="prep_title">Preparar la próxima salida</string>
     <string name="prep_hint">Hazlo con cobertura (en casa, la noche antes): descarga la previsión, pide el plan de la IA para el embalse, puesto, cañas y cebos que tienes elegidos y completa las fichas de cebos pendientes. En el embalse lo tendrás todo aunque no haya red, sin gastar otra consulta.</string>

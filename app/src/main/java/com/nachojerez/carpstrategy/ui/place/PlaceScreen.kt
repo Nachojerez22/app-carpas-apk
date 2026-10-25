@@ -72,6 +72,8 @@ fun PlaceScreen(
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
         if (granted.values.any { it }) viewModel.useDeviceLocation(myLocationName) else viewModel.onPermissionDenied()
     }
+    // Aviso «Mañana pinta bien»: se activa aunque no se conceda (se puede dar luego en Ajustes de Android).
+    val notifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -123,6 +125,24 @@ fun PlaceScreen(
             CarpCard {
                 OutlinedButton(onClick = onOpenAssistant) { Text(stringResource(R.string.ai_settings_open)) }
                 OutlinedButton(onClick = onOpenLessons) { Text(stringResource(R.string.lessons_open)) }
+            }
+        }
+
+        // Fase 7.17: aviso por la tarde si la próxima salida pinta bien.
+        item { SectionTitle(stringResource(R.string.outlook_settings_title)) }
+        item {
+            CarpCard {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    Text(stringResource(R.string.outlook_settings_switch), modifier = Modifier.weight(1f))
+                    Switch(
+                        checked = state.outlookEnabled,
+                        onCheckedChange = { on ->
+                            if (on && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            viewModel.setOutlook(on)
+                        },
+                    )
+                }
+                Caption(stringResource(R.string.outlook_settings_hint))
             }
         }
 

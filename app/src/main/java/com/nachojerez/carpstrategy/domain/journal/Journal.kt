@@ -22,6 +22,8 @@ data class Catch(
     val weightKg: Double? = null,
     val rod: Int? = null,
     val species: String? = null,
+    /** Foto (fase 7.17): nombre del archivo, solo en el móvil donde se hizo. */
+    val photo: String? = null,
 )
 
 /** "¿Se cumplió?" lo que dijo la app antes de la sesión. */
