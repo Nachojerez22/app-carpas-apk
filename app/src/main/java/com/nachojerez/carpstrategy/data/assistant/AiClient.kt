@@ -55,6 +55,15 @@ data class AiConfig(
 
 /** Error al consultar la IA, clasificado para mostrarlo. */
 sealed class AiException(message: String) : Exception(message) {
+    /** Lo que dijo el proveedor o la red (código y mensaje, sin la clave), para enseñarlo. */
+    val description: String?
+        get() = when (this) {
+            is Failed -> listOfNotNull("HTTP $code", detail).joinToString(": ")
+            is Quota -> detail
+            is Offline -> detail
+            else -> null
+        }
+
     /** Clave no válida o sin permiso. */
     class Unauthorized : AiException("Clave no válida o sin permiso")
 
@@ -267,18 +276,24 @@ class AiClient(
     }
 
     /**
-     * Con cobertura justa la conexión se corta a veces a mitad: se repite una vez. No se repite si
-     * el móvil no encuentra el servidor (no va a cambiar en un segundo) ni si ya se agotó el tiempo.
+     * Con cobertura justa la conexión se corta a veces a mitad, y Google responde a menudo 503
+     * («modelo saturado») o 500 durante unos segundos: se repite una vez. No se repite si el móvil no
+     * encuentra el servidor (no va a cambiar en un segundo) ni si ya se agotó el tiempo.
      */
     private fun execute(request: Request, secret: String): JsonObject {
         var attempt = 1
         while (true) {
             try {
                 return executeOnce(request, secret)
-            } catch (e: AiException.Offline) {
-                if (attempt >= NETWORK_ATTEMPTS || e.reason == OfflineReason.NO_DNS || e.reason == OfflineReason.TIMEOUT) throw e
+            } catch (e: AiException) {
+                val transient = when (e) {
+                    is AiException.Offline -> e.reason != OfflineReason.NO_DNS && e.reason != OfflineReason.TIMEOUT
+                    is AiException.Failed -> e.code in SERVER_ERRORS
+                    else -> false
+                }
+                if (!transient || attempt >= NETWORK_ATTEMPTS) throw e
                 attempt++
-                Thread.sleep(RETRY_DELAY_MS)
+                Thread.sleep(if (e is AiException.Failed) SERVER_RETRY_DELAY_MS else RETRY_DELAY_MS)
             }
         }
     }
@@ -319,6 +334,10 @@ class AiClient(
         /** Intentos ante un corte de red (el primero más un reintento). */
         const val NETWORK_ATTEMPTS = 2
         const val RETRY_DELAY_MS = 1_000L
+
+        /** Errores pasajeros del servidor del proveedor (saturado, puerta de enlace…). */
+        val SERVER_ERRORS = setOf(500, 502, 503, 504)
+        const val SERVER_RETRY_DELAY_MS = 2_000L
 
         /** Respuestas estables: poca creatividad. */
         const val TEMPERATURE = 0.2

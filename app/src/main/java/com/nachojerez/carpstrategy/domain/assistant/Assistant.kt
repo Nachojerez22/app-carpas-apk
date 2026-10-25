@@ -51,6 +51,8 @@ data class AiExchange(
     val summary: String? = null,
     /** Primer motivo de la IA (solo si la respuesta es válida), para mostrarlo. */
     val note: String? = null,
+    /** Qué dijo el proveedor o la red cuando hubo [error] (código y mensaje, sin la clave). No se guarda. */
+    val errorDetail: String? = null,
 )
 
 /** Un cambio propuesto por la IA en una caña (una variable por caña, §5.9.2). */

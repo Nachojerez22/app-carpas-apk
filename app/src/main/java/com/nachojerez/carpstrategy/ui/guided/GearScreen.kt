@@ -291,13 +291,15 @@ private fun sheetResultText(result: BaitSheetResult?): String? {
         is BaitSheetResult.Failed -> when (result.error) {
             QUOTA -> stringResource(R.string.gear_sheet_quota)
             OFFLINE -> stringResource(R.string.gear_sheet_offline)
+            FAILED -> stringResource(R.string.gear_sheet_failed_http)
             else -> stringResource(
                 R.string.gear_sheet_failed,
                 result.error ?: result.issues.map { res.getString(it.titleRes()) }.distinct().joinToString(", "),
             )
-        }
+        } + (result.detail?.let { "\n" + stringResource(R.string.ai_error_detail, it) } ?: "")
     }
 }
 
 private val QUOTA = AiException.Quota::class.simpleName
 private val OFFLINE = AiException.Offline::class.simpleName
+private val FAILED = AiException.Failed::class.simpleName

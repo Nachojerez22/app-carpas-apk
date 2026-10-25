@@ -150,7 +150,7 @@ class Assistant(private val client: AiClient) {
         val text = try {
             client.complete(config, apiKey, system, user, web, kind)
         } catch (e: AiException) {
-            return AiOutcome(base.copy(error = e::class.simpleName), null)
+            return AiOutcome(base.copy(error = e::class.simpleName, errorDetail = e.description), null)
         }
         val stored = text.take(AssistantJson.MAX_STORED)
         val parsed = parse(text) ?: return AiOutcome(base.copy(response = stored, issues = listOf(AiIssue.UNREADABLE)), null)
