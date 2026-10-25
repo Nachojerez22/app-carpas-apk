@@ -163,6 +163,7 @@ class GuidedJsonTest {
             functions = setOf(BaitFunction.ATTRACTION), solubility = Solubility.HIGH, phases = setOf(FishingPhase.SUMMER),
             notes = "Húmedo para bolas", sources = listOf("https://tienda.example/mix"), evidence = Evidence.YELLOW,
             updatedAt = Instant.parse("2026-10-25T08:00:00Z"),
+            searched = false, searchError = "Quota", searchErrorDetail = "HTTP 429: search grounding",
         )
         val gear = listOf(
             GearItem(

@@ -186,6 +186,8 @@ class AssistantTest {
         server.enqueue(gemini(json))
         val plain = assistant.baitSheet(config, "k", item, now).value!!
         assertFalse(plain.searched)
+        assertEquals("Quota", plain.searchError)
+        assertEquals("Quota exceeded: search grounding", plain.searchErrorDetail)
         assertTrue(plain.sources.isEmpty())
         assertEquals(Evidence.PURPLE, plain.evidence)
         server.takeRequest()

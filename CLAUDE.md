@@ -311,6 +311,8 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   nunca rompe una consulta (`note` con `runCatching`; `AiUsageStore` con `CoroutineExceptionHandler`).
 - 0.20.2: los 500/502/503/504 del proveedor también se repiten una vez (`SERVER_ERRORS`). `AiException.description`
   (código y mensaje) llega a `AiExchange.errorDetail` (no se guarda) y se muestra en la ficha del cebo y en Estrategia.
+- 0.20.3: una ficha sin búsqueda guarda por qué (`BaitSheet.searchError`/`searchErrorDetail`, JSON
+  `motivo_sin_busqueda`/`detalle_sin_busqueda`): cuota (con la hora de renovación) u otro rechazo de Google.
 
 ## Stack
 
