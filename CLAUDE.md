@@ -290,7 +290,10 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   nombre, lo que escribió el usuario y el enlace. Si Google rechaza la búsqueda (cuota 429 del nivel
   gratuito o herramienta no admitida), se repite sin búsqueda (`BAIT_SYSTEM_NO_SEARCH`): ficha con
   `searched = false`, sin fuentes y como mucho 🟣.
-- UI: `GearEditor` (singleton: guardar, borrar, hoy, ficha) para Estrategia (paso ③) y Mi equipo;
+- `domain/advice/BaitShelf.kt` (puro): uso de cada cebo en el diario (`usage`, por nombre sin tildes; varios
+  cebos separados por comas), «Hoy llevo» / «Mis cebos guardados» por último uso (`view`), «Empezar de cero
+  hoy» (`clearToday`) y cebos del diario que faltan en tu lista (`fromDiary` → `fromUsage`).
+- UI: `GearEditor` (singleton: guardar, borrar, hoy, de cero, del diario, ficha) para Estrategia (paso ③) y Mi equipo;
   `GearDialog`, `BaitRow` y `GroundbaitNormalRow` son `internal` en `ui/guided/GearScreen.kt`.
 
 ## Stack

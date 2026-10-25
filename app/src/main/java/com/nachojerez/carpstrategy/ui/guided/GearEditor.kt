@@ -3,6 +3,8 @@ package com.nachojerez.carpstrategy.ui.guided
 import com.nachojerez.carpstrategy.data.assistant.Assistant
 import com.nachojerez.carpstrategy.data.assistant.AssistantSettings
 import com.nachojerez.carpstrategy.di.IoDispatcher
+import com.nachojerez.carpstrategy.domain.advice.BaitShelf
+import com.nachojerez.carpstrategy.domain.advice.BaitUsage
 import com.nachojerez.carpstrategy.domain.assistant.AiIssue
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
@@ -42,6 +44,13 @@ class GearEditor @Inject constructor(
     }
 
     suspend fun delete(id: String) = settings.setGear(settings.observeGear().first().filterNot { it.id == id })
+
+    /** «Empezar de cero hoy»: ningún cebo marcado como «lo llevo hoy». */
+    suspend fun clearToday() = settings.setGear(BaitShelf.clearToday(settings.observeGear().first()))
+
+    /** Un cebo del diario pasa a tu lista y a lo que llevas hoy. */
+    suspend fun addFromDiary(usage: BaitUsage) =
+        settings.setGear(settings.observeGear().first() + BaitShelf.fromUsage(usage, UUID.randomUUID().toString()))
 
     suspend fun toggleToday(id: String) =
         settings.setGear(settings.observeGear().first().map { if (it.id == id) it.copy(available = !it.available) else it })

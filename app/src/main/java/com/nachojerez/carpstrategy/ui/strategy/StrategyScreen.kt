@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -43,6 +45,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.data.assistant.AiOutcome
+import com.nachojerez.carpstrategy.domain.advice.BaitShelf
+import com.nachojerez.carpstrategy.domain.advice.BaitUsage
 import com.nachojerez.carpstrategy.domain.advice.Contingency
 import com.nachojerez.carpstrategy.domain.advice.ContingencyLine
 import com.nachojerez.carpstrategy.domain.advice.DayPlan
@@ -56,6 +60,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiSpotPick
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
+import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.guided.WindRelation
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
@@ -130,6 +135,8 @@ fun StrategyScreen(
             onFetchSheet = viewModel::fetchSheet,
             onClearSheet = viewModel::clearSheetState,
             onSetGroundbaitNormal = viewModel::setGroundbaitNormalKg,
+            onClearToday = viewModel::clearToday,
+            onAddFromDiary = viewModel::addFromDiary,
         ),
         sheet,
     )
@@ -154,6 +161,8 @@ data class StrategyActions(
     val onFetchSheet: (GearDraft, (GearDraft) -> Unit) -> Unit = { _, _ -> },
     val onClearSheet: () -> Unit = {},
     val onSetGroundbaitNormal: (Double?) -> Unit = {},
+    val onClearToday: () -> Unit = {},
+    val onAddFromDiary: (BaitUsage) -> Unit = {},
 )
 
 /**
@@ -771,20 +780,53 @@ private fun durationText(d: Duration): String {
  * borra nada), añadir o editar uno ahí mismo (marca, qué lleva, enlace y ficha con la IA) y tu
  * medida de cebado en kilos.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BaitsStep(state: StrategyUiState, actions: StrategyActions, sheet: SheetUiState) {
     var draft by remember { mutableStateOf<GearDraft?>(null) }
-    val baits = state.allGear.filter { it.category == GearCategory.BAIT }
+    val shelf = remember(state.allGear, state.baitUsage) { BaitShelf.view(state.allGear, state.baitUsage) }
+    fun edit(item: GearItem) {
+        actions.onClearSheet()
+        draft = GearDraft.of(item)
+    }
     CarpCard {
         StepTitle(3, stringResource(R.string.strategy_baits_title))
-        if (baits.isEmpty()) {
-            Caption(stringResource(R.string.strategy_baits_none))
-        } else {
-            Caption(stringResource(R.string.strategy_baits_count, baits.count { it.available }, baits.size))
-            baits.forEach { item ->
-                BaitRow(item, onToggle = { actions.onToggleBait(item.id) }, onEdit = { actions.onClearSheet(); draft = GearDraft.of(item) })
+        if (shelf.today.isEmpty() && shelf.saved.isEmpty()) Caption(stringResource(R.string.strategy_baits_none)) else Caption(stringResource(R.string.strategy_baits_count))
+
+        // Hoy llevo: solo los marcados; tocar la casilla los devuelve a «guardados».
+        if (shelf.today.isNotEmpty() || shelf.saved.isNotEmpty()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.strategy_baits_today, shelf.today.size), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                if (shelf.today.isNotEmpty()) TextButton(onClick = actions.onClearToday) { Text(stringResource(R.string.strategy_baits_clear)) }
+            }
+            if (shelf.today.isEmpty()) Caption(stringResource(R.string.strategy_baits_today_empty))
+            shelf.today.forEach { item -> BaitRow(item, onToggle = { actions.onToggleBait(item.id) }, onEdit = { edit(item) }) }
+        }
+
+        // Mis cebos guardados: un toque en la casilla y pasan a «Hoy llevo».
+        if (shelf.saved.isNotEmpty()) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Text(stringResource(R.string.strategy_baits_saved, shelf.saved.size), style = MaterialTheme.typography.titleSmall)
+            shelf.saved.forEach { item ->
+                BaitRow(item, onToggle = { actions.onToggleBait(item.id) }, onEdit = { edit(item) })
+                shelf.usageById[item.id]?.let { u ->
+                    Caption(pluralStringResource(R.plurals.strategy_baits_used, u.sessions, u.sessions, Formatting.hour(u.lastUsed)), Modifier.padding(start = 48.dp))
+                }
             }
         }
+
+        // Del diario: cebos que usaste y no están en tu lista.
+        if (shelf.fromDiary.isNotEmpty()) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Text(stringResource(R.string.strategy_baits_from_diary), style = MaterialTheme.typography.titleSmall)
+            Caption(stringResource(R.string.strategy_baits_from_diary_hint))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                shelf.fromDiary.take(MAX_DIARY_BAITS).forEach { u ->
+                    AssistChip(onClick = { actions.onAddFromDiary(u) }, label = { Text(stringResource(R.string.strategy_baits_add_from_diary, u.name, u.sessions)) })
+                }
+            }
+        }
+
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             OutlinedButton(onClick = { actions.onClearSheet(); draft = GearDraft(category = GearCategory.BAIT) }) { Text(stringResource(R.string.strategy_baits_add)) }
             TextButton(onClick = actions.onOpenGear) { Text(stringResource(R.string.strategy_baits_all)) }
@@ -806,6 +848,9 @@ private fun BaitsStep(state: StrategyUiState, actions: StrategyActions, sheet: S
         )
     }
 }
+
+/** Cebos del diario que se ofrecen como mucho. */
+private const val MAX_DIARY_BAITS = 8
 
 /** «750 g» por debajo de 1 kg (de 50 en 50 g); si no, «1,5 kg». */
 @Composable
