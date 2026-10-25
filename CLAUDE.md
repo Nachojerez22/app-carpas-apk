@@ -296,6 +296,17 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - UI: `GearEditor` (singleton: guardar, borrar, hoy, de cero, del diario, ficha) para Estrategia (paso ③) y Mi equipo;
   `GearDialog`, `BaitRow` y `GroundbaitNormalRow` son `internal` en `ui/guided/GearScreen.kt`.
 
+## Consumo de la IA (fase 7.14)
+
+- `domain/assistant/AiUsage.kt` (puro): `AiCall` (tokens de entrada, salida y razonamiento, búsquedas,
+  error de cuota con su mensaje), `UsageDay` por **día de cuota de Google** (`QUOTA_ZONE` =
+  America/Los_Angeles), `record`/`merge`/`today`/`lastDays` (`KEEP_DAYS` = 7), `AiLimits` y `level`
+  (aviso al 80 %, `NEAR_FRACTION`).
+- `AiClient` apunta cada respuesta (`usageMetadata` de Gemini, `usage` de OpenAI) y cada 429 en su
+  `AiUsageRecorder`. `AiUsageStore` guarda en el ajuste sincronizado `ai_usage_<móvil>` (id en el
+  ajuste local `device_id`; cada móvil solo escribe el suyo) y la pantalla suma todos. Límites en `ai_limits`
+  (`AiUsageJson`). UI: `AiUsageCard` al final de Ajustes del asistente. Sin Claude: decisión del propietario.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

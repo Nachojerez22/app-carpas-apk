@@ -1140,6 +1140,34 @@
     <string name="advice_better_spot">Hoy encaja mejor: %1$s (%2$s). Solo es un aviso: tú decides 🟣</string>
     <string name="strategy_place_no_reservoir">Ubicación sin embalse conocido</string>
     <string name="strategy_place_other">Otro embalse…</string>
+    <!-- Consumo de la IA (fase 7.14) -->
+    <string name="ai_usage_title">Consumo de hoy (todos tus móviles)</string>
+    <string name="ai_usage_reset">Día de cuota de Google: se renueva a las %1$s (medianoche de California).</string>
+    <string name="ai_usage_requests">Consultas</string>
+    <string name="ai_usage_searches">Búsquedas en Google</string>
+    <string name="ai_usage_tokens">Tokens</string>
+    <string name="ai_usage_of">%1$s: %2$s de %3$s</string>
+    <string name="ai_usage_plain">%1$s: %2$s</string>
+    <string name="ai_usage_tokens_detail">Entrada %1$s · salida %2$s · razonamiento %3$s</string>
+    <string name="ai_usage_near" formatted="false">Te acercas al límite de hoy (80 %).</string>
+    <string name="ai_usage_over">Límite de hoy alcanzado: Google puede rechazar consultas hasta que se renueve.</string>
+    <string name="ai_usage_quota_errors">Errores de cuota hoy: %1$d (el último a las %2$s)</string>
+    <string name="ai_usage_last_days">Últimos 7 días</string>
+    <string name="ai_usage_day_line">%1$d consultas · %2$s mil tokens · %3$d búsquedas</string>
+    <string name="ai_usage_day_errors"> · %1$d errores de cuota</string>
+    <string name="ai_usage_limits_none">Sin límites puestos: solo ves lo gastado.</string>
+    <string name="ai_usage_limits_set" formatted="false">Límites diarios puestos: la barra avisa al 80 %.</string>
+    <string name="ai_usage_limits_edit">Mis límites</string>
+    <string name="ai_usage_limit_requests">Consultas al día (RPD)</string>
+    <string name="ai_usage_limit_searches">Búsquedas en Google al día</string>
+    <string name="ai_usage_limit_tokens">Tokens al día (opcional)</string>
+    <string name="ai_usage_hint">Gemini no dice cuánta cuota te queda: son las cuentas de la app. Tus límites están en Google AI Studio → Rate limits y cambian según el modelo.</string>
+    <string name="ai_kind_check_in">avisos</string>
+    <string name="ai_kind_plan">planes</string>
+    <string name="ai_kind_review">repasos</string>
+    <string name="ai_kind_sheet">fichas de embalse</string>
+    <string name="ai_kind_chat">chat</string>
+    <string name="ai_kind_bait">fichas de cebo</string>
     <!-- Mis cebos y engodo (fase 7.13) -->
     <string name="solubility_high">alta</string>
     <string name="solubility_medium">media</string>

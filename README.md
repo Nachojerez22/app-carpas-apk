@@ -168,6 +168,15 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
+### Consumo de la IA (fase 7.14)
+
+En **Lugar → Asistente de IA**, al final, ves lo que ha gastado la app **hoy** (día de cuota de Google,
+que se renueva a medianoche de California: las 9:00 en España, las 8:00 en verano) sumando tus dos
+móviles: consultas, búsquedas en Google y tokens (entrada, salida y razonamiento), por tipo de consulta,
+y los errores de cuota con el mensaje de Google. Debajo, los últimos 7 días. Si escribes tus límites
+diarios (los de tu plan en AI Studio), cada línea lleva su barra y avisa al 80 % y al llegar. Gemini no
+dice cuánto te queda: son las cuentas de la app (las consultas hechas fuera de la app no cuentan).
+
 ### Mis cebos y engodo (fase 7.13)
 
 - En **Estrategia → ③ Cebos que llevas hoy** (y en Mi equipo) marcas qué llevas hoy sin borrar nada, y
@@ -336,6 +345,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
 - [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
+- [x] **Fase 7.14**: consumo de la IA (consultas, búsquedas y tokens de hoy en tus móviles, límites con aviso, últimos 7 días)
 - [x] **Fase 7.13**: mis cebos y engodo (cebos de hoy, marca y composición, ficha con Google, cebado en kilos con tu medida, engodo de la IA)
 - [x] **Fase 7.12**: Estrategia en 3 pasos (embalse → puesto y cañas → un solo plan con la IA; sesión guiada al final)
 - [x] **Fase 7.10**: estrategia por embalse y puesto (elegir los dos en Estrategia; plan de la IA y sesión guiada para ese puesto)
