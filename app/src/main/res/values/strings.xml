@@ -1194,7 +1194,9 @@
     <string name="gear_sheet_failed_http">Google respondió con un error y no se pudo preparar la ficha (ni buscando ni sin buscar). Si es 503 o 500 el servidor está saturado: prueba en un rato.</string>
     <string name="gear_sheet_quota">Gemini no deja más consultas ahora mismo (cuota agotada), ni siquiera sin buscar en Google. Suele ser por demasiadas consultas seguidas: espera un par de minutos y vuelve a probar; si no, mañana se renueva.</string>
     <string name="gear_sheet_offline">Sin conexión: prueba cuando tengas cobertura.</string>
-    <string name="gear_sheet_not_searched">Sin búsqueda en Google: tu clave no la permite ahora (cuota de la versión gratuita). Ficha solo con lo que sabe la IA 🟣; vuelve a buscarla otro día o pon tú lo que lleva.</string>
+    <string name="gear_sheet_not_searched">Sin búsqueda en Google: ficha solo con lo que sabe la IA 🟣. Si algo no cuadra, pon tú lo que lleva.</string>
+    <string name="gear_sheet_not_searched_quota">Sin búsqueda en Google: se ha agotado la cuota gratuita de búsquedas de tu clave. Se renueva a las %1$s. Ficha solo con lo que sabe la IA 🟣; vuelve a buscarla después o pon tú lo que lleva.</string>
+    <string name="gear_sheet_not_searched_refused">Sin búsqueda en Google: Google no dejó buscar con tu modelo (no es la cuota). Ficha solo con lo que sabe la IA 🟣. Si el mensaje de abajo habla del modelo o de la herramienta, prueba otro modelo «flash» en Ajustes del asistente.</string>
     <string name="groundbait_normal_title">Tu cebado «normal»</string>
     <string name="groundbait_normal_value">%1$s kg por caña y sesión</string>
     <string name="groundbait_normal_none">Sin medida: la app dice poco, normal o mucho.</string>

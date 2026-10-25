@@ -42,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.data.assistant.AiException
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmounts
+import com.nachojerez.carpstrategy.domain.assistant.AiUsage
 import com.nachojerez.carpstrategy.domain.guided.BaitSheet
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
@@ -54,6 +55,7 @@ import com.nachojerez.carpstrategy.ui.components.ScreenHeader
 import com.nachojerez.carpstrategy.ui.components.SectionTitle
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.theme.Spacing
+import java.time.Instant
 
 /**
  * «Mi equipo»: cebos (también engodo, harinas y líquidos) y montajes. Cada cebo con marca, qué
@@ -267,18 +269,30 @@ internal fun GearDialog(
 /** La ficha de la IA: composición, perfil, solubilidad, notas y fuentes, con su evidencia (🟣). */
 @Composable
 private fun BaitSheetView(sheet: BaitSheet) {
-    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-            Text(stringResource(R.string.gear_sheet_title, Formatting.hour(sheet.updatedAt)), style = MaterialTheme.typography.titleSmall)
-            Text(sheet.composition)
-            if (sheet.profile.isNotBlank()) Caption(stringResource(R.string.gear_sheet_profile, sheet.profile))
-            sheet.solubility?.let { Caption(stringResource(R.string.gear_sheet_solubility, stringResource(it.titleRes()))) }
-            if (sheet.notes.isNotBlank()) Caption(sheet.notes)
-            if (sheet.sources.isNotEmpty()) Caption(stringResource(R.string.gear_sheet_sources, sheet.sources.joinToString("\n")))
-            if (!sheet.searched) Caption(stringResource(R.string.gear_sheet_not_searched), color = MaterialTheme.colorScheme.error)
+    // Título y evidencia arriba; el texto, a todo el ancho (con la insignia al lado quedaba en media columna).
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            Text(stringResource(R.string.gear_sheet_title, Formatting.hour(sheet.updatedAt)), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+            AnyEvidenceBadge(sheet.evidence)
         }
-        AnyEvidenceBadge(sheet.evidence)
+        Text(sheet.composition)
+        if (sheet.profile.isNotBlank()) Caption(stringResource(R.string.gear_sheet_profile, sheet.profile))
+        sheet.solubility?.let { Caption(stringResource(R.string.gear_sheet_solubility, stringResource(it.titleRes()))) }
+        if (sheet.notes.isNotBlank()) Caption(sheet.notes)
+        if (sheet.sources.isNotEmpty()) Caption(stringResource(R.string.gear_sheet_sources, sheet.sources.joinToString("\n")))
+        if (!sheet.searched) Caption(notSearchedText(sheet), color = MaterialTheme.colorScheme.error)
     }
+}
+
+/** Por qué la ficha se hizo sin buscar en Google, con lo que dijo Google si lo dijo. */
+@Composable
+private fun notSearchedText(sheet: BaitSheet): String {
+    val reason = when (sheet.searchError) {
+        QUOTA -> stringResource(R.string.gear_sheet_not_searched_quota, Formatting.clock(AiUsage.nextReset(Instant.now())))
+        null -> stringResource(R.string.gear_sheet_not_searched)
+        else -> stringResource(R.string.gear_sheet_not_searched_refused)
+    }
+    return reason + (sheet.searchErrorDetail?.let { "\n" + stringResource(R.string.ai_error_detail, it) } ?: "")
 }
 
 /** Por qué no se pudo preparar la ficha (o null si fue bien o aún no se ha pedido). */

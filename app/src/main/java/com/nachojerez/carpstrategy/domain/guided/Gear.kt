@@ -107,6 +107,9 @@ data class BaitSheet(
     val updatedAt: java.time.Instant,
     /** False si se hizo sin buscar en Google (la clave no lo permitía): solo lo que sabe la IA. */
     val searched: Boolean = true,
+    /** Si Google no dejó buscar: «Quota» (cuota) u otro error, y lo que dijo (código y mensaje). */
+    val searchError: String? = null,
+    val searchErrorDetail: String? = null,
 )
 
 /** Lo que llevas hoy (fase 7.13): solo eso entra en el plan, en la IA y en la sesión guiada. */

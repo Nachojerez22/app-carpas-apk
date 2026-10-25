@@ -224,6 +224,8 @@ object GuidedJson {
         @SerialName("evidencia") val evidence: String,
         @SerialName("fecha") val updatedAt: String,
         @SerialName("con_busqueda") val searched: Boolean = true,
+        @SerialName("motivo_sin_busqueda") val searchError: String? = null,
+        @SerialName("detalle_sin_busqueda") val searchErrorDetail: String? = null,
     )
 
     private inline fun <reified E : Enum<E>> enumOf(name: String?): E? = name?.let { n -> enumValues<E>().firstOrNull { it.name == n } }
@@ -429,6 +431,7 @@ object GuidedJson {
 
     fun BaitSheet.toDto() = BaitSheetDto(
         type?.name, composition, profile, functions.map { it.name }, solubility?.name, phases.map { it.name }, notes, sources, evidence.name, updatedAt.toString(), searched,
+        searchError, searchErrorDetail,
     )
 
     fun BaitSheetDto.toDomain(): BaitSheet? = BaitSheet(
@@ -443,6 +446,8 @@ object GuidedJson {
         evidence = enumOf<Evidence>(evidence) ?: return null,
         updatedAt = instant(updatedAt) ?: return null,
         searched = searched,
+        searchError = searchError,
+        searchErrorDetail = searchErrorDetail,
     )
 
     fun encodeGear(items: List<GearItem>): String =

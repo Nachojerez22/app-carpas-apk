@@ -113,7 +113,8 @@ class Assistant(private val client: AiClient) {
         val sheet = plain.value?.let { draft ->
             // Sin búsqueda no hay fuentes que valgan: fuera los enlaces y, como mucho, 🟣.
             val evidence = if (draft.evidence == Evidence.GREEN || draft.evidence == Evidence.YELLOW) Evidence.PURPLE else draft.evidence
-            AiValidator.toSheet(draft.copy(sources = emptyList(), evidence = evidence), now).copy(searched = false)
+            AiValidator.toSheet(draft.copy(sources = emptyList(), evidence = evidence), now)
+                .copy(searched = false, searchError = searched.exchange.error, searchErrorDetail = searched.exchange.errorDetail)
         }
         return AiOutcome(plain.exchange, sheet)
     }
