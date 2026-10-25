@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -35,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -123,9 +125,9 @@ fun GuidedScreen(
         if (session == null || phase == null) {
             if (!state.isLoading) {
                 item {
-                    StartCard(state, onOpenGear, onOpenSpots) { names, zone, groundbait, spot ->
+                    StartCard(state, onOpenGear, onOpenSpots) { names, zone, groundbait, spot, water ->
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) permission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        viewModel.start(names, zone, groundbait, spot)
+                        viewModel.start(names, zone, groundbait, spot, water)
                     }
                 }
             }
@@ -197,7 +199,7 @@ private fun PermissionCard(text: String, action: String?, onAction: (() -> Unit)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots: () -> Unit, onStart: (List<String>, FishingZone?, GroundbaitLevel?, Spot?) -> Unit) {
+private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots: () -> Unit, onStart: (List<String>, FishingZone?, GroundbaitLevel?, Spot?, Double?) -> Unit) {
     // Las cañas elegidas en Estrategia vienen marcadas (fase 7.12).
     var rods by rememberSaveable(state.preferredRods) { mutableStateOf(state.preferredRods ?: 2) }
     var names by rememberSaveable { mutableStateOf(listOf("", "", "")) }
@@ -207,6 +209,8 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots:
     var spotId by rememberSaveable(preferred?.id) { mutableStateOf(preferred?.id) }
     val spot = state.spots.firstOrNull { it.id == spotId }
     var groundbait by rememberSaveable { mutableStateOf<GroundbaitLevel?>(null) }
+    var water by rememberSaveable { mutableStateOf("") }
+    val waterInput = parseWaterInput(water)
     CarpCard {
         Text(stringResource(R.string.guided_intro))
         Text(stringResource(R.string.guided_rods), style = MaterialTheme.typography.titleSmall)
@@ -255,11 +259,26 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots:
             }
         }
         Caption(stringResource(R.string.guided_groundbait_hint))
+        // Fase 7.16: el agua medida es el dato que más afina la app (manda sobre la estimada).
+        OutlinedTextField(
+            value = water,
+            onValueChange = { water = it },
+            label = { Text(stringResource(R.string.guided_water_start)) },
+            singleLine = true,
+            isError = waterInput == WaterInput.Invalid,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Caption(stringResource(if (waterInput == WaterInput.Invalid) R.string.guided_water_start_invalid else R.string.guided_water_start_hint))
         Caption(
             if (state.baits + state.rigs == 0) stringResource(R.string.guided_gear_empty) else stringResource(R.string.guided_gear_summary, state.baits, state.rigs),
         )
         OutlinedButton(onClick = onOpenGear) { Text(stringResource(R.string.guided_gear_open)) }
-        Button(onClick = { onStart(rodNamesFor(rods, names), zone, groundbait, spot) }, enabled = !state.starting, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { onStart(rodNamesFor(rods, names), zone, groundbait, spot, (waterInput as? WaterInput.Valid)?.celsius) },
+            enabled = !state.starting && waterInput != WaterInput.Invalid,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Text(stringResource(if (state.starting) R.string.guided_starting else R.string.guided_start))
         }
     }

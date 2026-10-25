@@ -25,6 +25,10 @@ import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.WeatherReport
 import com.nachojerez.carpstrategy.domain.journal.Session
+import com.nachojerez.carpstrategy.domain.manual.ManualField
+import com.nachojerez.carpstrategy.domain.manual.RawRecord
+import com.nachojerez.carpstrategy.domain.manual.RawValue
+import com.nachojerez.carpstrategy.ui.diary.SessionForm
 import java.time.Instant
 import java.time.ZoneId
 
@@ -134,3 +138,61 @@ data class CheckInDraft(
 /** Nombres de las cañas para empezar: los escritos o «» (se mostrará «Caña N»). */
 fun rodNamesFor(count: Int, typed: List<String>): List<String> =
     (0 until count.coerceIn(1, GuidedSessions.MAX_RODS)).map { typed.getOrNull(it)?.trim().orEmpty() }
+
+/** Respuesta rápida desde la notificación (sin abrir la app). */
+enum class QuickAnswer { NOTHING, NOTHING_ALL, MISSED, CATCH, NOT_WORKING, ACCEPT }
+
+fun QuickAnswer.toCheckIn(now: Instant): CheckIn = when (this) {
+    QuickAnswer.MISSED -> CheckIn(now, activity = HookActivity.MISSED)
+    QuickAnswer.CATCH -> CheckIn(now, activity = HookActivity.CATCH)
+    QuickAnswer.NOT_WORKING -> CheckIn(now, notWorking = true)
+    QuickAnswer.NOTHING, QuickAnswer.NOTHING_ALL, QuickAnswer.ACCEPT -> CheckIn(now, baitState = BaitState.NOT_CHECKED)
+}
+
+/** Un botón de la notificación: la respuesta y su caña (null = la única o la de la propuesta). */
+data class NotificationAction(val answer: QuickAnswer, val rodId: Int? = null)
+
+/** Android enseña como mucho 3 botones en una notificación. */
+const val MAX_NOTIFICATION_ACTIONS = 3
+
+/**
+ * Botones de la notificación (fase 7.16: con varias cañas, «Carpa» en cada una, para anotarla sin
+ * abrir la app). Con 3 cañas en un aviso caben «Nada en ninguna» y las dos primeras: la tercera, en la app.
+ */
+fun notificationActions(rodIds: List<Int>, pendingProposal: Boolean, checkIn: Boolean): List<NotificationAction> {
+    val single = rodIds.singleOrNull()
+    val actions = when {
+        single == null -> (if (checkIn) listOf(NotificationAction(QuickAnswer.NOTHING_ALL)) else emptyList()) +
+            rodIds.map { NotificationAction(QuickAnswer.CATCH, it) }
+        pendingProposal -> listOf(QuickAnswer.ACCEPT, QuickAnswer.CATCH, QuickAnswer.NOT_WORKING).map { NotificationAction(it, single) }
+        checkIn -> listOf(QuickAnswer.NOTHING, QuickAnswer.MISSED, QuickAnswer.CATCH).map { NotificationAction(it, single) }
+        else -> listOf(QuickAnswer.MISSED, QuickAnswer.CATCH, QuickAnswer.NOT_WORKING).map { NotificationAction(it, single) }
+    }
+    return actions.take(MAX_NOTIFICATION_ACTIONS)
+}
+
+/** Agua medida al empezar la sesión guiada (fase 7.16). */
+sealed interface WaterInput {
+    data object Empty : WaterInput
+    data class Valid(val celsius: Double) : WaterInput
+    data object Invalid : WaterInput
+}
+
+/** «18,5» o «18.5»; vacío = sin medida; fuera de −1…40 °C (como en Datos) = no válido. */
+fun parseWaterInput(text: String): WaterInput {
+    val clean = text.trim().replace(',', '.')
+    if (clean.isEmpty()) return WaterInput.Empty
+    val value = clean.toDoubleOrNull() ?: return WaterInput.Invalid
+    return if (value in ManualField.WATER_TEMP_SURFACE.min..ManualField.WATER_TEMP_SURFACE.max) WaterInput.Valid(value) else WaterInput.Invalid
+}
+
+/** El agua medida va a Datos como medición de la sesión: manda sobre la estimada (CLAUDE.md, regla 7). */
+fun waterMeasurementRecord(celsius: Double, now: Instant, zone: ZoneId): RawRecord =
+    RawRecord(
+        time = MEASUREMENT_TIME.format(now.atZone(zone)),
+        source = SessionForm.MEASUREMENT_SOURCE,
+        values = mapOf(ManualField.WATER_TEMP_SURFACE.key to RawValue.Number(celsius)),
+        notes = null,
+    )
+
+private val MEASUREMENT_TIME: java.time.format.DateTimeFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")

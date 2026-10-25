@@ -89,14 +89,23 @@ class GuidedNotifier @Inject constructor(@param:ApplicationContext private val c
             .setVibrate(if (alert) VIBRATION else null)
             .setContentIntent(openApp())
         if (!ended) {
-            // Con varias cañas, picadas y capturas se anotan en la app (hay que decir en cuál).
-            val actions = when {
-                single == null -> listOf(QuickAnswer.NOTHING_ALL to R.string.guided_notif_nothing_all)
-                pending.isNotEmpty() -> listOf(QuickAnswer.ACCEPT to R.string.guided_notif_accept, QuickAnswer.CATCH to R.string.guided_notif_catch, QuickAnswer.NOT_WORKING to R.string.guided_notif_not_working)
-                checkIn -> listOf(QuickAnswer.NOTHING to R.string.guided_notif_nothing, QuickAnswer.MISSED to R.string.guided_notif_missed, QuickAnswer.CATCH to R.string.guided_notif_catch)
-                else -> listOf(QuickAnswer.MISSED to R.string.guided_notif_missed, QuickAnswer.CATCH to R.string.guided_notif_catch, QuickAnswer.NOT_WORKING to R.string.guided_notif_not_working)
+            // Con varias cañas, «Carpa» en cada una (fase 7.16); lo demás se anota en la app.
+            notificationActions(record.rods.map { it.id }, pending.isNotEmpty(), checkIn).forEach { action ->
+                val label = when (action.answer) {
+                    QuickAnswer.NOTHING_ALL -> res.getString(R.string.guided_notif_nothing_all)
+                    QuickAnswer.ACCEPT -> res.getString(R.string.guided_notif_accept)
+                    QuickAnswer.NOTHING -> res.getString(R.string.guided_notif_nothing)
+                    QuickAnswer.MISSED -> res.getString(R.string.guided_notif_missed)
+                    QuickAnswer.NOT_WORKING -> res.getString(R.string.guided_notif_not_working)
+                    QuickAnswer.CATCH -> if (single == null) {
+                        val rod = record.rods.firstOrNull { it.id == action.rodId }
+                        res.getString(R.string.guided_notif_catch_rod, rod?.name?.takeIf { it.isNotBlank() } ?: res.getString(R.string.guided_rod_default, action.rodId ?: 1))
+                    } else {
+                        res.getString(R.string.guided_notif_catch)
+                    }
+                }
+                builder.addAction(0, label, answerIntent(action.answer, action.rodId ?: single?.id))
             }
-            actions.forEach { (answer, label) -> builder.addAction(0, res.getString(label), answerIntent(answer, single?.id)) }
         }
         try {
             manager.notify(NOTIFICATION_ID, builder.build())
@@ -118,7 +127,8 @@ class GuidedNotifier @Inject constructor(@param:ApplicationContext private val c
 
     private fun answerIntent(answer: QuickAnswer, rodId: Int?): PendingIntent = PendingIntent.getBroadcast(
         context,
-        REQUEST_ANSWER + answer.ordinal,
+        // Un código por respuesta y caña: si no, los botones «Carpa» de cada caña se pisarían.
+        REQUEST_ANSWER + answer.ordinal * 10 + (rodId ?: 0),
         Intent(context, GuidedActionReceiver::class.java)
             .setAction(GuidedActionReceiver.ACTION_ANSWER)
             .putExtra(GuidedActionReceiver.EXTRA_ANSWER, answer.name)

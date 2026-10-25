@@ -2,6 +2,8 @@ package com.nachojerez.carpstrategy.ui.diary
 
 import com.nachojerez.carpstrategy.domain.derived.LegalWindow
 import com.nachojerez.carpstrategy.domain.derived.SolarCalculator
+import com.nachojerez.carpstrategy.domain.journal.Accuracy
+import com.nachojerez.carpstrategy.domain.journal.AccuracyReport
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.JournalStats
 import com.nachojerez.carpstrategy.domain.journal.JournalSummary
@@ -40,6 +42,8 @@ data class DiaryUiState(
     val monthSummary: JournalSummary = JournalSummary.EMPTY,
     val yearSummary: JournalSummary = JournalSummary.EMPTY,
     val byBand: Map<FavorabilityBand, JournalSummary> = emptyMap(),
+    /** ¿Acierta la app? Capturas y picadas por hora-caña con intervalo y veredicto (fase 7.16). */
+    val accuracy: AccuracyReport? = null,
     val recentCatchZones: Map<FishingZone, Instant> = emptyMap(),
     val editor: SessionEditor? = null,
     val now: Instant = Instant.EPOCH,
@@ -57,6 +61,7 @@ fun buildDiaryState(sessions: List<Session>, now: Instant, zone: ZoneId = Format
         monthSummary = JournalStats.summarizeMonth(sessions, month, zone),
         yearSummary = JournalStats.summarize(sessions.filter { it.start.atZone(zone).year == year }),
         byBand = JournalStats.byPredictedBand(sessions),
+        accuracy = Accuracy.report(sessions),
         recentCatchZones = JournalStats.recentCatchZones(sessions, now),
         now = now,
     )

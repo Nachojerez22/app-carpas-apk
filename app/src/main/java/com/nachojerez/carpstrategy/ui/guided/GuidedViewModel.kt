@@ -106,12 +106,12 @@ class GuidedViewModel @Inject constructor(
         permissions.value = manager.canNotify() to manager.canScheduleExact()
     }
 
-    fun start(rodNames: List<String>, zone: FishingZone?, groundbait: GroundbaitLevel?, spot: Spot?) {
+    fun start(rodNames: List<String>, zone: FishingZone?, groundbait: GroundbaitLevel?, spot: Spot?, waterC: Double? = null) {
         if (starting.value) return
         starting.value = true
         viewModelScope.launch {
             try {
-                manager.start(rodNames, zone, groundbait, spot)
+                manager.start(rodNames, zone, groundbait, spot, waterC)
             } finally {
                 starting.value = false
             }
