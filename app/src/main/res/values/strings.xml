@@ -1158,6 +1158,9 @@
     <string name="gear_sheet_sources">Fuentes:\n%1$s</string>
     <string name="gear_sheet_no_key">Configura la IA (Lugar → Asistente de IA) para buscar la ficha.</string>
     <string name="gear_sheet_failed">No se pudo preparar la ficha (%1$s).</string>
+    <string name="gear_sheet_quota">Gemini no deja más consultas ahora mismo (cuota agotada), ni siquiera sin buscar en Google. Suele ser por demasiadas consultas seguidas: espera un par de minutos y vuelve a probar; si no, mañana se renueva.</string>
+    <string name="gear_sheet_offline">Sin conexión: prueba cuando tengas cobertura.</string>
+    <string name="gear_sheet_not_searched">Sin búsqueda en Google: tu clave no la permite ahora (cuota de la versión gratuita). Ficha solo con lo que sabe la IA 🟣; vuelve a buscarla otro día o pon tú lo que lleva.</string>
     <string name="groundbait_normal_title">Tu cebado «normal»</string>
     <string name="groundbait_normal_value">%1$s kg por caña y sesión</string>
     <string name="groundbait_normal_none">Sin medida: la app dice poco, normal o mucho.</string>

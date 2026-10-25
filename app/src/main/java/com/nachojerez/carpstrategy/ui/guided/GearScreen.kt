@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.data.assistant.AiException
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmounts
 import com.nachojerez.carpstrategy.domain.guided.BaitSheet
 import com.nachojerez.carpstrategy.domain.guided.BaitType
@@ -274,6 +275,7 @@ private fun BaitSheetView(sheet: BaitSheet) {
             sheet.solubility?.let { Caption(stringResource(R.string.gear_sheet_solubility, stringResource(it.titleRes()))) }
             if (sheet.notes.isNotBlank()) Caption(sheet.notes)
             if (sheet.sources.isNotEmpty()) Caption(stringResource(R.string.gear_sheet_sources, sheet.sources.joinToString("\n")))
+            if (!sheet.searched) Caption(stringResource(R.string.gear_sheet_not_searched), color = MaterialTheme.colorScheme.error)
         }
         AnyEvidenceBadge(sheet.evidence)
     }
@@ -286,9 +288,16 @@ private fun sheetResultText(result: BaitSheetResult?): String? {
     return when (result) {
         null, is BaitSheetResult.Ok -> null
         BaitSheetResult.NoKey -> stringResource(R.string.gear_sheet_no_key)
-        is BaitSheetResult.Failed -> stringResource(
-            R.string.gear_sheet_failed,
-            result.error ?: result.issues.map { res.getString(it.titleRes()) }.distinct().joinToString(", "),
-        )
+        is BaitSheetResult.Failed -> when (result.error) {
+            QUOTA -> stringResource(R.string.gear_sheet_quota)
+            OFFLINE -> stringResource(R.string.gear_sheet_offline)
+            else -> stringResource(
+                R.string.gear_sheet_failed,
+                result.error ?: result.issues.map { res.getString(it.titleRes()) }.distinct().joinToString(", "),
+            )
+        }
     }
 }
+
+private val QUOTA = AiException.Quota::class.simpleName
+private val OFFLINE = AiException.Offline::class.simpleName

@@ -7,6 +7,8 @@ import com.nachojerez.carpstrategy.domain.assistant.AiMixPart
 import com.nachojerez.carpstrategy.domain.guided.BaitFunction
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.Column
+import com.nachojerez.carpstrategy.domain.guided.GearCategory
+import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.Solubility
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
@@ -164,5 +166,38 @@ class AssistantTest {
         assertEquals(setOf(BaitFunction.ATTRACTION), bait.functions)
         assertEquals(Solubility.HIGH, bait.solubility)
         assertEquals(Evidence.PURPLE, bait.evidence)
+    }
+
+    @Test
+    fun `ficha de un cebo con busqueda y, si Google la rechaza por cuota, sin buscar`() {
+        val item = GearItem("1", GearCategory.BAIT, "Supercrush", baitType = BaitType.GROUNDBAIT_MIX, brand = "Marca", url = "https://t.example/mix")
+        val json = """{"tipo":"GROUNDBAIT_MIX","composicion":"Harinas y pellet","fuentes":["https://t.example/mix"],"evidencia":"🟡"}"""
+
+        // Con búsqueda: herramientas de Google y JSON dentro del texto.
+        server.enqueue(gemini(json))
+        val ok = assistant.baitSheet(config, "k", item, now).value!!
+        assertTrue(ok.searched)
+        assertEquals(listOf("https://t.example/mix"), ok.sources)
+        val first = server.takeRequest().body!!.utf8()
+        assertTrue(first.contains("google_search") && first.contains("url_context") && !first.contains("responseMimeType"))
+
+        // Cuota de la búsqueda: se repite sin herramientas; sin fuentes y como mucho 🟣.
+        server.enqueue(MockResponse(code = 429, body = """{"error":{"message":"Quota exceeded: search grounding"}}"""))
+        server.enqueue(gemini(json))
+        val plain = assistant.baitSheet(config, "k", item, now).value!!
+        assertFalse(plain.searched)
+        assertTrue(plain.sources.isEmpty())
+        assertEquals(Evidence.PURPLE, plain.evidence)
+        server.takeRequest()
+        val retry = server.takeRequest().body!!.utf8()
+        assertFalse(retry.contains("google_search"))
+        assertTrue(retry.contains("No puedes buscar en internet"))
+
+        // Si tampoco sin buscar: el error de cuota llega a la pantalla.
+        server.enqueue(MockResponse(code = 429, body = "{}"))
+        server.enqueue(MockResponse(code = 429, body = "{}"))
+        val failed = assistant.baitSheet(config, "k", item, now)
+        assertNull(failed.value)
+        assertEquals("Quota", failed.exchange.error)
     }
 }

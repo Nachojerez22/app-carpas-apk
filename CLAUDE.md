@@ -287,7 +287,9 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `engodo` (`AiGroundbait`: mezcla en partes con tus cebos, `kg_por_cana` solo con tu medida y ≤ 1,5 × «mucho»;
   los textos siguen sin gramos). `AiKind.BAIT`: `Assistant.baitSheet` con Gemini y herramientas
   `google_search` + `url_context` (`AiClient.complete(web = true)`, sin JSON estricto); solo van marca,
-  nombre, lo que escribió el usuario y el enlace.
+  nombre, lo que escribió el usuario y el enlace. Si Google rechaza la búsqueda (cuota 429 del nivel
+  gratuito o herramienta no admitida), se repite sin búsqueda (`BAIT_SYSTEM_NO_SEARCH`): ficha con
+  `searched = false`, sin fuentes y como mucho 🟣.
 - UI: `GearEditor` (singleton: guardar, borrar, hoy, ficha) para Estrategia (paso ③) y Mi equipo;
   `GearDialog`, `BaitRow` y `GroundbaitNormalRow` son `internal` en `ui/guided/GearScreen.kt`.
 

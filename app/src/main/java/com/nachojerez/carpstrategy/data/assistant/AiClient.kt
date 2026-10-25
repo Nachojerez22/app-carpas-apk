@@ -48,7 +48,8 @@ sealed class AiException(message: String) : Exception(message) {
     class Unauthorized : AiException("Clave no válida o sin permiso")
 
     /** Cuota agotada o demasiadas peticiones (nivel gratuito). */
-    class Quota : AiException("Cuota agotada o demasiadas consultas")
+    /** [detail]: el mensaje de Google (sin la clave), p. ej. qué cuota se ha agotado. */
+    class Quota(val detail: String? = null) : AiException("Cuota agotada o demasiadas consultas")
 
     class Offline(cause: IOException) : AiException(cause.message ?: "Sin conexión")
 
@@ -200,7 +201,7 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
                     response.code == 401 || response.code == 403 -> throw AiException.Unauthorized()
                     // Gemini responde 400 «API key not valid» con una clave errónea.
                     response.code == 400 && text.contains("API_KEY_INVALID") -> throw AiException.Unauthorized()
-                    response.code == 429 -> throw AiException.Quota()
+                    response.code == 429 -> throw AiException.Quota(errorDetail(text, secret))
                     !response.isSuccessful -> throw AiException.Failed(response.code, errorDetail(text, secret))
                 }
                 return runCatching { json.parseToJsonElement(text).jsonObject }.getOrElse { throw AiException.Empty() }

@@ -129,6 +129,11 @@ Normas (si no las cumples, la app descarta la respuesta):
 {"tipo":"BOILIE|BOILIE_HARD|PELLET|MAIZE|HEMP|TIGERNUT|PASTE|BREAD|POPUP|PVA|WORM|GROUNDBAIT_MIX|FLOUR|LIQUID|OTHER o null","composicion":"ingredientes, sabor, tamaño o formato (como mucho 500 caracteres)","perfil":"dulce, frutal, pescado, especiado, lácteo, neutro…","funciones":["ATTRACTION","RETENTION","SELECTIVITY","VISIBILITY"],"solubilidad":"HIGH|MEDIUM|LOW o null","fases":["WINTER","SPRING","SUMMER","HEAT","AUTUMN"],"notas":"cómo usarlo para la carpa (como mucho 300 caracteres)","fuentes":["https://…"],"evidencia":"🟣"}
 """
 
+    /** Lo mismo sin búsqueda (la clave no la permite): solo lo que sabe la IA, sin fuentes. */
+    val BAIT_SYSTEM_NO_SEARCH = BAIT_SYSTEM
+        .replace("Busca el producto de \"cebo\" (marca y nombre) en internet y, si viene \"enlace\", lee esa página (tienda o fabricante).", "No puedes buscar en internet: usa lo que sepas del producto de \"cebo\" (marca y nombre) y lo que escribió el usuario.")
+        .replace("\"fuentes\":[\"https://…\"],", "\"fuentes\":[],")
+
     /** Estado para la ficha de un cebo: solo el producto (nunca la ubicación ni la pesca). */
     fun baitState(item: GearItem): String = buildJsonObject {
         putJsonObject("cebo") {

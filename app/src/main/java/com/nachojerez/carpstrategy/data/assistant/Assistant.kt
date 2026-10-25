@@ -16,6 +16,7 @@ import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirSheet
+import com.nachojerez.carpstrategy.domain.rules.Evidence
 import java.time.Instant
 
 /** Resultado de una consulta: el registro (siempre) y la respuesta solo si es válida. */
@@ -95,15 +96,26 @@ class Assistant(private val client: AiClient) {
      * enlace. Si no es válida, el cebo se queda como estaba.
      */
     fun baitSheet(config: AiConfig, apiKey: String, item: GearItem, now: Instant): AiOutcome<BaitSheet> {
-        val outcome = run(
-            config, apiKey, AiKind.BAIT, AssistantPrompts.BAIT_SYSTEM, AssistantPrompts.baitState(item), now,
+        fun ask(web: Boolean) = run(
+            config, apiKey, AiKind.BAIT, if (web) AssistantPrompts.BAIT_SYSTEM else AssistantPrompts.BAIT_SYSTEM_NO_SEARCH, AssistantPrompts.baitState(item), now,
             parse = AssistantJson::parseBait,
             validate = { draft: AiBaitDraft -> AiValidator.validate(draft) },
             summary = { "CEBO ${it.type?.name ?: "?"}" },
             note = { it.composition },
-            web = true,
+            web = web,
         )
-        return AiOutcome(outcome.exchange, outcome.value?.let { AiValidator.toSheet(it, now) })
+        val searched = ask(web = config.provider == AiProvider.GEMINI)
+        searched.value?.let { return AiOutcome(searched.exchange, AiValidator.toSheet(it, now).copy(searched = config.provider == AiProvider.GEMINI)) }
+        // La búsqueda en Google tiene su propia cuota (en el nivel gratuito, no en todos los
+        // modelos): si Google la rechaza, se pide la ficha solo con lo que sabe la IA.
+        if (config.provider != AiProvider.GEMINI || searched.exchange.error !in SEARCH_REFUSED) return AiOutcome(searched.exchange, null)
+        val plain = ask(web = false)
+        val sheet = plain.value?.let { draft ->
+            // Sin búsqueda no hay fuentes que valgan: fuera los enlaces y, como mucho, 🟣.
+            val evidence = if (draft.evidence == Evidence.GREEN || draft.evidence == Evidence.YELLOW) Evidence.PURPLE else draft.evidence
+            AiValidator.toSheet(draft.copy(sources = emptyList(), evidence = evidence), now).copy(searched = false)
+        }
+        return AiOutcome(plain.exchange, sheet)
     }
 
     /** Prueba de conexión: pide un JSON mínimo. Devuelve el error o null si todo va bien. */
@@ -155,6 +167,9 @@ class Assistant(private val client: AiClient) {
     }
 
     private companion object {
+        /** Errores con los que Google rechaza la búsqueda (cuota o herramienta no admitida). */
+        val SEARCH_REFUSED = setOf(AiException.Quota::class.simpleName, AiException.Failed::class.simpleName)
+
         /** Lecciones por repaso como mucho. */
         const val MAX_LESSONS = 3
         const val TEST_SYSTEM = "Responde solo con JSON."
