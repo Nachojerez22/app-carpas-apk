@@ -1,9 +1,14 @@
 package com.nachojerez.carpstrategy.data.assistant
 
+import com.nachojerez.carpstrategy.domain.assistant.AiCall
+import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import java.io.IOException
+import java.time.Clock
 import java.util.concurrent.TimeUnit
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
@@ -11,6 +16,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
@@ -62,11 +68,22 @@ sealed class AiException(message: String) : Exception(message) {
     class NotConfigured : AiException("Falta la clave o el modelo")
 }
 
+/** Quien guarda el consumo de cada consulta (fase 7.14); por defecto, nadie. */
+fun interface AiUsageRecorder {
+    fun record(call: AiCall)
+}
+
 /**
  * Cliente HTTP mínimo (OkHttp) para pedir una respuesta JSON a un modelo de lenguaje. Sin
- * registro de peticiones: la clave nunca sale a logcat. Bloqueante: llamar desde IO.
+ * registro de peticiones: la clave nunca sale a logcat. Bloqueante: llamar desde IO. Cada
+ * respuesta (tokens y búsquedas) y cada «cuota agotada» se apuntan en [recorder].
  */
-class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.GEMINI_BASE) {
+class AiClient(
+    client: OkHttpClient,
+    private val geminiBase: String = AiConfig.GEMINI_BASE,
+    private val recorder: AiUsageRecorder = AiUsageRecorder {},
+    private val clock: Clock = Clock.systemUTC(),
+) {
     private val http = client.newBuilder().readTimeout(60, TimeUnit.SECONDS).callTimeout(75, TimeUnit.SECONDS).build()
     private val json = Json { ignoreUnknownKeys = true }
     private val mediaJson = "application/json; charset=utf-8".toMediaType()
@@ -76,11 +93,16 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
      * (herramientas `google_search` y `url_context`, fase 7.13). Con herramientas no se puede pedir
      * JSON estricto, así que el JSON se busca dentro del texto. Otros proveedores lo ignoran.
      */
-    fun complete(config: AiConfig, apiKey: String, system: String, user: String, web: Boolean = false): String {
+    fun complete(config: AiConfig, apiKey: String, system: String, user: String, web: Boolean = false, kind: AiKind? = null): String {
         if (apiKey.isBlank() || config.model.isBlank()) throw AiException.NotConfigured()
-        return when (config.provider) {
-            AiProvider.GEMINI -> gemini(config, apiKey, system, user, web)
-            AiProvider.OPENAI_COMPATIBLE -> openAi(config, apiKey, system, user)
+        try {
+            return when (config.provider) {
+                AiProvider.GEMINI -> gemini(config, apiKey, system, user, web, kind)
+                AiProvider.OPENAI_COMPATIBLE -> openAi(config, apiKey, system, user, kind)
+            }
+        } catch (e: AiException.Quota) {
+            recorder.record(AiCall(clock.instant(), kind, quota = true, quotaDetail = e.detail))
+            throw e
         }
     }
 
@@ -109,7 +131,7 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
         }.distinct().sortedWith(compareBy({ !it.contains("flash") }, { it }))
     }
 
-    private fun gemini(config: AiConfig, apiKey: String, system: String, user: String, web: Boolean = false): String {
+    private fun gemini(config: AiConfig, apiKey: String, system: String, user: String, web: Boolean = false, kind: AiKind? = null): String {
         val key = apiKey.trim()
         fun url(base: String) = base.toHttpUrlOrNull()?.newBuilder()
             ?.addPathSegment("models")
@@ -155,9 +177,21 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
             }
         }
         if (response == null) throw notFound ?: AiException.Empty()
+        val candidate = response["candidates"]?.jsonArray?.firstOrNull()?.jsonObject
+        // Consumo (fase 7.14): tokens de usageMetadata y búsquedas de groundingMetadata.
+        val usage = response["usageMetadata"] as? JsonObject
+        recorder.record(
+            AiCall(
+                time = clock.instant(),
+                kind = kind,
+                inputTokens = usage.long("promptTokenCount") + usage.long("toolUsePromptTokenCount"),
+                outputTokens = usage.long("candidatesTokenCount"),
+                thinkingTokens = usage.long("thoughtsTokenCount"),
+                searches = (candidate?.get("groundingMetadata") as? JsonObject)?.get("webSearchQueries")?.let { it as? JsonArray }?.size ?: 0,
+            ),
+        )
         // Los modelos con razonamiento pueden devolver partes «thought»: se ignoran.
-        val parts = response["candidates"]?.jsonArray?.firstOrNull()?.jsonObject
-            ?.get("content")?.jsonObject?.get("parts")?.jsonArray.orEmpty()
+        val parts = candidate?.get("content")?.jsonObject?.get("parts")?.jsonArray.orEmpty()
         val text = parts.mapNotNull { p ->
             val obj = p.jsonObject
             if (obj["thought"]?.jsonPrimitive?.booleanOrNull == true) null else obj["text"]?.jsonPrimitive?.contentOrNull
@@ -165,7 +199,7 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
         return text.ifBlank { throw AiException.Empty() }
     }
 
-    private fun openAi(config: AiConfig, apiKey: String, system: String, user: String): String {
+    private fun openAi(config: AiConfig, apiKey: String, system: String, user: String, kind: AiKind? = null): String {
         val base = config.baseUrl.trim().trimEnd('/')
         val url = "$base/chat/completions".toHttpUrlOrNull() ?: throw AiException.NotConfigured()
         val body = buildJsonObject {
@@ -188,6 +222,17 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
             .post(body.toString().toRequestBody(mediaJson))
             .build()
         val response = execute(request, apiKey.trim())
+        val usage = response["usage"] as? JsonObject
+        val reasoning = (usage?.get("completion_tokens_details") as? JsonObject).long("reasoning_tokens")
+        recorder.record(
+            AiCall(
+                time = clock.instant(),
+                kind = kind,
+                inputTokens = usage.long("prompt_tokens"),
+                outputTokens = usage.long("completion_tokens") - reasoning,
+                thinkingTokens = reasoning,
+            ),
+        )
         val text = response["choices"]?.jsonArray?.firstOrNull()?.jsonObject
             ?.get("message")?.jsonObject?.get("content")?.jsonPrimitive?.contentOrNull
         return text?.ifBlank { null } ?: throw AiException.Empty()
@@ -218,6 +263,9 @@ class AiClient(client: OkHttpClient, private val geminiBase: String = AiConfig.G
             ?: (error as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull
         return message?.replace(secret, "…")?.take(MAX_DETAIL)
     }
+
+    /** Número entero de un campo del JSON de consumo (0 si no viene). */
+    private fun JsonObject?.long(key: String): Long = (this?.get(key) as? JsonPrimitive)?.longOrNull ?: 0L
 
     private companion object {
         const val MAX_DETAIL = 300

@@ -1,5 +1,7 @@
 package com.nachojerez.carpstrategy.data.assistant
 
+import com.nachojerez.carpstrategy.domain.assistant.AiCall
+import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okhttp3.OkHttpClient
@@ -112,5 +114,29 @@ class AiClientTest {
         val error = assertThrows<AiException.Failed> { client.complete(gemini, "clave-secreta", "s", "u") }
         assertEquals(404, error.code)
         assertEquals("models/m is not found for …", error.detail)
+    }
+
+    @Test
+    fun `apunta el consumo de cada respuesta y los errores de cuota`() {
+        val calls = mutableListOf<AiCall>()
+        val counted = AiClient(OkHttpClient(), server.url("/v1beta/").toString(), recorder = { calls += it })
+        server.enqueue(
+            MockResponse(
+                body = """{"candidates":[{"content":{"parts":[{"text":"{}"}]},"groundingMetadata":{"webSearchQueries":["a","b"]}}],""" +
+                    """"usageMetadata":{"promptTokenCount":120,"candidatesTokenCount":30,"thoughtsTokenCount":50,"toolUsePromptTokenCount":10}}""",
+            ),
+        )
+        counted.complete(gemini, "k", "s", "u", web = true, kind = AiKind.BAIT)
+        val ok = calls.single()
+        assertEquals(AiKind.BAIT, ok.kind)
+        assertEquals(130, ok.inputTokens)
+        assertEquals(30, ok.outputTokens)
+        assertEquals(50, ok.thinkingTokens)
+        assertEquals(2, ok.searches)
+        server.enqueue(MockResponse(code = 429, body = """{"error":{"message":"Quota exceeded for requests per day"}}"""))
+        assertThrows<AiException.Quota> { counted.complete(gemini, "k", "s", "u", kind = AiKind.PLAN) }
+        val quota = calls.last()
+        assertTrue(quota.quota)
+        assertEquals("Quota exceeded for requests per day", quota.quotaDetail)
     }
 }

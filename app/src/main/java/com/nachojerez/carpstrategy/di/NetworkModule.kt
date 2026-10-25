@@ -2,6 +2,7 @@ package com.nachojerez.carpstrategy.di
 
 import com.nachojerez.carpstrategy.BuildConfig
 import com.nachojerez.carpstrategy.data.assistant.AiClient
+import com.nachojerez.carpstrategy.data.assistant.AiUsageStore
 import com.nachojerez.carpstrategy.data.assistant.Assistant
 import com.nachojerez.carpstrategy.data.remote.aemet.AemetApi
 import com.nachojerez.carpstrategy.data.remote.aemet.AemetApiKeyInterceptor
@@ -72,7 +73,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAssistant(client: OkHttpClient): Assistant = Assistant(AiClient(client))
+    fun provideAssistant(client: OkHttpClient, usage: AiUsageStore): Assistant = Assistant(AiClient(client, recorder = usage))
 
     @Provides
     @Singleton

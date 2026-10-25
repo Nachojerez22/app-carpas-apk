@@ -148,7 +148,7 @@ class Assistant(private val client: AiClient) {
     ): AiOutcome<T> {
         val base = AiExchange(time = now, kind = kind, provider = config.provider.name, model = config.model)
         val text = try {
-            client.complete(config, apiKey, system, user, web)
+            client.complete(config, apiKey, system, user, web, kind)
         } catch (e: AiException) {
             return AiOutcome(base.copy(error = e::class.simpleName), null)
         }

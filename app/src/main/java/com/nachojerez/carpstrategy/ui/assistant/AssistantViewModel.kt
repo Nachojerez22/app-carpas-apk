@@ -4,16 +4,23 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nachojerez.carpstrategy.data.assistant.AiConfig
 import com.nachojerez.carpstrategy.data.assistant.AiException
+import com.nachojerez.carpstrategy.data.assistant.AiUsageStore
 import com.nachojerez.carpstrategy.data.assistant.Assistant
 import com.nachojerez.carpstrategy.data.assistant.AssistantSettings
 import com.nachojerez.carpstrategy.di.IoDispatcher
+import com.nachojerez.carpstrategy.domain.assistant.AiLimits
+import com.nachojerez.carpstrategy.domain.assistant.UsageDay
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.Clock
+import java.time.Instant
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,7 +46,13 @@ data class AssistantUiState(
     val models: List<String>? = null,
     val loadingModels: Boolean = false,
     val modelsError: AiException? = null,
+    /** Consumo de la IA de todos tus móviles (fase 7.14) y tus límites diarios. */
+    val usage: List<UsageDay> = emptyList(),
+    val limits: AiLimits = AiLimits(),
+    val now: Instant = Instant.EPOCH,
 )
+
+private data class UsageState(val days: List<UsageDay>, val limits: AiLimits, val now: Instant)
 
 private data class KeyState(val hint: String?, val inAccount: Boolean)
 
@@ -49,10 +62,20 @@ private data class ModelsState(val list: List<String>? = null, val loading: Bool
 class AssistantViewModel @Inject constructor(
     private val settings: AssistantSettings,
     private val assistant: Assistant,
+    private val usageStore: AiUsageStore,
+    private val clock: Clock,
     @param:IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
     private val test = MutableStateFlow<TestState>(TestState.Idle)
     private val models = MutableStateFlow(ModelsState())
+
+    /** Hora para el día de cuota y la renovación; cada minuto basta. */
+    private val ticker = flow {
+        while (true) {
+            emit(clock.instant())
+            delay(60_000)
+        }
+    }
 
     val uiState: StateFlow<AssistantUiState> =
         combine(
@@ -60,10 +83,15 @@ class AssistantViewModel @Inject constructor(
             combine(settings.observeKeyHint(), settings.observeInAccount(), ::KeyState),
             test,
             models,
-        ) { config, key, t, m ->
-            AssistantUiState(true, config, key.hint, key.inAccount, t, m.list, m.loading, m.error)
+            combine(usageStore.observeDays(), usageStore.observeLimits(), ticker) { days, limits, now -> UsageState(days, limits, now) },
+        ) { config, key, t, m, u ->
+            AssistantUiState(true, config, key.hint, key.inAccount, t, m.list, m.loading, m.error, u.days, u.limits, u.now)
         }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AssistantUiState())
+
+    fun saveLimits(limits: AiLimits) {
+        viewModelScope.launch { usageStore.setLimits(limits) }
+    }
 
     fun saveConfig(config: AiConfig) {
         test.value = TestState.Idle

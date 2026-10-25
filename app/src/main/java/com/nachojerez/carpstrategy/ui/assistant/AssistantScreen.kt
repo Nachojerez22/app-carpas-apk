@@ -193,6 +193,8 @@ fun AssistantScreen(onBack: () -> Unit, viewModel: AssistantViewModel = hiltView
                 }
             }
         }
+        // Consumo de la IA (fase 7.14).
+        item { AiUsageCard(state.usage, state.limits, state.now, viewModel::saveLimits) }
     }
 }
 
