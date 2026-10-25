@@ -529,8 +529,12 @@
     <string name="diary_app_no_band">sin valoración (faltaba la temperatura del agua)</string>
     <string name="diary_accuracy_title">¿Acierta la app con tus datos?</string>
     <string name="diary_accuracy_subtitle">Capturas por hora-caña según lo que estimó antes de cada sesión</string>
-    <string name="diary_accuracy_row">%1$d ses. · %2$s/h-caña</string>
-    <string name="diary_accuracy_few">Solo %1$d sesiones con valoración: con menos de %2$d las diferencias no son concluyentes.</string>
+    <string name="diary_accuracy_band">%1$d ses. · capturas %2$s · picadas %3$s por hora-caña</string>
+    <string name="diary_accuracy_too_few">Aún no se puede saber: %1$d sesiones con valoración favorable y %2$d desfavorable; hacen falta unas %3$d de cada.</string>
+    <string name="diary_accuracy_agrees">Con tus datos, cuando la app dice «favorable» pescas claramente más que cuando dice «desfavorable».</string>
+    <string name="diary_accuracy_disagrees">Con tus datos, cuando la app dice «favorable» pescas claramente menos: algo del modelo no encaja con tu embalse. Revísalo antes de fiarte.</string>
+    <string name="diary_accuracy_unclear">Con tus datos aún no se distingue: los resultados con valoración favorable y desfavorable se solapan.</string>
+    <string name="diary_accuracy_how">Entre paréntesis, el intervalo en el que probablemente está (80 %), contraído hacia tu media para que pocas horas no engañen. Es tu experiencia, no una promesa.</string>
     <string name="diary_export">Exportar diario (JSON)</string>
     <string name="diary_export_hint">Tus sesiones solo están en este móvil: exporta una copia de vez en cuando.</string>
     <string name="diary_export_file_name">carpstrategy-diario.json</string>
@@ -813,6 +817,10 @@
     <string name="guided_msg_winter_groundbait">En frío, cebado mínimo: la carpa come poco y el resto atrae a otros peces.</string>
     <string name="guided_msg_wind">Ha cambiado el viento: anota si cambian las señales (saltos, burbujas, picadas). No está demostrado que el cambio mueva a las carpas; si es más cálido que el agua y el agua aún no está caliente, valora la orilla que lo recibe.</string>
     <string name="guided_notif_check_rods">¿Cómo va? Toca para anotar en cada caña.</string>
+    <string name="guided_notif_catch_rod">Carpa · %1$s</string>
+    <string name="guided_water_start">Agua medida ahora (°C, opcional)</string>
+    <string name="guided_water_start_hint">Si llevas termómetro, mídela en la orilla: es el dato que más afina la app y queda en Datos.</string>
+    <string name="guided_water_start_invalid">Escribe la temperatura en grados, por ejemplo 18,5 (entre −1 y 40).</string>
     <string name="guided_notif_nothing_all">Nada en ninguna</string>
     <string name="species_carp">Carpa</string>
     <string name="species_barbel">Barbo</string>

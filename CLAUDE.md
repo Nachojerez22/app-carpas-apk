@@ -330,6 +330,16 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   El plan preparado va en el ajuste local `ai_prepared_plan` (+ `strategy_prepared_key`): no se pisa con el automático,
   evita la consulta automática de esa salida y la sesión guiada lo copia si es de hoy. `PrepareStep` al final de Estrategia.
 
+## ¿Acierta la app? y registro rápido (fase 7.16)
+
+- `domain/journal/Accuracy` (puro, §10): por valoración previa, capturas y picadas por hora-caña con intervalo del 80 %
+  (Poisson-gamma contraída hacia tu media, `PRIOR_ROD_HOURS` 🟣; Wilson-Hilferty) y veredicto `AccuracyVerdict`
+  (TOO_FEW con < `MIN_SESSIONS_PER_SIDE` = 10 favorables o desfavorables; AGREES/DISAGREES si los intervalos no se
+  tocan; si no, UNCLEAR). `AccuracyCard` en Diario.
+- `ui/guided/GuidedUiState.kt`: `QuickAnswer` (movido aquí), `notificationActions` (con varias cañas, «Carpa» en cada
+  una; máximo 3 botones) y el agua medida al empezar (`parseWaterInput`, `waterMeasurementRecord`): se guarda en Datos
+  con fuente `SessionForm.MEASUREMENT_SOURCE` antes de calcular, así manda sobre la estimada.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

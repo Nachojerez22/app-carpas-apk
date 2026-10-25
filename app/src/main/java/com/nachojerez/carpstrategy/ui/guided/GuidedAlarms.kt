@@ -7,9 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.annotation.CallSuper
-import com.nachojerez.carpstrategy.domain.guided.BaitState
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
-import com.nachojerez.carpstrategy.domain.guided.HookActivity
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.Instant
@@ -91,8 +89,6 @@ class GuidedAlarmReceiver : HiltBroadcastReceiver() {
     }
 }
 
-/** Respuesta rápida desde la notificación (sin abrir la app). */
-enum class QuickAnswer { NOTHING, NOTHING_ALL, MISSED, CATCH, NOT_WORKING, ACCEPT }
 
 @AndroidEntryPoint
 class GuidedActionReceiver : HiltBroadcastReceiver() {
@@ -122,11 +118,4 @@ class GuidedActionReceiver : HiltBroadcastReceiver() {
         const val EXTRA_ANSWER = "respuesta"
         const val EXTRA_ROD = "cana"
     }
-}
-
-fun QuickAnswer.toCheckIn(now: Instant): CheckIn = when (this) {
-    QuickAnswer.MISSED -> CheckIn(now, activity = HookActivity.MISSED)
-    QuickAnswer.CATCH -> CheckIn(now, activity = HookActivity.CATCH)
-    QuickAnswer.NOT_WORKING -> CheckIn(now, notWorking = true)
-    QuickAnswer.NOTHING, QuickAnswer.NOTHING_ALL, QuickAnswer.ACCEPT -> CheckIn(now, baitState = BaitState.NOT_CHECKED)
 }

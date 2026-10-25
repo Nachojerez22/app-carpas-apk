@@ -34,7 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
-import com.nachojerez.carpstrategy.domain.journal.JournalSummary
+import com.nachojerez.carpstrategy.domain.journal.Accuracy
+import com.nachojerez.carpstrategy.domain.journal.AccuracyVerdict
+import com.nachojerez.carpstrategy.domain.journal.BandAccuracy
+import com.nachojerez.carpstrategy.domain.journal.RateEstimate
 import com.nachojerez.carpstrategy.domain.journal.Session
 import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
 import com.nachojerez.carpstrategy.ui.components.Caption
@@ -54,8 +57,6 @@ import java.time.format.DateTimeFormatter
 private val CARD_DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE d MMM", Formatting.SPANISH)
 private val MONTH: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM", Formatting.SPANISH)
 
-/** Con menos sesiones, la comparación por valoración previa no es concluyente (§10). */
-private const val MIN_SESSIONS_FOR_COMPARISON = 20
 
 /**
  * Pestaña Diario: resumen del mes, sesión en curso, tarjetas de sesión y, a pantalla completa,
@@ -304,32 +305,44 @@ private fun SessionCard(session: Session, onClick: () -> Unit) {
 }
 
 /** Capturas por hora-caña según lo que dijo la app antes: ¿acierta con tus datos? */
+/**
+ * ¿Acierta la app? (fase 7.16, §10): capturas y picadas por hora-caña con su intervalo (no un
+ * ranking) según la valoración previa, y un veredicto solo con ~10 sesiones a cada lado.
+ */
 @Composable
 private fun AccuracyCard(state: DiaryUiState) {
-    val total = state.byBand.values.sumOf { it.sessions }
+    val report = state.accuracy ?: return
     CarpCard {
         FavorabilityBand.entries.reversed().forEach { band ->
-            val summary: JournalSummary = state.byBand[band] ?: return@forEach
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(capitalized(stringResource(band.labelRes())), modifier = Modifier.weight(1f))
-                Text(
-                    stringResource(
-                        R.string.diary_accuracy_row,
-                        summary.sessions,
-                        summary.catchesPerRodHour?.let { Formatting.number(it, 2) } ?: Formatting.number(null),
-                    ),
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
+            val b: BandAccuracy = report.byBand[band] ?: return@forEach
+            Text(capitalized(stringResource(band.labelRes())), style = MaterialTheme.typography.titleSmall)
+            Caption(stringResource(R.string.diary_accuracy_band, b.sessions, rateText(b.catches), rateText(b.bites)))
         }
-        if (total < MIN_SESSIONS_FOR_COMPARISON) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                EvidenceBadge(EvidenceKind.IndividualVariability, short = true)
-                Caption(stringResource(R.string.diary_accuracy_few, total, MIN_SESSIONS_FOR_COMPARISON), modifier = Modifier.weight(1f))
-            }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        val favorable = report.favorable?.sessions ?: 0
+        val unfavorable = report.unfavorable?.sessions ?: 0
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            EvidenceBadge(
+                if (report.verdict == AccuracyVerdict.AGREES || report.verdict == AccuracyVerdict.DISAGREES) EvidenceKind.Moderate else EvidenceKind.IndividualVariability,
+                short = true,
+            )
+            Text(
+                when (report.verdict) {
+                    AccuracyVerdict.TOO_FEW -> stringResource(R.string.diary_accuracy_too_few, favorable, unfavorable, Accuracy.MIN_SESSIONS_PER_SIDE)
+                    AccuracyVerdict.AGREES -> stringResource(R.string.diary_accuracy_agrees)
+                    AccuracyVerdict.DISAGREES -> stringResource(R.string.diary_accuracy_disagrees)
+                    AccuracyVerdict.UNCLEAR -> stringResource(R.string.diary_accuracy_unclear)
+                },
+                modifier = Modifier.weight(1f),
+            )
         }
+        Caption(stringResource(R.string.diary_accuracy_how))
     }
 }
+
+/** «0,15 (0,08–0,24)»: la media contraída y su intervalo del 80 %. */
+private fun rateText(r: RateEstimate): String =
+    "${Formatting.number(r.mean, 2)} (${Formatting.number(r.low, 2)}–${Formatting.number(r.high, 2)})"
 
 @Composable
 private fun zoneText(session: Session): String {

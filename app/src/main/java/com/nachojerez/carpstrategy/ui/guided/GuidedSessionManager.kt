@@ -31,8 +31,11 @@ import com.nachojerez.carpstrategy.domain.guided.WeatherSnapshot
 import com.nachojerez.carpstrategy.domain.guided.today
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.Session
+import com.nachojerez.carpstrategy.domain.manual.ManualOrigin
+import com.nachojerez.carpstrategy.domain.manual.ManualRecordValidator
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.repository.JournalRepository
+import com.nachojerez.carpstrategy.domain.repository.ManualDataRepository
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
@@ -84,6 +87,7 @@ class GuidedSessionManager @Inject constructor(
     private val localSettings: LocalSettings,
     private val knowledge: KnowledgeAsset,
     private val reservoirs: ReservoirRepository,
+    private val manualData: ManualDataRepository,
     private val clock: Clock,
     @param:IoDispatcher private val io: CoroutineDispatcher,
 ) {
@@ -107,10 +111,12 @@ class GuidedSessionManager @Inject constructor(
     fun canNotify(): Boolean = notifier.canNotify()
 
     /** Empieza ahora: valoración previa y contexto como cualquier sesión, y plan A pendiente en cada caña. */
-    suspend fun start(rodNames: List<String>, zone: FishingZone?, groundbait: GroundbaitLevel?, spot: Spot? = null): Long = mutex.withLock {
+    suspend fun start(rodNames: List<String>, zone: FishingZone?, groundbait: GroundbaitLevel?, spot: Spot? = null, waterC: Double? = null): Long = mutex.withLock {
         GuidedSessions.active(journal.observeSessions().first())?.let { return it.id }
         val now = clock.instant()
         val location = settings.observeLocation().first().point
+        // Fase 7.16: el agua medida al empezar va a Datos antes de calcular: manda sobre la estimada.
+        waterC?.let { saveWaterMeasurement(it, location, now) }
         val sessions = journal.observeSessions().first()
         val gear = settings.observeGear().first().today()
         val (reservoir, all) = reservoirAt(location)
@@ -138,6 +144,19 @@ class GuidedSessionManager @Inject constructor(
         val id = journal.save(update.session)
         afterChange(update.copy(session = update.session.copy(id = id)), now, alert = false)
         id
+    }
+
+    private suspend fun saveWaterMeasurement(celsius: Double, location: GeoPoint, now: Instant) {
+        val checked = ManualRecordValidator.validate(
+            raw = waterMeasurementRecord(celsius, now, Formatting.MADRID),
+            recordNumber = null,
+            location = location,
+            appLocation = location,
+            origin = ManualOrigin.Typed,
+            now = now,
+            zone = Formatting.MADRID,
+        )
+        checked.record?.takeIf { checked.errors.isEmpty() }?.let { manualData.import(listOf(it)) }
     }
 
     /** Respuesta en una caña; con [rodId] null, en la única caña (o en la primera). */
