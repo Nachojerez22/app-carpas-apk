@@ -164,4 +164,15 @@ class StrategyUiStateTest {
         assertFalse(shouldNotifyOutlook(com.nachojerez.carpstrategy.domain.rules.FavorabilityBand.FAVORABLE, true, day, null))
         assertFalse(shouldNotifyOutlook(null, false, day, null))
     }
+
+    @Test
+    fun `el plan preparado solo pasa a la guiada si es de ese dia y ese embalse`() {
+        val day = java.time.LocalDate.of(2026, 10, 26)
+        val key = "2026-10-26|brovales|auto|2|DAWN|1|-"
+        assertTrue(preparedPlanFits(key, "brovales", day))
+        assertFalse(preparedPlanFits(key, "valuengo", day))
+        assertFalse(preparedPlanFits(key, "brovales", day.plusDays(1)))
+        assertTrue(preparedPlanFits("2026-10-26|$NO_RESERVOIR|auto|2|DAWN|1|-", null, day))
+        assertFalse(preparedPlanFits(null, "brovales", day))
+    }
 }

@@ -188,7 +188,7 @@ class Assistant(private val client: AiClient) {
 
     private companion object {
         /** Errores con los que Google rechaza la búsqueda (cuota o herramienta no admitida). */
-        val SEARCH_REFUSED = setOf(AiException.Quota::class.simpleName, AiException.Failed::class.simpleName)
+        val SEARCH_REFUSED = setOf(AiException.Quota::class.simpleName, AiException.Failed::class.simpleName, AiException.UrlUnreadable::class.simpleName)
 
         /** Lecciones por repaso como mucho. */
         const val MAX_LESSONS = 3

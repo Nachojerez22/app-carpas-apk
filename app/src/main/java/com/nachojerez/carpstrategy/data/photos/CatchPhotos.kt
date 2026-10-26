@@ -76,6 +76,13 @@ class CatchPhotos @Inject constructor(
         file(name)?.delete()
     }
 
+    /** Borra las fotos que no usa ninguna captura y son anteriores a [olderThan]. */
+    suspend fun sweep(used: Set<String>, olderThan: java.time.Instant) = withContext(io) {
+        dir.listFiles().orEmpty()
+            .filter { NAME.matches(it.name) && it.name !in used && it.lastModified() < olderThan.toEpochMilli() }
+            .forEach { it.delete() }
+    }
+
     /** Solo nombres generados por la app: nada de rutas. */
     private fun file(name: String): File? = name.takeIf { NAME.matches(it) }?.let { File(dir, it) }
 

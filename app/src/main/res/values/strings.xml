@@ -1052,6 +1052,7 @@
     <string name="ai_error_offline_tls">Falló la conexión segura con la IA. Comprueba que la fecha y la hora del móvil son automáticas.</string>
     <string name="ai_error_offline_refused">No se pudo conectar con el servidor de la IA: la red no deja salir (Wi-Fi con registro, VPN o cortafuegos).</string>
     <string name="ai_error_failed">El proveedor respondió con un error (%1$d). Si es 404, el modelo no existe para tu clave: pulsa «Ver modelos disponibles» y elige uno.</string>
+    <string name="ai_error_url_unreadable">No se pudo leer la página del enlace.</string>
     <string name="ai_error_empty">Respuesta vacía o no válida.</string>
     <string name="ai_error_not_configured">Falta la clave o el modelo.</string>
 
@@ -1218,6 +1219,7 @@
     <string name="gear_sheet_offline">Sin conexión: prueba cuando tengas cobertura.</string>
     <string name="gear_sheet_not_searched">Sin búsqueda en Google: ficha solo con lo que sabe la IA 🟣. Si algo no cuadra, pon tú lo que lleva.</string>
     <string name="gear_sheet_not_searched_quota">Sin búsqueda en Google: se ha agotado la cuota gratuita de búsquedas de tu clave. Se renueva a las %1$s. Ficha solo con lo que sabe la IA 🟣; vuelve a buscarla después o pon tú lo que lleva.</string>
+    <string name="gear_sheet_not_searched_url">No se pudo leer la página del enlace (algunas tiendas bloquean las lecturas automáticas). Ficha solo con lo que sabe la IA 🟣; prueba con el enlace del fabricante u otra tienda, o pon tú lo que lleva.</string>
     <string name="gear_sheet_not_searched_refused">Sin búsqueda en Google: Google no dejó buscar con tu modelo (no es la cuota). Ficha solo con lo que sabe la IA 🟣. Si el mensaje de abajo habla del modelo o de la herramienta, prueba otro modelo «flash» en Ajustes del asistente.</string>
     <string name="groundbait_normal_title">Tu cebado «normal»</string>
     <string name="groundbait_normal_value">%1$s kg por caña y sesión</string>

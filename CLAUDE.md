@@ -349,6 +349,10 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - `data/photos/CatchPhotos`: fotos de las capturas **solo en el móvil** (`filesDir/fotos`, reducidas a 1600 px y
   enderezadas con EXIF; cámara del sistema por `FileProvider` `${applicationId}.fotos` y selector de fotos, sin permisos).
   `Catch.photo` (JSON `foto`, solo el nombre) viaja con la sesión; en otro móvil se avisa de que la foto no está.
+- 0.23.1 (auditoría): ficha solo con enlace ⇒ si `urlContextMetadata` no trae `URL_RETRIEVAL_STATUS_SUCCESS`,
+  `AiException.UrlUnreadable` y ficha sin fuentes (🟣). `removedPhotos` + `CatchPhotos.sweep` borran fotos quitadas,
+  de sesiones borradas y sueltas (> 1 día). Las fichas pendientes se recalculan solas al renovarse la cuota. El plan
+  preparado solo pasa a la guiada si es de ese día y embalse (`preparedPlanFits`, `KEY_PREPARED_KEY`).
 
 ## Stack
 

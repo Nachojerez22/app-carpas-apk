@@ -62,6 +62,7 @@ sealed class AiException(message: String) : Exception(message) {
             is Failed -> listOfNotNull("HTTP $code", detail).joinToString(": ")
             is Quota -> detail
             is Offline -> detail
+            is UrlUnreadable -> detail
             else -> null
         }
 
@@ -91,6 +92,13 @@ sealed class AiException(message: String) : Exception(message) {
 
     /** Respuesta vacía o bloqueada por el proveedor. */
     class Empty : AiException("Respuesta vacía")
+
+    /**
+     * Se pidió leer solo el enlace (sin buscar) y Google no confirma haber leído la página (la
+     * tienda bloquea lecturas automáticas, error, de pago…): lo que diga no sale de la tienda.
+     * [detail]: el estado que dio Google por cada enlace.
+     */
+    class UrlUnreadable(val detail: String? = null) : AiException("No se pudo leer el enlace")
 
     class NotConfigured : AiException("Falta la clave o el modelo")
 }
@@ -231,7 +239,20 @@ class AiClient(
             val obj = p.jsonObject
             if (obj["thought"]?.jsonPrimitive?.booleanOrNull == true) null else obj["text"]?.jsonPrimitive?.contentOrNull
         }.joinToString("")
-        return text.ifBlank { throw AiException.Empty() }
+        val answer = text.ifBlank { throw AiException.Empty() }
+        // Solo leer el enlace (fase 7.15): sin confirmación de Google de que leyó la página, la
+        // «ficha de la tienda» podría ser inventada (fase 7.17.1).
+        if (web && !search) urlUnreadable(candidate)?.let { throw it }
+        return answer
+    }
+
+    /** Null si Google leyó bien al menos un enlace; si no, el error con el estado de cada uno. */
+    private fun urlUnreadable(candidate: JsonObject?): AiException.UrlUnreadable? {
+        val meta = (candidate?.get("urlContextMetadata") ?: candidate?.get("url_context_metadata")) as? JsonObject
+        val urls = ((meta?.get("urlMetadata") ?: meta?.get("url_metadata")) as? JsonArray).orEmpty().mapNotNull { it as? JsonObject }
+        val statuses = urls.mapNotNull { u -> ((u["urlRetrievalStatus"] ?: u["url_retrieval_status"]) as? JsonPrimitive)?.contentOrNull }
+        if (statuses.any { it == URL_READ_OK }) return null
+        return AiException.UrlUnreadable(statuses.joinToString(", ").ifBlank { null }?.take(MAX_DETAIL))
     }
 
     private fun openAi(config: AiConfig, apiKey: String, system: String, user: String, kind: AiKind? = null): String {
@@ -333,6 +354,9 @@ class AiClient(
 
     private companion object {
         const val MAX_DETAIL = 300
+
+        /** Estado de `url_context` cuando Google leyó la página. */
+        const val URL_READ_OK = "URL_RETRIEVAL_STATUS_SUCCESS"
 
         /** Intentos ante un corte de red (el primero más un reintento). */
         const val NETWORK_ATTEMPTS = 2

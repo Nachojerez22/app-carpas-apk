@@ -368,8 +368,6 @@ private data class AdviceInputs(
 const val KEY_RODS = "strategy_rods"
 private const val KEY_PLAN_KEY = "strategy_plan_key"
 
-/** [planKey] del plan preparado con «Preparar mañana» (el plan va en `GuidedSessionManager.KEY_PREPARED_PLAN`). */
-private const val KEY_PREPARED_KEY = "strategy_prepared_key"
 
 /** Espera tras el último cambio de embalse, puesto o cañas antes de consultar a la IA. */
 private const val AUTO_PLAN_DELAY_MS = 1_500L
