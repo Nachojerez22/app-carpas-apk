@@ -31,6 +31,21 @@ fun nextOuting(now: Instant, point: GeoPoint, zone: ZoneId): Instant? {
 /** El [planKey] sin la franja del día: un plan preparado vale para toda la jornada. */
 fun outingKey(planKey: String?): String? = planKey?.split("|")?.filterIndexed { i, _ -> i != DAY_PART_INDEX }?.joinToString("|")
 
+/** [planKey] del plan preparado (ajuste local; el plan va en `GuidedSessionManager.KEY_PREPARED_PLAN`). */
+const val KEY_PREPARED_KEY = "strategy_prepared_key"
+
+/**
+ * El plan preparado se copia en una sesión guiada solo si es de ese día y de ese embalse (fase
+ * 7.17.1): si ese día pescas en otro, no vale para comparar después.
+ */
+fun preparedPlanFits(preparedKey: String?, reservoirId: String?, date: LocalDate): Boolean {
+    val parts = preparedKey?.split("|") ?: return false
+    return parts.getOrNull(0) == date.toString() && parts.getOrNull(1) == (reservoirId ?: NO_RESERVOIR)
+}
+
+/** Embalse en [planKey] cuando la ubicación no está en ninguno. */
+const val NO_RESERVOIR = "sin_embalse"
+
 /** Posición de la franja del día en [planKey]. */
 private const val DAY_PART_INDEX = 4
 

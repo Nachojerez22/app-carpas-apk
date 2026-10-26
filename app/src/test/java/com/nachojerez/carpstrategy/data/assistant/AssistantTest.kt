@@ -46,6 +46,12 @@ class AssistantTest {
         body = """{"candidates":[{"content":{"parts":[{"text":${kotlinx.serialization.json.JsonPrimitive(text)}}]}}]}""",
     )
 
+    /** Respuesta de Gemini con el estado de la lectura de cada enlace (`url_context`). */
+    private fun geminiReadingUrl(text: String, status: String) = MockResponse(
+        body = """{"candidates":[{"content":{"parts":[{"text":${kotlinx.serialization.json.JsonPrimitive(text)}}]},""" +
+            """"urlContextMetadata":{"urlMetadata":[{"retrievedUrl":"https://t.example/mix","urlRetrievalStatus":"$status"}]}}]}""",
+    )
+
     @Test
     fun `respuesta valida`() {
         server.enqueue(gemini("""```json
@@ -206,7 +212,7 @@ class AssistantTest {
     @Test
     fun `con enlace solo se lee la tienda, sin gastar busquedas`() {
         val item = GearItem("1", GearCategory.BAIT, "Supercrush", baitType = BaitType.GROUNDBAIT_MIX, brand = "Marca", url = "https://t.example/mix")
-        server.enqueue(gemini("""{"tipo":"GROUNDBAIT_MIX","composicion":"Harinas y pellet","fuentes":["https://t.example/mix"],"evidencia":"🟢"}"""))
+        server.enqueue(geminiReadingUrl("""{"tipo":"GROUNDBAIT_MIX","composicion":"Harinas y pellet","fuentes":["https://t.example/mix"],"evidencia":"🟢"}""", "URL_RETRIEVAL_STATUS_SUCCESS"))
         // Aunque la cuota de búsquedas esté agotada: leer el enlace no la gasta.
         val sheet = assistant.baitSheet(config, "k", item, now, searchAllowed = false).value!!
         assertTrue(sheet.searched)
@@ -216,6 +222,21 @@ class AssistantTest {
         assertFalse(body.contains("google_search"))
         assertTrue(body.contains("No busques en internet"))
         assertEquals(1, server.requestCount)
+    }
+
+    @Test
+    fun `si Google no pudo leer la tienda, la ficha no se presenta como de la tienda`() {
+        val item = GearItem("1", GearCategory.BAIT, "Supercrush", baitType = BaitType.GROUNDBAIT_MIX, url = "https://t.example/mix")
+        val json = """{"tipo":"GROUNDBAIT_MIX","composicion":"Harinas","fuentes":["https://t.example/mix"],"evidencia":"🟢"}"""
+        server.enqueue(geminiReadingUrl(json, "URL_RETRIEVAL_STATUS_ERROR"))
+        server.enqueue(gemini(json))
+        val sheet = assistant.baitSheet(config, "k", item, now).value!!
+        assertFalse(sheet.searched)
+        assertEquals("UrlUnreadable", sheet.searchError)
+        assertEquals("URL_RETRIEVAL_STATUS_ERROR", sheet.searchErrorDetail)
+        assertTrue(sheet.sources.isEmpty())
+        assertEquals(Evidence.PURPLE, sheet.evidence)
+        assertEquals(2, server.requestCount)
     }
 
     @Test

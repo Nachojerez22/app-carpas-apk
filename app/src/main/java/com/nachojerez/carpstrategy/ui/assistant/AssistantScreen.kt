@@ -226,5 +226,6 @@ fun aiErrorText(error: AiException): String = when (error) {
     is AiException.Failed -> stringResource(R.string.ai_error_failed, error.code) +
         (error.detail?.let { "\n" + stringResource(R.string.ai_error_detail, it) } ?: "")
     is AiException.Empty -> stringResource(R.string.ai_error_empty)
+    is AiException.UrlUnreadable -> stringResource(R.string.ai_error_url_unreadable)
     is AiException.NotConfigured -> stringResource(R.string.ai_error_not_configured)
 }

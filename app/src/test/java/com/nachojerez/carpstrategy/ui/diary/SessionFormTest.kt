@@ -158,4 +158,14 @@ class SessionFormTest {
         assertEquals(before, edited.prediction)
         assertFalse(edited.isOngoing)
     }
+
+    @Test
+    fun `fotos que se quitan o se borran con la sesion`() {
+        val base = form.toSession(null, brovales, now).session!!
+        val other = base.copy(catches = base.catches + Catch(photo = "captura_ff00.jpg"))
+        assertEquals(setOf("captura_ab12cd.jpg"), removedPhotos(base, base.copy(catches = emptyList())))
+        assertEquals(emptySet<String>(), removedPhotos(base, other))
+        assertEquals(setOf("captura_ab12cd.jpg", "captura_ff00.jpg"), removedPhotos(other, null))
+        assertEquals(emptySet<String>(), removedPhotos(null, other))
+    }
 }

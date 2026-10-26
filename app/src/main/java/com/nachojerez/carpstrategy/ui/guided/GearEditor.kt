@@ -13,13 +13,17 @@ import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.pendingSheets
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import java.time.Clock
+import java.time.Duration
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.withContext
 
 /** Resultado de pedir la ficha de un cebo a la IA. */
@@ -71,9 +75,20 @@ class GearEditor @Inject constructor(
 
     /** Fichas hechas sin búsqueda que ahora se pueden rehacer (fase 7.15). */
     fun observePendingSheets(): Flow<List<GearItem>> =
-        combine(settings.observeGear(), usage.observeSearchBlockedUntil()) { gear, until ->
-            gear.pendingSheets(searchAllowed = until == null || clock.instant() >= until)
+        combine(settings.observeGear(), observeSearchAllowed()) { gear, allowed -> gear.pendingSheets(allowed) }
+
+    /** Quedan búsquedas; si se agotaron, pasa sola a true cuando se renueva la cuota (fase 7.17.1). */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun observeSearchAllowed(): Flow<Boolean> = usage.observeSearchBlockedUntil().transformLatest { until ->
+        val wait = until?.let { Duration.between(clock.instant(), it) }
+        if (wait == null || wait.isNegative || wait.isZero) {
+            emit(true)
+        } else {
+            emit(false)
+            delay(wait.toMillis())
+            emit(true)
         }
+    }
 
     /**
      * Rehace las fichas pendientes una a una (fase 7.15). Se para si falta la clave o Google sigue

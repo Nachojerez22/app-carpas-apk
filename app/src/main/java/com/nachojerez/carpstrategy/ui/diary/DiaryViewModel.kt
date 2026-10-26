@@ -178,6 +178,8 @@ class DiaryViewModel @Inject constructor(
             }
             journal.save(completed)
             editor.value = null
+            // Fotos quitadas en la ficha: fuera del móvil (fase 7.17.1).
+            removedPhotos(current.original, completed).forEach(catchPhotos::delete)
         }
     }
 
@@ -193,7 +195,18 @@ class DiaryViewModel @Inject constructor(
         val session = pendingDelete.value ?: return
         pendingDelete.value = null
         editor.value = null
-        viewModelScope.launch { journal.delete(session.id) }
+        viewModelScope.launch {
+            journal.delete(session.id)
+            removedPhotos(session, null).forEach(catchPhotos::delete)
+        }
+    }
+
+    init {
+        // Fotos que quedaron sueltas (ficha cancelada tras hacer la foto): fuera, si tienen más de un día.
+        viewModelScope.launch {
+            val used = journal.observeSessions().first().flatMap { s -> s.catches.mapNotNull { it.photo } }.toSet()
+            catchPhotos.sweep(used, clock.instant().minus(PHOTO_SWEEP_AGE))
+        }
     }
 
     fun exportTo(uri: Uri) {
@@ -233,3 +246,6 @@ class DiaryViewModel @Inject constructor(
         export.value = ExportStatus.Idle
     }
 }
+
+/** Una foto sin captura se borra pasado este tiempo (da margen a una ficha abierta). */
+private val PHOTO_SWEEP_AGE: java.time.Duration = java.time.Duration.ofDays(1)

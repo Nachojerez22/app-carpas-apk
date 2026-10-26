@@ -313,6 +313,7 @@ private fun BaitSheetView(sheet: BaitSheet) {
 private fun notSearchedText(sheet: BaitSheet): String {
     val reason = when (sheet.searchError) {
         QUOTA -> stringResource(R.string.gear_sheet_not_searched_quota, Formatting.clock(AiUsage.nextReset(Instant.now())))
+        URL_UNREADABLE -> stringResource(R.string.gear_sheet_not_searched_url)
         null -> stringResource(R.string.gear_sheet_not_searched)
         else -> stringResource(R.string.gear_sheet_not_searched_refused)
     }
@@ -341,3 +342,4 @@ private fun sheetResultText(result: BaitSheetResult?): String? {
 private val QUOTA = AiException.Quota::class.simpleName
 private val OFFLINE = AiException.Offline::class.simpleName
 private val FAILED = AiException.Failed::class.simpleName
+private val URL_UNREADABLE = AiException.UrlUnreadable::class.simpleName

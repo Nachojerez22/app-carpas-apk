@@ -115,7 +115,7 @@ fun planKey(state: StrategyUiState): String? {
     // Los cebos de hoy y tu medida también cuentan: si cambian, el plan (y el engodo) cambia.
     val baits = state.gear.filter { it.category == GearCategory.BAIT }.map { it.id }.sorted().joinToString(",")
     return listOf(
-        day, state.reservoir?.reservoir?.id ?: "sin_embalse", state.chosenSpotId ?: "auto", state.rods, advice.dayPart, baits, state.groundbaitNormalKg ?: "-",
+        day, state.reservoir?.reservoir?.id ?: NO_RESERVOIR, state.chosenSpotId ?: "auto", state.rods, advice.dayPart, baits, state.groundbaitNormalKg ?: "-",
     ).joinToString("|")
 }
 

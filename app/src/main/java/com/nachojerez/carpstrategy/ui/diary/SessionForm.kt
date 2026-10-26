@@ -26,6 +26,12 @@ import java.time.format.DateTimeFormatter
 /** Campos de texto del formulario que pueden estar mal escritos. */
 enum class FormField { DATE, START, END, DEPTH, RODS, ROD_HOURS, GROUNDBAIT, OTHER_ANGLERS, CATCH_TIME, CATCH_WEIGHT, CATCH_ROD, AIR_SHORE }
 
+/** Fotos de [before] que ya no están en [after] (null = sesión borrada): se borran del móvil (fase 7.17.1). */
+fun removedPhotos(before: Session?, after: Session?): Set<String> {
+    val kept = after?.catches?.mapNotNull { it.photo }.orEmpty().toSet()
+    return before?.catches?.mapNotNull { it.photo }.orEmpty().toSet() - kept
+}
+
 /** Una captura tal como se teclea. */
 data class CatchInput(
     val time: String = "",
