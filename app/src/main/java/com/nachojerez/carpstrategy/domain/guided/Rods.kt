@@ -30,6 +30,12 @@ object RodRules {
     const val FLOAT_MIN_G = 3
     const val FLOAT_MAX_G = 4
 
+    /**
+     * 🟣 Viento fuerte (km/h, como `viento_fuerte_oleaje` de rules.json): la app propone las fijas
+     * más cortas, que se manejan mejor.
+     */
+    const val STRONG_WIND_KMH = 15.0
+
     /** Carpfishing: plomo. */
     const val LEAD_MIN_G = 40
     const val LEAD_MAX_G = 90
@@ -88,17 +94,72 @@ fun GearItem.toRodSetup(): RodSetup? = if (category == GearCategory.ROD) {
     null
 }
 
+/** Todas las cañas que llevas hoy, en el orden de tu equipo (la de carpfishing, siempre). */
+fun List<GearItem>.carriedRods(): List<RodSetup> =
+    filter { it.category == GearCategory.ROD && it.carriedToday }.mapNotNull { it.toRodSetup() }
+
 /**
- * Las cañas que llevas hoy, en el orden de tu equipo (como mucho [GuidedSessions.MAX_RODS]). La
- * de carpfishing siempre se lleva y siempre entra en el plan (§5.9.13, decisión del usuario): con
- * más cañas que el máximo, la primera de carpfishing ocupa el sitio de la última fija.
+ * Las cañas del plan de hoy (como mucho [GuidedSessions.MAX_RODS]), en el orden de tu equipo. La
+ * de carpfishing siempre entra (§5.9.13, decisión del usuario). Si llevas más fijas de las que
+ * caben, la app propone cuáles con [pickRods]; la IA puede cambiarlas ([withFixedChoice]).
  */
-fun List<GearItem>.rodsToday(): List<RodSetup> {
-    val all = filter { it.category == GearCategory.ROD && it.carriedToday }.mapNotNull { it.toRodSetup() }
-    val first = all.take(GuidedSessions.MAX_RODS)
-    if (first.any { it.kind == RodKind.CARP }) return first
-    val carp = all.firstOrNull { it.kind == RodKind.CARP } ?: return first
-    return first.dropLast(1) + carp
+fun List<GearItem>.rodsToday(windKmh: Double? = null): List<RodSetup> = pickRods(carriedRods(), windKmh)
+
+/**
+ * Qué cañas monta hoy la app cuando llevas más de las que caben (§5.9.13, 🟣): primero las que no
+ * son fijas (la de carpfishing) y, en los sitios que quedan, las fijas de más alcance; con viento
+ * de [RodRules.STRONG_WIND_KMH] o más, las más cortas, que se manejan mejor. Sin pasar del máximo
+ * no se quita ninguna.
+ */
+fun pickRods(carried: List<RodSetup>, windKmh: Double? = null): List<RodSetup> {
+    val max = GuidedSessions.MAX_RODS
+    if (carried.size <= max) return carried
+    val indexed = carried.withIndex()
+    val others = indexed.filter { it.value.kind != RodKind.FIXED }.take(max)
+    val windy = windKmh != null && windKmh >= RodRules.STRONG_WIND_KMH
+    val length = compareBy<IndexedValue<RodSetup>> { it.value.lengthM ?: 0 }
+    val fixed = indexed.filter { it.value.kind == RodKind.FIXED }.sortedWith(if (windy) length else length.reversed())
+    return (others + fixed.take(max - others.size)).sortedBy { it.index }.map { it.value }
+}
+
+/**
+ * Las fijas que elige la IA (por nombre, en el orden de las fijas del plan) en lugar de las que
+ * propone la app. Null si la elección no vale: otro número de fijas, una que no llevas o repetida.
+ */
+fun fixedChoice(setups: List<RodSetup>, carried: List<RodSetup>, names: List<String>?): List<RodSetup>? {
+    names ?: return null
+    val slots = setups.count { it.kind == RodKind.FIXED }
+    if (slots == 0 || names.size != slots) return null
+    val fixed = carried.filter { it.kind == RodKind.FIXED }
+    val chosen = names.map { name -> fixed.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) } ?: return null }
+    return chosen.takeIf { it.distinct().size == it.size }
+}
+
+/** El plan de cañas con las fijas que eligió la IA; si su elección no vale, el de la app. */
+fun withFixedChoice(setups: List<RodSetup>, carried: List<RodSetup>, names: List<String>?): List<RodSetup> {
+    val chosen = fixedChoice(setups, carried, names)?.iterator() ?: return setups
+    return setups.map { if (it.kind == RodKind.FIXED) chosen.next() else it }
+}
+
+/**
+ * Las cañas del plan de Estrategia por nombre (para la sesión guiada), entre las que llevas hoy.
+ * Null si alguna ya no está o no hay nombres.
+ */
+fun rodsByNames(carried: List<RodSetup>, names: List<String>): List<RodSetup>? {
+    if (names.isEmpty() || names.size > GuidedSessions.MAX_RODS) return null
+    val rods = names.map { name -> carried.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) } ?: return null }
+    return rods.takeIf { it.distinct().size == it.size }
+}
+
+/**
+ * Las cañas con las que empieza la sesión guiada: las del último plan de Estrategia ([names], con
+ * las fijas que eligiera la IA) si siguen en lo que llevas y está la de carpfishing; si no, las de hoy.
+ */
+fun List<GearItem>.plannedRods(names: List<String>): List<RodSetup> {
+    val carried = carriedRods()
+    val planned = rodsByNames(carried, names) ?: return rodsToday()
+    val carpMissing = carried.any { it.kind == RodKind.CARP } && planned.none { it.kind == RodKind.CARP }
+    return if (carpMissing) rodsToday() else planned
 }
 
 /**

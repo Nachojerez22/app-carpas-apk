@@ -22,7 +22,7 @@ import com.nachojerez.carpstrategy.domain.guided.HookActivity
 import com.nachojerez.carpstrategy.domain.guided.JumpCount
 import com.nachojerez.carpstrategy.domain.guided.RodKind
 import com.nachojerez.carpstrategy.domain.guided.RodSetup
-import com.nachojerez.carpstrategy.domain.guided.rodsToday
+import com.nachojerez.carpstrategy.domain.guided.plannedRods
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.guided.Spot
@@ -92,13 +92,22 @@ data class GuidedUiState(
 }
 
 /** Estado de la pantalla. Función pura: los avisos salen de evaluar cada caña ahora. */
-fun buildGuidedState(session: Session?, gear: List<GearItem>, now: Instant, nextCheckIn: Instant?, zone: ZoneId, spots: List<Spot> = emptyList()): GuidedUiState {
+fun buildGuidedState(
+    session: Session?,
+    gear: List<GearItem>,
+    now: Instant,
+    nextCheckIn: Instant?,
+    zone: ZoneId,
+    spots: List<Spot> = emptyList(),
+    planRods: List<String> = emptyList(),
+): GuidedUiState {
     val base = GuidedUiState(
         isLoading = false,
         spots = spots,
         baits = gear.count { it.category == GearCategory.BAIT },
         rigs = gear.count { it.category == GearCategory.RIG },
-        rodSetups = gear.rodsToday(),
+        // 0.26.1: las cañas del plan de Estrategia (con las fijas que eligiera la IA).
+        rodSetups = gear.plannedRods(planRods),
         now = now,
     )
     val record = session?.guided ?: return base
@@ -145,6 +154,9 @@ data class CheckInDraft(
 }
 
 /** Nombres de las cañas para empezar: los escritos o «» (se mostrará «Caña N»). */
+/** Nombres de las cañas del plan de Estrategia tal como se guardan (uno por línea; 0.26.1). */
+fun planRodNames(saved: String?): List<String> = saved?.lines()?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
+
 fun rodNamesFor(count: Int, typed: List<String>): List<String> =
     (0 until count.coerceIn(1, GuidedSessions.MAX_RODS)).map { typed.getOrNull(it)?.trim().orEmpty() }
 

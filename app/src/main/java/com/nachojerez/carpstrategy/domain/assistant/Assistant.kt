@@ -22,6 +22,8 @@ import com.nachojerez.carpstrategy.domain.guided.Situation
 import com.nachojerez.carpstrategy.domain.guided.Solubility
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.StepKind
+import com.nachojerez.carpstrategy.domain.guided.fixedChoice
+import com.nachojerez.carpstrategy.domain.guided.withFixedChoice
 import com.nachojerez.carpstrategy.domain.reservoir.FishSpecies
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirSheet
 import com.nachojerez.carpstrategy.domain.reservoir.SheetNote
@@ -138,6 +140,11 @@ data class AiPlan(
     val bestSpot: AiSpotPick? = null,
     /** Engodo con lo que llevas y cuánto (fase 7.13); null si no lo propone. */
     val groundbait: AiGroundbait? = null,
+    /**
+     * Las fijas que monta hoy entre las que llevas (por nombre, en el orden de las fijas del plan;
+     * 0.26.1). Null si no elige: se quedan las que propone la app.
+     */
+    val fixedRods: List<String>? = null,
 )
 
 /** Una parte del engodo: un cebo de tu equipo (por nombre) y cuántas partes de la mezcla. */
@@ -236,6 +243,8 @@ data class AiContext(
     val groundbaitNormalKg: Double? = null,
     /** Tipo de cada caña (fase 7.20); las que no están, sin tipo (sin límites de caña). */
     val rodSetups: Map<Int, RodSetup> = emptyMap(),
+    /** Todas las cañas que llevas hoy: entre ellas puede elegir la IA las fijas del plan (0.26.1). */
+    val carriedRods: List<RodSetup> = emptyList(),
 )
 
 /**
@@ -370,7 +379,17 @@ object AiValidator {
     /** Respuesta del chat como mucho de esta longitud. */
     const val MAX_CHAT_TEXT = 1_200
 
-    fun validate(plan: AiPlan, ctx: AiContext): Set<AiIssue> = buildSet {
+    fun validate(plan: AiPlan, rodsCtx: AiContext): Set<AiIssue> = buildSet {
+        // Si la IA elige las fijas, cada caña del plan se comprueba con la fija que eligió.
+        val keys = rodsCtx.rodSetups.keys.sorted()
+        val setups = keys.map { rodsCtx.rodSetups.getValue(it) }
+        val chosen = plan.fixedRods?.let { fixedChoice(setups, rodsCtx.carriedRods, it) }
+        if (plan.fixedRods != null && chosen == null) add(AiIssue.UNKNOWN_ROD)
+        val ctx = if (chosen == null) {
+            rodsCtx
+        } else {
+            rodsCtx.copy(rodSetups = keys.zip(withFixedChoice(setups, rodsCtx.carriedRods, plan.fixedRods)).toMap())
+        }
         if (plan.evidence == null) add(AiIssue.MISSING_EVIDENCE)
         checkText(plan.summary, ctx)
         if (plan.rods.isEmpty()) add(AiIssue.NO_CHANGES)

@@ -113,7 +113,9 @@ object AssistantJson {
         val best = (o["puesto_recomendado"] as? JsonObject)?.let { b ->
             b.string("puesto")?.takeIf { it.isNotBlank() }?.let { AiSpotPick(it, b.string("motivo").orEmpty(), evidence(b.string("evidencia"))) }
         }
-        return AiPlan(o.string("resumen").orEmpty(), evidence(o.string("evidencia")), rods, warnings, advice, best, groundbait(o))
+        // 0.26.1: las fijas que elige la IA entre las que llevas (null o vacío = las de la app).
+        val fixed = o.array("canas_fijas").mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf(String::isNotEmpty) }.takeIf { it.isNotEmpty() }
+        return AiPlan(o.string("resumen").orEmpty(), evidence(o.string("evidencia")), rods, warnings, advice, best, groundbait(o), fixed)
     }
 
     /** «engodo»: mezcla con tus cebos (partes), kilos por caña y recebado (fase 7.13). */

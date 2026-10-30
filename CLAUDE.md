@@ -380,6 +380,10 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - 0.26.1: «pluma» y «boya» cuentan como flotador en los textos de la IA. La caña de carpfishing siempre se lleva
   (`GearItem.carriedToday`; casilla fija en Mi equipo) y `rodsToday` siempre la incluye (sustituye a la última
   fija si hay más de 3). El plomo de la fija no se valora (norma 7 del prompt).
+- 0.26.1, qué fijas: `pickRods` (app, 🟣: las de más alcance; con viento ≥ `RodRules.STRONG_WIND_KMH`, las más
+  cortas), `fijas_que_llevas` en el estado del plan y `canas_fijas` en la respuesta (`AiPlan.fixedRods`, validado con
+  `fixedChoice`/`withFixedChoice` y `AiContext.carriedRods`). `StrategyUiState.planSetups` aplica la elección; los
+  nombres del plan van al ajuste local `strategy_plan_rods` (`KEY_PLAN_RODS`) y la guiada empieza con ellos (`plannedRods`).
 
 ## Stack
 

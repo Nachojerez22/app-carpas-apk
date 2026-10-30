@@ -218,6 +218,12 @@ class StrategyViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            // 0.26.1: las cañas del plan (con las fijas que elija la IA) pasan a la sesión guiada.
+            combine(uiState, planFlow) { state, p -> dayPlanFor(state, p)?.lines?.mapNotNull { it.setup?.name?.takeIf(String::isNotBlank) } }
+                .distinctUntilChanged()
+                .collect { names -> if (!names.isNullOrEmpty()) localSettings.put(KEY_PLAN_RODS, names.joinToString("\n")) }
+        }
+        viewModelScope.launch {
             // El último plan válido de hoy se vuelve a mostrar sin gastar otra consulta.
             restoreLastPlan()
             restorePreparedPlan()
@@ -377,6 +383,9 @@ private data class AdviceInputs(
 
 /** Ajustes locales (no se sincronizan) de Estrategia. */
 const val KEY_RODS = "strategy_rods"
+
+/** Nombres de las cañas del plan de Estrategia, uno por línea (0.26.1): la guiada empieza con ellas. */
+const val KEY_PLAN_RODS = "strategy_plan_rods"
 private const val KEY_PLAN_KEY = "strategy_plan_key"
 
 
