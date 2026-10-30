@@ -164,7 +164,7 @@ internal fun GearCategory.addRes(): Int = when (this) {
     GearCategory.ROD -> R.string.gear_add_rod
 }
 
-/** Una caña de la lista (fase 7.18): casilla «hoy la llevo», nombre y tipo; tocar para editar. */
+/** Una caña de la lista (fase 7.20): casilla «hoy la llevo», nombre y tipo; tocar para editar. */
 @Composable
 internal fun RodRow(item: GearItem, onToggle: () -> Unit, onEdit: () -> Unit) {
     val res = LocalContext.current.resources

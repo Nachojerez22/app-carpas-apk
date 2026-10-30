@@ -354,7 +354,17 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   de sesiones borradas y sueltas (> 1 día). Las fichas pendientes se recalculan solas al renovarse la cuota. El plan
   preparado solo pasa a la guiada si es de ese día y embalse (`preparedPlanFits`, `KEY_PREPARED_KEY`).
 
-## Tipo de caña: fija o carpfishing (fase 7.18)
+## Ver la preparación de la próxima salida (fase 7.19)
+
+- `ui/strategy/PreparedOuting.kt` (puro): `preparedOutingOf` hace la foto de «Preparar la próxima salida» (condiciones
+  a esa hora con la cadena por niveles, agua, aire, viento y ventanas; plan por caña, cebado, engodo y consejos de la
+  IA, «si cambia algo» y cómo fue cada paso) y `PreparedOutingJson` la guarda en el ajuste local
+  `strategy_prepared_outing` (enums por nombre, lectura tolerante). Es una foto: no se recalcula después.
+- `PreparedOutingScreen` (ruta `PreparedOutingRoute`, botón «Ver la preparación» en `PrepareStep`) solo lee el ajuste.
+  `RodLineRow`, `contingencyText`, `GroundbaitLines`, `BandScale`, `kgText` y `PrepResultLines` son `internal` y se
+  comparten con Estrategia. Si `RodLine` gana campos, añadirlos también al `RodDto`.
+
+## Tipo de caña: fija o carpfishing (fase 7.20)
 
 - `domain/guided/Rods.kt` (puro, CONOCIMIENTO.md §5.9.13): `RodKind` (FIXED, CARP), `RodSetup` y `RodRules`
   (fija: fondo, media agua = `Column.ZIG` con flotador o superficie, hasta su longitud 9/8/7/5 m, flotador 3–4 g,

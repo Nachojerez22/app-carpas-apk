@@ -105,7 +105,7 @@ data class PlanUiState(
 /** Cañas por defecto si aún no has elegido. */
 const val DEFAULT_RODS = 2
 
-/** Cañas de Mi equipo que llevas hoy (fase 7.18); vacío = se elige el número de cañas. */
+/** Cañas de Mi equipo que llevas hoy (fase 7.20); vacío = se elige el número de cañas. */
 val StrategyUiState.rodSetups: List<RodSetup> get() = gear.rodsToday()
 
 /** Número de cañas del plan: las de Mi equipo que llevas hoy o las elegidas por número. */
@@ -122,7 +122,7 @@ fun planKey(state: StrategyUiState): String? {
     val day = advice.forTime.atZone(Formatting.MADRID).toLocalDate()
     // Los cebos de hoy y tu medida también cuentan: si cambian, el plan (y el engodo) cambia.
     val baits = state.gear.filter { it.category == GearCategory.BAIT }.map { it.id }.sorted().joinToString(",")
-    // Fase 7.18: las cañas de hoy (tipo y longitud) también: con otras cañas, otro plan.
+    // Fase 7.20: las cañas de hoy (tipo y longitud) también: con otras cañas, otro plan.
     val rods = state.rodSetups.takeIf { it.isNotEmpty() }?.joinToString(",") { "${it.kind ?: "-"}${it.lengthM ?: ""}" } ?: state.rods
     return listOf(
         day, state.reservoir?.reservoir?.id ?: NO_RESERVOIR, state.chosenSpotId ?: "auto", rods, advice.dayPart, baits, state.groundbaitNormalKg ?: "-",

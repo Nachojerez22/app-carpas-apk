@@ -217,7 +217,7 @@ data class RodTrack(
     val id: Int,
     val name: String,
     val log: GuidedLog,
-    /** Tipo de caña (fase 7.18); null en sesiones antiguas o si no lo apuntaste. */
+    /** Tipo de caña (fase 7.20); null en sesiones antiguas o si no lo apuntaste. */
     val kind: RodKind? = null,
     val lengthM: Int? = null,
 ) {

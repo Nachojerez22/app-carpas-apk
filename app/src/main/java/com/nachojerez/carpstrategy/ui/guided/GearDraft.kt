@@ -20,7 +20,7 @@ data class GearDraft(
     val available: Boolean = true,
     /** La ficha de la IA se conserva al editar (no se teclea). */
     val sheet: BaitSheet? = null,
-    /** Caña (fase 7.18): tipo y, si es fija, longitud. */
+    /** Caña (fase 7.20): tipo y, si es fija, longitud. */
     val rodKind: RodKind? = null,
     val rodLengthM: Int? = null,
 ) {

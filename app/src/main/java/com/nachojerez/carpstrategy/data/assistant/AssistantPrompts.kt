@@ -76,7 +76,7 @@ data class PlanInput(
     /** Nivel de cebado de la app (null = no se ceba) y tu medida en kg por caña (fase 7.13). */
     val groundbait: GroundbaitLevel? = null,
     val groundbaitNormalKg: Double? = null,
-    /** Cañas de Mi equipo que lleva hoy, en orden (fase 7.18); vacío = sin tipo. */
+    /** Cañas de Mi equipo que lleva hoy, en orden (fase 7.20); vacío = sin tipo. */
     val rodSetups: List<RodSetup> = emptyList(),
 )
 
@@ -586,7 +586,7 @@ Normas (si no las cumples, la app descarta la respuesta):
         if (s.notes.isNotBlank()) put("notas", s.notes.take(AiValidator.MAX_TEXT))
     }
 
-    /** Tipo de caña y lo que permite (fase 7.18): la IA lo tiene que respetar ([AiValidator] lo comprueba). */
+    /** Tipo de caña y lo que permite (fase 7.20): la IA lo tiene que respetar ([AiValidator] lo comprueba). */
     private fun JsonObjectBuilder.rodKind(r: RodSetup) {
         val kind = r.kind ?: return
         put("tipo", if (kind == RodKind.FIXED) "FIJA" else "CARPFISHING")

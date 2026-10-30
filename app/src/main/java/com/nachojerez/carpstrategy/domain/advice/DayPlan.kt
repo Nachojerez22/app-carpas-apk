@@ -36,7 +36,7 @@ data class RodLine(
     val reason: String? = null,
     val evidence: Evidence,
     val source: PlanSource,
-    /** La caña de Mi equipo (fase 7.18): nombre, tipo y longitud; null si eliges por número. */
+    /** La caña de Mi equipo (fase 7.20): nombre, tipo y longitud; null si eliges por número. */
     val setup: RodSetup? = null,
     /** Gramos del flotador o del plomo que dice la IA (dentro de [weightRange]). */
     val weightG: Double? = null,
@@ -118,7 +118,7 @@ object DayPlans {
         val app = (1..count).map { rod ->
             val setup = setups.getOrNull(rod - 1)
             val kind = setup?.kind
-            // Fase 7.18: solo cebos y columnas que valen para esta caña (la fija sin boilies; carpfishing a fondo).
+            // Fase 7.20: solo cebos y columnas que valen para esta caña (la fija sin boilies; carpfishing a fondo).
             val baits = advice.baits.filter { RodRules.baitAllowed(kind, it.type) }
             val bait = baits.takeIf { it.isNotEmpty() }?.let { it[(rod - 1) % it.size] }
                 ?: BaitPick(BaitType.MAIZE, null, evidence = Evidence.YELLOW).takeIf { advice.baits.isNotEmpty() }

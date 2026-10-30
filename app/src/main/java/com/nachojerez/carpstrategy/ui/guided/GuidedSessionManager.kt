@@ -122,7 +122,7 @@ class GuidedSessionManager @Inject constructor(
         waterC?.let { saveWaterMeasurement(it, location, now) }
         val sessions = journal.observeSessions().first()
         val gear = settings.observeGear().first().today()
-        // Fase 7.18: con cañas apuntadas en Mi equipo, mandan ellas (nombre, tipo y longitud).
+        // Fase 7.20: con cañas apuntadas en Mi equipo, mandan ellas (nombre, tipo y longitud).
         val setups = gear.rodsToday()
         val names = if (setups.isNotEmpty()) setups.map { it.name } else rodNames
         val (reservoir, all) = reservoirAt(location)

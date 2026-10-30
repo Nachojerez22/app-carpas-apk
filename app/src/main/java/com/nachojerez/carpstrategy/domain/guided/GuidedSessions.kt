@@ -89,7 +89,7 @@ object GuidedSessions {
     /**
      * Empieza con una caña por nombre («fija», «carrete»), cada una con su plan A pendiente.
      * La segunda caña empieza por otro cebo de la fase si lo llevas, para comparar (🟣).
-     * [setups]: tipo y longitud de cada caña, en el mismo orden (fase 7.18; vacío = sin tipo).
+     * [setups]: tipo y longitud de cada caña, en el mismo orden (fase 7.20; vacío = sin tipo).
      */
     fun start(
         session: Session,

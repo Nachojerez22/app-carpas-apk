@@ -117,7 +117,7 @@ data class AiRodPlan(
     val distanceM: Double? = null,
     val reason: String = "",
     val evidence: Evidence? = null,
-    /** Gramos del flotador (fija) o del plomo (carpfishing) (fase 7.18). */
+    /** Gramos del flotador (fija) o del plomo (carpfishing) (fase 7.20). */
     val weightG: Double? = null,
 )
 
@@ -212,7 +212,7 @@ enum class AiIssue {
     /** Cantidad de engodo o partes de la mezcla fuera de lo razonable para tu medida (fase 7.13). */
     AMOUNT_OUT_OF_RANGE,
 
-    /** No respeta el tipo de caña (fase 7.18): boilies en la fija o carpfishing fuera del fondo. */
+    /** No respeta el tipo de caña (fase 7.20): boilies en la fija o carpfishing fuera del fondo. */
     ROD_RULES,
 
     /** Flotador o plomo fuera de tu rango (fija 3–4 g, carpfishing 40–90 g). */
@@ -234,7 +234,7 @@ data class AiContext(
     val zone: ZoneId = ZoneId.of("Europe/Madrid"),
     /** Tu medida de cebado normal (kg por caña y sesión); sin ella la IA no puede dar kilos. */
     val groundbaitNormalKg: Double? = null,
-    /** Tipo de cada caña (fase 7.18); las que no están, sin tipo (sin límites de caña). */
+    /** Tipo de cada caña (fase 7.20); las que no están, sin tipo (sin límites de caña). */
     val rodSetups: Map<Int, RodSetup> = emptyMap(),
 )
 
@@ -256,7 +256,7 @@ object AiValidator {
 
     private val PROBABILITY = Regex("""\d+([.,]\d+)?\s*%|probabilidad|\bconfianza\b|\bpor ciento\b""", RegexOption.IGNORE_CASE)
     /**
-     * Gramos del flotador o del plomo (fase 7.18): «flotador de 3 g», «plomo de 40 a 60 g», «90 g
+     * Gramos del flotador o del plomo (fase 7.20): «flotador de 3 g», «plomo de 40 a 60 g», «90 g
      * de plomo». Se permiten dentro de tu rango; los gramos de cebo siguen prohibidos.
      */
     private val TACKLE_WEIGHT = Regex(
@@ -294,7 +294,7 @@ object AiValidator {
     }
 
     /**
-     * Normas del tipo de caña (fase 7.18): en la fija, ni boilies ni pop-up; en carpfishing,
+     * Normas del tipo de caña (fase 7.20): en la fija, ni boilies ni pop-up; en carpfishing,
      * siempre a fondo. Sin tipo, nada que comprobar.
      */
     private fun rodIssues(rod: Int, baitName: String?, rigName: String?, column: Column?, ctx: AiContext): Set<AiIssue> = buildSet {

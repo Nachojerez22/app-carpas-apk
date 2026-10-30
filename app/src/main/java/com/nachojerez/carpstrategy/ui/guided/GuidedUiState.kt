@@ -42,7 +42,7 @@ data class RodUi(
     val log: GuidedLog,
     val messages: Set<GuidedMessage>,
     val groundbait: GroundbaitLevel?,
-    /** Tipo de caña (fase 7.18). */
+    /** Tipo de caña (fase 7.20). */
     val kind: RodKind? = null,
     val lengthM: Int? = null,
 )
@@ -57,7 +57,7 @@ data class GuidedUiState(
     val nextCheckIn: Instant? = null,
     val baits: Int = 0,
     val rigs: Int = 0,
-    /** Cañas de Mi equipo que llevas hoy (fase 7.18); vacío = se eligen por número. */
+    /** Cañas de Mi equipo que llevas hoy (fase 7.20); vacío = se eligen por número. */
     val rodSetups: List<RodSetup> = emptyList(),
     val now: Instant = Instant.EPOCH,
     val starting: Boolean = false,

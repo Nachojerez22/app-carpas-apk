@@ -95,7 +95,7 @@ data class GuidedContext(
      * vacío = los de la fase.
      */
     val preferredBaits: List<BaitType> = emptyList(),
-    /** Tipo de la caña (fase 7.18): la fija no lleva boilies y la de carpfishing pesca siempre a fondo. */
+    /** Tipo de la caña (fase 7.20): la fija no lleva boilies y la de carpfishing pesca siempre a fondo. */
     val rodKind: RodKind? = null,
 ) {
     /** El equipo que vale para esta caña. */
@@ -380,7 +380,7 @@ object GuidedEngine {
 
     /**
      * Fondo → pop-up → zig → superficie; zig y superficie solo con calor (§5.6). Con el tipo de
-     * caña (fase 7.18): la de carpfishing solo alterna fondo y pop-up; la fija, con calor, fondo →
+     * caña (fase 7.20): la de carpfishing solo alterna fondo y pop-up; la fija, con calor, fondo →
      * media agua → superficie y, sin calor, se queda a fondo (null: no hay otra columna).
      */
     fun nextColumn(current: Column?, phase: FishingPhase, rodKind: RodKind? = null): Column? {

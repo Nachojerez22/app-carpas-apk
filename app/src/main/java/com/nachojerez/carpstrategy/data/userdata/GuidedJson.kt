@@ -211,7 +211,7 @@ object GuidedJson {
         @SerialName("enlace") val url: String = "",
         @SerialName("hoy") val available: Boolean = true,
         @SerialName("ficha") val sheet: BaitSheetDto? = null,
-        /** Caña (fase 7.18): FIXED (fija) o CARP (carpfishing) y la longitud de la fija. */
+        /** Caña (fase 7.20): FIXED (fija) o CARP (carpfishing) y la longitud de la fija. */
         @SerialName("tipo_cana") val rodKind: String? = null,
         @SerialName("longitud_m") val rodLengthM: Int? = null,
     )

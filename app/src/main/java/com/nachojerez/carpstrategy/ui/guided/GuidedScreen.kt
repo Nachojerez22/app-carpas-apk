@@ -214,7 +214,7 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots:
     CarpCard {
         Text(stringResource(R.string.guided_intro))
         Text(stringResource(R.string.guided_rods), style = MaterialTheme.typography.titleSmall)
-        // Fase 7.18: con cañas en Mi equipo, son las que llevas hoy (con su tipo); si no, por número.
+        // Fase 7.20: con cañas en Mi equipo, son las que llevas hoy (con su tipo); si no, por número.
         val res = LocalContext.current.resources
         if (state.rodSetups.isNotEmpty()) {
             state.rodSetups.forEach { r -> Text(listOf(r.name, res.rodKindLabel(r.kind, r.lengthM)).filter { it.isNotBlank() }.joinToString(" · ")) }

@@ -62,7 +62,7 @@ enum class RigType(val column: Column?) {
     OTHER(null),
 }
 
-/** Cebos, montajes y cañas (fase 7.18: fija o carpfishing, [RodKind]). */
+/** Cebos, montajes y cañas (fase 7.20: fija o carpfishing, [RodKind]). */
 enum class GearCategory { BAIT, RIG, ROD }
 
 /** Elemento del equipo que lleva el usuario (se añade desde la app). */
@@ -82,7 +82,7 @@ data class GearItem(
     val available: Boolean = true,
     /** Ficha que preparó la IA (🟣, compruébala). */
     val sheet: BaitSheet? = null,
-    /** Caña (fase 7.18): fija o de carpfishing y, si es fija, su longitud en metros. */
+    /** Caña (fase 7.20): fija o de carpfishing y, si es fija, su longitud en metros. */
     val rodKind: RodKind? = null,
     val rodLengthM: Int? = null,
 ) {

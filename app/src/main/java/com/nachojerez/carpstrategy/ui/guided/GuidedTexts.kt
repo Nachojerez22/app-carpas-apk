@@ -59,7 +59,7 @@ fun Column.titleRes(): Int = when (this) {
     Column.SURFACE -> R.string.column_surface
 }
 
-/** Columna dicha para el tipo de caña (fase 7.18): en la fija, la media agua es con flotador, no zig. */
+/** Columna dicha para el tipo de caña (fase 7.20): en la fija, la media agua es con flotador, no zig. */
 @StringRes
 fun Column.titleRes(kind: RodKind?): Int = if (kind == RodKind.FIXED && this == Column.ZIG) R.string.column_float_mid else titleRes()
 

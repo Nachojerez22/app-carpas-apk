@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-/** La IA respeta el tipo de caña (fase 7.18) y puede citar flotador y plomo en gramos dentro del rango. */
+/** La IA respeta el tipo de caña (fase 7.20) y puede citar flotador y plomo en gramos dentro del rango. */
 class RodRulesAiTest {
     private val now = Instant.parse("2026-10-04T09:00:00Z")
     private val gear = listOf(
