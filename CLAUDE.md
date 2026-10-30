@@ -377,6 +377,8 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - IA: `canas_de_hoy`/`canas[].tipo` en el estado, norma 7 en `RULES`, `peso_g` en el plan. `AiContext.rodSetups` →
   `AiIssue.ROD_RULES` y `WEIGHT_OUT_OF_RANGE`; los textos admiten «flotador de 3 g» / «plomo de 60 g» en rango
   (`TACKLE_WEIGHT`), los gramos de cebo siguen prohibidos.
+- 0.26.1: «pluma» y «boya» cuentan como flotador en los textos de la IA; `rodsToday` siempre incluye la primera
+  caña de carpfishing que llevas (sustituye a la última fija si hay más de 3).
 
 ## Stack
 

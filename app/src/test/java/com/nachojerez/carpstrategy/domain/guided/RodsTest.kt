@@ -58,6 +58,19 @@ class RodsTest {
     }
 
     @Test
+    fun `la cana de carpfishing siempre entra aunque lleves mas fijas que el maximo`() {
+        val fixed = listOf(9, 8, 7, 5).map { GearItem("f$it", GearCategory.ROD, "Fija $it", rodKind = RodKind.FIXED, rodLengthM = it) }
+        val carp = GearItem("c", GearCategory.ROD, "Carrete", rodKind = RodKind.CARP)
+        assertEquals(
+            listOf(RodSetup("Fija 9", RodKind.FIXED, 9), RodSetup("Fija 8", RodKind.FIXED, 8), RodSetup("Carrete", RodKind.CARP, null)),
+            (fixed + carp).rodsToday(),
+        )
+        // Sin carpfishing, las tres primeras fijas; con una de carpfishing ya entre las tres, no cambia nada.
+        assertEquals(fixed.take(3).map { it.toRodSetup() }, fixed.rodsToday())
+        assertEquals(listOf("Carrete", "Fija 9", "Fija 8"), (listOf(carp) + fixed).rodsToday().map { it.name })
+    }
+
+    @Test
     fun `la fija nunca empieza con boilies y la de carpfishing puede`() {
         val fixed = GuidedEngine.initialProposal(ctx(FishingPhase.SUMMER, RodKind.FIXED))
         assertEquals(BaitType.MAIZE, fixed.bait)

@@ -256,11 +256,12 @@ object AiValidator {
 
     private val PROBABILITY = Regex("""\d+([.,]\d+)?\s*%|probabilidad|\bconfianza\b|\bpor ciento\b""", RegexOption.IGNORE_CASE)
     /**
-     * Gramos del flotador o del plomo (fase 7.20): «flotador de 3 g», «plomo de 40 a 60 g», «90 g
-     * de plomo». Se permiten dentro de tu rango; los gramos de cebo siguen prohibidos.
+     * Gramos del flotador (también «pluma» o «boya») o del plomo (fase 7.20): «flotador de 3 g»,
+     * «pluma de 4 g», «plomo de 40 a 60 g», «90 g de plomo». Se permiten dentro de tu rango; los
+     * gramos de cebo siguen prohibidos.
      */
     private val TACKLE_WEIGHT = Regex(
-        """\b(flotador(?:es)?|boya|plomos?|plomadas?)\s+(?:de\s+)?(\d+(?:[.,]\d+)?)(?:\s*(?:a|-|–|o|y)\s*(\d+(?:[.,]\d+)?))?\s*(?:g|gr|grs|gramos?)\b|\b(\d+(?:[.,]\d+)?)\s*(?:g|gr|grs|gramos?)\s+de\s+(flotador|boya|plomo|plomada)\b""",
+        """\b(flotador(?:es)?|plumas?|boyas?|plomos?|plomadas?)\s+(?:de\s+)?(\d+(?:[.,]\d+)?)(?:\s*(?:a|-|–|o|y)\s*(\d+(?:[.,]\d+)?))?\s*(?:g|gr|grs|gramos?)\b|\b(\d+(?:[.,]\d+)?)\s*(?:g|gr|grs|gramos?)\s+de\s+(flotador|pluma|boya|plomo|plomada)\b""",
         RegexOption.IGNORE_CASE,
     )
     private val GRAMS = Regex("""\b\d+([.,]\d+)?\s*(g|gr|grs|gramos?|kg|kgs|kilos?|kilogramos?)\b""", RegexOption.IGNORE_CASE)
@@ -285,7 +286,7 @@ object AiValidator {
     /** True si el texto cita un flotador o un plomo fuera de los rangos de [RodRules]. */
     private fun tackleWeightIssue(text: String): Boolean = TACKLE_WEIGHT.findAll(text).any { m ->
         val g = m.groupValues
-        val float = (g[1].ifEmpty { g[5] }).lowercase().let { it.startsWith("flotador") || it == "boya" }
+        val float = (g[1].ifEmpty { g[5] }).lowercase().let { it.startsWith("flotador") || it.startsWith("pluma") || it.startsWith("boya") }
         val range = if (float) RodRules.FLOAT_MIN_G..RodRules.FLOAT_MAX_G else RodRules.LEAD_MIN_G..RodRules.LEAD_MAX_G
         listOf(g[2], g[3], g[4]).filter { it.isNotEmpty() }.any { v ->
             val grams = v.replace(',', '.').toDoubleOrNull() ?: return@any true

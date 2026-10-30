@@ -67,4 +67,13 @@ class RodRulesAiTest {
         assertEquals(setOf(AiIssue.WEIGHT_OUT_OF_RANGE), AiValidator.textIssues("Plomo de 120 g"))
         assertEquals(setOf(AiIssue.GRAMS), AiValidator.textIssues("Plomo de 60 g y ceba 500 g de maíz"))
     }
+
+    @Test
+    fun `pluma y boya cuentan como flotador`() {
+        assertTrue(AiValidator.textIssues("Pluma de 3 g a media agua").isEmpty())
+        assertTrue(AiValidator.textIssues("Boya de 4 g cerca de la orilla").isEmpty())
+        assertTrue(AiValidator.textIssues("Pon 3 g de pluma").isEmpty())
+        assertEquals(setOf(AiIssue.WEIGHT_OUT_OF_RANGE), AiValidator.textIssues("Pluma de 60 g"))
+        assertEquals(setOf(AiIssue.GRAMS), AiValidator.textIssues("Pluma de 3 g y ceba 300 g de maíz"))
+    }
 }
