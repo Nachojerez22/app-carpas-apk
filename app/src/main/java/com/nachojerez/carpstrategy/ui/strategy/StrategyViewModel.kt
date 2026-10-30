@@ -219,7 +219,7 @@ class StrategyViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             // 0.26.1: las cañas del plan (con las fijas que elija la IA) pasan a la sesión guiada.
-            combine(uiState, planFlow) { state, p -> dayPlanFor(state, p)?.lines?.mapNotNull { it.setup?.name?.takeIf(String::isNotBlank) } }
+            combine(uiState, planFlow) { state, p -> dayPlanFor(state, p)?.rods?.mapNotNull { it.setup?.name?.takeIf(String::isNotBlank) } }
                 .distinctUntilChanged()
                 .collect { names -> if (!names.isNullOrEmpty()) localSettings.put(KEY_PLAN_RODS, names.joinToString("\n")) }
         }
