@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,8 @@ import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.RigType
+import com.nachojerez.carpstrategy.domain.guided.RodKind
+import com.nachojerez.carpstrategy.domain.guided.RodRules
 import com.nachojerez.carpstrategy.ui.components.AnyEvidenceBadge
 import com.nachojerez.carpstrategy.ui.components.Caption
 import com.nachojerez.carpstrategy.ui.components.CarpCard
@@ -86,13 +89,15 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
         }
         GearCategory.entries.forEach { category ->
             item {
-                SectionTitle(stringResource(if (category == GearCategory.BAIT) R.string.gear_baits else R.string.gear_rigs))
+                SectionTitle(stringResource(category.titleRes()))
                 CarpCard {
                     val items = gear.filter { it.category == category }
                     if (items.isEmpty()) Caption(stringResource(R.string.gear_none))
                     items.forEach { item ->
                         if (category == GearCategory.BAIT) {
                             BaitRow(item, onToggle = { viewModel.toggleToday(item.id) }, onEdit = { viewModel.clearSheetState(); draft = GearDraft.of(item) })
+                        } else if (category == GearCategory.ROD) {
+                            RodRow(item, onToggle = { viewModel.toggleToday(item.id) }, onEdit = { draft = GearDraft.of(item) })
                         } else {
                             Row(Modifier.fillMaxWidth().clickable { draft = GearDraft.of(item) }.padding(vertical = Spacing.xs), verticalAlignment = Alignment.CenterVertically) {
                                 Text(item.name, modifier = Modifier.weight(1f))
@@ -102,9 +107,10 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
                     }
                 }
                 OutlinedButton(onClick = { viewModel.clearSheetState(); draft = GearDraft(category = category) }, modifier = Modifier.padding(top = Spacing.sm)) {
-                    Text(stringResource(if (category == GearCategory.BAIT) R.string.gear_add_bait else R.string.gear_add_rig))
+                    Text(stringResource(category.addRes()))
                 }
                 if (category == GearCategory.BAIT) GroundbaitNormalRow(normalKg, viewModel::setGroundbaitNormalKg)
+                if (category == GearCategory.ROD) Caption(stringResource(R.string.gear_rods_hint))
             }
         }
         item { Caption(stringResource(R.string.gear_hint)) }
@@ -140,6 +146,34 @@ internal fun PendingSheetsCard(pending: Int, refresh: PendingRefresh, onRefresh:
             OutlinedButton(onClick = onRefresh, enabled = refresh != PendingRefresh.Running) {
                 Text(stringResource(R.string.gear_pending_button, pending))
             }
+        }
+    }
+}
+
+@StringRes
+internal fun GearCategory.titleRes(): Int = when (this) {
+    GearCategory.BAIT -> R.string.gear_baits
+    GearCategory.RIG -> R.string.gear_rigs
+    GearCategory.ROD -> R.string.gear_rods
+}
+
+@StringRes
+internal fun GearCategory.addRes(): Int = when (this) {
+    GearCategory.BAIT -> R.string.gear_add_bait
+    GearCategory.RIG -> R.string.gear_add_rig
+    GearCategory.ROD -> R.string.gear_add_rod
+}
+
+/** Una caña de la lista (fase 7.20): casilla «hoy la llevo», nombre y tipo; tocar para editar. */
+@Composable
+internal fun RodRow(item: GearItem, onToggle: () -> Unit, onEdit: () -> Unit) {
+    val res = LocalContext.current.resources
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Checkbox(checked = item.available, onCheckedChange = { onToggle() })
+        Column(Modifier.weight(1f).clickable(onClick = onEdit).padding(vertical = Spacing.xs)) {
+            Text(item.name, color = if (item.available) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
+            val kind = res.rodKindLabel(item.rodKind, item.rodLengthM)
+            if (kind.isNotBlank()) Text(kind, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -208,9 +242,10 @@ internal fun GearDialog(
     onFetchSheet: (() -> Unit)? = null,
 ) {
     val bait = draft.category == GearCategory.BAIT
+    val rod = draft.category == GearCategory.ROD
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(if (bait) R.string.gear_add_bait else R.string.gear_add_rig)) },
+        title = { Text(stringResource(draft.category.addRes())) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 OutlinedTextField(
@@ -236,10 +271,29 @@ internal fun GearDialog(
                         BaitType.entries.forEach { t ->
                             FilterChip(selected = draft.baitType == t, onClick = { onChange(draft.copy(baitType = t)) }, label = { Text(stringResource(t.titleRes())) })
                         }
+                    } else if (rod) {
+                        RodKind.entries.forEach { k ->
+                            FilterChip(selected = draft.rodKind == k, onClick = { onChange(draft.copy(rodKind = k)) }, label = { Text(stringResource(k.titleRes())) })
+                        }
                     } else {
                         RigType.entries.forEach { t ->
                             FilterChip(selected = draft.rigType == t, onClick = { onChange(draft.copy(rigType = t)) }, label = { Text(stringResource(t.titleRes())) })
                         }
+                    }
+                }
+                if (rod) {
+                    if (draft.rodKind == RodKind.FIXED) {
+                        Text(stringResource(R.string.gear_rod_length), style = MaterialTheme.typography.titleSmall)
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                            RodRules.FIXED_LENGTHS_M.forEach { m ->
+                                FilterChip(selected = draft.rodLengthM == m, onClick = { onChange(draft.copy(rodLengthM = m)) }, label = { Text(stringResource(R.string.gear_rod_length_m, m)) })
+                            }
+                        }
+                    }
+                    draft.rodKind?.let { Caption(stringResource(if (it == RodKind.FIXED) R.string.gear_rod_fixed_rules else R.string.gear_rod_carp_rules)) }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.gear_rod_today), modifier = Modifier.weight(1f))
+                        Switch(checked = draft.available, onCheckedChange = { onChange(draft.copy(available = it)) })
                     }
                 }
                 if (bait) {

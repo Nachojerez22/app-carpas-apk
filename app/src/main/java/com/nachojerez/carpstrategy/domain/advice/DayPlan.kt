@@ -10,6 +10,9 @@ import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
+import com.nachojerez.carpstrategy.domain.guided.RodKind
+import com.nachojerez.carpstrategy.domain.guided.RodRules
+import com.nachojerez.carpstrategy.domain.guided.RodSetup
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import java.time.Duration
@@ -33,7 +36,14 @@ data class RodLine(
     val reason: String? = null,
     val evidence: Evidence,
     val source: PlanSource,
-)
+    /** La caña de Mi equipo (fase 7.20): nombre, tipo y longitud; null si eliges por número. */
+    val setup: RodSetup? = null,
+    /** Gramos del flotador o del plomo que dice la IA (dentro de [weightRange]). */
+    val weightG: Double? = null,
+) {
+    /** Flotador (fija) o plomo (carpfishing) de tu rango; null sin tipo de caña. */
+    val weightRange: IntRange? get() = RodRules.weightRange(setup?.kind)
+}
 
 /** Qué hacer si pasa algo durante la sesión (§5.9): lo mismo que propondrá la sesión guiada. */
 enum class Contingency {
@@ -102,23 +112,30 @@ object DayPlans {
         ai: AiPlan? = null,
         spot: SpotPick? = advice.chosen ?: advice.spots.firstOrNull(),
         groundbaitNormalKg: Double? = null,
+        setups: List<RodSetup> = emptyList(),
     ): DayPlan {
-        val count = rods.coerceIn(1, MAX_RODS)
+        val count = (if (setups.isNotEmpty()) setups.size else rods).coerceIn(1, MAX_RODS)
         val app = (1..count).map { rod ->
-            val bait = advice.baits.takeIf { it.isNotEmpty() }?.let { it[(rod - 1) % it.size] }
-            val column = if (rod == 3 && advice.altColumn != null) advice.altColumn else advice.column
+            val setup = setups.getOrNull(rod - 1)
+            val kind = setup?.kind
+            // Fase 7.20: solo cebos y columnas que valen para esta caña (la fija sin boilies; carpfishing a fondo).
+            val baits = advice.baits.filter { RodRules.baitAllowed(kind, it.type) }
+            val bait = baits.takeIf { it.isNotEmpty() }?.let { it[(rod - 1) % it.size] }
+                ?: BaitPick(BaitType.MAIZE, null, evidence = Evidence.YELLOW).takeIf { advice.baits.isNotEmpty() }
+            val wanted = if (rod == 3 && advice.altColumn != null) advice.altColumn else advice.column
             RodLine(
                 rod = rod,
                 spotName = spot?.spot?.name,
                 baitType = bait?.type,
                 baitName = bait?.gearName,
-                column = column,
-                distanceM = spot?.spot?.distanceM,
+                column = columnFor(kind, wanted, advice.column),
+                distanceM = RodRules.clampDistance(setup, spot?.spot?.distanceM),
                 distance = advice.distance,
                 depth = advice.depth,
                 proven = bait?.proven,
                 evidence = bait?.evidence ?: Evidence.YELLOW,
                 source = PlanSource.APP,
+                setup = setup,
             )
         }
         val lines = if (ai == null) app else app.map { line -> merge(line, ai, gear) }
@@ -140,6 +157,16 @@ object DayPlans {
         )
     }
 
+    /**
+     * Columna que vale para el tipo de caña: [wanted] si se puede; si no, la principal; y si
+     * tampoco, a fondo (vale en las dos).
+     */
+    fun columnFor(kind: RodKind?, wanted: Column, main: Column): Column = when {
+        RodRules.columnAllowed(kind, wanted) -> wanted
+        RodRules.columnAllowed(kind, main) -> main
+        else -> Column.BOTTOM
+    }
+
     /** La IA manda en lo que dice; lo que no dice lo pone la app. */
     private fun merge(line: RodLine, ai: AiPlan, gear: List<GearItem>): RodLine {
         val r = ai.rods.firstOrNull { it.rod == line.rod } ?: return line
@@ -153,6 +180,7 @@ object DayPlans {
             rigName = r.rigName ?: line.rigName,
             column = r.column ?: line.column,
             distanceM = r.distanceM ?: line.distanceM,
+            weightG = r.weightG ?: line.weightG,
             proven = if (r.baitName == null) line.proven else null,
             reason = r.reason.takeIf { it.isNotBlank() },
             evidence = r.evidence ?: line.evidence,

@@ -566,6 +566,15 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - **Fetch por puesto:** cada puesto guarda los metros de agua abierta hacia donde mira (estimados en el mapa). Sin fetch (≥500 m, 🟣) no hay oleaje que remueva el fondo.
 - *(Añadido oct. 2026, mapa de puestos.)* En el mapa (satélite) el usuario toca su puesto y la orilla de enfrente, hacia donde lanza: el rumbo entre los dos es la orientación exacta y la distancia es el fetch. El mapa colorea cada puesto según cómo le da el viento (le favorece, lo recibe, resguardado, lateral). **El tiempo previsto es el mismo para todo el embalse** (los modelos trabajan con cuadrículas de 1–11 km): lo que cambia de un puesto a otro es cómo le da el viento, no el aire ni la temperatura.
 
+#### 5.9.13 Tipo de caña: fija o carpfishing (oct. 2026, decisión del usuario)
+
+> Equipo real del usuario. Son **límites del equipo**, no reglas sobre el pez: no puntúan, solo filtran lo que el plan, la sesión guiada y la IA pueden proponer en cada caña.
+
+- **Fija** (sin carrete; el usuario tiene de **9, 8, 7 y 5 m**): se pesca **a fondo, a media agua o en superficie** con **flotador de 3 a 4 g**, al alcance de la caña (distancia hasta su longitud). **Nunca con boilies** (ni pop-up ni boilie duro); sí maíz, masilla, pan, lombriz, chufa…
+- **Carpfishing** (con carrete): **siempre a fondo** (el pop-up corto está anclado al fondo y cuenta como fondo; nada de zig ni superficie), de **7 a 100 m**, con **plomo de 40 a 90 g**. Vale cualquier cebo, **también maíz**.
+- En la escalera de alternativas (§5.9.2): el peldaño «columna» de la carpfishing alterna fondo ↔ pop-up; el de la fija, con calor, fondo → media agua → superficie, y sin calor no hay peldaño de columna (sigue a fondo, §5.6). El cebo duro contra cangrejo (§5.9.1) en la fija va a fondo, sin pop-up.
+- La IA puede citar el flotador o el plomo en gramos **solo dentro de esos rangos**; los gramos de cebo siguen prohibidos (§5.5).
+
 ### 5.10 Pescar más: recomendación concreta y conocimiento aprendido (oct. 2026, petición del usuario)
 
 > El usuario quiere que la app le diga qué hacer para sacar el máximo de carpas, sin dejar nada al azar, y que este documento mejore con sus vivencias. El horario de pesca se sigue respetando, pero sin recordarlo en cada pantalla.

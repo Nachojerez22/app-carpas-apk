@@ -18,6 +18,8 @@ import com.nachojerez.carpstrategy.domain.derived.WaterTempSource
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
+import com.nachojerez.carpstrategy.domain.guided.RodKind
+import com.nachojerez.carpstrategy.domain.guided.RodSetup
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
@@ -117,7 +119,7 @@ fun preparedOutingOf(
         reservoirName = state.reservoir?.reservoir?.name,
         spotName = plan?.spot?.spot?.name,
         spotAuto = state.chosenSpotId == null,
-        rods = state.rods,
+        rods = state.planRods,
         conditions = conditions,
         rodLines = plan?.rods.orEmpty(),
         planSource = plan?.source,
@@ -199,6 +201,11 @@ object PreparedOutingJson {
         @SerialName("porque") val reason: String? = null,
         @SerialName("evidencia") val evidence: String,
         @SerialName("origen") val source: String,
+        /** Caña de Mi equipo (fase 7.20): nombre, tipo y longitud; peso del flotador o del plomo de la IA. */
+        @SerialName("nombre_cana") val rodName: String? = null,
+        @SerialName("tipo_cana") val rodKind: String? = null,
+        @SerialName("longitud_m") val rodLengthM: Int? = null,
+        @SerialName("peso_g") val weightG: Double? = null,
     )
 
     @Serializable
@@ -280,6 +287,7 @@ object PreparedOutingJson {
             RodDto(
                 r.rod, r.spotName, r.baitType?.name, r.baitName, r.rigName, r.column.name, r.distanceM, r.distance.name, r.depth.name,
                 r.proven?.let { ProvenDto(it.value, it.rodHours, it.catches, it.sessions) }, r.reason, r.evidence.name, r.source.name,
+                r.setup?.name, r.setup?.kind?.name, r.setup?.lengthM, r.weightG,
             )
         },
         planSource = planSource?.name,
@@ -335,6 +343,8 @@ object PreparedOutingJson {
                     reason = r.reason,
                     evidence = enumOrNull<Evidence>(r.evidence) ?: Evidence.PURPLE,
                     source = enumOrNull<PlanSource>(r.source) ?: PlanSource.APP,
+                    setup = if (r.rodName != null || r.rodKind != null) RodSetup(r.rodName.orEmpty(), enumOrNull<RodKind>(r.rodKind), r.rodLengthM) else null,
+                    weightG = r.weightG,
                 )
             },
             planSource = enumOrNull<PlanSource>(planSource),

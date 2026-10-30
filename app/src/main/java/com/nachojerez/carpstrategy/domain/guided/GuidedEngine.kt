@@ -95,7 +95,16 @@ data class GuidedContext(
      * vacío = los de la fase.
      */
     val preferredBaits: List<BaitType> = emptyList(),
-)
+    /** Tipo de la caña (fase 7.20): la fija no lleva boilies y la de carpfishing pesca siempre a fondo. */
+    val rodKind: RodKind? = null,
+) {
+    /** El equipo que vale para esta caña. */
+    val rodInventory: List<GearItem> get() = RodRules.inventoryFor(rodKind, inventory)
+
+    /** Elige cebo entre los que valen para esta caña (§5.9.5 y [RodRules]). */
+    fun chooseBait(preferred: List<BaitType>, crab: Boolean = false, inventory: List<GearItem> = rodInventory): BaitChoice =
+        BaitCatalog.choose(RodRules.baitsFor(rodKind, preferred), inventory, phase, crab)
+}
 
 data class Evaluation(val proposal: Proposal?, val messages: Set<GuidedMessage>)
 
@@ -158,7 +167,7 @@ object GuidedEngine {
         val base = (ctx.preferredBaits + BaitCatalog.initialBaits(ctx.phase)).distinct()
             .let { list -> val k = variant.mod(list.size); list.drop(k) + list.take(k) }
         val preferred = base.filterNot { it in excluded }.ifEmpty { base }
-        val bait = BaitCatalog.choose(preferred, ctx.inventory.filterNot { it.baitType in excluded }, ctx.phase)
+        val bait = ctx.chooseBait(preferred, inventory = ctx.rodInventory.filterNot { it.baitType in excluded })
         return Proposal(
             kind = StepKind.INITIAL,
             situation = Situation.START,
@@ -166,7 +175,7 @@ object GuidedEngine {
             baitName = bait.item?.name,
             baitFallback = bait.fallback,
             column = Column.BOTTOM,
-            rigName = BaitCatalog.rigFor(Column.BOTTOM, ctx.inventory)?.name,
+            rigName = BaitCatalog.rigFor(Column.BOTTOM, ctx.rodInventory)?.name,
             evidence = Evidence.YELLOW,
             createdAt = ctx.now,
         )
@@ -287,8 +296,10 @@ object GuidedEngine {
         val inflow = FieldCondition.MUDDY_INFLOW in ctx.conditions && ctx.phase != FishingPhase.WINTER &&
             StepKind.INFLOW !in tried && StepKind.INFLOW !in proposedHere
         val zoneStep = if (inflow) StepKind.INFLOW else StepKind.ZONE
+        // Sin otra columna para esta caña (la de carpfishing fuera del pop-up o la fija sin calor), no hay peldaño de columna.
+        val noColumn = if (nextColumn(log.current.column, ctx.phase, ctx.rodKind) == null) setOf(StepKind.COLUMN) else emptySet()
         val ladder = NO_SIGNAL_LADDER.getValue(ctx.phase)
-        ladder.firstOrNull { it != StepKind.ZONE && it !in tried }?.let { candidate ->
+        ladder.firstOrNull { it != StepKind.ZONE && it !in tried && it !in noColumn }?.let { candidate ->
             // En calor extremo la zona va primero si está permitida.
             if (ladder.first() == StepKind.ZONE && zoneAllowed) return zoneStep
             return candidate
@@ -320,12 +331,12 @@ object GuidedEngine {
     }
 
     private fun noSignalProposal(kind: StepKind, ctx: GuidedContext, segment: Segment, forced: Boolean): Proposal {
-        val column = if (kind == StepKind.COLUMN) nextColumn(segment.column, ctx.phase) else null
+        val column = if (kind == StepKind.COLUMN) nextColumn(segment.column, ctx.phase, ctx.rodKind) else null
         return Proposal(
             kind = kind,
             situation = Situation.NO_SIGNALS,
             column = column,
-            rigName = column?.let { BaitCatalog.rigFor(it, ctx.inventory)?.name },
+            rigName = column?.let { BaitCatalog.rigFor(it, ctx.rodInventory)?.name },
             forced = forced,
             evidence = Evidence.PURPLE,
             createdAt = ctx.now,
@@ -335,24 +346,26 @@ object GuidedEngine {
     /** B: cebo de anzuelo de alta atracción o contraste (maíz o pop-up), distinto del actual. */
     private fun presentation(ctx: GuidedContext, missing: Set<BaitType>, segment: Segment, forced: Boolean): Proposal {
         val preferred = listOf(BaitType.MAIZE, BaitType.POPUP, BaitType.BOILIE, BaitType.PASTE).filterNot { it == segment.bait || it in missing }
-        val bait = BaitCatalog.choose(preferred.ifEmpty { listOf(BaitType.MAIZE) }, ctx.inventory, ctx.phase)
+        val bait = ctx.chooseBait(preferred.ifEmpty { listOf(BaitType.MAIZE) })
         return Proposal(StepKind.PRESENTATION, Situation.SIGNALS_NO_BITES, bait.type, bait.item?.name, bait.fallback, forced = forced, evidence = Evidence.GREEN, createdAt = ctx.now)
     }
 
     /** C: otro montaje y otro sabor o textura en el anzuelo; el cebado se mantiene. */
     private fun rigChange(ctx: GuidedContext, missing: Set<BaitType>, segment: Segment, forced: Boolean): Proposal {
         val preferred = listOf(BaitType.MAIZE, BaitType.TIGERNUT, BaitType.BOILIE, BaitType.PASTE).filterNot { it == segment.bait || it in missing || ctx.phase !in it.phases }
-        val bait = BaitCatalog.choose(preferred.ifEmpty { listOf(BaitType.MAIZE) }, ctx.inventory, ctx.phase)
+        val bait = ctx.chooseBait(preferred.ifEmpty { listOf(BaitType.MAIZE) })
         return Proposal(StepKind.RIG, Situation.TOUCHES, bait.type, bait.item?.name, bait.fallback, forced = forced, evidence = Evidence.YELLOW, createdAt = ctx.now)
     }
 
     /** Cebo duro o separado del fondo (§5.9.1, 🟡). */
     private fun antiCrab(ctx: GuidedContext, missing: Set<BaitType>, forced: Boolean): Proposal {
         val preferred = listOf(BaitType.TIGERNUT, BaitType.BOILIE_HARD, BaitType.POPUP).filterNot { it in missing }
-        val bait = BaitCatalog.choose(preferred.ifEmpty { listOf(BaitType.POPUP) }, ctx.inventory, ctx.phase, crab = true)
+        val bait = ctx.chooseBait(preferred.ifEmpty { listOf(BaitType.POPUP) }, crab = true)
+        // La fija no lleva pop-up: solo cambia el cebo, a fondo.
+        val column = Column.POPUP.takeIf { RodRules.columnAllowed(ctx.rodKind, it) }
         return Proposal(
             StepKind.ANTI_CRAB, Situation.CRAB_OR_SMALL_FISH, bait.type, bait.item?.name, bait.fallback,
-            column = Column.POPUP, rigName = BaitCatalog.rigFor(Column.POPUP, ctx.inventory)?.name,
+            column = column, rigName = column?.let { BaitCatalog.rigFor(it, ctx.rodInventory)?.name },
             forced = forced, evidence = Evidence.YELLOW, createdAt = ctx.now,
         )
     }
@@ -361,18 +374,34 @@ object GuidedEngine {
     private fun selective(ctx: GuidedContext, missing: Set<BaitType>, segment: Segment, forced: Boolean): Proposal {
         val preferred = listOf(BaitType.TIGERNUT, BaitType.BOILIE_HARD, BaitType.BOILIE)
             .filterNot { it == segment.bait || it in missing || ctx.phase !in it.phases }
-        val bait = BaitCatalog.choose(preferred.ifEmpty { listOf(BaitType.BOILIE) }, ctx.inventory, ctx.phase)
+        val bait = ctx.chooseBait(preferred.ifEmpty { listOf(BaitType.BOILIE) })
         return Proposal(StepKind.SELECTIVE, Situation.OTHER_FISH, bait.type, bait.item?.name, bait.fallback, forced = forced, evidence = Evidence.YELLOW, createdAt = ctx.now)
     }
 
-    /** Fondo → pop-up → zig → superficie; zig y superficie solo con calor (§5.6). */
-    fun nextColumn(current: Column?, phase: FishingPhase): Column {
+    /**
+     * Fondo → pop-up → zig → superficie; zig y superficie solo con calor (§5.6). Con el tipo de
+     * caña (fase 7.20): la de carpfishing solo alterna fondo y pop-up; la fija, con calor, fondo →
+     * media agua → superficie y, sin calor, se queda a fondo (null: no hay otra columna).
+     */
+    fun nextColumn(current: Column?, phase: FishingPhase, rodKind: RodKind? = null): Column? {
         val warm = phase == FishingPhase.SUMMER || phase == FishingPhase.HEAT
-        return when (current) {
-            null, Column.BOTTOM -> Column.POPUP
-            Column.POPUP -> if (warm) Column.ZIG else Column.BOTTOM
-            Column.ZIG -> if (warm) Column.SURFACE else Column.BOTTOM
-            Column.SURFACE -> Column.BOTTOM
+        return when (rodKind) {
+            RodKind.CARP -> if (current == Column.POPUP) Column.BOTTOM else Column.POPUP
+            RodKind.FIXED -> when {
+                warm -> when (current) {
+                    null, Column.BOTTOM, Column.POPUP -> Column.ZIG
+                    Column.ZIG -> Column.SURFACE
+                    Column.SURFACE -> Column.BOTTOM
+                }
+                current == null || current == Column.BOTTOM -> null
+                else -> Column.BOTTOM
+            }
+            null -> when (current) {
+                null, Column.BOTTOM -> Column.POPUP
+                Column.POPUP -> if (warm) Column.ZIG else Column.BOTTOM
+                Column.ZIG -> if (warm) Column.SURFACE else Column.BOTTOM
+                Column.SURFACE -> Column.BOTTOM
+            }
         }
     }
 

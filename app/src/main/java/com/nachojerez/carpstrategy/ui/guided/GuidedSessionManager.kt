@@ -22,6 +22,7 @@ import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.GuidedEnv
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
+import com.nachojerez.carpstrategy.domain.guided.rodsToday
 import com.nachojerez.carpstrategy.domain.guided.GuidedUpdate
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.Spot
@@ -121,19 +122,22 @@ class GuidedSessionManager @Inject constructor(
         waterC?.let { saveWaterMeasurement(it, location, now) }
         val sessions = journal.observeSessions().first()
         val gear = settings.observeGear().first().today()
+        // Fase 7.20: con cañas apuntadas en Mi equipo, mandan ellas (nombre, tipo y longitud).
+        val setups = gear.rodsToday()
+        val names = if (setups.isNotEmpty()) setups.map { it.name } else rodNames
         val (reservoir, all) = reservoirAt(location)
         val lessons = Lessons.forReservoir(settings.observeLessons().first(), reservoir?.reservoir?.id)
         val (base, weather, advice) = withContext(io) {
             val raw = observeRawWeather(location).first()
             val rules = rulesRepository.load()
             val snapshots = journal.predictionsBetween(now.minusSeconds(86_400), now)
-            val session = completeSession(Session(start = now, location = location, rods = rodNames.size, zone = zone, createdAt = now), true, now, raw, rules, snapshots)
+            val session = completeSession(Session(start = now, location = location, rods = names.size, zone = zone, createdAt = now), true, now, raw, rules, snapshots)
             val derived = buildStrategyState(raw, rules, now, location).derived
             Triple(session, weatherSnapshotAt(raw, derived, now), adviceFor(derived, now, sessions, gear, listOfNotNull(spot), lessons, reservoir, all))
         }
         // Plan A con los cebos recomendados: los que te han funcionado primero (fase 7.5).
         val env = env(now).copy(preferredBaits = advice?.baits?.mapNotNull { it.type }.orEmpty())
-        val started = GuidedSessions.start(base, rodNames, groundbait, env, spot)
+        val started = GuidedSessions.start(base, names, groundbait, env, spot, setups)
         // El primer tiempo se guarda sin reevaluar: el plan A de cada caña sigue pendiente.
         val withWeather = weather?.let { w -> started.copy(session = started.session.copy(guided = started.session.guided?.withWeather(w))) } ?: started
         // El plan con IA de Estrategia (si es reciente) queda con la sesión para comparar después.

@@ -22,6 +22,7 @@ import com.nachojerez.carpstrategy.domain.guided.JumpCount
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.RigType
+import com.nachojerez.carpstrategy.domain.guided.RodKind
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Situation
 import com.nachojerez.carpstrategy.domain.guided.Solubility
@@ -56,6 +57,23 @@ fun Column.titleRes(): Int = when (this) {
     Column.POPUP -> R.string.column_popup
     Column.ZIG -> R.string.column_zig
     Column.SURFACE -> R.string.column_surface
+}
+
+/** Columna dicha para el tipo de caña (fase 7.20): en la fija, la media agua es con flotador, no zig. */
+@StringRes
+fun Column.titleRes(kind: RodKind?): Int = if (kind == RodKind.FIXED && this == Column.ZIG) R.string.column_float_mid else titleRes()
+
+@StringRes
+fun RodKind.titleRes(): Int = when (this) {
+    RodKind.FIXED -> R.string.rod_kind_fixed
+    RodKind.CARP -> R.string.rod_kind_carp
+}
+
+/** «Fija · 9 m» o «Carpfishing»; vacío sin tipo. */
+fun Resources.rodKindLabel(kind: RodKind?, lengthM: Int?): String = when (kind) {
+    null -> ""
+    RodKind.FIXED -> lengthM?.let { getString(R.string.rod_kind_fixed_length, it) } ?: getString(R.string.rod_kind_fixed)
+    RodKind.CARP -> getString(R.string.rod_kind_carp)
 }
 
 @StringRes
@@ -406,6 +424,8 @@ fun AiIssue.titleRes(): Int = when (this) {
     AiIssue.UNKNOWN_FIELD -> R.string.ai_issue_field
     AiIssue.OUTSIDE_LEGAL_HOURS -> R.string.ai_issue_hours
     AiIssue.AMOUNT_OUT_OF_RANGE -> R.string.ai_issue_amount
+    AiIssue.ROD_RULES -> R.string.ai_issue_rod_rules
+    AiIssue.WEIGHT_OUT_OF_RANGE -> R.string.ai_issue_weight
 }
 
 /** «IA: mantener — motivo» o por qué se descartó / falló (mandan las reglas). */

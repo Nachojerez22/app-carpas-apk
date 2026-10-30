@@ -213,7 +213,16 @@ data class ChatMessage(
 )
 
 /** Una caña con nombre («fija», «carrete») y su registro. */
-data class RodTrack(val id: Int, val name: String, val log: GuidedLog)
+data class RodTrack(
+    val id: Int,
+    val name: String,
+    val log: GuidedLog,
+    /** Tipo de caña (fase 7.20); null en sesiones antiguas o si no lo apuntaste. */
+    val kind: RodKind? = null,
+    val lengthM: Int? = null,
+) {
+    val setup: RodSetup get() = RodSetup(name, kind, lengthM)
+}
 
 /**
  * Registro completo de una sesión guiada: una pista por caña, los avisos mostrados (contestados o

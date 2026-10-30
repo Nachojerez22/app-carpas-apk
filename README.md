@@ -177,6 +177,15 @@ El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla
   porqué, el cebado y el engodo, los consejos de la IA y qué hacer si cambia algo; y cómo fue cada paso.
 - Es una foto de cuando la preparaste: si la previsión cambia, vuelve a prepararla.
 
+### Tus cañas: fija o carpfishing (fase 7.20)
+
+- En **Mi equipo → Cañas** apuntas cada caña con su nombre y su tipo: **fija** (9, 8, 7 o 5 m) o **carpfishing**,
+  y marcas las que llevas hoy (también desde Estrategia, paso ②).
+- **Fija**: a fondo, a media agua o en superficie, con flotador de 3 a 4 g y al alcance de la caña; nunca con boilies.
+  **Carpfishing**: siempre a fondo, de 7 a 100 m, con plomo de 40 a 90 g; vale cualquier cebo, también maíz.
+- El plan del día hace una línea por caña con lo que vale para ella, la sesión guiada solo propone cambios que la
+  caña puede hacer y la IA recibe el tipo de cada caña: si se lo salta, su respuesta se descarta.
+
 ### Aviso de la próxima salida y fotos (fase 7.17)
 
 - **Aviso por la tarde** (Lugar → «Aviso de la próxima salida», desactivado por defecto): hacia las 19:00 la app mira
@@ -384,6 +393,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
 - [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
+- [x] **Fase 7.20**: tus cañas (fija con longitud o carpfishing) y un plan que respeta cada una
 - [x] **Fase 7.19**: ver la preparación de la próxima salida (guardada, sin red) para analizarla
 - [x] **Fase 7.17**: aviso por la tarde si la próxima salida pinta bien y fotos de las capturas (solo en el móvil)
 - [x] **Fase 7.16**: ¿acierta la app? (intervalos y veredicto honesto) y registro rápido (Carpa por caña, agua al empezar)

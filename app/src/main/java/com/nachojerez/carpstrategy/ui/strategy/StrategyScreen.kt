@@ -64,6 +64,8 @@ import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
+import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
+import com.nachojerez.carpstrategy.domain.guided.RodKind
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.guided.WindRelation
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
@@ -96,6 +98,7 @@ import com.nachojerez.carpstrategy.ui.guided.GearDraft
 import com.nachojerez.carpstrategy.ui.guided.GroundbaitNormalRow
 import com.nachojerez.carpstrategy.ui.guided.SheetUiState
 import com.nachojerez.carpstrategy.ui.guided.baitText
+import com.nachojerez.carpstrategy.ui.guided.rodKindLabel
 import com.nachojerez.carpstrategy.ui.guided.shortRes
 import com.nachojerez.carpstrategy.ui.guided.titleRes
 import com.nachojerez.carpstrategy.ui.reservoir.effectRes
@@ -640,8 +643,25 @@ private fun SpotStep(state: StrategyUiState, dayPlan: DayPlan?, aiBest: AiSpotPi
             if (state.chosenSpotId == null) dayPlan?.spot?.let { Caption(stringResource(R.string.strategy_auto_spot, it.spot.name)) }
         }
         Text(stringResource(R.string.strategy_rods_title), style = MaterialTheme.typography.titleSmall)
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            (1..DayPlans.MAX_RODS).forEach { n -> FilterChip(selected = state.rods == n, onClick = { actions.onChooseRods(n) }, label = { Text("$n") }) }
+        // Fase 7.20: con cañas en Mi equipo se marcan las que llevas hoy (cada una con su tipo); si no, el número.
+        val myRods = state.allGear.filter { it.category == GearCategory.ROD }
+        if (myRods.isNotEmpty()) {
+            val res = LocalContext.current.resources
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                myRods.forEach { r ->
+                    FilterChip(
+                        selected = r.available,
+                        onClick = { actions.onToggleBait(r.id) },
+                        label = { Text(listOf(r.name, res.rodKindLabel(r.rodKind, r.rodLengthM)).filter { it.isNotBlank() }.joinToString(" · ")) },
+                    )
+                }
+            }
+            Caption(stringResource(if (state.rodSetups.isEmpty()) R.string.strategy_rods_none_today else R.string.strategy_rods_from_gear, GuidedSessions.MAX_RODS))
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                (1..DayPlans.MAX_RODS).forEach { n -> FilterChip(selected = state.rods == n, onClick = { actions.onChooseRods(n) }, label = { Text("$n") }) }
+            }
+            TextButton(onClick = actions.onOpenGear) { Text(stringResource(R.string.strategy_rods_add)) }
         }
     }
 }
@@ -800,13 +820,19 @@ internal fun RodLineRow(r: RodLine, planSpot: String?) {
         modifier = Modifier.fillMaxWidth().clickable { open = !open },
     ) {
         Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.strategy_ai_plan_rod, r.rod), style = MaterialTheme.typography.titleSmall)
+            val title = listOf(
+                r.setup?.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.strategy_ai_plan_rod, r.rod),
+                res.rodKindLabel(r.setup?.kind, r.setup?.lengthM),
+            ).filter { it.isNotBlank() }.joinToString(" · ")
+            Text(title, style = MaterialTheme.typography.titleSmall)
+            val kind = r.setup?.kind
             val parts = listOfNotNull(
                 r.spotName?.takeIf { !it.trim().equals(planSpot?.trim(), ignoreCase = true) },
                 res.baitText(r.baitType, r.baitName),
                 r.rigName,
-                stringResource(r.column.titleRes()),
+                stringResource(r.column.titleRes(kind)),
                 r.distanceM?.let { stringResource(R.string.strategy_ai_plan_distance, Formatting.number(it, 0)) } ?: stringResource(r.distance.titleRes()),
+                weightText(r),
             )
             Text(parts.joinToString(" · "))
             if (open) {
@@ -821,6 +847,14 @@ internal fun RodLineRow(r: RodLine, planSpot: String?) {
         }
         AnyEvidenceBadge(r.evidence)
     }
+}
+
+/** «flotador de 3–4 g» o «plomo de 60 g» (el de la IA o tu rango); null sin tipo de caña. */
+@Composable
+private fun weightText(r: RodLine): String? {
+    val range = r.weightRange ?: return null
+    val grams = r.weightG?.let { Formatting.number(it, 0) } ?: "${range.first}–${range.last}"
+    return stringResource(if (r.setup?.kind == RodKind.FIXED) R.string.strategy_rod_float else R.string.strategy_rod_lead, grams)
 }
 
 /** Qué hacer si pasa algo, en una frase. */
@@ -944,7 +978,7 @@ internal fun kgText(kg: Double): String =
 private fun StartStep(state: StrategyUiState, dayPlan: DayPlan, onStartGuided: () -> Unit) {
     CarpCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
         Text(
-            stringResource(R.string.strategy_start_summary, state.reservoir?.reservoir?.name ?: stringResource(R.string.strategy_place_no_reservoir), dayPlan.spot?.spot?.name ?: "—", state.rods),
+            stringResource(R.string.strategy_start_summary, state.reservoir?.reservoir?.name ?: stringResource(R.string.strategy_place_no_reservoir), dayPlan.spot?.spot?.name ?: "—", state.planRods),
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
         Button(onClick = onStartGuided, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.strategy_start_with_plan)) }

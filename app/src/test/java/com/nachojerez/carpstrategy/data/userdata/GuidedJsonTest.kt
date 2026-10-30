@@ -24,6 +24,7 @@ import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.ProposalSource
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.RigType
+import com.nachojerez.carpstrategy.domain.guided.RodKind
 import com.nachojerez.carpstrategy.domain.guided.RodTrack
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Situation
@@ -56,7 +57,7 @@ class GuidedJsonTest {
             .withCheckIn(CheckIn(t0.plusSeconds(5400), activity = HookActivity.CATCH))
             .withCheckIn(CheckIn(t0.plusSeconds(5500), activity = HookActivity.CATCH, species = Species.BLACK_BASS, rebait = GroundbaitLevel.LOW))
         val record = GuidedRecord(
-            rods = listOf(RodTrack(1, "fija", log), RodTrack(2, "carrete", GuidedLog.start(t0, a))),
+            rods = listOf(RodTrack(1, "fija", log, RodKind.FIXED, 9), RodTrack(2, "carrete", GuidedLog.start(t0, a), RodKind.CARP)),
             alarms = listOf(t0.plusSeconds(3600)),
             windChanges = listOf(t0.plusSeconds(4000)),
             groundbait = GroundbaitLevel.HIGH,
@@ -175,5 +176,15 @@ class GuidedJsonTest {
         // Equipo guardado antes de la fase 7.13: sin campos nuevos, se lleva hoy.
         val old = """[{"id":"1","categoria":"BAIT","nombre":"Maíz","tipo_cebo":"MAIZE"}]"""
         assertTrue(GuidedJson.decodeGear(old).single().available)
+    }
+
+    @Test
+    fun `canas del equipo y tipo de cana de la sesion ida y vuelta`() {
+        val gear = listOf(
+            GearItem("r1", GearCategory.ROD, "Larga", rodKind = RodKind.FIXED, rodLengthM = 9),
+            GearItem("r2", GearCategory.ROD, "Carrete", rodKind = RodKind.CARP, available = false),
+        )
+        assertEquals(gear, GuidedJson.decodeGear(GuidedJson.encodeGear(gear)))
+        assertTrue(GuidedJson.encodeGear(gear).contains("\"tipo_cana\":\"FIXED\""))
     }
 }

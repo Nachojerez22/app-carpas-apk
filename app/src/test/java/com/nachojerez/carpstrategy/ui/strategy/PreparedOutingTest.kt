@@ -13,6 +13,8 @@ import com.nachojerez.carpstrategy.domain.assistant.AiRodPlan
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.RodKind
+import com.nachojerez.carpstrategy.domain.guided.RodSetup
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.manual.ManualField
@@ -100,5 +102,25 @@ class PreparedOutingTest {
         assertNotNull(read)
         assertEquals(PrepPlan.NOTHING, read!!.result.plan)
         assertEquals(outing.rodLines, read.rodLines)
+    }
+
+    @Test
+    fun `la cana de cada linea (tipo, longitud) y el peso de la IA van con la preparacion`() {
+        val base = state()
+        val rods = listOf(
+            GearItem("r1", GearCategory.ROD, "Larga", rodKind = RodKind.FIXED, rodLengthM = 9),
+            GearItem("r2", GearCategory.ROD, "Carrete", rodKind = RodKind.CARP),
+        )
+        val state = base.copy(gear = base.gear + rods)
+        val key = planKey(state)!!
+        val ai = AiPlan("Plan", Evidence.YELLOW, listOf(AiRodPlan(2, baitName = "Chufa", reason = "Plomo de 60 g", evidence = Evidence.YELLOW, weightG = 60.0)))
+        val prepared = AiOutcome(AiExchange(now, AiKind.PLAN, "GEMINI", "modelo", valid = true), ai)
+        val dayPlan = dayPlanFor(state, PlanUiState(prepared = prepared, preparedKey = key))!!
+        assertEquals(listOf(RodSetup("Larga", RodKind.FIXED, 9), RodSetup("Carrete", RodKind.CARP)), dayPlan.rods.map { it.setup })
+        assertEquals(60.0, dayPlan.rods[1].weightG)
+
+        val outing = preparedOutingOf(state, dayPlan, emptyList(), result, now)
+        val read = PreparedOutingJson.decode(PreparedOutingJson.encode(outing))!!
+        assertEquals(dayPlan.rods, read.rodLines)
     }
 }
