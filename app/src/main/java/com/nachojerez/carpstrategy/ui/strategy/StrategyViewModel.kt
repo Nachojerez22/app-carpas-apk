@@ -280,6 +280,7 @@ class StrategyViewModel @Inject constructor(
             val key = planKey(state)
             val input = planInput(state, state.rods, state.gear, target)
             val apiKey = assistantSettings.apiKey()
+            var prepared: AiOutcome<AiPlan>? = null
             val (planResult, detail) = when {
                 key == null || input == null -> PrepPlan.NOTHING to null
                 apiKey == null -> PrepPlan.NO_KEY to null
@@ -291,6 +292,7 @@ class StrategyViewModel @Inject constructor(
                         )
                     }
                     if (outcome.value != null) {
+                        prepared = outcome
                         localSettings.put(GuidedSessionManager.KEY_PREPARED_PLAN, GuidedJson.encodeAi(outcome.exchange))
                         localSettings.put(KEY_PREPARED_KEY, key)
                         planFlow.value = planFlow.value.copy(prepared = outcome, preparedKey = key)
@@ -304,9 +306,18 @@ class StrategyViewModel @Inject constructor(
             prepFlow.value = PrepUiState(step = PrepStep.SHEETS)
             val improved = gearEditor.refreshPendingSheets()
             val pending = gearEditor.observePendingSheets().first().size
-            prepFlow.value = PrepUiState(result = PrepResult(target, forecastOk, planResult, detail, improved, pending))
+            val result = PrepResult(target, forecastOk, planResult, detail, improved, pending)
+            // Fase 7.19: se guarda lo que salió para poder abrirlo y analizarlo después.
+            val dayPlan = dayPlanFor(state, PlanUiState(prepared = prepared, preparedKey = key))
+            val outing = preparedOutingOf(state, dayPlan, prepared?.value?.advice.orEmpty(), result, clock.instant())
+            localSettings.put(KEY_PREPARED_OUTING, PreparedOutingJson.encode(outing))
+            prepFlow.value = PrepUiState(result = result)
         }
     }
+
+    /** La última preparación guardada («Ver la preparación»). */
+    val preparedOuting: StateFlow<PreparedOuting?> = localSettings.observe(KEY_PREPARED_OUTING).map(PreparedOutingJson::decode)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** Plan con IA: solo si hay clave; la respuesta se valida y, si no vale, mandan las reglas. */
     val plan: StateFlow<PlanUiState> = combine(planFlow, assistantSettings.observeKeyHint()) { p, hint -> p.copy(configured = hint != null) }
