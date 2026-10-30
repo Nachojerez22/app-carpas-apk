@@ -89,12 +89,12 @@ fun GearItem.toRodSetup(): RodSetup? = if (category == GearCategory.ROD) {
 }
 
 /**
- * Las cañas que llevas hoy, en el orden de tu equipo (como mucho [GuidedSessions.MAX_RODS]). Si
- * llevas una de carpfishing, siempre entra en el plan (§5.9.13, decisión del usuario): con más
- * cañas que el máximo, la primera de carpfishing ocupa el sitio de la última fija.
+ * Las cañas que llevas hoy, en el orden de tu equipo (como mucho [GuidedSessions.MAX_RODS]). La
+ * de carpfishing siempre se lleva y siempre entra en el plan (§5.9.13, decisión del usuario): con
+ * más cañas que el máximo, la primera de carpfishing ocupa el sitio de la última fija.
  */
 fun List<GearItem>.rodsToday(): List<RodSetup> {
-    val all = filter { it.category == GearCategory.ROD && it.available }.mapNotNull { it.toRodSetup() }
+    val all = filter { it.category == GearCategory.ROD && it.carriedToday }.mapNotNull { it.toRodSetup() }
     val first = all.take(GuidedSessions.MAX_RODS)
     if (first.any { it.kind == RodKind.CARP }) return first
     val carp = all.firstOrNull { it.kind == RodKind.CARP } ?: return first

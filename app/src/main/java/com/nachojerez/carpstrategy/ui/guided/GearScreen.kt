@@ -50,6 +50,7 @@ import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.RigType
 import com.nachojerez.carpstrategy.domain.guided.RodKind
+import com.nachojerez.carpstrategy.domain.guided.carriedToday
 import com.nachojerez.carpstrategy.domain.guided.RodRules
 import com.nachojerez.carpstrategy.ui.components.AnyEvidenceBadge
 import com.nachojerez.carpstrategy.ui.components.Caption
@@ -169,9 +170,10 @@ internal fun GearCategory.addRes(): Int = when (this) {
 internal fun RodRow(item: GearItem, onToggle: () -> Unit, onEdit: () -> Unit) {
     val res = LocalContext.current.resources
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Checkbox(checked = item.available, onCheckedChange = { onToggle() })
+        // La de carpfishing siempre se lleva: casilla marcada y sin poder quitarla.
+        Checkbox(checked = item.carriedToday, onCheckedChange = { onToggle() }, enabled = item.rodKind != RodKind.CARP)
         Column(Modifier.weight(1f).clickable(onClick = onEdit).padding(vertical = Spacing.xs)) {
-            Text(item.name, color = if (item.available) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(item.name, color = if (item.carriedToday) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
             val kind = res.rodKindLabel(item.rodKind, item.rodLengthM)
             if (kind.isNotBlank()) Text(kind, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -293,7 +295,11 @@ internal fun GearDialog(
                     draft.rodKind?.let { Caption(stringResource(if (it == RodKind.FIXED) R.string.gear_rod_fixed_rules else R.string.gear_rod_carp_rules)) }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.gear_rod_today), modifier = Modifier.weight(1f))
-                        Switch(checked = draft.available, onCheckedChange = { onChange(draft.copy(available = it)) })
+                        Switch(
+                            checked = draft.available || draft.rodKind == RodKind.CARP,
+                            onCheckedChange = { onChange(draft.copy(available = it)) },
+                            enabled = draft.rodKind != RodKind.CARP,
+                        )
                     }
                 }
                 if (bait) {

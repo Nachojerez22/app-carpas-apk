@@ -71,6 +71,16 @@ class RodsTest {
     }
 
     @Test
+    fun `la cana de carpfishing se lleva siempre aunque este desmarcada`() {
+        val carp = GearItem("c", GearCategory.ROD, "Carrete", rodKind = RodKind.CARP, available = false)
+        val fixed = GearItem("f", GearCategory.ROD, "Fija 7", rodKind = RodKind.FIXED, rodLengthM = 7, available = false)
+        assertTrue(carp.carriedToday)
+        assertFalse(fixed.carriedToday)
+        assertEquals(listOf(RodSetup("Carrete", RodKind.CARP, null)), listOf(carp, fixed).rodsToday())
+        assertEquals(listOf(carp), listOf(carp, fixed).today())
+    }
+
+    @Test
     fun `la fija nunca empieza con boilies y la de carpfishing puede`() {
         val fixed = GuidedEngine.initialProposal(ctx(FishingPhase.SUMMER, RodKind.FIXED))
         assertEquals(BaitType.MAIZE, fixed.bait)

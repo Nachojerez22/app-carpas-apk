@@ -573,7 +573,8 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - **Fija** (sin carrete; el usuario tiene de **9, 8, 7 y 5 m**): se pesca **a fondo, a media agua o en superficie** con **flotador (pluma o boya) de 3 a 4 g**, al alcance de la caña (distancia hasta su longitud). **Nunca con boilies** (ni pop-up ni boilie duro); sí maíz, masilla, pan, lombriz, chufa…
 - **Carpfishing** (con carrete): **siempre a fondo** (el pop-up corto está anclado al fondo y cuenta como fondo; nada de zig ni superficie), de **7 a 100 m**, con **plomo de 40 a 90 g**. Vale cualquier cebo, **también maíz**.
 - En la escalera de alternativas (§5.9.2): el peldaño «columna» de la carpfishing alterna fondo ↔ pop-up; el de la fija, con calor, fondo → media agua → superficie, y sin calor no hay peldaño de columna (sigue a fondo, §5.6). El cebo duro contra cangrejo (§5.9.1) en la fija va a fondo, sin pop-up.
-- **Si llevas una caña de carpfishing, el plan siempre le dice qué hacer** (también al preparar la próxima salida): con más cañas que el máximo de 3, la de carpfishing entra en lugar de la última fija (oct. 2026, petición del usuario).
+- **La caña de carpfishing se lleva siempre** y el plan siempre le dice qué hacer (también al preparar la próxima salida): cuenta como «la llevo hoy» aunque no esté marcada y, con más cañas que el máximo de 3, entra en lugar de la última fija. El usuario monta siempre la de carpfishing y dos fijas (oct. 2026, decisión del usuario).
+- **El plomo de la fija lo pone el usuario:** la app y la IA no lo valoran ni lo recomiendan.
 - La IA puede citar el flotador (pluma o boya) o el plomo en gramos **solo dentro de esos rangos**; los gramos de cebo siguen prohibidos (§5.5).
 
 ### 5.10 Pescar más: recomendación concreta y conocimiento aprendido (oct. 2026, petición del usuario)
