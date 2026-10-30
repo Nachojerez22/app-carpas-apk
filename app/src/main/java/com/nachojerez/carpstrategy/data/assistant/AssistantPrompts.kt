@@ -54,8 +54,6 @@ data class PlanInput(
     val now: Instant,
     val zone: ZoneId,
     val rods: Int,
-    /** Cañas de Mi equipo que lleva hoy, en orden (fase 7.18); vacío = sin tipo. */
-    val rodSetups: List<RodSetup> = emptyList(),
     val band: String?,
     val limitingLevel: String?,
     val legalStart: Instant?,
@@ -78,6 +76,8 @@ data class PlanInput(
     /** Nivel de cebado de la app (null = no se ceba) y tu medida en kg por caña (fase 7.13). */
     val groundbait: GroundbaitLevel? = null,
     val groundbaitNormalKg: Double? = null,
+    /** Cañas de Mi equipo que lleva hoy, en orden (fase 7.18); vacío = sin tipo. */
+    val rodSetups: List<RodSetup> = emptyList(),
 )
 
 /**
