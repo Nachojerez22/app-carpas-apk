@@ -18,6 +18,8 @@ import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedEnv
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.JumpCount
+import com.nachojerez.carpstrategy.domain.guided.RodKind
+import com.nachojerez.carpstrategy.domain.guided.RodSetup
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.WeatherSnapshot
@@ -81,6 +83,27 @@ class AssistantPromptsTest {
         assertEquals("09:00", o["ventanas_sugeridas"]!!.jsonArray.single().jsonObject["desde"]!!.jsonPrimitive.content)
         assertEquals("YELLOW", o["consejos_de_las_reglas"]!!.jsonArray.single().jsonObject["evidencia"]!!.jsonPrimitive.content)
         assertEquals("FACING", o["mis_puestos"]!!.jsonArray.single().jsonObject["viento"]!!.jsonPrimitive.content)
+    }
+
+    @Test
+    fun `el plan lleva el tipo de cada cana y las normas lo piden`() {
+        val input = PlanInput(
+            now = t0, zone = madrid, rods = 2, rodSetups = listOf(RodSetup("Larga", RodKind.FIXED, 9), RodSetup("Carrete", RodKind.CARP)),
+            band = null, limitingLevel = null, legalStart = null, legalEnd = null, windows = emptyList(), advice = emptyList(),
+            waterC = 19.5, waterMeasured = false, waterTrend3dC = null, season = null,
+            windFromDeg = null, windKmh = null, rain24hMm = null, gear = gear, spots = spots,
+        )
+        val rods = Json.parseToJsonElement(AssistantPrompts.planState(input)).jsonObject["canas_de_hoy"]!!.jsonArray
+        val fixed = rods[0].jsonObject
+        assertEquals("FIJA", fixed["tipo"]!!.jsonPrimitive.content)
+        assertEquals(9, fixed["longitud_m"]!!.jsonPrimitive.content.toInt())
+        assertEquals("false", fixed["boilies"]!!.jsonPrimitive.content)
+        assertEquals("3-4", fixed["flotador_g"]!!.jsonPrimitive.content)
+        val carp = rods[1].jsonObject
+        assertEquals("CARPFISHING", carp["tipo"]!!.jsonPrimitive.content)
+        assertEquals(listOf("BOTTOM", "POPUP"), carp["columnas_permitidas"]!!.jsonArray.map { it.jsonPrimitive.content })
+        assertEquals("40-90", carp["plomo_g"]!!.jsonPrimitive.content)
+        assertTrue(AssistantPrompts.PLAN_SYSTEM.contains("NUNCA con boilies"))
     }
 
     @Test

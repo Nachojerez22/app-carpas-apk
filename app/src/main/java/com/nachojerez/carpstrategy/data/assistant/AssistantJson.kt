@@ -97,6 +97,7 @@ object AssistantJson {
                 rigName = c.string("montaje"),
                 column = c.string("columna")?.let { name -> Column.entries.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) } },
                 distanceM = (c["distancia_m"] as? JsonPrimitive)?.doubleOrNull,
+                weightG = (c["peso_g"] as? JsonPrimitive)?.doubleOrNull,
                 reason = c.string("motivo").orEmpty(),
                 evidence = evidence(c.string("evidencia")),
             )

@@ -354,6 +354,20 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   de sesiones borradas y sueltas (> 1 día). Las fichas pendientes se recalculan solas al renovarse la cuota. El plan
   preparado solo pasa a la guiada si es de ese día y embalse (`preparedPlanFits`, `KEY_PREPARED_KEY`).
 
+## Tipo de caña: fija o carpfishing (fase 7.18)
+
+- `domain/guided/Rods.kt` (puro, CONOCIMIENTO.md §5.9.13): `RodKind` (FIXED, CARP), `RodSetup` y `RodRules`
+  (fija: fondo, media agua = `Column.ZIG` con flotador o superficie, hasta su longitud 9/8/7/5 m, flotador 3–4 g,
+  sin boilies ni pop-up; carpfishing: `BOTTOM`/`POPUP`, 7–100 m, plomo 40–90 g, cualquier cebo).
+- Las cañas son `GearItem` de `GearCategory.ROD` (`rodKind`, `rodLengthM`; JSON `tipo_cana`, `longitud_m`) en el
+  ajuste `gear`: «la llevo hoy» = `available`. `rodsToday()`; sin cañas apuntadas se usa el número (`KEY_RODS`).
+- `DayPlans.build(…, setups)`: una línea por caña con cebo, columna y distancia que valen (`columnFor`,
+  `clampDistance`) y `RodLine.weightRange`. `GuidedContext.rodKind` filtra cebos (`chooseBait`) y columnas
+  (`nextColumn(…, rodKind)` puede ser null: sin peldaño de columna). `RodTrack.kind/lengthM` (JSON de la sesión).
+- IA: `canas_de_hoy`/`canas[].tipo` en el estado, norma 7 en `RULES`, `peso_g` en el plan. `AiContext.rodSetups` →
+  `AiIssue.ROD_RULES` y `WEIGHT_OUT_OF_RANGE`; los textos admiten «flotador de 3 g» / «plomo de 60 g» en rango
+  (`TACKLE_WEIGHT`), los gramos de cebo siguen prohibidos.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

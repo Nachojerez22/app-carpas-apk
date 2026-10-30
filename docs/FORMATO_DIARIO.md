@@ -67,7 +67,7 @@ de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "te
 ```json
 "guiado": {
   "canas": [
-    { "id": 1, "nombre": "fija",
+    { "id": 1, "nombre": "fija", "tipo_cana": "FIXED", "longitud_m": 9,
       "tramos": [
         { "inicio": "…", "fin": "…", "paso": "INITIAL", "cebo": "BOILIE", "cebo_nombre": "Boilie fresa 20",
           "columna": "BOTTOM", "montaje": "Pelo 25 lb", "forzado": false,
@@ -99,6 +99,8 @@ de `rules.json` (docs/REGLAS.md), p. ej. `{"numeros": {"temp_agua_c": 18.1}, "te
   ]
 }
 ```
+
+Desde 0.24.0 cada caña puede llevar `tipo_cana` (`FIXED` fija o `CARP` carpfishing) y, si es fija, `longitud_m`; sin ellos, la caña no tiene tipo (sesiones anteriores).
 
 - Una entrada en `canas` por caña, con su nombre (puede ir vacío: «Caña N»).
 - Un **tramo** es el tiempo pescado en una caña con una misma configuración; al aceptar una

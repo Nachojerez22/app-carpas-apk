@@ -82,14 +82,23 @@ object GuidedSessions {
             lastWindChange = record?.windChanges?.lastOrNull(),
             conditions = record?.activeConditions(env.now).orEmpty(),
             preferredBaits = env.preferredBaits,
+            rodKind = record?.rod(rodId)?.kind,
         )
     }
 
     /**
      * Empieza con una caña por nombre («fija», «carrete»), cada una con su plan A pendiente.
      * La segunda caña empieza por otro cebo de la fase si lo llevas, para comparar (🟣).
+     * [setups]: tipo y longitud de cada caña, en el mismo orden (fase 7.18; vacío = sin tipo).
      */
-    fun start(session: Session, rodNames: List<String>, groundbait: GroundbaitLevel?, env: GuidedEnv, spot: Spot? = null): GuidedUpdate {
+    fun start(
+        session: Session,
+        rodNames: List<String>,
+        groundbait: GroundbaitLevel?,
+        env: GuidedEnv,
+        spot: Spot? = null,
+        setups: List<RodSetup> = emptyList(),
+    ): GuidedUpdate {
         val names = rodNames.map { it.trim() }.take(MAX_RODS).ifEmpty { listOf("") }
         val base = session.copy(
             rods = names.size,
@@ -97,8 +106,9 @@ object GuidedSessions {
             guided = GuidedRecord(rods = emptyList(), groundbait = groundbait, spot = spot),
         )
         val rods = names.mapIndexed { index, name ->
-            val ctx = context(base, index + 1, env)
-            RodTrack(index + 1, name, GuidedLog.start(env.now, GuidedEngine.initialProposal(ctx, variant = index)))
+            val setup = setups.getOrNull(index)
+            val ctx = context(base, index + 1, env).copy(rodKind = setup?.kind)
+            RodTrack(index + 1, name, GuidedLog.start(env.now, GuidedEngine.initialProposal(ctx, variant = index)), setup?.kind, setup?.lengthM)
         }
         val started = base.copy(guided = base.guided!!.copy(rods = rods))
         return evaluateAll(started, env, appendProposals = false).let { update ->
@@ -181,6 +191,7 @@ object GuidedSessions {
             zoneLimitReached = record?.rods?.filter { it.log.zoneChanges >= maxZones }?.map { it.id }?.toSet().orEmpty(),
             legalStart = LegalWindow.of(SolarCalculator.sunTimes(env.now.atZone(env.zone).toLocalDate(), session.location))?.start,
             zone = env.zone,
+            rodSetups = record?.rods?.filter { it.kind != null }?.associate { it.id to it.setup }.orEmpty(),
         )
     }
 

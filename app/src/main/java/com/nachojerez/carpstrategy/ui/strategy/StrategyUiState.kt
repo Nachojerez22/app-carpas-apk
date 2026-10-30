@@ -25,6 +25,8 @@ import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
+import com.nachojerez.carpstrategy.domain.guided.RodSetup
+import com.nachojerez.carpstrategy.domain.guided.rodsToday
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.JournalStats
@@ -103,6 +105,12 @@ data class PlanUiState(
 /** Cañas por defecto si aún no has elegido. */
 const val DEFAULT_RODS = 2
 
+/** Cañas de Mi equipo que llevas hoy (fase 7.18); vacío = se elige el número de cañas. */
+val StrategyUiState.rodSetups: List<RodSetup> get() = gear.rodsToday()
+
+/** Número de cañas del plan: las de Mi equipo que llevas hoy o las elegidas por número. */
+val StrategyUiState.planRods: Int get() = rodSetups.size.takeIf { it > 0 } ?: rods
+
 /**
  * Para qué se pidió un plan de la IA (fase 7.12): día, embalse, puesto (o automático), cañas y
  * franja del día. Si cambia, el plan guardado ya no vale y se pide otro (una vez). Null si no
@@ -114,8 +122,10 @@ fun planKey(state: StrategyUiState): String? {
     val day = advice.forTime.atZone(Formatting.MADRID).toLocalDate()
     // Los cebos de hoy y tu medida también cuentan: si cambian, el plan (y el engodo) cambia.
     val baits = state.gear.filter { it.category == GearCategory.BAIT }.map { it.id }.sorted().joinToString(",")
+    // Fase 7.18: las cañas de hoy (tipo y longitud) también: con otras cañas, otro plan.
+    val rods = state.rodSetups.takeIf { it.isNotEmpty() }?.joinToString(",") { "${it.kind ?: "-"}${it.lengthM ?: ""}" } ?: state.rods
     return listOf(
-        day, state.reservoir?.reservoir?.id ?: NO_RESERVOIR, state.chosenSpotId ?: "auto", state.rods, advice.dayPart, baits, state.groundbaitNormalKg ?: "-",
+        day, state.reservoir?.reservoir?.id ?: NO_RESERVOIR, state.chosenSpotId ?: "auto", rods, advice.dayPart, baits, state.groundbaitNormalKg ?: "-",
     ).joinToString("|")
 }
 
@@ -130,7 +140,7 @@ fun dayPlanFor(state: StrategyUiState, plan: PlanUiState): DayPlan? {
     val ai = aiPlanFor(state, plan)?.value
     val aiSpot = ai?.bestSpot?.let { best -> advice.spots.firstOrNull { it.spot.name.trim().equals(best.spotName.trim(), ignoreCase = true) } }
     val spot = advice.chosen ?: aiSpot ?: advice.spots.firstOrNull()
-    return DayPlans.build(advice, state.rods, phaseOf(derived), state.gear, ai, spot, state.groundbaitNormalKg)
+    return DayPlans.build(advice, state.rods, phaseOf(derived), state.gear, ai, spot, state.groundbaitNormalKg, state.rodSetups)
 }
 
 /**
@@ -229,6 +239,7 @@ fun planInput(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: Inst
         now = now,
         zone = Formatting.MADRID,
         rods = rods.coerceIn(1, GuidedSessions.MAX_RODS),
+        rodSetups = gear.rodsToday(),
         band = result.band?.name,
         limitingLevel = result.limitingLevel?.name,
         legalStart = derived?.legalToday?.start,
@@ -261,6 +272,7 @@ fun planContext(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: In
     legalStart = state.derived?.legalToday?.start,
     zone = Formatting.MADRID,
     groundbaitNormalKg = state.groundbaitNormalKg,
+    rodSetups = gear.rodsToday().withIndex().associate { (i, r) -> i + 1 to r },
 )
 
 /** Estación de las reglas en el texto que usa la sesión guiada (`estacion` de rules.json). */

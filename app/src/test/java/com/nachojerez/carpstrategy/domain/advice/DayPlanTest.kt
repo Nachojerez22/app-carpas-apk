@@ -12,6 +12,9 @@ import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
+import com.nachojerez.carpstrategy.domain.guided.RodKind
+import com.nachojerez.carpstrategy.domain.guided.RodRules
+import com.nachojerez.carpstrategy.domain.guided.RodSetup
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.guided.StepKind
@@ -117,5 +120,22 @@ class DayPlanTest {
     fun `solo lo que llevas hoy`() {
         val list = listOf(gear[0], gear[1].copy(available = false))
         assertEquals(listOf("Boilie fresa"), list.today().map { it.name })
+    }
+
+    @Test
+    fun `con canas de mi equipo cada linea respeta su tipo`() {
+        val setups = listOf(RodSetup("Larga", RodKind.FIXED, 7), RodSetup("Carrete", RodKind.CARP), RodSetup("Otra", RodKind.CARP))
+        val plan = DayPlans.build(advice(chosen = 2), rods = 1, phase = FishingPhase.SUMMER, gear = gear, setups = setups)
+        assertEquals(3, plan.rods.size)
+        val fixed = plan.rods[0]
+        assertEquals("Larga", fixed.setup?.name)
+        assertTrue(RodRules.baitAllowed(RodKind.FIXED, fixed.baitType))
+        assertEquals(7.0, fixed.distanceM)
+        assertEquals(3..4, fixed.weightRange)
+        val carp = plan.rods[2]
+        // La 3.ª caña probaría zig, pero en carpfishing se pesca siempre a fondo.
+        assertEquals(Column.BOTTOM, carp.column)
+        assertEquals(60.0, carp.distanceM)
+        assertEquals(40..90, carp.weightRange)
     }
 }

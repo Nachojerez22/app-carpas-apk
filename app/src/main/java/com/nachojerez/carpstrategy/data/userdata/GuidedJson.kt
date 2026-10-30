@@ -28,6 +28,7 @@ import com.nachojerez.carpstrategy.domain.guided.ProposalRecord
 import com.nachojerez.carpstrategy.domain.guided.ProposalSource
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.RigType
+import com.nachojerez.carpstrategy.domain.guided.RodKind
 import com.nachojerez.carpstrategy.domain.guided.RodTrack
 import com.nachojerez.carpstrategy.domain.guided.Segment
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
@@ -110,6 +111,8 @@ object GuidedJson {
         @SerialName("nombre") val name: String = "",
         @SerialName("tramos") val segments: List<SegmentDto>,
         @SerialName("propuestas") val proposals: List<ProposalRecordDto> = emptyList(),
+        @SerialName("tipo_cana") val kind: String? = null,
+        @SerialName("longitud_m") val lengthM: Int? = null,
     )
 
     @Serializable
@@ -208,6 +211,9 @@ object GuidedJson {
         @SerialName("enlace") val url: String = "",
         @SerialName("hoy") val available: Boolean = true,
         @SerialName("ficha") val sheet: BaitSheetDto? = null,
+        /** Caña (fase 7.18): FIXED (fija) o CARP (carpfishing) y la longitud de la fija. */
+        @SerialName("tipo_cana") val rodKind: String? = null,
+        @SerialName("longitud_m") val rodLengthM: Int? = null,
     )
 
     /** Ficha de un cebo preparada por la IA (fase 7.13). */
@@ -306,6 +312,8 @@ object GuidedJson {
                 name = r.name,
                 segments = r.log.segments.map { it.toDto() },
                 proposals = r.log.proposals.map { p -> ProposalRecordDto(p.proposal.toDto(), p.decision.name, p.reason?.name, p.comment, p.decidedAt?.toString()) },
+                kind = r.kind?.name,
+                lengthM = r.lengthM,
             )
         },
         alarms = alarms.map { it.toString() },
@@ -319,7 +327,7 @@ object GuidedJson {
     )
 
     fun GuidedDto.toDomain(): GuidedRecord? {
-        val tracks = rods.mapNotNull { r -> rodLog(r.segments, r.proposals)?.let { RodTrack(r.id, r.name, it) } }
+        val tracks = rods.mapNotNull { r -> rodLog(r.segments, r.proposals)?.let { RodTrack(r.id, r.name, it, enumOf<RodKind>(r.kind), r.lengthM) } }
             .ifEmpty { listOfNotNull(legacySegments?.let { rodLog(it, legacyProposals.orEmpty()) }?.let { RodTrack(1, "", it) }) }
         if (tracks.isEmpty()) return null
         return GuidedRecord(
@@ -414,7 +422,7 @@ object GuidedJson {
         runCatching { JournalJson.json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(SpotDto.serializer()), it) }.getOrNull()
     }.orEmpty().mapNotNull { it.toDomain() }
 
-    fun GearItem.toDto() = GearDto(id, category.name, name, baitType?.name, rigType?.name, brand, description, url, available, sheet?.toDto())
+    fun GearItem.toDto() = GearDto(id, category.name, name, baitType?.name, rigType?.name, brand, description, url, available, sheet?.toDto(), rodKind?.name, rodLengthM)
 
     fun GearDto.toDomain(): GearItem? = GearItem(
         id = id,
@@ -427,6 +435,8 @@ object GuidedJson {
         url = url,
         available = available,
         sheet = sheet?.toDomain(),
+        rodKind = enumOf<RodKind>(rodKind),
+        rodLengthM = rodLengthM,
     )
 
     fun BaitSheet.toDto() = BaitSheetDto(

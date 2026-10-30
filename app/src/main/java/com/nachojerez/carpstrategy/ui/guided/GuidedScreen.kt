@@ -214,11 +214,18 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots:
     CarpCard {
         Text(stringResource(R.string.guided_intro))
         Text(stringResource(R.string.guided_rods), style = MaterialTheme.typography.titleSmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            (1..GuidedSessions.MAX_RODS).forEach { n -> FilterChip(selected = rods == n, onClick = { rods = n }, label = { Text("$n") }) }
+        // Fase 7.18: con cañas en Mi equipo, son las que llevas hoy (con su tipo); si no, por número.
+        val res = LocalContext.current.resources
+        if (state.rodSetups.isNotEmpty()) {
+            state.rodSetups.forEach { r -> Text(listOf(r.name, res.rodKindLabel(r.kind, r.lengthM)).filter { it.isNotBlank() }.joinToString(" · ")) }
+            Caption(stringResource(R.string.guided_rods_from_gear))
+        } else {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                (1..GuidedSessions.MAX_RODS).forEach { n -> FilterChip(selected = rods == n, onClick = { rods = n }, label = { Text("$n") }) }
+            }
+            Text(stringResource(R.string.guided_rods_names), style = MaterialTheme.typography.titleSmall)
         }
-        Text(stringResource(R.string.guided_rods_names), style = MaterialTheme.typography.titleSmall)
-        (0 until rods).forEach { i ->
+        if (state.rodSetups.isEmpty()) (0 until rods).forEach { i ->
             OutlinedTextField(
                 value = names[i],
                 onValueChange = { value -> names = names.toMutableList().also { it[i] = value } },
@@ -275,7 +282,10 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots:
         )
         OutlinedButton(onClick = onOpenGear) { Text(stringResource(R.string.guided_gear_open)) }
         Button(
-            onClick = { onStart(rodNamesFor(rods, names), zone, groundbait, spot, (waterInput as? WaterInput.Valid)?.celsius) },
+            onClick = {
+                val rodNames = if (state.rodSetups.isNotEmpty()) state.rodSetups.map { it.name } else rodNamesFor(rods, names)
+                onStart(rodNames, zone, groundbait, spot, (waterInput as? WaterInput.Valid)?.celsius)
+            },
             enabled = !state.starting && waterInput != WaterInput.Invalid,
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -540,7 +550,8 @@ private fun PlanCard(session: Session, rod: RodUi, showRod: Boolean, state: Guid
         Text(if (showRod) "$title · ${res.rodLabel(rod.id, rod.name)}" else title, style = MaterialTheme.typography.titleMedium)
         res.baitText(segment.bait, segment.baitName)?.let { Text(stringResource(R.string.guided_plan_bait, it)) }
         (segment.rigName ?: session.rig.ifBlank { null }.takeIf { !showRod })?.let { Text(stringResource(R.string.guided_plan_rig, it)) }
-        segment.column?.let { Text(stringResource(R.string.guided_plan_column, stringResource(it.titleRes()))) }
+        rod.kind?.let { Text(res.rodKindLabel(it, rod.lengthM)) }
+        segment.column?.let { Text(stringResource(R.string.guided_plan_column, stringResource(it.titleRes(rod.kind)))) }
         rod.groundbait?.let { Text(stringResource(R.string.guided_rod_groundbait, stringResource(it.titleRes()).lowercase())) }
         Caption(stringResource(R.string.guided_plan_since, Formatting.clock(segment.start), segment.bites, segment.catches))
         if (segment.bycatch > 0) Caption(stringResource(R.string.guided_plan_bycatch, segment.bycatch))

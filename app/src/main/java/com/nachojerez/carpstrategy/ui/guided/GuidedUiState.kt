@@ -20,6 +20,9 @@ import com.nachojerez.carpstrategy.domain.guided.GuidedMessage
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.HookActivity
 import com.nachojerez.carpstrategy.domain.guided.JumpCount
+import com.nachojerez.carpstrategy.domain.guided.RodKind
+import com.nachojerez.carpstrategy.domain.guided.RodSetup
+import com.nachojerez.carpstrategy.domain.guided.rodsToday
 import com.nachojerez.carpstrategy.domain.guided.SignalLevel
 import com.nachojerez.carpstrategy.domain.guided.Species
 import com.nachojerez.carpstrategy.domain.guided.Spot
@@ -39,6 +42,9 @@ data class RodUi(
     val log: GuidedLog,
     val messages: Set<GuidedMessage>,
     val groundbait: GroundbaitLevel?,
+    /** Tipo de caña (fase 7.18). */
+    val kind: RodKind? = null,
+    val lengthM: Int? = null,
 )
 
 data class GuidedUiState(
@@ -51,6 +57,8 @@ data class GuidedUiState(
     val nextCheckIn: Instant? = null,
     val baits: Int = 0,
     val rigs: Int = 0,
+    /** Cañas de Mi equipo que llevas hoy (fase 7.18); vacío = se eligen por número. */
+    val rodSetups: List<RodSetup> = emptyList(),
     val now: Instant = Instant.EPOCH,
     val starting: Boolean = false,
     /** Última respuesta anotada desde la pantalla (para confirmarlo). */
@@ -90,13 +98,14 @@ fun buildGuidedState(session: Session?, gear: List<GearItem>, now: Instant, next
         spots = spots,
         baits = gear.count { it.category == GearCategory.BAIT },
         rigs = gear.count { it.category == GearCategory.RIG },
+        rodSetups = gear.rodsToday(),
         now = now,
     )
     val record = session?.guided ?: return base
     val env = GuidedEnv(now, gear, zone)
     val rods = record.rods.mapIndexed { index, rod ->
         val ctx = GuidedSessions.context(session, rod.id, env)
-        RodUi(rod.id, rod.name, rod.log, GuidedEngine.evaluate(rod.log, ctx, index).messages, ctx.groundbait)
+        RodUi(rod.id, rod.name, rod.log, GuidedEngine.evaluate(rod.log, ctx, index).messages, ctx.groundbait, rod.kind, rod.lengthM)
     }
     return base.copy(
         session = session,

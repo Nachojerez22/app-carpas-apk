@@ -278,7 +278,7 @@ class StrategyViewModel @Inject constructor(
             val base = buildStrategyState(observeRawWeather(place.point).first(), rules.first(), target, place.point, journal.observeSessions().first())
             val state = withInputs(base, adviceInputs.first())
             val key = planKey(state)
-            val input = planInput(state, state.rods, state.gear, target)
+            val input = planInput(state, state.planRods, state.gear, target)
             val apiKey = assistantSettings.apiKey()
             val (planResult, detail) = when {
                 key == null || input == null -> PrepPlan.NOTHING to null
@@ -286,7 +286,7 @@ class StrategyViewModel @Inject constructor(
                 else -> {
                     val outcome = withContext(io) {
                         assistant.plan(
-                            assistantSettings.config(), apiKey, AssistantPrompts.planState(input), planContext(state, state.rods, state.gear, target),
+                            assistantSettings.config(), apiKey, AssistantPrompts.planState(input), planContext(state, state.planRods, state.gear, target),
                             knowledge.forPlan(state.reservoir?.isBrovales ?: true),
                         )
                     }
@@ -328,13 +328,13 @@ class StrategyViewModel @Inject constructor(
     private suspend fun request(state: StrategyUiState, planKey: String) {
         val apiKey = assistantSettings.apiKey() ?: return
         val now = clock.instant()
-        val input = planInput(state, state.rods, state.gear, now) ?: return
+        val input = planInput(state, state.planRods, state.gear, now) ?: return
         attempted += planKey
         planFlow.value = planFlow.value.copy(running = true)
         try {
             val outcome = withContext(io) {
                 assistant.plan(
-                    assistantSettings.config(), apiKey, AssistantPrompts.planState(input), planContext(state, state.rods, state.gear, now),
+                    assistantSettings.config(), apiKey, AssistantPrompts.planState(input), planContext(state, state.planRods, state.gear, now),
                     knowledge.forPlan(state.reservoir?.isBrovales ?: true),
                 )
             }

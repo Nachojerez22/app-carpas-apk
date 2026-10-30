@@ -5,6 +5,7 @@ import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.RigType
+import com.nachojerez.carpstrategy.domain.guided.RodKind
 
 /** Formulario de un elemento del equipo (nuevo si [id] es null). */
 data class GearDraft(
@@ -19,8 +20,15 @@ data class GearDraft(
     val available: Boolean = true,
     /** La ficha de la IA se conserva al editar (no se teclea). */
     val sheet: BaitSheet? = null,
+    /** Caña (fase 7.18): tipo y, si es fija, longitud. */
+    val rodKind: RodKind? = null,
+    val rodLengthM: Int? = null,
 ) {
-    val isValid: Boolean get() = name.isNotBlank() && (if (category == GearCategory.BAIT) baitType != null else rigType != null)
+    val isValid: Boolean get() = name.isNotBlank() && when (category) {
+        GearCategory.BAIT -> baitType != null
+        GearCategory.RIG -> rigType != null
+        GearCategory.ROD -> rodKind == RodKind.CARP || (rodKind == RodKind.FIXED && rodLengthM != null)
+    }
 
     fun toItem(newId: () -> String): GearItem = GearItem(
         id = id ?: newId(),
@@ -33,11 +41,14 @@ data class GearDraft(
         url = url.trim(),
         available = available,
         sheet = sheet.takeIf { category == GearCategory.BAIT },
+        rodKind = rodKind.takeIf { category == GearCategory.ROD },
+        rodLengthM = rodLengthM.takeIf { category == GearCategory.ROD && rodKind == RodKind.FIXED },
     )
 
     companion object {
         fun of(item: GearItem) = GearDraft(
             item.id, item.category, item.name, item.baitType, item.rigType, item.brand, item.description, item.url, item.available, item.sheet,
+            item.rodKind, item.rodLengthM,
         )
     }
 }

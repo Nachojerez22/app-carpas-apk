@@ -16,6 +16,8 @@ import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.ProposalSource
+import com.nachojerez.carpstrategy.domain.guided.RodRules
+import com.nachojerez.carpstrategy.domain.guided.RodSetup
 import com.nachojerez.carpstrategy.domain.guided.Situation
 import com.nachojerez.carpstrategy.domain.guided.Solubility
 import com.nachojerez.carpstrategy.domain.guided.Spot
@@ -115,6 +117,8 @@ data class AiRodPlan(
     val distanceM: Double? = null,
     val reason: String = "",
     val evidence: Evidence? = null,
+    /** Gramos del flotador (fija) o del plomo (carpfishing) (fase 7.18). */
+    val weightG: Double? = null,
 )
 
 data class AiNote(val text: String, val evidence: Evidence?)
@@ -207,6 +211,12 @@ enum class AiIssue {
 
     /** Cantidad de engodo o partes de la mezcla fuera de lo razonable para tu medida (fase 7.13). */
     AMOUNT_OUT_OF_RANGE,
+
+    /** No respeta el tipo de caña (fase 7.18): boilies en la fija o carpfishing fuera del fondo. */
+    ROD_RULES,
+
+    /** Flotador o plomo fuera de tu rango (fija 3–4 g, carpfishing 40–90 g). */
+    WEIGHT_OUT_OF_RANGE,
 }
 
 /** Lo que la app sabe para validar una respuesta: cañas, equipo, puestos, hora legal y tormenta. */
@@ -224,6 +234,8 @@ data class AiContext(
     val zone: ZoneId = ZoneId.of("Europe/Madrid"),
     /** Tu medida de cebado normal (kg por caña y sesión); sin ella la IA no puede dar kilos. */
     val groundbaitNormalKg: Double? = null,
+    /** Tipo de cada caña (fase 7.18); las que no están, sin tipo (sin límites de caña). */
+    val rodSetups: Map<Int, RodSetup> = emptyMap(),
 )
 
 /**
@@ -243,6 +255,14 @@ object AiValidator {
     val ZONE_KINDS: Set<StepKind> = setOf(StepKind.ZONE, StepKind.INFLOW)
 
     private val PROBABILITY = Regex("""\d+([.,]\d+)?\s*%|probabilidad|\bconfianza\b|\bpor ciento\b""", RegexOption.IGNORE_CASE)
+    /**
+     * Gramos del flotador o del plomo (fase 7.18): «flotador de 3 g», «plomo de 40 a 60 g», «90 g
+     * de plomo». Se permiten dentro de tu rango; los gramos de cebo siguen prohibidos.
+     */
+    private val TACKLE_WEIGHT = Regex(
+        """\b(flotador(?:es)?|boya|plomos?|plomadas?)\s+(?:de\s+)?(\d+(?:[.,]\d+)?)(?:\s*(?:a|-|–|o|y)\s*(\d+(?:[.,]\d+)?))?\s*(?:g|gr|grs|gramos?)\b|\b(\d+(?:[.,]\d+)?)\s*(?:g|gr|grs|gramos?)\s+de\s+(flotador|boya|plomo|plomada)\b""",
+        RegexOption.IGNORE_CASE,
+    )
     private val GRAMS = Regex("""\b\d+([.,]\d+)?\s*(g|gr|grs|gramos?|kg|kgs|kilos?|kilogramos?)\b""", RegexOption.IGNORE_CASE)
     private val NIGHT = Regex("""\bnoche\b|\bnocturn\w*|\bmadrugada\b|\bde madrugada\b""", RegexOption.IGNORE_CASE)
     private val CLOCK = Regex("""\b([01]?\d|2[0-3])[:h]([0-5]\d)\b""")
@@ -256,9 +276,33 @@ object AiValidator {
         }
         if (t.length > maxLength) add(AiIssue.TEXT_TOO_LONG)
         if (PROBABILITY.containsMatchIn(t)) add(AiIssue.PROBABILITY)
-        if (GRAMS.containsMatchIn(t)) add(AiIssue.GRAMS)
+        if (tackleWeightIssue(t)) add(AiIssue.WEIGHT_OUT_OF_RANGE)
+        if (GRAMS.containsMatchIn(TACKLE_WEIGHT.replace(t, ""))) add(AiIssue.GRAMS)
         if (NIGHT.containsMatchIn(t)) add(AiIssue.NIGHT)
         if (PROMISE.containsMatchIn(t)) add(AiIssue.PROMISE)
+    }
+
+    /** True si el texto cita un flotador o un plomo fuera de los rangos de [RodRules]. */
+    private fun tackleWeightIssue(text: String): Boolean = TACKLE_WEIGHT.findAll(text).any { m ->
+        val g = m.groupValues
+        val float = (g[1].ifEmpty { g[5] }).lowercase().let { it.startsWith("flotador") || it == "boya" }
+        val range = if (float) RodRules.FLOAT_MIN_G..RodRules.FLOAT_MAX_G else RodRules.LEAD_MIN_G..RodRules.LEAD_MAX_G
+        listOf(g[2], g[3], g[4]).filter { it.isNotEmpty() }.any { v ->
+            val grams = v.replace(',', '.').toDoubleOrNull() ?: return@any true
+            grams < range.first || grams > range.last
+        }
+    }
+
+    /**
+     * Normas del tipo de caña (fase 7.18): en la fija, ni boilies ni pop-up; en carpfishing,
+     * siempre a fondo. Sin tipo, nada que comprobar.
+     */
+    private fun rodIssues(rod: Int, baitName: String?, rigName: String?, column: Column?, ctx: AiContext): Set<AiIssue> = buildSet {
+        val kind = ctx.rodSetups[rod]?.kind ?: return@buildSet
+        val bait = baitName?.let { ctx.gear.find(GearCategory.BAIT, it) }
+        if (bait != null && !RodRules.baitAllowed(kind, bait.baitType)) add(AiIssue.ROD_RULES)
+        val rigColumn = rigName?.let { ctx.gear.find(GearCategory.RIG, it) }?.rigType?.column
+        listOfNotNull(column, rigColumn).forEach { if (!RodRules.columnAllowed(kind, it)) add(AiIssue.ROD_RULES) }
     }
 
     /**
@@ -309,6 +353,7 @@ object AiValidator {
             if (kind in ZONE_KINDS && (noZone || c.rod in ctx.zoneLimitReached)) add(AiIssue.ZONE_NOT_ALLOWED)
             if (c.evidence == null) add(AiIssue.MISSING_EVIDENCE)
             addAll(gearIssues(c.baitName, c.rigName, c.spotName, ctx))
+            addAll(rodIssues(c.rod, c.baitName, c.rigName, c.column, ctx))
             checkText(c.action, ctx)
             checkText(c.reason, ctx)
         }
@@ -332,8 +377,12 @@ object AiValidator {
         plan.rods.forEach { r ->
             if (r.rod !in ctx.rodIds) add(AiIssue.UNKNOWN_ROD)
             if (r.evidence == null) add(AiIssue.MISSING_EVIDENCE)
-            r.distanceM?.let { if (it < 0 || it > MAX_DISTANCE_M) add(AiIssue.DISTANCE_OUT_OF_RANGE) }
+            val setup = ctx.rodSetups[r.rod]
+            val range = RodRules.distanceRange(setup?.kind, setup?.lengthM) ?: 0.0..MAX_DISTANCE_M
+            r.distanceM?.let { if (it !in range) add(AiIssue.DISTANCE_OUT_OF_RANGE) }
+            r.weightG?.let { g -> RodRules.weightRange(setup?.kind)?.let { w -> if (g < w.first || g > w.last) add(AiIssue.WEIGHT_OUT_OF_RANGE) } }
             addAll(gearIssues(r.baitName, r.rigName, r.spotName, ctx))
+            addAll(rodIssues(r.rod, r.baitName, r.rigName, r.column, ctx))
             checkText(r.reason, ctx)
         }
         plan.warnings.forEach { w ->

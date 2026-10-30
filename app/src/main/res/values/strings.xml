@@ -750,6 +750,10 @@
     <string name="column_popup">pop-up, separado del fondo</string>
     <string name="column_zig">zig, a media agua</string>
     <string name="column_surface">en superficie</string>
+    <string name="column_float_mid">a media agua, con flotador</string>
+    <string name="rod_kind_fixed">Fija</string>
+    <string name="rod_kind_fixed_length">Fija de %1$d m</string>
+    <string name="rod_kind_carp">Carpfishing</string>
 
     <string name="bait_boilie">Boilie</string>
     <string name="bait_boilie_hard">Boilie duro o grande</string>
@@ -782,6 +786,14 @@
     <string name="gear_none">Aún no has añadido nada.</string>
     <string name="gear_add_bait">Añadir cebo</string>
     <string name="gear_add_rig">Añadir montaje</string>
+    <string name="gear_rods">Cañas</string>
+    <string name="gear_add_rod">Añadir caña</string>
+    <string name="gear_rod_length">Longitud</string>
+    <string name="gear_rod_length_m">%1$d m</string>
+    <string name="gear_rod_today">La llevo hoy</string>
+    <string name="gear_rod_fixed_rules">Fija: a fondo, a media agua o en superficie, con flotador de 3 a 4 g y al alcance de la caña. Nunca con boilies.</string>
+    <string name="gear_rod_carp_rules">Carpfishing: siempre a fondo, de 7 a 100 m, con plomo de 40 a 90 g. Vale cualquier cebo (también maíz).</string>
+    <string name="gear_rods_hint">Marca las cañas que llevas hoy: el plan, la IA y la sesión guiada hacen una línea por caña y respetan su tipo. Sin cañas apuntadas se usa el número de cañas de Estrategia.</string>
     <string name="gear_name">Nombre (p. ej. «Boilie fresa 20 mm»)</string>
     <string name="gear_type">Tipo</string>
     <string name="gear_name_required">Pon un nombre.</string>
@@ -803,6 +815,7 @@
     <string name="guided_notif_accept">Aceptar</string>
 
     <!-- Fase 7: cañas, especies, cebado y viento -->
+    <string name="guided_rods_from_gear">Son las cañas que marcaste en Mi equipo para hoy: cada propuesta respeta su tipo (la fija sin boilies; la de carpfishing siempre a fondo).</string>
     <string name="guided_rods_names">Nombre de cada caña</string>
     <string name="guided_rod_default">Caña %1$d</string>
     <string name="guided_rod_name_hint">p. ej. fija, carrete</string>
@@ -1072,6 +1085,8 @@
     <string name="strategy_ai_advice_note">Son una ayuda que parte de tus datos y de las reglas: no prometen peces. Si contradicen a las reglas, decides tú.</string>
     <string name="ai_issue_field">consejo sin apartado</string>
     <string name="ai_issue_amount">cantidad de engodo fuera de lo razonable para tu medida</string>
+    <string name="ai_issue_rod_rules">no respeta el tipo de caña (boilies en la fija o carpfishing fuera del fondo)</string>
+    <string name="ai_issue_weight">flotador o plomo fuera de tu rango (fija 3–4 g, carpfishing 40–90 g)</string>
     <string name="ai_issue_hours">cita horas fuera del horario legal ⚖</string>
     <string name="ai_models_title">Modelos disponibles</string>
     <string name="ai_models_hint">Lista los modelos que admite tu clave. Toca uno para usarlo; se guarda y se prueba la conexión. Los «flash» son rápidos y entran en el nivel gratuito.</string>
@@ -1259,6 +1274,11 @@
     <string name="strategy_recommended_app">La app te recomienda hoy</string>
     <string name="strategy_auto_spot">Automático: el plan es para %1$s.</string>
     <string name="strategy_rods_title">Cañas</string>
+    <string name="strategy_rods_from_gear">Marca las que llevas hoy (como mucho %1$d): el plan hace una línea por caña y respeta su tipo.</string>
+    <string name="strategy_rods_none_today">No has marcado ninguna caña para hoy: marca las que llevas (como mucho %1$d).</string>
+    <string name="strategy_rods_add">Apuntar mis cañas (fija o carpfishing)</string>
+    <string name="strategy_rod_float">flotador de %1$s g</string>
+    <string name="strategy_rod_lead">plomo de %1$s g</string>
     <string name="strategy_plan_title">Tu plan para hoy</string>
     <string name="strategy_plan_title_next">Tu plan para el amanecer (%1$s)</string>
     <string name="strategy_best_time">Mejor rato: %1$s–%2$s (%3$s)</string>
