@@ -52,15 +52,18 @@ import com.nachojerez.carpstrategy.domain.advice.ContingencyLine
 import com.nachojerez.carpstrategy.domain.advice.DayPlan
 import com.nachojerez.carpstrategy.domain.advice.DayPlans
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
+import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmount
 import com.nachojerez.carpstrategy.domain.advice.PlanSource
 import com.nachojerez.carpstrategy.domain.advice.RodLine
 import com.nachojerez.carpstrategy.domain.advice.SpotPick
 import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
+import com.nachojerez.carpstrategy.domain.assistant.AiGroundbait
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.assistant.AiSpotPick
 import com.nachojerez.carpstrategy.domain.derived.FreshnessLevel
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
+import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.guided.WindRelation
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
@@ -110,12 +113,14 @@ fun StrategyScreen(
     onOpenReservoir: () -> Unit = {},
     onOpenReservoirs: () -> Unit = {},
     onOpenGear: () -> Unit = {},
+    onOpenPrepared: () -> Unit = {},
     viewModel: StrategyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan by viewModel.plan.collectAsStateWithLifecycle()
     val sheet by viewModel.sheetState.collectAsStateWithLifecycle()
     val prep by viewModel.prep.collectAsStateWithLifecycle()
+    val prepared by viewModel.preparedOuting.collectAsStateWithLifecycle()
     StrategyContent(
         state, plan,
         StrategyActions(
@@ -139,9 +144,11 @@ fun StrategyScreen(
             onClearToday = viewModel::clearToday,
             onAddFromDiary = viewModel::addFromDiary,
             onPrepare = viewModel::prepareNextOuting,
+            onOpenPrepared = onOpenPrepared,
         ),
         sheet,
         prep,
+        prepared,
     )
 }
 
@@ -167,6 +174,7 @@ data class StrategyActions(
     val onClearToday: () -> Unit = {},
     val onAddFromDiary: (BaitUsage) -> Unit = {},
     val onPrepare: () -> Unit = {},
+    val onOpenPrepared: () -> Unit = {},
 )
 
 /**
@@ -184,6 +192,7 @@ fun StrategyContent(
     actions: StrategyActions = StrategyActions(),
     sheet: SheetUiState = SheetUiState(),
     prep: PrepUiState = PrepUiState(),
+    prepared: PreparedOuting? = null,
 ) {
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
     val dayPlan = remember(state, plan) { dayPlanFor(state, plan) }
@@ -254,13 +263,13 @@ fun StrategyContent(
             }
         }
         // Fase 7.15: con cobertura (la noche antes), dejar lista la próxima salida.
-        item { PrepareStep(prep, actions.onPrepare) }
+        item { PrepareStep(prep, prepared, actions.onPrepare, actions.onOpenPrepared) }
     }
 }
 
 /** «Preparar la próxima salida»: previsión, plan de la IA y fichas, para tenerlo todo sin cobertura. */
 @Composable
-private fun PrepareStep(prep: PrepUiState, onPrepare: () -> Unit) {
+private fun PrepareStep(prep: PrepUiState, prepared: PreparedOuting?, onPrepare: () -> Unit, onOpenPrepared: () -> Unit) {
     CarpCard {
         Text(stringResource(R.string.prep_title), style = MaterialTheme.typography.titleMedium)
         Caption(stringResource(R.string.prep_hint))
@@ -276,23 +285,31 @@ private fun PrepareStep(prep: PrepUiState, onPrepare: () -> Unit) {
                 ),
             )
         }
-        prep.result?.let { r ->
-            Text(stringResource(R.string.prep_done, Formatting.hour(r.target)), style = MaterialTheme.typography.titleSmall)
-            Caption(stringResource(if (r.forecastOk) R.string.prep_forecast_ok else R.string.prep_forecast_failed))
-            Caption(
-                when (r.plan) {
-                    PrepPlan.READY -> stringResource(R.string.prep_plan_ready)
-                    PrepPlan.FAILED -> stringResource(R.string.prep_plan_failed) + (r.planDetail?.let { "\n" + stringResource(R.string.ai_error_detail, it) } ?: "")
-                    PrepPlan.NO_KEY -> stringResource(R.string.prep_plan_no_key)
-                    PrepPlan.NOTHING -> stringResource(R.string.prep_plan_nothing)
-                },
-            )
-            if (r.sheetsImproved > 0 || r.sheetsPending > 0) Caption(stringResource(R.string.prep_sheets, r.sheetsImproved, r.sheetsPending))
+        // Lo de esta vez o, al volver a abrir la app, lo de la última preparación guardada.
+        if (!prep.running) (prep.result ?: prepared?.result)?.let { r -> PrepResultLines(r) }
+        if (!prep.running && prepared != null) {
+            Button(onClick = onOpenPrepared, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.prep_view_button)) }
         }
         OutlinedButton(onClick = onPrepare, enabled = !prep.running, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(if (prep.result == null) R.string.prep_button else R.string.prep_button_again))
+            Text(stringResource(if (prep.result == null && prepared == null) R.string.prep_button else R.string.prep_button_again))
         }
     }
+}
+
+/** Cómo fue cada paso de la preparación (previsión, plan de la IA y fichas). */
+@Composable
+internal fun PrepResultLines(r: PrepResult) {
+    Text(stringResource(R.string.prep_done, Formatting.hour(r.target)), style = MaterialTheme.typography.titleSmall)
+    Caption(stringResource(if (r.forecastOk) R.string.prep_forecast_ok else R.string.prep_forecast_failed))
+    Caption(
+        when (r.plan) {
+            PrepPlan.READY -> stringResource(R.string.prep_plan_ready)
+            PrepPlan.FAILED -> stringResource(R.string.prep_plan_failed) + (r.planDetail?.let { "\n" + stringResource(R.string.ai_error_detail, it) } ?: "")
+            PrepPlan.NO_KEY -> stringResource(R.string.prep_plan_no_key)
+            PrepPlan.NOTHING -> stringResource(R.string.prep_plan_nothing)
+        },
+    )
+    if (r.sheetsImproved > 0 || r.sheetsPending > 0) Caption(stringResource(R.string.prep_sheets, r.sheetsImproved, r.sheetsPending))
 }
 
 /** «Detalles»: «Qué hago ahora» completo, consejos de la IA y de las reglas, horas, avisos y el porqué. */
@@ -489,7 +506,6 @@ private fun AdviceCard(
 
 private const val MAX_SPOTS = 4
 private const val MAX_LESSONS = 4
-private const val MAX_AI_TIPS = 3
 
 /** Consejos de la IA agrupados por apartado (dónde, cuándo, cebado…), cada uno con su evidencia. */
 @Composable
@@ -703,32 +719,7 @@ private fun PlanStep(
 
         // Cebado y especies.
         HorizontalDivider(color = cs.outlineVariant)
-        val groundbait = dayPlan.groundbait
-        val amount = dayPlan.groundbaitAmount
-        when {
-            groundbait == null -> Text(stringResource(R.string.advice_no_groundbait))
-            amount != null -> {
-                Text(stringResource(R.string.strategy_groundbait_kg, stringResource(groundbait.titleRes()).lowercase(), kgText(amount.perRodKg), kgText(amount.totalKg)))
-                Caption(stringResource(R.string.strategy_groundbait_split, kgText(amount.initialPerRodKg), kgText(amount.rebaitPerRodKg)))
-            }
-            else -> {
-                Text(stringResource(R.string.advice_groundbait, stringResource(groundbait.titleRes())))
-                Caption(stringResource(R.string.strategy_groundbait_no_measure))
-            }
-        }
-        if (advice.groundbaitDoubt) Caption(stringResource(R.string.advice_groundbait_doubt), color = cs.error)
-        // Engodo con lo que llevas (de la IA, ya validado).
-        dayPlan.aiGroundbait?.let { g ->
-            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.strategy_groundbait_mix), style = MaterialTheme.typography.titleSmall)
-                    Text(g.mix.joinToString(" + ") { res.getString(R.string.strategy_groundbait_part, it.parts, it.baitName) })
-                    if (g.rebait.isNotBlank()) Caption(g.rebait)
-                    if (g.reason.isNotBlank()) Caption(g.reason)
-                }
-                g.evidence?.let { AnyEvidenceBadge(it) }
-            }
-        }
+        GroundbaitLines(dayPlan.groundbait, dayPlan.groundbaitAmount, dayPlan.aiGroundbait, doubt = advice.groundbaitDoubt)
         advice.species.notes.forEach { (sp, evidence) ->
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 Caption(stringResource(sp.effectRes()), Modifier.weight(1f))
@@ -767,9 +758,40 @@ private fun PlanStep(
     }
 }
 
+/** Cebado (nivel y kilos con tu medida) y el engodo de la IA con lo que llevas. */
+@Composable
+internal fun GroundbaitLines(groundbait: GroundbaitLevel?, amount: GroundbaitAmount?, aiGroundbait: AiGroundbait?, doubt: Boolean = false) {
+    val cs = MaterialTheme.colorScheme
+    val res = LocalContext.current.resources
+    when {
+        groundbait == null -> Text(stringResource(R.string.advice_no_groundbait))
+        amount != null -> {
+            Text(stringResource(R.string.strategy_groundbait_kg, stringResource(groundbait.titleRes()).lowercase(), kgText(amount.perRodKg), kgText(amount.totalKg)))
+            Caption(stringResource(R.string.strategy_groundbait_split, kgText(amount.initialPerRodKg), kgText(amount.rebaitPerRodKg)))
+        }
+        else -> {
+            Text(stringResource(R.string.advice_groundbait, stringResource(groundbait.titleRes())))
+            Caption(stringResource(R.string.strategy_groundbait_no_measure))
+        }
+    }
+    if (doubt) Caption(stringResource(R.string.advice_groundbait_doubt), color = cs.error)
+    // Engodo con lo que llevas (de la IA, ya validado).
+    aiGroundbait?.let { g ->
+        Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.strategy_groundbait_mix), style = MaterialTheme.typography.titleSmall)
+                Text(g.mix.joinToString(" + ") { res.getString(R.string.strategy_groundbait_part, it.parts, it.baitName) })
+                if (g.rebait.isNotBlank()) Caption(g.rebait)
+                if (g.reason.isNotBlank()) Caption(g.reason)
+            }
+            g.evidence?.let { AnyEvidenceBadge(it) }
+        }
+    }
+}
+
 /** «Caña 1 · Chufa (chufa) · pop-up · a 40 m» y debajo el porqué (de la IA o de tus datos). */
 @Composable
-private fun RodLineRow(r: RodLine, planSpot: String?) {
+internal fun RodLineRow(r: RodLine, planSpot: String?) {
     val res = LocalContext.current.resources
     var open by rememberSaveable(r.rod) { mutableStateOf(false) }
     Row(
@@ -803,7 +825,7 @@ private fun RodLineRow(r: RodLine, planSpot: String?) {
 
 /** Qué hacer si pasa algo, en una frase. */
 @Composable
-private fun contingencyText(c: ContingencyLine): String {
+internal fun contingencyText(c: ContingencyLine): String {
     val after = c.after?.let { durationText(it) }
     return when (c.kind) {
         Contingency.NO_SIGNALS -> stringResource(
@@ -910,7 +932,7 @@ private const val MAX_DIARY_BAITS = 8
 
 /** «750 g» por debajo de 1 kg (de 50 en 50 g); si no, «1,5 kg». */
 @Composable
-private fun kgText(kg: Double): String =
+internal fun kgText(kg: Double): String =
     if (kg < 1.0) stringResource(R.string.g_value, (Math.round(kg * 20) * 50).coerceAtLeast(50L).toString())
     else stringResource(R.string.kg_value, Formatting.number(kg, 1))
 
@@ -997,7 +1019,7 @@ private fun ResultCard(result: StrategyResult) {
 
 /** Escala de 5 tramos; el tramo actual relleno. El texto acompaña siempre al color. */
 @Composable
-private fun BandScale(band: FavorabilityBand) {
+internal fun BandScale(band: FavorabilityBand) {
     val cs = MaterialTheme.colorScheme
     val index = band.ordinal
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {

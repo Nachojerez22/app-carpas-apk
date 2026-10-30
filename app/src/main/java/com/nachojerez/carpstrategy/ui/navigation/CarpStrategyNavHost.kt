@@ -41,6 +41,7 @@ import com.nachojerez.carpstrategy.ui.manual.DataScreen
 import com.nachojerez.carpstrategy.ui.place.PlaceScreen
 import com.nachojerez.carpstrategy.ui.reservoir.ReservoirSheetScreen
 import com.nachojerez.carpstrategy.ui.reservoir.ReservoirsScreen
+import com.nachojerez.carpstrategy.ui.strategy.PreparedOutingScreen
 import com.nachojerez.carpstrategy.ui.strategy.StrategyScreen
 import com.nachojerez.carpstrategy.ui.theme.CarpTheme
 import com.nachojerez.carpstrategy.ui.today.TodayScreen
@@ -72,6 +73,9 @@ import kotlinx.serialization.Serializable
 
 /** Lo aprendido (fase 7.5). */
 @Serializable data object LessonsRoute
+
+/** La última preparación de la próxima salida (fase 7.19). */
+@Serializable data object PreparedOutingRoute
 
 /** Mapa de puestos (fase 7.9). */
 @Serializable data object SpotsMapRoute
@@ -164,8 +168,10 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                     onOpenReservoir = { navController.navigate(ReservoirSheetRoute) },
                     onOpenReservoirs = { navController.navigate(ReservoirsRoute) },
                     onOpenGear = { navController.navigate(GearRoute) },
+                    onOpenPrepared = { navController.navigate(PreparedOutingRoute) },
                 )
             }
+            composable<PreparedOutingRoute> { PreparedOutingScreen(onBack = { navController.popBackStack() }) }
             composable<DataRoute> { entry ->
                 DataScreen(startWithNewRecord = entry.toRoute<DataRoute>().newRecord)
             }

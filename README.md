@@ -168,6 +168,15 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
+### Ver la preparación de la próxima salida (fase 7.19)
+
+- Tras pulsar **Preparar la próxima salida** (al final de Estrategia), la app guarda lo que salió y aparece el botón
+  **Ver la preparación**, también al volver a abrir la app y sin red.
+- La pantalla **Próxima salida** muestra para cuándo, dónde y con cuántas cañas; las condiciones previstas a esa hora
+  (escala, nivel que limita y cada nivel de la cadena, agua, aire, viento y mejores ratos); el plan por caña con su
+  porqué, el cebado y el engodo, los consejos de la IA y qué hacer si cambia algo; y cómo fue cada paso.
+- Es una foto de cuando la preparaste: si la previsión cambia, vuelve a prepararla.
+
 ### Aviso de la próxima salida y fotos (fase 7.17)
 
 - **Aviso por la tarde** (Lugar → «Aviso de la próxima salida», desactivado por defecto): hacia las 19:00 la app mira
@@ -375,6 +384,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
 - [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
+- [x] **Fase 7.19**: ver la preparación de la próxima salida (guardada, sin red) para analizarla
 - [x] **Fase 7.17**: aviso por la tarde si la próxima salida pinta bien y fotos de las capturas (solo en el móvil)
 - [x] **Fase 7.16**: ¿acierta la app? (intervalos y veredicto honesto) y registro rápido (Carpa por caña, agua al empezar)
 - [x] **Fase 7.15**: preparar la salida (previsión, plan de la IA y fichas sin cobertura) y gastar menos IA
