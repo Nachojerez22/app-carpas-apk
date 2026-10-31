@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import com.nachojerez.carpstrategy.ui.components.BackButton
 import android.Manifest
 import android.content.Intent
 import android.net.Uri
@@ -103,7 +104,7 @@ fun GuidedScreen(
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+            BackButton(onBack)
             ScreenHeader(stringResource(R.string.guided_title), stringResource(R.string.guided_overline))
         }
         if (!state.canNotify) item { PermissionCard(stringResource(R.string.guided_notifications_off), null, null) }
@@ -138,9 +139,6 @@ fun GuidedScreen(
                 item { ForgottenCard(session) { confirmFinish = true } }
             }
             item { HeaderCard(state, session, phase, rods.size > 1, viewModel::nothingEverywhere, viewModel::windChanged, viewModel::conditionChanged) }
-            item { WeatherCard(session.guided?.spot, state.weather, viewModel::answerWeather) }
-            item { AiCard(state, viewModel::askAi) }
-            item { ChatCard(state, viewModel::sendChat) }
             rods.forEach { r ->
                 r.log.pending?.let { record ->
                     item(key = "propuesta-${r.id}") {
@@ -165,6 +163,11 @@ fun GuidedScreen(
                 item { PlanCard(session, rod, rods.size > 1, state) }
                 item { RegisterCard(rod) { draft -> viewModel.checkIn(rod.id, draft) } }
             }
+            // Revisión de UI (7.28): primero lo que se toca en cada aviso (propuestas, caña y registro);
+            // después el tiempo, la IA y el chat.
+            item { WeatherCard(session.guided?.spot, state.weather, viewModel::answerWeather) }
+            item { AiCard(state, viewModel::askAi) }
+            item { ChatCard(state, viewModel::sendChat) }
             item { HistoryCard(rods, phase) }
             item {
                 Button(

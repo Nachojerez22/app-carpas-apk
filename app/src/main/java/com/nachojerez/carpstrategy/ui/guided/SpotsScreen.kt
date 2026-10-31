@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import com.nachojerez.carpstrategy.ui.components.BackButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -58,7 +59,7 @@ fun SpotsScreen(onBack: () -> Unit, onOpenMap: () -> Unit = {}, viewModel: Spots
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+            BackButton(onBack)
             ScreenHeader(stringResource(R.string.spots_title), reservoirName ?: stringResource(R.string.nav_place))
         }
         item { Caption(stringResource(R.string.spots_intro)) }

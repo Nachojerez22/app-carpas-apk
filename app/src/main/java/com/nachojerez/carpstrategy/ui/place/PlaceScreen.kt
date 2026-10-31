@@ -1,5 +1,9 @@
 package com.nachojerez.carpstrategy.ui.place
 
+import com.nachojerez.carpstrategy.ui.components.BackButton
+import com.nachojerez.carpstrategy.ui.components.NavRow
+import com.nachojerez.carpstrategy.ui.components.StepHeading
+import androidx.compose.material3.IconButton
 import com.nachojerez.carpstrategy.ui.strategy.PrepareStep
 import androidx.compose.material3.FilterChip
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -100,14 +104,14 @@ fun PlaceScreen(
         if (settings) {
             // Ajustes (fase 7.23): lo de la app, aparte de lo de pescar.
             item {
-                TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+                BackButton(onBack)
                 ScreenHeader(stringResource(R.string.settings_title), stringResource(R.string.settings_overline))
             }
             item { SectionTitle(stringResource(R.string.account_title), subtitle = stringResource(R.string.account_subtitle)) }
             item { AccountCard() }
 
             item { SectionTitle(stringResource(R.string.ai_settings_title), subtitle = stringResource(R.string.ai_settings_subtitle)) }
-            item { CarpCard { OutlinedButton(onClick = onOpenAssistant) { Text(stringResource(R.string.ai_settings_open)) } } }
+            item { CarpCard { NavRow(stringResource(R.string.ai_settings_open), stringResource(R.string.ai_settings_open_detail), onClick = onOpenAssistant) } }
 
             item { SectionTitle(stringResource(R.string.place_appearance_title)) }
             item {
@@ -171,29 +175,43 @@ fun PlaceScreen(
             }
 
         } else {
-            // Preparar (fase 7.23): todo lo que se configura para pescar.
-            item { ScreenHeader(stringResource(R.string.place_title), state.location.name) }
+            // Preparar (fase 7.23; revisión de UI 7.28): lo de pescar como una lista de pasos, en el
+            // orden en que se deja lista una salida, y Ajustes en el engranaje de arriba.
+            item {
+                Row(verticalAlignment = Alignment.Top) {
+                    ScreenHeader(stringResource(R.string.place_title), state.location.name, Modifier.weight(1f))
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(painterResource(R.drawable.ic_settings), contentDescription = stringResource(R.string.settings_title))
+                    }
+                }
+            }
             item { Caption(stringResource(R.string.prepare_intro)) }
 
-            item { SectionTitle(stringResource(R.string.reservoirs_place_title), subtitle = stringResource(R.string.reservoirs_place_subtitle)) }
+            // ① Embalse.
             item {
                 CarpCard {
+                    StepHeading(1, stringResource(R.string.reservoirs_place_title))
+                    Caption(stringResource(R.string.reservoirs_place_subtitle))
                     val reservoir = state.reservoir
                     if (reservoir == null) {
                         Caption(stringResource(R.string.reservoirs_none_active))
                     } else {
-                        Text(reservoir.reservoir.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                        Text(reservoir.reservoir.name, style = MaterialTheme.typography.titleLarge)
                         Caption(reservoirLine(reservoir.reservoir))
                     }
-                    Button(onClick = onOpenReservoirs) { Text(stringResource(R.string.reservoirs_open)) }
-                    if (reservoir != null) OutlinedButton(onClick = onOpenReservoirSheet) { Text(stringResource(R.string.reservoir_sheet_open)) }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    NavRow(stringResource(R.string.reservoirs_open), stringResource(R.string.prepare_reservoirs_detail), onClick = onOpenReservoirs)
+                    if (reservoir != null) {
+                        NavRow(stringResource(R.string.reservoir_sheet_open), stringResource(R.string.prepare_sheet_detail), onClick = onOpenReservoirSheet)
+                    }
                 }
             }
 
-            // Fase 7.25: el puesto de hoy se elige aquí (Estrategia solo lo muestra).
-            item { SectionTitle(stringResource(R.string.prepare_spot_title), subtitle = stringResource(R.string.prepare_spot_subtitle)) }
+            // ② Puesto de hoy (fase 7.25: se elige aquí; Estrategia solo lo muestra).
             item {
                 CarpCard {
+                    StepHeading(2, stringResource(R.string.prepare_spot_title))
+                    Caption(stringResource(R.string.prepare_spot_subtitle))
                     if (state.spots.isEmpty()) {
                         Caption(stringResource(R.string.strategy_place_no_spots))
                     } else {
@@ -205,37 +223,30 @@ fun PlaceScreen(
                         }
                         if (state.chosenSpotId == null) Caption(stringResource(R.string.prepare_spot_auto_hint))
                     }
-                    OutlinedButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    NavRow(stringResource(R.string.spots_open), stringResource(R.string.spots_open_detail), onClick = onOpenSpots)
                 }
             }
 
-            item { SectionTitle(stringResource(R.string.prepare_gear_title), subtitle = stringResource(R.string.prepare_gear_subtitle)) }
-            item { CarpCard { OutlinedButton(onClick = onOpenGear) { Text(stringResource(R.string.guided_gear_open)) } } }
-
-            // Fase 7.25: con todo elegido, dejar lista la próxima salida (la noche antes, con cobertura).
-            item { PrepareStep(prep, prepared, outing, viewModel::selectOuting, viewModel::prepareNextOuting, onOpenPrepared) }
-
-            item { SectionTitle(stringResource(R.string.place_location_title), subtitle = stringResource(R.string.place_location_subtitle)) }
+            // ③ Cañas y cebos.
             item {
-                LocationCard(
-                    state = state,
-                    onUseGps = {
-                        permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
-                    },
-                    onSave = viewModel::saveCoordinates,
-                    onReset = viewModel::resetToDefault,
-                )
+                CarpCard {
+                    StepHeading(3, stringResource(R.string.prepare_gear_title))
+                    NavRow(stringResource(R.string.guided_gear_open), stringResource(R.string.prepare_gear_subtitle), onClick = onOpenGear)
+                }
             }
 
-            item { SectionTitle(stringResource(R.string.lessons_title)) }
-            item { CarpCard { OutlinedButton(onClick = onOpenLessons) { Text(stringResource(R.string.lessons_open)) } } }
+            // ④ Con todo elegido, dejar lista la próxima salida (la noche antes, con cobertura).
+            item { PrepareStep(prep, prepared, outing, viewModel::selectOuting, viewModel::prepareNextOuting, onOpenPrepared, number = 4) }
 
-            // Fase 7.17: aviso por la tarde si la próxima salida pinta bien.
-            item { SectionTitle(stringResource(R.string.outlook_settings_title)) }
+            // Fase 7.17: aviso por la tarde si la próxima salida pinta bien (va con «Preparar la salida»).
             item {
                 CarpCard {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                        Text(stringResource(R.string.outlook_settings_switch), modifier = Modifier.weight(1f))
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.outlook_settings_title), style = MaterialTheme.typography.titleSmall)
+                            Text(stringResource(R.string.outlook_settings_switch), style = MaterialTheme.typography.bodyMedium)
+                        }
                         Switch(
                             checked = state.outlookEnabled,
                             onCheckedChange = { on ->
@@ -248,8 +259,26 @@ fun PlaceScreen(
                 }
             }
 
+            // Lo que no se toca cada salida.
+            item { SectionTitle(stringResource(R.string.prepare_more_title)) }
             item {
-                OutlinedButton(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.settings_open)) }
+                CarpCard {
+                    NavRow(stringResource(R.string.lessons_open), stringResource(R.string.prepare_lessons_detail), onClick = onOpenLessons)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    NavRow(stringResource(R.string.settings_title), stringResource(R.string.settings_open), onClick = onOpenSettings)
+                }
+            }
+
+            item { SectionTitle(stringResource(R.string.place_location_title), subtitle = stringResource(R.string.place_location_subtitle)) }
+            item {
+                LocationCard(
+                    state = state,
+                    onUseGps = {
+                        permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+                    },
+                    onSave = viewModel::saveCoordinates,
+                    onReset = viewModel::resetToDefault,
+                )
             }
         }
 

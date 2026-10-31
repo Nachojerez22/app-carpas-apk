@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.reservoir
 
+import com.nachojerez.carpstrategy.ui.components.BackButton
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -65,7 +66,7 @@ fun ReservoirsScreen(onBack: () -> Unit, onOpenSheet: () -> Unit, viewModel: Res
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+            BackButton(onBack)
             ScreenHeader(stringResource(R.string.reservoirs_title), stringResource(R.string.nav_place))
         }
         item {
@@ -179,7 +180,7 @@ fun ReservoirSheetScreen(onBack: () -> Unit, viewModel: ReservoirsViewModel = hi
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+            BackButton(onBack)
             ScreenHeader(active?.reservoir?.name ?: stringResource(R.string.reservoir_sheet_title), stringResource(R.string.reservoir_sheet_title))
         }
         if (active == null) {

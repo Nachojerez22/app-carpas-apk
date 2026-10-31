@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import com.nachojerez.carpstrategy.ui.components.BackButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -84,7 +85,7 @@ fun SpotsMapScreen(onBack: () -> Unit, viewModel: SpotsViewModel = hiltViewModel
 
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+            BackButton(onBack)
             Text(reservoirName ?: stringResource(R.string.spots_map_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
         }
         val here = center
