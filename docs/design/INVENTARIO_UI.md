@@ -102,6 +102,13 @@ De la propuesta de la skill no se adopta la letra manuscrita (Kalam/Patrick Hand
 peor que Atkinson Hyperlegible, que está hecha para eso. La paleta cálida de «diario» ya está en el arcilla
 `secondary` y se usará en el Diario.
 
+## Fase 5 (0.38.0): Preparar y Estrategia
+| Cambio | Antes | Ahora |
+|---|---|---|
+| Pasos numerados (Preparar ①–④, Estrategia ①–③) | texto «1 · Embalse» | número en un círculo verde y el título al lado; TalkBack lee «Paso 1: Embalse» como encabezado |
+
+Todas las funciones de Preparar y Estrategia siguen en el mismo sitio.
+
 ## Comprobación
 Se compararon, fichero a fichero, todas las acciones de la interfaz (`viewModel::…`, `onX = …`,
 `onClick = …` y rutas de navegación) entre 0.33.0 y esta versión: las mismas, más las nuevas (banda de la
