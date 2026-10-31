@@ -141,4 +141,30 @@ class GuidedSessionsTest {
         assertEquals(s.guided!!.conditions.size, again.guided!!.conditions.size)
         assertTrue(GuidedSessions.context(s, 1, env(75)).conditions == setOf(FieldCondition.HEAVY_RAIN))
     }
+
+    @Test
+    fun `terminar con las horas del usuario recorta los tramos`() {
+        val s = started(listOf("fija", "carrete"))
+        val done = GuidedSessions.finish(s, at(15), at(120))
+        assertEquals(at(15), done.start)
+        assertEquals(at(120), done.end)
+        done.guided!!.rods.forEach { rod ->
+            assertEquals(at(15), rod.log.segments.first().start)
+            assertEquals(at(120), rod.log.current.end)
+            assertTrue(rod.log.segments.all { !it.start.isAfter(at(120)) && it.end?.isAfter(at(120)) != true })
+        }
+    }
+
+    @Test
+    fun `un fin antes de un tramo deja ese tramo vacio dentro de la sesion`() {
+        val log = GuidedLog(
+            segments = listOf(
+                Segment(start = at(0), end = at(60), kind = StepKind.INITIAL),
+                Segment(start = at(60), kind = StepKind.PRESENTATION),
+            ),
+        )
+        val done = log.finish(at(0), at(30))
+        assertEquals(listOf(at(0), at(30)), done.segments.map { it.start })
+        assertEquals(listOf(at(30), at(30)), done.segments.map { it.end })
+    }
 }

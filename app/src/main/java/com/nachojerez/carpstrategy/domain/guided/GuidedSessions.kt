@@ -261,6 +261,10 @@ object GuidedSessions {
     fun finish(session: Session, at: Instant): Session =
         session.copy(end = session.end ?: at, guided = session.guided?.finish(at))
 
+    /** Termina con las horas que pone el usuario («de qué hora a qué hora he estado», fase 7.24). */
+    fun finish(session: Session, start: Instant, end: Instant): Session =
+        session.copy(start = start, end = end, guided = session.guided?.finish(start, end))
+
     private fun evaluateAll(session: Session, env: GuidedEnv, appendProposals: Boolean): GuidedUpdate {
         var record = session.guided ?: return GuidedUpdate(session)
         if (!session.isOngoing) return GuidedUpdate(session)

@@ -190,6 +190,20 @@ data class GuidedLog(
     /** Cierra el último tramo al terminar la sesión. */
     fun finish(at: Instant): GuidedLog = copy(segments = segments.dropLast(1) + current.copy(end = current.end ?: at))
 
+    /**
+     * Cierra con las horas que dice el usuario (fase 7.24, por si se olvidó de terminar): el primer
+     * tramo empieza en [start] y ningún tramo se sale de [start]…[end].
+     */
+    fun finish(start: Instant, end: Instant): GuidedLog {
+        val closed = finish(end).segments
+        return copy(
+            segments = closed.mapIndexed { i, segment ->
+                val from = (if (i == 0) start else segment.start).coerceIn(start, end)
+                segment.copy(start = from, end = segment.end?.coerceIn(from, end))
+            },
+        )
+    }
+
     companion object {
         /** Empieza con el plan A pendiente de aceptar o rechazar. */
         fun start(at: Instant, initial: Proposal): GuidedLog = GuidedLog(
@@ -302,4 +316,6 @@ data class GuidedRecord(
     }
 
     fun finish(at: Instant): GuidedRecord = copy(rods = rods.map { it.copy(log = it.log.finish(at)) })
+
+    fun finish(start: Instant, end: Instant): GuidedRecord = copy(rods = rods.map { it.copy(log = it.log.finish(start, end)) })
 }

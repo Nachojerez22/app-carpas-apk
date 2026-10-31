@@ -217,10 +217,14 @@ class GuidedSessionManager @Inject constructor(
     /** Reevalúa (las propuestas por tiempo aparecen sin que haya respuesta). */
     suspend fun refresh(): Unit = change(saveOnlyIfProposal = true) { s, env -> GuidedSessions.refresh(s, env) }
 
-    /** Termina y devuelve la sesión para completar el resultado en su ficha. */
-    suspend fun finish(): Long? = mutex.withLock {
+    /**
+     * Termina y devuelve la sesión para completar el resultado en su ficha. Con [start] y [end], las
+     * horas que pone el usuario (fase 7.24: si se olvidó de terminar, las horas-caña salen bien).
+     */
+    suspend fun finish(start: Instant? = null, end: Instant? = null): Long? = mutex.withLock {
         val session = active() ?: return null
-        journal.save(GuidedSessions.finish(session, clock.instant()))
+        val now = clock.instant()
+        journal.save(GuidedSessions.finish(session, start ?: session.start, end ?: now))
         scheduler.cancel()
         next.value = null
         notifier.dismiss()

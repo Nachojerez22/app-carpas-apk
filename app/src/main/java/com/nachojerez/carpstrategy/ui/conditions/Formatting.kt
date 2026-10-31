@@ -17,6 +17,7 @@ object Formatting {
     private const val MISSING = "—"
     private val HOUR_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE d HH:mm", SPANISH)
     private val CLOCK_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", SPANISH)
+    private val DAY_MONTH_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("d/M", SPANISH)
     private val COMPASS = listOf("N", "NE", "E", "SE", "S", "SO", "O", "NO")
 
     private fun decimals(digits: Int) = DecimalFormat(
@@ -45,6 +46,9 @@ object Formatting {
 
     /** Solo la hora local ("08:24"). */
     fun clock(time: Instant?, zone: ZoneId = MADRID): String = time?.let { CLOCK_FORMAT.format(it.atZone(zone)) } ?: MISSING
+
+    /** Día y mes ("30/10"). */
+    fun dayMonth(time: Instant, zone: ZoneId = MADRID): String = DAY_MONTH_FORMAT.format(time.atZone(zone))
 
     /** Número con signo explícito ("+1,2", "−0,5"). */
     fun signed(value: Double?, digits: Int = 1): String = when {
