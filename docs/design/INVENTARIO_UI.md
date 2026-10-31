@@ -60,9 +60,16 @@ limitaciones, normativa con «última revisión» y versión. Flecha ← para vo
 | Tiempo (¿Llueve?…), opinión de la IA (preguntar), chat con la IA | arriba, antes de lo de cada aviso | debajo del registro |
 | Historial, Terminar (con horas), avisos legales | al final | al final |
 
+## Mi equipo (fase 2, 0.35.0)
+| Función | Antes | Ahora |
+|---|---|---|
+| Cañas (fija/carpfishing, longitud, la llevo hoy), añadir y editar | sección al final de una lista larga | **pestaña Cañas** (la primera) |
+| Cebos: «Hoy llevo», «Empezar de cero hoy», guardados por último uso, «Del diario», ficha de la IA, añadir, editar, medida de cebado | primera sección | **pestaña Cebos** |
+| Montajes: añadir y editar | sección del medio | **pestaña Montajes** |
+| Cuántas cañas y cebos llevas hoy | había que contarlos | resumen arriba y número en cada pestaña |
+| «Buscar de nuevo las fichas pendientes» | arriba | arriba (igual, en todas las pestañas) |
+
 ## Resto de subpantallas (solo cambia «Volver» → flecha ←)
-- **Mi equipo**: cañas (fija/carpfishing, longitud, la llevo hoy), cebos, montajes, «Hoy llevo», «Empezar de
-  cero hoy», guardados, «Del diario», ficha de la IA y «Buscar de nuevo las fichas pendientes», medida de cebado.
 - **Mis puestos** y **Mapa de puestos**: añadir, editar, borrar, recolocar en el mapa.
 - **Embalses** y **Ficha del embalse**: buscar, elegir, embalse propio, ficha con la IA, confirmar especies, cebado.
 - **Asistente de IA**: proveedor, clave (móvil/cuenta), modelos, probar, modo de avisos, consumo. Antetítulo «Ajustes».

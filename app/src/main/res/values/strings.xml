@@ -475,6 +475,8 @@
     <string name="prepare_more_title">Más</string>
     <string name="prepare_lessons_detail">Lo que has aprendido de tus sesiones (tuyo o propuesto por la IA)</string>
     <string name="ai_settings_open_detail">Proveedor, clave, modelo, avisos y consumo</string>
+    <string name="gear_today_summary">Hoy llevas · cañas: %1$d · cebos: %2$d. Marca o desmarca en cada pestaña.</string>
+    <string name="gear_tab">%1$s (%2$d)</string>
     <string name="guided_bar_title">Sesión guiada en curso</string>
     <string name="guided_bar_since">Desde las %1$s</string>
     <string name="guided_bar_next">próximo aviso %1$s</string>
