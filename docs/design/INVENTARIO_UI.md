@@ -91,6 +91,17 @@ editar, borrar, importar y exportar.
 | Guiada: selector de caña en varias líneas si los nombres son largos | Layout (prioridad 5): nada se sale de la pantalla |
 | Mi equipo: pestañas en una línea con «…» si no caben | Layout: sin saltos de línea en controles |
 
+## Fase 4 (0.37.0): estilo «Soft UI» adaptado de la skill + Hoy
+| Cambio | Antes | Ahora |
+|---|---|---|
+| Tarjetas (toda la app, estilo Material) | borde gris de 1 dp | en claro, sombra suave teñida de verde y filo tenue; en oscuro, borde (las sombras no se ven) |
+| Lo que se despliega dentro de una tarjeta | aparece de golpe | crece en 250 ms (`Motion.MEDIUM`) |
+| Hoy: orden | agua → datos → horario legal → estrategia → peso 0 → gráficas | agua → **horario legal → estrategia** → datos → peso 0 → gráficas (lo que decide la salida, arriba) |
+
+De la propuesta de la skill no se adopta la letra manuscrita (Kalam/Patrick Hand): fuera, con sol y prisa, se lee
+peor que Atkinson Hyperlegible, que está hecha para eso. La paleta cálida de «diario» ya está en el arcilla
+`secondary` y se usará en el Diario.
+
 ## Comprobación
 Se compararon, fichero a fichero, todas las acciones de la interfaz (`viewModel::…`, `onX = …`,
 `onClick = …` y rutas de navegación) entre 0.33.0 y esta versión: las mismas, más las nuevas (banda de la

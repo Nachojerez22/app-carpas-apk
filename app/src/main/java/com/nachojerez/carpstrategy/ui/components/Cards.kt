@@ -1,5 +1,10 @@
 package com.nachojerez.carpstrategy.ui.components
 
+import com.nachojerez.carpstrategy.ui.theme.Motion
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateContentSize
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.background
@@ -54,7 +59,8 @@ enum class CardBorder { Normal, Dashed, Warning }
 fun cardRadius(): Dp = if (CarpTheme.style.style == DesignStyle.Apple) 14.dp else 16.dp
 
 /**
- * Tarjeta base. Material: `surface` con borde `outlineVariant` de 1 dp y sin sombra.
+ * Tarjeta base. Material: `surface` con sombra suave y filo tenue en claro (Soft UI, fase 4 de la
+ * revisión de UI) y borde `outlineVariant` de 1 dp en oscuro.
  * Apple: bloque redondeado de 14 dp sin borde. Discontinua para datos estimados o antiguos;
  * borde `warnStrong` de 2 dp para datos con incertidumbre.
  */
@@ -69,17 +75,29 @@ fun CarpCard(
 ) {
     val radius = cardRadius()
     val shape = RoundedCornerShape(radius)
+    val cs = MaterialTheme.colorScheme
+    // «Soft UI» (fase 4 de la revisión): en claro, las tarjetas normales flotan con una sombra suave
+    // teñida de verde y un filo casi invisible; en oscuro las sombras no se ven y se queda el borde.
+    val light = cs.background.luminance() > 0.5f
+    val soft = CarpTheme.style.cardBorder && border == CardBorder.Normal && containerColor == cs.surface && light
     val borderModifier = when (border) {
-        CardBorder.Normal -> if (CarpTheme.style.cardBorder) Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape) else Modifier
+        CardBorder.Normal -> when {
+            soft -> Modifier.border(1.dp, cs.outlineVariant.copy(alpha = 0.5f), shape)
+            CarpTheme.style.cardBorder -> Modifier.border(1.dp, cs.outlineVariant, shape)
+            else -> Modifier
+        }
         CardBorder.Dashed -> Modifier.dashedBorder(dashedColor, radius)
         CardBorder.Warning -> Modifier.border(2.dp, CarpTheme.colors.warnStrong, shape)
     }
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .then(if (soft) Modifier.shadow(3.dp, shape, ambientColor = cs.primary.copy(alpha = 0.18f), spotColor = cs.primary.copy(alpha = 0.18f)) else Modifier)
             .clip(shape)
             .background(containerColor)
             .then(borderModifier)
+            // Lo que se despliega dentro (el porqué de una caña, una revisión) crece sin saltos.
+            .animateContentSize(tween(Motion.MEDIUM))
             .padding(contentPadding),
         verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         content = content,
