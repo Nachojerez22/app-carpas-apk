@@ -307,7 +307,7 @@
     <string name="nav_today">Hoy</string>
     <string name="nav_data">Datos</string>
     <string name="nav_diary">Diario</string>
-    <string name="nav_place">Lugar</string>
+    <string name="nav_place">Preparar</string>
     <string name="action_retry">Reintentar</string>
 
     <!-- Fase 5: insignias -->
@@ -455,8 +455,14 @@
     <!-- Fase 5: Diario -->
     <string name="diary_title">Diario</string>
 
-    <!-- Fase 5: Lugar -->
-    <string name="place_title">Lugar</string>
+    <!-- Fase 5: Lugar (Preparar desde la fase 7.23) -->
+    <string name="place_title">Preparar</string>
+    <string name="prepare_intro">Aquí se configura todo lo de pescar: embalse, cañas y cebos, puestos y ubicación. Lo de la app (cuenta, IA, apariencia) está en Ajustes, al final.</string>
+    <string name="prepare_gear_title">Tus cañas y cebos</string>
+    <string name="prepare_gear_subtitle">Lo que tienes y lo que llevas hoy</string>
+    <string name="settings_open">Ajustes, cuenta y acerca de</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_overline">La app</string>
     <string name="place_location_title">Ubicación</string>
     <string name="place_location_subtitle">La previsión, AEMET y el horario legal se calculan para este punto.</string>
     <string name="place_my_location">Mi ubicación</string>
@@ -891,7 +897,7 @@
     <string name="update_download">Descargar</string>
     <string name="update_later">Más tarde</string>
     <string name="update_data_safe_drive">Tus datos ya están en tu Google Drive. Instala la nueva versión encima de la actual, sin desinstalar.</string>
-    <string name="update_data_safe_local">Instala la nueva versión encima de la actual, sin desinstalar: así no se borra nada. Para tener además una copia en tu Google Drive, inicia sesión en Lugar → Cuenta de Google.</string>
+    <string name="update_data_safe_local">Instala la nueva versión encima de la actual, sin desinstalar: así no se borra nada. Para tener además una copia en tu Google Drive, inicia sesión en Preparar → Ajustes → Cuenta de Google.</string>
 
     <!-- Fase 7.3: tiempo en cada aviso -->
     <string name="weather_now_air">Aire %1$s °C</string>
@@ -984,7 +990,7 @@
     <string name="strategy_what_title">Qué hacer</string>
     <string name="strategy_what_subtitle">Dónde, presentación, cebado y notas, con su evidencia.</string>
     <string name="strategy_spots_title">Tus puestos</string>
-    <string name="strategy_spots_empty">Añade tus puestos en Lugar → Mis puestos para ver cómo les da el viento.</string>
+    <string name="strategy_spots_empty">Añade tus puestos en Preparar → Mis puestos para ver cómo les da el viento.</string>
     <string name="strategy_spots_wind">Viento dominante de las últimas 24 h: %1$s, %2$s km/h. Desempate, no regla principal.</string>
     <string name="strategy_warnings_title">Avisos</string>
     <string name="strategy_why_show">Ver por qué (cadena de filtros, demanda y reglas)</string>
@@ -1026,7 +1032,7 @@
     <string name="guided_ai_title">Asistente de IA</string>
     <string name="guided_ai_ask">Consultar a la IA ahora</string>
     <string name="guided_ai_asking">Consultando…</string>
-    <string name="guided_ai_off">Configura el asistente en Lugar → Asistente de IA para que opine en cada aviso. Sin él, decide el motor de reglas.</string>
+    <string name="guided_ai_off">Configura el asistente en Preparar → Ajustes → Asistente de IA para que opine en cada aviso. Sin él, decide el motor de reglas.</string>
     <string name="guided_ai_note">La app comprueba cada respuesta (tu equipo, tus puestos, sin gramos ni porcentajes, con evidencia). Si no cumple, mandan las reglas. Tú decides siempre.</string>
 
     <string name="ai_settings_title">Asistente de IA</string>
@@ -1223,7 +1229,7 @@
     <string name="gear_sheet_profile">Perfil: %1$s</string>
     <string name="gear_sheet_solubility">Solubilidad: %1$s</string>
     <string name="gear_sheet_sources">Fuentes:\n%1$s</string>
-    <string name="gear_sheet_no_key">Configura la IA (Lugar → Asistente de IA) para buscar la ficha.</string>
+    <string name="gear_sheet_no_key">Configura la IA (Preparar → Ajustes → Asistente de IA) para buscar la ficha.</string>
     <string name="gear_sheet_failed">No se pudo preparar la ficha (%1$s).</string>
     <string name="gear_pending_hint">Hay fichas hechas sin búsqueda en Google. Las que tienen enlace se rehacen leyendo la tienda; las demás, cuando vuelva a haber búsquedas.</string>
     <string name="gear_pending_button">Buscar de nuevo las fichas pendientes (%1$d)</string>
@@ -1392,7 +1398,7 @@
     <string name="strategy_place_auto_hint">Automático: la app ordena tus puestos de mejor a peor para ahora.</string>
     <string name="strategy_place_spot_hint">La estrategia, el plan de la IA y la sesión guiada se preparan para este puesto. El tiempo es el mismo en todo el embalse: el puesto cambia cómo te da el viento y la estructura.</string>
     <string name="advice_where_generic">Busca %1$s, %2$s.</string>
-    <string name="advice_no_spots">Añade tus puestos (Lugar → Mis puestos) para que la app te diga en cuál ponerte y a qué distancia.</string>
+    <string name="advice_no_spots">Añade tus puestos (Preparar → Mis puestos) para que la app te diga en cuál ponerte y a qué distancia.</string>
     <string name="advice_groundbait">Cebado: %1$s</string>
     <string name="advice_best_parts">Tus mejores momentos en condiciones parecidas: %1$s</string>
     <string name="advice_experience">Basado en %1$d sesiones tuyas parecidas (%2$d carpas). Cuantas más anotes, más afina.</string>
@@ -1411,7 +1417,7 @@
     <string name="reservoirs_count">%1$d de %2$d, del más cercano al más lejano</string>
     <string name="reservoirs_km">%1$s km</string>
     <string name="reservoirs_selected">Activo</string>
-    <string name="reservoirs_custom_intro">¿No está tu embalse? Añádelo con sus coordenadas (por defecto, las de tu ubicación actual; usa antes el GPS en Lugar si estás allí).</string>
+    <string name="reservoirs_custom_intro">¿No está tu embalse? Añádelo con sus coordenadas (por defecto, las de tu ubicación actual; usa antes el GPS en Preparar si estás allí).</string>
     <string name="reservoirs_custom_add">Añadir embalse propio</string>
     <string name="reservoirs_custom_name">Nombre</string>
     <string name="reservoirs_custom_hint">Las coordenadas se quedan en tu móvil y en tu cuenta; no se mandan a la IA.</string>
@@ -1429,7 +1435,7 @@
     <string name="reservoir_not_brovales">Los datos de Brovales del documento (orillas, profundidades, zonas) no se aplican aquí: usa tus puestos y tus mediciones.</string>
     <string name="reservoir_ai_title">Ficha con IA</string>
     <string name="reservoir_ai_subtitle">La IA aplica tu documento de conocimiento a este embalse. Sin verificar 🟣: confírmalo tú.</string>
-    <string name="reservoir_ai_no_key">Configura el asistente de IA en Lugar para prepararla.</string>
+    <string name="reservoir_ai_no_key">Configura el asistente de IA en Preparar → Ajustes para prepararla.</string>
     <string name="reservoir_ai_generate">Preparar ficha con IA</string>
     <string name="reservoir_ai_regenerate">Volver a preparar la ficha</string>
     <string name="reservoir_ai_error">No se pudo consultar a la IA (%1$s).</string>
@@ -1525,7 +1531,7 @@
     <string name="spots_map_open">Ver en el mapa</string>
     <string name="spots_map_title">Mapa de puestos</string>
     <string name="spots_map_no_key">El mapa necesita la clave de Google Maps (MAPS_API_KEY) al compilar. Mientras, puedes anotar los puestos a mano.</string>
-    <string name="spots_map_no_place">Elige antes un embalse o una ubicación en Lugar.</string>
+    <string name="spots_map_no_place">Elige antes un embalse o una ubicación en Preparar.</string>
     <string name="spots_map_hint">Toca un puesto para ver cómo le da el viento; toca su globo para editarlo.</string>
     <string name="spots_map_add">Nuevo puesto en el mapa</string>
     <string name="spots_map_place">Situar «%1$s»</string>
