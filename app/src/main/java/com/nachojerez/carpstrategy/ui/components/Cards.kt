@@ -1,5 +1,7 @@
 package com.nachojerez.carpstrategy.ui.components
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -92,9 +94,9 @@ fun ScreenHeader(title: String, overline: String?, modifier: Modifier = Modifier
             overline?.let {
                 Text(it.uppercase(), style = AppleSectionHeader, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text(title, style = AppleLargeTitle, color = MaterialTheme.colorScheme.onBackground)
+            Text(title, style = AppleLargeTitle, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.semantics { heading() })
         } else {
-            Text(title, style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground)
+            Text(title, style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.semantics { heading() })
             overline?.let {
                 Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -107,9 +109,9 @@ fun ScreenHeader(title: String, overline: String?, modifier: Modifier = Modifier
 fun SectionTitle(text: String, modifier: Modifier = Modifier, subtitle: String? = null) {
     Column(modifier.fillMaxWidth().padding(top = Spacing.md, bottom = Spacing.xs)) {
         if (CarpTheme.style.groupedLists) {
-            Text(text.uppercase(), style = AppleSectionHeader, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = Spacing.lg))
+            Text(text.uppercase(), style = AppleSectionHeader, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = Spacing.lg).semantics { heading() })
         } else {
-            Text(text, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            Text(text, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.semantics { heading() })
         }
         subtitle?.let {
             Text(

@@ -474,6 +474,10 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   que tiempo, IA y chat.
 - Fase 2 (0.35.0): Mi equipo con pestañas Cañas · Cebos · Montajes (`GEAR_TABS`, empieza en Cañas) y resumen de lo
   que llevas hoy.
+- Fase 3 (0.36.0, con las skills `.claude/skills/ui-ux-pro-max` y `frontend-design`): `ScreenHeader`, `SectionTitle` y
+  `StepHeading` son encabezados para TalkBack (`semantics { heading() }`); plegables con flecha y `stateDescription`;
+  Hoy enlaza a Estrategia (`onOpenStrategy`). El sistema visual sigue siendo el de DISENO.md (la propuesta genérica de la
+  skill no aplica).
 
 ## Stack
 

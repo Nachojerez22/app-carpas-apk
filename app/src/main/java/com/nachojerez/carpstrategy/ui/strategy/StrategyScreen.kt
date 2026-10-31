@@ -1,5 +1,8 @@
 package com.nachojerez.carpstrategy.ui.strategy
 
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.material3.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -258,8 +261,14 @@ fun StrategyContent(
 
                 // Detalles (plegado): todo lo que hay detrás del plan.
                 item {
-                    TextButton(onClick = { detailsOpen = !detailsOpen }, modifier = Modifier.fillMaxWidth()) {
+                    // Revisión de UI (7.28, fase 3): flecha que dice si está plegado y estado para lectores de pantalla.
+                    val stateText = stringResource(if (detailsOpen) R.string.state_expanded else R.string.state_collapsed)
+                    TextButton(
+                        onClick = { detailsOpen = !detailsOpen },
+                        modifier = Modifier.fillMaxWidth().semantics { stateDescription = stateText },
+                    ) {
                         Text(stringResource(if (detailsOpen) R.string.strategy_details_hide else R.string.strategy_details_show))
+                        Icon(painterResource(if (detailsOpen) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down), contentDescription = null)
                     }
                 }
                 if (detailsOpen) detailItems(state, plan, result, actions)

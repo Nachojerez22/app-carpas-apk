@@ -174,6 +174,7 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                         }
                     },
                     onOpenPlace = { navController.navigateToTab(PlaceRoute) },
+                    onOpenStrategy = { navController.navigateToTab(StrategyRoute) },
                 )
             }
             composable<StrategyRoute> {
