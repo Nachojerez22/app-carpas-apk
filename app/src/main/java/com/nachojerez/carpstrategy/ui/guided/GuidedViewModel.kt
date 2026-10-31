@@ -173,8 +173,9 @@ class GuidedViewModel @Inject constructor(
         viewModelScope.launch { manager.reject(rodId, reason, comment) }
     }
 
-    fun finish(onFinished: (Long) -> Unit) {
-        viewModelScope.launch { manager.finish()?.let(onFinished) }
+    /** Termina con las horas del diálogo («Desde» y «Hasta»). */
+    fun finish(start: Instant, end: Instant, onFinished: (Long) -> Unit) {
+        viewModelScope.launch { manager.finish(start, end)?.let(onFinished) }
     }
 }
 

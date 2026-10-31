@@ -34,7 +34,7 @@ import kotlinx.coroutines.sync.withLock
 class AiUsageStore @Inject constructor(
     private val dao: SettingDao,
     private val local: LocalSettings,
-    @param:IoDispatcher io: CoroutineDispatcher,
+    @IoDispatcher io: CoroutineDispatcher,
 ) : AiUsageRecorder {
     // Si falla al guardar, se pierde ese apunte y nada más (sin cerrar la app).
     private val scope = CoroutineScope(SupervisorJob() + io + CoroutineExceptionHandler { _, _ -> })

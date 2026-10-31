@@ -231,7 +231,7 @@ object RulesJson {
             issue(RuleIssueCode.INVALID_MEMBERSHIP, "pertenencia.puntos", arrayOf(key))
             return null
         }
-        return Membership(parameter, points!!.filterNotNull())
+        return Membership(parameter, points.filterNotNull())
     }
 
     private fun parseStrategy(

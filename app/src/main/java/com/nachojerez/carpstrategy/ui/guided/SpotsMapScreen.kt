@@ -207,7 +207,7 @@ private fun WindCard(wind: MapWind?, modifier: Modifier = Modifier) {
     val text = if (from == null || kmh == null) {
         stringResource(R.string.spots_map_wind_unknown)
     } else {
-        val temp = when (WindRules.temperature(wind?.airC, wind?.waterC)) {
+        val temp = when (WindRules.temperature(wind.airC, wind.waterC)) {
             WindTemperature.WARM -> stringResource(R.string.spots_map_wind_warm)
             WindTemperature.COLD -> stringResource(R.string.spots_map_wind_cold)
             else -> ""

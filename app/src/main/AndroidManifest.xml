@@ -9,8 +9,14 @@
     <!-- Sesión guiada: avisos cada 30 min (solo vibración) mientras dura la sesión. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- Opcional: si no se concede, los avisos pueden retrasarse unos minutos. -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Avisos a su hora (fase 7.26). La app no se distribuye por Google Play: USE_EXACT_ALARM se concede
+         al instalar en Android 13 o posterior; en Android 12, SCHEDULE_EXACT_ALARM (opcional). -->
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- Si el móvil se reinicia durante una sesión guiada, se vuelve a programar el aviso. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".CarpStrategyApp"
@@ -43,6 +49,14 @@
         <receiver
             android:name=".ui.guided.GuidedActionReceiver"
             android:exported="false" />
+        <receiver
+            android:name=".ui.guided.GuidedBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <!-- Fotos de las capturas (fase 7.17): la cámara del sistema escribe en la carpeta privada «fotos». -->
         <provider

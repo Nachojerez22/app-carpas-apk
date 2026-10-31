@@ -89,6 +89,27 @@ class GuidedAlarmReceiver : HiltBroadcastReceiver() {
     }
 }
 
+/**
+ * Tras reiniciar el móvil (o actualizar la app) Android borra las alarmas: si hay una sesión
+ * guiada en curso, se vuelve a programar el aviso sin tener que abrir la app (fase 7.26).
+ */
+@AndroidEntryPoint
+class GuidedBootReceiver : HiltBroadcastReceiver() {
+    @Inject lateinit var manager: GuidedSessionManager
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED && intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) return
+        val result = goAsync()
+        manager.scope.launch {
+            try {
+                manager.restore(force = true)
+            } finally {
+                result.finish()
+            }
+        }
+    }
+}
 
 @AndroidEntryPoint
 class GuidedActionReceiver : HiltBroadcastReceiver() {

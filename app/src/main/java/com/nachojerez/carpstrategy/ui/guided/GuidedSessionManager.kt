@@ -47,6 +47,7 @@ import com.nachojerez.carpstrategy.domain.usecase.RefreshWeatherUseCase
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.completeSession
 import com.nachojerez.carpstrategy.ui.strategy.KEY_PLAN_RODS
+import com.nachojerez.carpstrategy.ui.strategy.KEY_PLAN_KEY
 import com.nachojerez.carpstrategy.ui.strategy.KEY_PREPARED_KEY
 import com.nachojerez.carpstrategy.ui.strategy.PreparedOuting
 import com.nachojerez.carpstrategy.ui.strategy.adviceFor
@@ -167,7 +168,11 @@ class GuidedSessionManager @Inject constructor(
         val withWeather = weather?.let { w -> started.copy(session = started.session.copy(guided = started.session.guided?.withWeather(w))) } ?: started
         // El plan con IA de Estrategia (si es reciente) queda con la sesión para comparar después.
         // Si no hay uno reciente, el preparado con «Preparar mañana» para hoy (fase 7.15).
-        val recent = GuidedJson.decodeAi(localSettings.get(KEY_LAST_PLAN))?.takeIf { Duration.between(it.time, now) <= PLAN_MAX_AGE && !it.time.isAfter(now) }
+        // Fase 7.24: el reciente también tiene que ser válido y de este embalse (pudiste mirar otro en Estrategia).
+        val recent = GuidedJson.decodeAi(localSettings.get(KEY_LAST_PLAN))?.takeIf {
+            it.valid && Duration.between(it.time, now) <= PLAN_MAX_AGE && !it.time.isAfter(now) &&
+                preparedPlanFits(localSettings.get(KEY_PLAN_KEY), reservoir?.reservoir?.id, now.atZone(Formatting.MADRID).toLocalDate())
+        }
         val prepared = GuidedJson.decodeAi(localSettings.get(KEY_PREPARED_PLAN))?.takeIf {
             it.valid && preparedPlanFits(localSettings.get(KEY_PREPARED_KEY), reservoir?.reservoir?.id, now.atZone(Formatting.MADRID).toLocalDate())
         }
@@ -217,10 +222,14 @@ class GuidedSessionManager @Inject constructor(
     /** Reevalúa (las propuestas por tiempo aparecen sin que haya respuesta). */
     suspend fun refresh(): Unit = change(saveOnlyIfProposal = true) { s, env -> GuidedSessions.refresh(s, env) }
 
-    /** Termina y devuelve la sesión para completar el resultado en su ficha. */
-    suspend fun finish(): Long? = mutex.withLock {
+    /**
+     * Termina y devuelve la sesión para completar el resultado en su ficha. Con [start] y [end], las
+     * horas que pone el usuario (fase 7.26: si se olvidó de terminar, las horas-caña salen bien).
+     */
+    suspend fun finish(start: Instant? = null, end: Instant? = null): Long? = mutex.withLock {
         val session = active() ?: return null
-        journal.save(GuidedSessions.finish(session, clock.instant()))
+        val now = clock.instant()
+        journal.save(GuidedSessions.finish(session, start ?: session.start, end ?: now))
         scheduler.cancel()
         next.value = null
         notifier.dismiss()
@@ -404,15 +413,18 @@ class GuidedSessionManager @Inject constructor(
         afterChange(update, now, alert = true, checkIn = true)
     }
 
-    /** Al abrir la app: si hay sesión guiada y no hay aviso programado, se vuelve a programar. */
-    suspend fun restore(): Unit = mutex.withLock {
+    /**
+     * Al abrir la app: si hay sesión guiada y no hay aviso programado, se vuelve a programar. Con
+     * [force] (tras reiniciar el móvil, fase 7.26) se programa siempre: Android ha borrado las alarmas.
+     */
+    suspend fun restore(force: Boolean = false): Unit = mutex.withLock {
         val session = active()
         if (session == null) {
             next.value = null
             return@withLock
         }
         val now = clock.instant()
-        afterChange(GuidedUpdate(session), now, alert = false, reschedule = !scheduler.isScheduled())
+        afterChange(GuidedUpdate(session), now, alert = false, reschedule = force || !scheduler.isScheduled())
     }
 
     /** El tiempo de ahora para la sesión; null si no hay datos (nunca rompe el aviso). */

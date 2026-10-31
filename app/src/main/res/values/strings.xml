@@ -558,6 +558,12 @@
     <string name="diary_export_file_name">carpstrategy-diario.json</string>
     <string name="diary_export_done">Diario exportado: %1$d sesiones.</string>
     <string name="diary_export_failed">No se pudo exportar: %1$s</string>
+    <string name="diary_photos_export">Copia de las fotos (ZIP)</string>
+    <string name="diary_photos_restore">Restaurar las fotos</string>
+    <string name="diary_photos_hint">Las fotos de tus capturas no van a tu cuenta de Google ni al JSON: guarda también esta copia. Al restaurar, cada foto vuelve a su captura.</string>
+    <string name="diary_photos_file_name">carpstrategy-fotos.zip</string>
+    <string name="diary_photos_done">Fotos copiadas: %1$d.</string>
+    <string name="diary_photos_restored">Fotos restauradas: %1$d (las que ya estaban no se tocan).</string>
     <string name="diary_delete_confirm">¿Borrar esta sesión? Se pierde también la valoración previa guardada.</string>
     <string name="zone_north">N</string>
     <string name="zone_east">E</string>
@@ -690,7 +696,17 @@
     <string name="guided_history_proposal">%1$s %2$s · %3$s</string>
     <string name="guided_history_reason">Motivo: %1$s</string>
     <string name="guided_finish">Terminar sesión</string>
-    <string name="guided_finish_confirm">¿Terminar la sesión? Después anotas el resultado en su ficha.</string>
+    <string name="guided_finish_confirm">¿De qué hora a qué hora has estado? Después anotas el resultado en su ficha.</string>
+    <string name="guided_finish_times_title">Terminar sesión</string>
+    <string name="guided_finish_from">Desde (HH:MM)</string>
+    <string name="guided_finish_to">Hasta (HH:MM)</string>
+    <string name="guided_finish_capped">El horario legal ya terminó: «Hasta» es la hora de recoger. Cámbiala si te fuiste antes.</string>
+    <string name="guided_finish_error_start">Escribe la hora de inicio como 07:15.</string>
+    <string name="guided_finish_error_end">Escribe la hora de fin como 19:30.</string>
+    <string name="guided_finish_error_order">El fin tiene que ser después del inicio (las dos horas son del día en que empezaste).</string>
+    <string name="guided_finish_error_future">Esa hora aún no ha llegado.</string>
+    <string name="guided_forgotten">Esta sesión sigue abierta desde el %1$s a las %2$s. Termínala y pon de qué hora a qué hora estuviste, así las horas-caña salen bien.</string>
+    <string name="guided_finish_with_times">Terminar y poner las horas</string>
     <string name="guided_warnings_title">Antes de fiarte</string>
     <string name="guided_warning_times">Los tiempos de cambio son hipótesis: no hay estudios que los fijen.</string>
     <string name="guided_warning_bathymetry">La batimetría del embalse no está verificada.</string>
@@ -1306,11 +1322,11 @@
     <!-- Aviso «Mañana pinta bien» (fase 7.17) -->
     <string name="outlook_settings_title">Aviso de la próxima salida</string>
     <string name="outlook_settings_switch">Avisarme por la tarde si la próxima salida pinta bien</string>
-    <string name="outlook_settings_hint">Hacia las 19:00 la app mira la próxima salida (primera hora legal) con las mismas reglas que Estrategia y, solo si sale favorable o muy favorable según tus datos, te avisa una vez para que la prepares. No promete peces. Solo en este móvil.</string>
+    <string name="outlook_settings_hint">Hacia las 19:00 la app mira la próxima salida (toda la jornada legal, hora a hora) con las mismas reglas que Estrategia y, solo si sale favorable o muy favorable según tus datos, te avisa una vez con la mejor franja para que la prepares. No promete peces. Solo en este móvil.</string>
     <string name="outlook_channel_name">Próxima salida</string>
     <string name="outlook_channel_description">Aviso por la tarde si la próxima salida sale favorable según tus datos</string>
     <string name="outlook_title">Pinta bien en %1$s</string>
-    <string name="outlook_text">%1$s: condiciones %2$s según tus datos (no es promesa de peces). Abre Estrategia y pulsa «Preparar la próxima salida».</string>
+    <string name="outlook_text">De %1$s a %2$s: condiciones %3$s según tus datos (no es promesa de peces). Abre Estrategia y pulsa «Preparar la próxima salida».</string>
     <string name="outlook_favorable">favorables</string>
     <string name="outlook_very_favorable">muy favorables</string>
     <!-- Preparar la próxima salida (fase 7.15) -->

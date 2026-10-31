@@ -345,7 +345,8 @@ const val KEY_RODS = "strategy_rods"
 
 /** Nombres de las cañas del plan de Estrategia, uno por línea (0.26.1): la guiada empieza con ellas. */
 const val KEY_PLAN_RODS = "strategy_plan_rods"
-private const val KEY_PLAN_KEY = "strategy_plan_key"
+/** [planKey] del último plan pedido en Estrategia (la guiada lo usa para saber de qué embalse es). */
+const val KEY_PLAN_KEY = "strategy_plan_key"
 
 
 /** Espera tras el último cambio de embalse, puesto o cañas antes de consultar a la IA. */

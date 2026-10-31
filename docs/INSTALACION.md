@@ -93,6 +93,8 @@ La app no usa la copia en la nube de Android: tus datos solo están en el móvil
 - **Datos → Exportar copia**: tus registros en formato `carpstrategy-datos`
   ([formato](FORMATO_DATOS.md)); se recuperan con **Importar JSON** (quedan marcados como
   importados).
+- **Diario → Copia de las fotos (ZIP)**: las fotos de las capturas, que no van en el JSON ni a tu
+  cuenta de Google. **Restaurar las fotos** las devuelve a su captura (restaura antes el diario).
 
 Haz una copia de vez en cuando y siempre antes de desinstalar o cambiar de móvil.
 

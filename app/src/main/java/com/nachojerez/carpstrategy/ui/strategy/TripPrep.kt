@@ -66,6 +66,41 @@ fun aiPlanFor(state: StrategyUiState, plan: PlanUiState): AiOutcome<AiPlan>? {
 fun shouldNotifyOutlook(band: FavorabilityBand?, blocked: Boolean, outingDate: LocalDate, lastNotified: LocalDate?): Boolean =
     !blocked && (band == FavorabilityBand.FAVORABLE || band == FavorabilityBand.VERY_FAVORABLE) && lastNotified != outingDate
 
+/** Una hora de la jornada evaluada con las reglas: su escala y si un filtro duro la impide. */
+data class OutingHour(val at: Instant, val band: FavorabilityBand?, val blocked: Boolean)
+
+/** La mejor franja de la jornada (fase 7.26): de [start] a [end], con la escala [band]. */
+data class BestWindow(val start: Instant, val end: Instant, val band: FavorabilityBand)
+
+/** Separación entre las horas que se evalúan. */
+val OUTING_STEP: Duration = Duration.ofHours(1)
+
+/**
+ * Horas de la jornada legal de [outingStart] (la de [nextOuting]) que se evalúan, una cada
+ * [OUTING_STEP], sin pasar de [PREP_AFTER_LEGAL_START] antes del fin legal.
+ */
+fun outingHours(outingStart: Instant, point: GeoPoint, zone: ZoneId): List<Instant> {
+    val legal = LegalWindow.of(SolarCalculator.sunTimes(outingStart.atZone(zone).toLocalDate(), point)) ?: return listOf(outingStart)
+    val last = legal.end.minus(PREP_AFTER_LEGAL_START)
+    return generateSequence(outingStart) { it.plus(OUTING_STEP) }.takeWhile { !it.isAfter(last) }.toList()
+}
+
+/**
+ * La mejor escala entre las horas sin filtro duro y su franja seguida más larga (la primera si
+ * empatan). El fin es la última hora de la franja + [OUTING_STEP], sin pasar de [cap].
+ */
+fun bestWindow(hours: List<OutingHour>, cap: Instant): BestWindow? {
+    val best = hours.filter { !it.blocked }.mapNotNull { it.band }.maxOrNull() ?: return null
+    var run = emptyList<OutingHour>()
+    var longest = emptyList<OutingHour>()
+    hours.forEach { hour ->
+        run = if (!hour.blocked && hour.band == best) run + hour else emptyList()
+        if (run.size > longest.size) longest = run
+    }
+    val end = minOf(longest.last().at.plus(OUTING_STEP), cap)
+    return BestWindow(longest.first().at, maxOf(end, longest.first().at), best)
+}
+
 /** Pasos de «Preparar mañana». */
 enum class PrepStep { FORECAST, PLAN, SHEETS }
 

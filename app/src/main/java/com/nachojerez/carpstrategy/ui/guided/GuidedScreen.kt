@@ -134,6 +134,9 @@ fun GuidedScreen(
         } else {
             val rods = state.rods
             val rod = rods.firstOrNull { it.id == selectedRod } ?: rods.firstOrNull()
+            if (isForgotten(session, state.legalEnd, state.now, Formatting.MADRID)) {
+                item { ForgottenCard(session) { confirmFinish = true } }
+            }
             item { HeaderCard(state, session, phase, rods.size > 1, viewModel::nothingEverywhere, viewModel::windChanged, viewModel::conditionChanged) }
             item { WeatherCard(session.guided?.spot, state.weather, viewModel::answerWeather) }
             item { AiCard(state, viewModel::askAi) }
@@ -174,19 +177,86 @@ fun GuidedScreen(
         item { WarningsCard() }
     }
 
-    if (confirmFinish) {
-        AlertDialog(
-            onDismissRequest = { confirmFinish = false },
-            text = { Text(stringResource(R.string.guided_finish_confirm)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmFinish = false
-                    viewModel.finish(onFinished)
-                }) { Text(stringResource(R.string.guided_finish)) }
+    val finishing = state.session
+    if (confirmFinish && finishing != null) {
+        FinishDialog(
+            defaults = finishDefaults(finishing, state.legalEnd, state.now, Formatting.MADRID),
+            parse = { from, to -> parseFinishTimes(finishing, from, to, state.now, Formatting.MADRID) },
+            onDismiss = { confirmFinish = false },
+            onConfirm = { start, end ->
+                confirmFinish = false
+                viewModel.finish(start, end, onFinished)
             },
-            dismissButton = { TextButton(onClick = { confirmFinish = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
+}
+
+/** La sesión sigue abierta después del fin legal o desde otro día (te olvidaste de terminarla). */
+@Composable
+private fun ForgottenCard(session: Session, onFinish: () -> Unit) {
+    CarpCard(border = CardBorder.Warning) {
+        Text(stringResource(R.string.guided_forgotten, Formatting.dayMonth(session.start), Formatting.clock(session.start)))
+        Button(onClick = onFinish, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.guided_finish_with_times)) }
+    }
+}
+
+/** «¿De qué hora a qué hora has estado?»: las horas de la sesión, por si se te olvidó terminarla (fase 7.26). */
+@Composable
+private fun FinishDialog(
+    defaults: FinishDefaults,
+    parse: (String, String) -> FinishInput,
+    onDismiss: () -> Unit,
+    onConfirm: (java.time.Instant, java.time.Instant) -> Unit,
+) {
+    var from by rememberSaveable { mutableStateOf(defaults.start) }
+    var to by rememberSaveable { mutableStateOf(defaults.end) }
+    val input = parse(from, to)
+    val error = (input as? FinishInput.Invalid)?.error
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.guided_finish_times_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                Text(stringResource(R.string.guided_finish_confirm))
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    OutlinedTextField(
+                        value = from,
+                        onValueChange = { from = it },
+                        label = { Text(stringResource(R.string.guided_finish_from)) },
+                        singleLine = true,
+                        isError = error == FinishError.START,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        value = to,
+                        onValueChange = { to = it },
+                        label = { Text(stringResource(R.string.guided_finish_to)) },
+                        singleLine = true,
+                        isError = error != null && error != FinishError.START,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (defaults.capped) Caption(stringResource(R.string.guided_finish_capped))
+                error?.let { Caption(stringResource(it.messageRes()), color = MaterialTheme.colorScheme.error) }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { (input as? FinishInput.Valid)?.let { onConfirm(it.start, it.end) } },
+                enabled = input is FinishInput.Valid,
+            ) { Text(stringResource(R.string.guided_finish)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
+}
+
+private fun FinishError.messageRes(): Int = when (this) {
+    FinishError.START -> R.string.guided_finish_error_start
+    FinishError.END -> R.string.guided_finish_error_end
+    FinishError.END_BEFORE_START -> R.string.guided_finish_error_order
+    FinishError.IN_FUTURE -> R.string.guided_finish_error_future
 }
 
 @Composable

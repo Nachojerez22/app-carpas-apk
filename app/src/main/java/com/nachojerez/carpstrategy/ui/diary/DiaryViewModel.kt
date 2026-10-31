@@ -43,6 +43,12 @@ sealed interface ExportStatus {
     data class Failed(val message: String) : ExportStatus
     data class Restored(val added: Int, val total: Int) : ExportStatus
     data object NotADiary : ExportStatus
+
+    /** Fotos copiadas en el ZIP (fase 7.26). */
+    data class PhotosDone(val count: Int) : ExportStatus
+
+    /** Fotos nuevas restauradas del ZIP. */
+    data class PhotosRestored(val added: Int) : ExportStatus
 }
 
 @HiltViewModel
@@ -234,6 +240,33 @@ class DiaryViewModel @Inject constructor(
                 } else {
                     ExportStatus.Restored(journal.restore(sessions), sessions.size)
                 }
+            } catch (e: IOException) {
+                ExportStatus.Failed(e.message.orEmpty())
+            } catch (e: SecurityException) {
+                ExportStatus.Failed(e.message.orEmpty())
+            }
+        }
+    }
+
+    /** Copia de las fotos de las capturas en un ZIP (solo están en el móvil, fase 7.26). */
+    fun exportPhotosTo(uri: Uri) {
+        viewModelScope.launch {
+            export.value = try {
+                val names = journal.observeSessions().first().flatMap { s -> s.catches.mapNotNull { it.photo } }.toSet()
+                ExportStatus.PhotosDone(catchPhotos.exportZip(uri, names))
+            } catch (e: IOException) {
+                ExportStatus.Failed(e.message.orEmpty())
+            } catch (e: SecurityException) {
+                ExportStatus.Failed(e.message.orEmpty())
+            }
+        }
+    }
+
+    /** Restaura las fotos de un ZIP (tras restaurar el diario en un móvil nuevo). */
+    fun restorePhotosFrom(uri: Uri) {
+        viewModelScope.launch {
+            export.value = try {
+                ExportStatus.PhotosRestored(catchPhotos.importZip(uri))
             } catch (e: IOException) {
                 ExportStatus.Failed(e.message.orEmpty())
             } catch (e: SecurityException) {
