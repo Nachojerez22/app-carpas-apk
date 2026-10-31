@@ -408,15 +408,18 @@ class GuidedSessionManager @Inject constructor(
         afterChange(update, now, alert = true, checkIn = true)
     }
 
-    /** Al abrir la app: si hay sesión guiada y no hay aviso programado, se vuelve a programar. */
-    suspend fun restore(): Unit = mutex.withLock {
+    /**
+     * Al abrir la app: si hay sesión guiada y no hay aviso programado, se vuelve a programar. Con
+     * [force] (tras reiniciar el móvil, fase 7.24) se programa siempre: Android ha borrado las alarmas.
+     */
+    suspend fun restore(force: Boolean = false): Unit = mutex.withLock {
         val session = active()
         if (session == null) {
             next.value = null
             return@withLock
         }
         val now = clock.instant()
-        afterChange(GuidedUpdate(session), now, alert = false, reschedule = !scheduler.isScheduled())
+        afterChange(GuidedUpdate(session), now, alert = false, reschedule = force || !scheduler.isScheduled())
     }
 
     /** El tiempo de ahora para la sesión; null si no hay datos (nunca rompe el aviso). */
