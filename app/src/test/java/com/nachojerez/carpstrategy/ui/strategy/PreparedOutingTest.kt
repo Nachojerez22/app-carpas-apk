@@ -25,6 +25,7 @@ import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.domain.rules.StrategyField
 import com.nachojerez.carpstrategy.domain.usecase.RawWeather
+import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import java.io.File
 import java.time.Duration
 import java.time.Instant
@@ -122,5 +123,71 @@ class PreparedOutingTest {
         val outing = preparedOutingOf(state, dayPlan, emptyList(), result, now)
         val read = PreparedOutingJson.decode(PreparedOutingJson.encode(outing))!!
         assertEquals(dayPlan.rods, read.rodLines)
+    }
+
+    // Fase 7.21: activar la salida preparada.
+
+    private fun plannedOuting(): PreparedOuting {
+        val state = state()
+        return preparedOutingOf(state, dayPlanFor(state, PlanUiState()), emptyList(), result, now.minus(Duration.ofHours(14)))
+    }
+
+    @Test
+    fun `la preparacion guarda el puesto exacto aunque sea automatico y lo recupera del JSON`() {
+        val outing = plannedOuting()
+        assertTrue(outing.spotAuto)
+        assertNotNull(outing.spotId)
+        assertEquals(outing.spotName, state().spots.first { it.id == outing.spotId }.name)
+        val read = PreparedOutingJson.decode(PreparedOutingJson.encode(outing))!!
+        assertEquals(outing.spotId, read.spotId)
+        assertEquals(outing.reservoirId, read.reservoirId)
+    }
+
+    @Test
+    fun `se activa solo hoy, en ese embalse, con plan y dentro del horario legal`() {
+        val zone = Formatting.MADRID
+        val outing = plannedOuting().copy(reservoirId = "brovales", reservoirName = "Brovales")
+        val legalEnd = now.plus(Duration.ofHours(8))
+        assertTrue(outing.activatableAt(now, zone, "brovales", "Brovales", legalEnd))
+        // Otro embalse, otro día o ya fuera del horario legal: no.
+        assertFalse(outing.activatableAt(now, zone, "otro", "Otro", legalEnd))
+        assertFalse(outing.activatableAt(now.plus(Duration.ofDays(1)), zone, "brovales", "Brovales", null))
+        assertFalse(outing.activatableAt(legalEnd, zone, "brovales", "Brovales", legalEnd))
+        // Sin plan o con filtro duro a esa hora: tampoco.
+        assertFalse(outing.copy(rodLines = emptyList()).activatableAt(now, zone, "brovales", "Brovales", legalEnd))
+        assertFalse(outing.copy(conditions = outing.conditions!!.copy(blocked = true)).activatableAt(now, zone, "brovales", "Brovales", legalEnd))
+        // Preparaciones antiguas (sin id del embalse): por nombre.
+        val old = outing.copy(reservoirId = null)
+        assertTrue(old.activatableAt(now, zone, "brovales", "Brovales", legalEnd))
+        assertFalse(old.activatableAt(now, zone, "otro", "Otro", legalEnd))
+    }
+
+    @Test
+    fun `al activar se empieza con el puesto, su zona, el cebado y las canas del plan`() {
+        val outing = plannedOuting()
+        val spots = state().spots.map { if (it.id == outing.spotId) it.copy(zone = com.nachojerez.carpstrategy.domain.journal.FishingZone.entries.first()) else it }
+        val start = preparedStartOf(outing, spots)
+        assertEquals(outing.spotId, start.spot?.id)
+        assertEquals(com.nachojerez.carpstrategy.domain.journal.FishingZone.entries.first(), start.zone)
+        assertEquals(outing.groundbait, start.groundbait)
+        // Sin cañas en Mi equipo: tantas como líneas del plan, sin nombre.
+        assertEquals(List(outing.rodLines.size) { "" }, start.rodNames)
+        assertTrue(start.planRods.isEmpty())
+        // Si el puesto se borró y se volvió a crear con el mismo nombre, se encuentra por nombre.
+        val recreated = spots.map { if (it.id == outing.spotId) it.copy(id = 99) else it }
+        assertEquals(99L, preparedStartOf(outing, recreated).spot?.id)
+        assertNull(preparedStartOf(outing, emptyList()).spot)
+    }
+
+    @Test
+    fun `al activar con canas de Mi equipo van sus nombres para que la guiada use su tipo`() {
+        val lines = plannedOuting().rodLines
+        val outing = plannedOuting().copy(
+            rodLines = lines.mapIndexed { i, l -> l.copy(setup = if (i == 0) RodSetup("Carrete", RodKind.CARP) else RodSetup("Larga", RodKind.FIXED, 9)) },
+        )
+        val start = preparedStartOf(outing, emptyList())
+        val expected = listOf("Carrete", "Larga").take(outing.rodLines.size)
+        assertEquals(expected, start.planRods)
+        assertEquals(expected, start.rodNames)
     }
 }

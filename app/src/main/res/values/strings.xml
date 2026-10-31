@@ -1313,6 +1313,10 @@
     <string name="prep_sheets">Fichas de cebos: %1$d mejoradas, %2$d pendientes.</string>
     <string name="prep_view_button">Ver la preparación</string>
     <string name="prepared_title">Próxima salida</string>
+    <string name="prepared_activate">Activar: empezar la sesión guiada con este plan</string>
+    <string name="prepared_today_overline">Salida preparada para hoy</string>
+    <string name="prepared_today_band">Condiciones previstas al prepararla: %1$s</string>
+    <string name="prepared_today_at">Preparada el %1$s. Al activarla se usan sus cañas, su puesto, su cebado y su plan, aunque no haya red.</string>
     <string name="prepared_overline">Preparación guardada</string>
     <string name="prepared_empty">Aún no has preparado ninguna salida. Hazlo desde Estrategia con «Preparar la próxima salida».</string>
     <string name="prepared_target">Salida del %1$s</string>

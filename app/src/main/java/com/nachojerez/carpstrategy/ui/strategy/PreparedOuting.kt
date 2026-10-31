@@ -18,6 +18,8 @@ import com.nachojerez.carpstrategy.domain.derived.WaterTempSource
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
+import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.guided.RodKind
 import com.nachojerez.carpstrategy.domain.guided.RodSetup
 import com.nachojerez.carpstrategy.domain.guided.StepKind
@@ -29,6 +31,7 @@ import com.nachojerez.carpstrategy.domain.rules.TimeWindow
 import com.nachojerez.carpstrategy.domain.rules.WindowKind
 import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -81,6 +84,9 @@ data class PreparedOuting(
     val aiTips: List<AiAdvice> = emptyList(),
     val contingencies: List<ContingencyLine> = emptyList(),
     val result: PrepResult,
+    /** Embalse y puesto exactos (también el automático) para activarla en el puesto (fase 7.21). */
+    val reservoirId: String? = null,
+    val spotId: Long? = null,
 ) {
     val hasPlan: Boolean get() = rodLines.isNotEmpty()
 }
@@ -131,6 +137,51 @@ fun preparedOutingOf(
         aiTips = if (plan == null) emptyList() else aiTips.filter { it.field != StrategyField.WHERE }.take(MAX_AI_TIPS),
         contingencies = plan?.contingencies.orEmpty(),
         result = result,
+        reservoirId = state.reservoir?.reservoir?.id,
+        spotId = plan?.spot?.spot?.id,
+    )
+}
+
+/*
+ * Activar la salida preparada (fase 7.21): al día siguiente, ya en el puesto, la sesión guiada
+ * empieza en un toque con lo que se preparó (cañas, puesto, cebado y plan de la IA), sin red.
+ */
+
+/**
+ * La preparación se puede activar ahora: tiene plan, a esa hora no había filtro duro, es de hoy,
+ * del embalse en el que estás y aún no ha acabado el horario legal ([legalEnd]; null si no se sabe).
+ * Las preparaciones anteriores a la fase 7.21 no guardan el id del embalse: se comparan por nombre.
+ */
+fun PreparedOuting.activatableAt(now: Instant, zone: ZoneId, reservoirId: String?, reservoirName: String?, legalEnd: Instant?): Boolean {
+    if (!hasPlan || conditions?.blocked != false) return false
+    if (target.atZone(zone).toLocalDate() != now.atZone(zone).toLocalDate()) return false
+    if (legalEnd != null && !now.isBefore(legalEnd)) return false
+    return if (this.reservoirId != null) this.reservoirId == reservoirId else this.reservoirName == reservoirName
+}
+
+/** Con qué empieza la sesión guiada al activar la preparación. */
+data class PreparedStart(
+    /** Cañas del plan (de Mi equipo) o, sin cañas apuntadas, tantas como se prepararon (sin nombre). */
+    val rodNames: List<String>,
+    /** Las del plan, para que la guiada use su tipo y longitud; vacío sin cañas de Mi equipo. */
+    val planRods: List<String>,
+    val spot: Spot?,
+    val zone: FishingZone?,
+    val groundbait: GroundbaitLevel?,
+)
+
+/** Función pura: el puesto se busca por id y, si se borró y se volvió a crear, por nombre. */
+fun preparedStartOf(p: PreparedOuting, spots: List<Spot>): PreparedStart {
+    val spot = p.spotId?.let { id -> spots.firstOrNull { it.id == id } }
+        ?: p.spotName?.let { n -> spots.firstOrNull { it.name == n && (p.reservoirId == null || it.reservoirId == null || it.reservoirId == p.reservoirId) } }
+    val planRods = p.rodLines.mapNotNull { it.setup?.name?.takeIf(String::isNotBlank) }.distinct()
+    val count = p.rodLines.size.coerceAtLeast(1)
+    return PreparedStart(
+        rodNames = planRods.ifEmpty { List(count) { "" } },
+        planRods = planRods,
+        spot = spot,
+        zone = spot?.zone,
+        groundbait = p.groundbait,
     )
 }
 
@@ -161,6 +212,8 @@ object PreparedOutingJson {
         @SerialName("consejos_ia") val aiTips: List<TipDto> = emptyList(),
         @SerialName("si_cambia") val contingencies: List<ContingencyDto> = emptyList(),
         @SerialName("resultado") val result: ResultDto,
+        @SerialName("embalse_id") val reservoirId: String? = null,
+        @SerialName("puesto_id") val spotId: Long? = null,
     )
 
     @Serializable
@@ -299,6 +352,8 @@ object PreparedOutingJson {
         aiTips = aiTips.map { TipDto(it.field?.name, it.text, it.evidence?.name) },
         contingencies = contingencies.map { ContingencyDto(it.kind.name, it.after?.toMinutes(), it.step?.name, it.windTip?.name, it.evidence.name) },
         result = ResultDto(result.forecastOk, result.plan.name, result.planDetail, result.sheetsImproved, result.sheetsPending),
+        reservoirId = reservoirId,
+        spotId = spotId,
     )
 
     private fun Dto.toDomain(): PreparedOuting {
@@ -375,6 +430,8 @@ object PreparedOutingJson {
                 sheetsImproved = result.sheetsImproved,
                 sheetsPending = result.sheetsPending,
             ),
+            reservoirId = reservoirId,
+            spotId = spotId,
         )
     }
 }

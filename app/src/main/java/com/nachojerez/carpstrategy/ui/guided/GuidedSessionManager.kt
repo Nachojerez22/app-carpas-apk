@@ -48,9 +48,11 @@ import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.completeSession
 import com.nachojerez.carpstrategy.ui.strategy.KEY_PLAN_RODS
 import com.nachojerez.carpstrategy.ui.strategy.KEY_PREPARED_KEY
+import com.nachojerez.carpstrategy.ui.strategy.PreparedOuting
 import com.nachojerez.carpstrategy.ui.strategy.adviceFor
 import com.nachojerez.carpstrategy.ui.strategy.buildStrategyState
 import com.nachojerez.carpstrategy.ui.strategy.preparedPlanFits
+import com.nachojerez.carpstrategy.ui.strategy.preparedStartOf
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -115,7 +117,28 @@ class GuidedSessionManager @Inject constructor(
     fun canNotify(): Boolean = notifier.canNotify()
 
     /** Empieza ahora: valoración previa y contexto como cualquier sesión, y plan A pendiente en cada caña. */
-    suspend fun start(rodNames: List<String>, zone: FishingZone?, groundbait: GroundbaitLevel?, spot: Spot? = null, waterC: Double? = null): Long = mutex.withLock {
+    /**
+     * Activar la salida preparada (fase 7.21): empieza con sus cañas, su puesto, su cebado y su plan
+     * de la IA (aunque haya otro más reciente de Estrategia), sin necesidad de red.
+     */
+    suspend fun startPrepared(prepared: PreparedOuting): Long {
+        val prep = preparedStartOf(prepared, settings.observeSpots().first())
+        return start(prep.rodNames, prep.zone, prep.groundbait, prep.spot, planRods = prep.planRods, preferPrepared = true)
+    }
+
+    /**
+     * [planRods]: cañas del plan (si no, las del último plan de Estrategia); [preferPrepared]: el
+     * plan preparado manda sobre el reciente de Estrategia.
+     */
+    suspend fun start(
+        rodNames: List<String>,
+        zone: FishingZone?,
+        groundbait: GroundbaitLevel?,
+        spot: Spot? = null,
+        waterC: Double? = null,
+        planRods: List<String>? = null,
+        preferPrepared: Boolean = false,
+    ): Long = mutex.withLock {
         GuidedSessions.active(journal.observeSessions().first())?.let { return it.id }
         val now = clock.instant()
         val location = settings.observeLocation().first().point
@@ -125,7 +148,7 @@ class GuidedSessionManager @Inject constructor(
         val gear = settings.observeGear().first().today()
         // Fase 7.20: con cañas apuntadas en Mi equipo, mandan ellas (nombre, tipo y longitud); 0.26.1:
         // las del plan de Estrategia, con las fijas que eligiera la IA.
-        val setups = gear.plannedRods(planRodNames(localSettings.get(KEY_PLAN_RODS)))
+        val setups = gear.plannedRods(planRods ?: planRodNames(localSettings.get(KEY_PLAN_RODS)))
         val names = if (setups.isNotEmpty()) setups.map { it.name } else rodNames
         val (reservoir, all) = reservoirAt(location)
         val lessons = Lessons.forReservoir(settings.observeLessons().first(), reservoir?.reservoir?.id)
@@ -144,10 +167,11 @@ class GuidedSessionManager @Inject constructor(
         val withWeather = weather?.let { w -> started.copy(session = started.session.copy(guided = started.session.guided?.withWeather(w))) } ?: started
         // El plan con IA de Estrategia (si es reciente) queda con la sesión para comparar después.
         // Si no hay uno reciente, el preparado con «Preparar mañana» para hoy (fase 7.15).
-        val plan = GuidedJson.decodeAi(localSettings.get(KEY_LAST_PLAN))?.takeIf { Duration.between(it.time, now) <= PLAN_MAX_AGE && !it.time.isAfter(now) }
-            ?: GuidedJson.decodeAi(localSettings.get(KEY_PREPARED_PLAN))?.takeIf {
-                it.valid && preparedPlanFits(localSettings.get(KEY_PREPARED_KEY), reservoir?.reservoir?.id, now.atZone(Formatting.MADRID).toLocalDate())
-            }
+        val recent = GuidedJson.decodeAi(localSettings.get(KEY_LAST_PLAN))?.takeIf { Duration.between(it.time, now) <= PLAN_MAX_AGE && !it.time.isAfter(now) }
+        val prepared = GuidedJson.decodeAi(localSettings.get(KEY_PREPARED_PLAN))?.takeIf {
+            it.valid && preparedPlanFits(localSettings.get(KEY_PREPARED_KEY), reservoir?.reservoir?.id, now.atZone(Formatting.MADRID).toLocalDate())
+        }
+        val plan = if (preferPrepared) prepared ?: recent else recent ?: prepared
         val update = plan?.let { p -> withWeather.copy(session = withWeather.session.copy(guided = withWeather.session.guided?.let { it.copy(ai = it.ai + p) })) } ?: withWeather
         val id = journal.save(update.session)
         afterChange(update.copy(session = update.session.copy(id = id)), now, alert = false)

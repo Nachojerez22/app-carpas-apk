@@ -177,6 +177,13 @@ El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla
   porqué, el cebado y el engodo, los consejos de la IA y qué hacer si cambia algo; y cómo fue cada paso.
 - Es una foto de cuando la preparaste: si la previsión cambia, vuelve a prepararla.
 
+### Activar la salida preparada (fase 7.21)
+
+- Al día siguiente, en el embalse que preparaste, Estrategia empieza con la tarjeta **Salida preparada para hoy**:
+  **Activar** empieza la sesión guiada en un toque con las cañas, el puesto (también el que eligió la app), el cebado
+  y el plan de la IA de la preparación, aunque no haya red. También está en «Ver la preparación».
+- Solo se ofrece ese día, en ese embalse y dentro del horario legal.
+
 ### Tus cañas: fija o carpfishing (fase 7.20)
 
 - En **Mi equipo → Cañas** apuntas cada caña con su nombre y su tipo: **fija** (9, 8, 7 o 5 m) o **carpfishing**,
@@ -393,6 +400,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
 - [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
+- [x] **Fase 7.21**: activar en un toque la salida preparada la noche antes
 - [x] **Fase 7.20**: tus cañas (fija con longitud o carpfishing) y un plan que respeta cada una
 - [x] **Fase 7.19**: ver la preparación de la próxima salida (guardada, sin red) para analizarla
 - [x] **Fase 7.17**: aviso por la tarde si la próxima salida pinta bien y fotos de las capturas (solo en el móvil)
