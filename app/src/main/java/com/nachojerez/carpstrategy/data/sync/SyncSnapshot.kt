@@ -148,19 +148,22 @@ object SyncJson {
 
 /**
  * Une dos fotos sin duplicar (para cuando hubo cambios en el móvil y en Drive a la vez): se
- * quedan todas las filas y, si una clave está en las dos, gana la de [preferred].
+ * quedan todas las filas y, si una clave está en las dos, gana la de [preferred]. Las marcas de
+ * borrado de las dos se juntan y quitan lo borrado en cualquiera de ellas ([Tombstones]).
  */
-fun mergeSnapshots(preferred: SyncSnapshot, other: SyncSnapshot): SyncSnapshot {
+fun mergeSnapshots(preferred: SyncSnapshot, other: SyncSnapshot, now: Instant): SyncSnapshot {
     fun <T, K> union(a: List<T>, b: List<T>, key: (T) -> K): List<T> {
         val keys = a.map(key).toSet()
         return a + b.filter { key(it) !in keys }
     }
-    return SyncSnapshot(
+    val tombstones = Tombstones.union(Tombstones.of(preferred), Tombstones.of(other), now)
+    val merged = SyncSnapshot(
         records = union(preferred.records, other.records) { it.key },
         settings = union(preferred.settings, other.settings) { it.key },
         sessions = union(preferred.sessions, other.sessions) { it.key },
         predictions = union(preferred.predictions, other.predictions) { it.key },
-    ).canonical()
+    )
+    return Tombstones.withTombstones(Tombstones.apply(merged, tombstones), tombstones)
 }
 
 /** Qué hacer al sincronizar. */

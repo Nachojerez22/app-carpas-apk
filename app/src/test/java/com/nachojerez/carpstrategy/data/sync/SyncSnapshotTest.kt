@@ -47,7 +47,7 @@ class SyncSnapshotTest {
             settings = listOf(SettingRow("gear", "[otro]")),
             sessions = listOf(session(9000, bites = 3), session(12000)),
         )
-        val merged = mergeSnapshots(a, other)
+        val merged = mergeSnapshots(a, other, Instant.parse("2026-10-04T10:00:00Z"))
         assertEquals(listOf("t:1", "t:2", "t:3"), merged.records.map { it.periodKey })
         assertEquals("""{"temp_agua_c":18.5}""", merged.records.first { it.periodKey == "t:2" }.valuesJson)
         assertEquals("[]", merged.settings.first { it.key == "gear" }.value)

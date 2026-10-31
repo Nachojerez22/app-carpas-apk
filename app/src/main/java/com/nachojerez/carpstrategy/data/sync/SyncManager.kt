@@ -90,6 +90,7 @@ class SyncManager @Inject constructor(
     suspend fun disconnect() = withContext(io) {
         local.put(KEY_ENABLED, null)
         local.put(KEY_HASH, null)
+        local.put(KEY_KEYS, null)
         _state.value = SyncState()
     }
 
@@ -138,7 +139,8 @@ class SyncManager @Inject constructor(
     private class InvalidRemoteFile : Exception()
 
     private suspend fun run(token: String) {
-        val snapshot = store.snapshot()
+        val now = clock.instant()
+        val snapshot = recordDeletions(store.snapshot(), now)
         val localHash = snapshot.hash()
         val remote = drive.find(token)
         // Un archivo sin huella (subido a mano o a medias) se baja para calcularla.
@@ -156,11 +158,21 @@ class SyncManager @Inject constructor(
             }
             SyncAction.MERGE -> {
                 val incoming = remoteSnapshot ?: downloadSnapshot(token, remote!!.id)
-                val merged = mergeSnapshots(preferred = snapshot, other = incoming)
+                val merged = mergeSnapshots(preferred = snapshot, other = incoming, now = now)
                 store.replaceWith(merged)
                 upload(token, remote?.id, store.snapshot())
             }
         }
+        // Lo que hay ahora es la base para saber qué se borra hasta la próxima vez.
+        local.put(KEY_KEYS, Tombstones.encodeKeys(Tombstones.keysOf(store.snapshot())))
+    }
+
+    /** Lo borrado (o con clave cambiada) en este móvil desde la última sincronización deja su marca (fase 7.24). */
+    private suspend fun recordDeletions(snapshot: SyncSnapshot, now: Instant): SyncSnapshot {
+        val deleted = Tombstones.deletedSince(Tombstones.decodeKeys(local.get(KEY_KEYS)), snapshot, now)
+        if (deleted.isEmpty()) return snapshot
+        store.putSetting(Tombstones.SETTING_KEY, Tombstones.encode(Tombstones.union(Tombstones.of(snapshot), deleted, now)))
+        return store.snapshot()
     }
 
     private fun downloadSnapshot(token: String, id: String): SyncSnapshot =
@@ -177,6 +189,9 @@ class SyncManager @Inject constructor(
         const val KEY_EMAIL = "local_sync_email"
         const val KEY_HASH = "local_sync_hash"
         const val KEY_LAST = "local_sync_last"
+
+        /** Claves de las filas en la última sincronización, para detectar los borrados. */
+        const val KEY_KEYS = "local_sync_keys"
         private const val CHANGE_DEBOUNCE_MS = 15_000L
     }
 }
