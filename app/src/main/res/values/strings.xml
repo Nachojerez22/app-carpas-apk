@@ -481,6 +481,7 @@
     <string name="state_collapsed">Plegado</string>
     <string name="today_to_strategy">Ver la estrategia para hoy</string>
     <string name="today_to_strategy_detail">Qué tal pinta según tus datos, dónde ponerte y el plan por caña</string>
+    <string name="step_spoken">Paso %1$d: %2$s</string>
     <string name="guided_bar_title">Sesión guiada en curso</string>
     <string name="guided_bar_since">Desde las %1$s</string>
     <string name="guided_bar_next">próximo aviso %1$s</string>
@@ -1318,7 +1319,6 @@
     <string name="kg_value">%1$s kg</string>
     <string name="g_value">%1$s g</string>
     <!-- Estrategia en 3 pasos (fase 7.12) -->
-    <string name="strategy_step">%1$d · %2$s</string>
     <string name="strategy_recommended_ai">La IA te recomienda hoy</string>
     <string name="strategy_recommended_app">La app te recomienda hoy</string>
     <string name="strategy_auto_spot">Automático: el plan es para %1$s.</string>

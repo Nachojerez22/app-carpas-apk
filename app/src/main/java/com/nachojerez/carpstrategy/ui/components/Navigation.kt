@@ -1,5 +1,11 @@
 package com.nachojerez.carpstrategy.ui.components
 
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,7 +25,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.ui.theme.Spacing
@@ -58,13 +63,29 @@ fun NavRow(title: String, subtitle: String? = null, modifier: Modifier = Modifie
     }
 }
 
-/** Título de un paso numerado («① Embalse»), común a Preparar y Estrategia. */
+/**
+ * Título de un paso numerado, común a Preparar y Estrategia. Fase 5 de la revisión (estilo de la skill
+ * adaptado): el número va en un círculo `primary` en vez de «1 · Embalse», y TalkBack lo lee como
+ * un único encabezado («Paso 1: Embalse»).
+ */
 @Composable
 fun StepHeading(number: Int, title: String, modifier: Modifier = Modifier) {
-    Text(
-        stringResource(R.string.strategy_step, number, title),
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = modifier.semantics { heading() },
-    )
+    val cs = MaterialTheme.colorScheme
+    val spoken = stringResource(R.string.step_spoken, number, title)
+    Row(
+        modifier = modifier.clearAndSetSemantics {
+            heading()
+            contentDescription = spoken
+        },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+    ) {
+        Box(
+            Modifier.size(28.dp).background(cs.primary, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("$number", style = MaterialTheme.typography.labelLarge, color = cs.onPrimary)
+        }
+        Text(title, style = MaterialTheme.typography.titleMedium, color = cs.onSurface)
+    }
 }
