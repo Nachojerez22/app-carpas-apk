@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.manual
 
+import com.nachojerez.carpstrategy.ui.components.BackButton
 import android.content.ClipData
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -67,7 +68,7 @@ fun ImportScreen(viewModel: ManualDataViewModel, state: ImportState, onClose: ()
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onClose) { Text(stringResource(R.string.action_back)) }
+            BackButton(onClose)
             Text(stringResource(R.string.import_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
         }
         Caption(stringResource(R.string.import_intro))

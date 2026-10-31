@@ -86,6 +86,7 @@ import com.nachojerez.carpstrategy.ui.components.LegalWindowBar
 import com.nachojerez.carpstrategy.ui.components.Pill
 import com.nachojerez.carpstrategy.ui.components.ScreenHeader
 import com.nachojerez.carpstrategy.ui.components.SectionTitle
+import com.nachojerez.carpstrategy.ui.components.StepHeading
 import com.nachojerez.carpstrategy.ui.components.WarningChip
 import com.nachojerez.carpstrategy.ui.components.WarningType
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
@@ -252,6 +253,8 @@ fun StrategyContent(
                 if (!result.blocked && dayPlan != null && state.advice != null) {
                     item { PlanStep(state, plan, currentAi, dayPlan, state.advice, actions) }
                 }
+                // Revisión de UI (7.28): con el plan delante, empezar la sesión guiada sin bajar hasta el final.
+                if (!result.blocked && dayPlan != null) item { StartStep(state, dayPlan, actions.onStartGuided) }
 
                 // Detalles (plegado): todo lo que hay detrás del plan.
                 item {
@@ -260,14 +263,11 @@ fun StrategyContent(
                     }
                 }
                 if (detailsOpen) detailItems(state, plan, result, actions)
-
-                // Al final, con todo elegido: empezar la sesión guiada con este plan.
-                if (!result.blocked && dayPlan != null) item { StartStep(state, dayPlan, actions.onStartGuided) }
             }
         }
         // Fase 7.25: «Preparar la próxima salida» está en Preparar; aquí, solo el acceso.
         item {
-            OutlinedButton(onClick = actions.onOpenPrepare, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.strategy_prepare_link)) }
+            TextButton(onClick = actions.onOpenPrepare, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.strategy_prepare_link)) }
         }
     }
 }
@@ -361,9 +361,11 @@ internal fun PrepareStep(
     onChoose: (Instant) -> Unit,
     onPrepare: () -> Unit,
     onOpenPrepared: () -> Unit,
+    number: Int? = null,
 ) {
     CarpCard {
-        Text(stringResource(R.string.prep_title), style = MaterialTheme.typography.titleMedium)
+        if (number != null) StepHeading(number, stringResource(R.string.prep_title))
+        else Text(stringResource(R.string.prep_title), style = MaterialTheme.typography.titleMedium)
         Caption(stringResource(R.string.prep_hint))
         OutingChooser(picker, enabled = !prep.running, onChoose = onChoose)
         prep.step?.let { step ->
@@ -675,9 +677,7 @@ private fun spotWindRes(p: SpotPick): Int = when {
 
 /** Número de paso y título («① Embalse»). */
 @Composable
-private fun StepTitle(number: Int, title: String) {
-    Text(stringResource(R.string.strategy_step, number, title), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-}
+private fun StepTitle(number: Int, title: String) = StepHeading(number, title)
 
 /**
  * ① Dónde (fase 7.25): embalse y puesto elegidos, la recomendación (de la IA si ya ha contestado

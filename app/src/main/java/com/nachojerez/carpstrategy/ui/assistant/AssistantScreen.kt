@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.assistant
 
+import com.nachojerez.carpstrategy.ui.components.BackButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -78,8 +79,8 @@ fun AssistantScreen(onBack: () -> Unit, viewModel: AssistantViewModel = hiltView
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
-            ScreenHeader(stringResource(R.string.ai_settings_title), stringResource(R.string.nav_place))
+            BackButton(onBack)
+            ScreenHeader(stringResource(R.string.ai_settings_title), stringResource(R.string.settings_title))
         }
         item {
             CarpCard {

@@ -89,7 +89,7 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   Hyperlegible Next en `res/font` (OFL, `docs/licencias/`).
 - Componentes reutilizables en `ui/components` (insignias de evidencia y fuente, tarjetas,
   cadena de filtros, gráficas con `Canvas`). Vistas previas con `@CarpPreviews` (4 variantes).
-- Navegación: Hoy · Estrategia · Datos · Diario · Preparar (antes Lugar; clase `PlaceRoute`), más la subruta de datos en bruto.
+- Navegación: Hoy · Preparar · Estrategia · Diario · Datos (Preparar: antes Lugar; clase `PlaceRoute`), más la subruta de datos en bruto.
 - La apariencia y la ubicación se guardan en la tabla de ajustes de `UserDataDatabase`
   (no en DataStore). GPS: una sola lectura con `DeviceLocationProvider`, permiso pedido al pulsar.
 - La lógica de cada pantalla que se pueda probar va en funciones puras (`chainRows`,
@@ -458,6 +458,20 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   La elección vive en `OutingPreparer.chosen` (no se guarda: al volver, la de siempre). `PlaceViewModel.outing` y
   `OutingChooser` (chips de día y hora en `PrepareStep`). La tarjeta de Estrategia sale el día de la salida
   (`activatableAt`) y dice a qué hora es. El aviso de la tarde sigue con `nextOuting`.
+
+## Revisión de UI/UX (fase 7.28)
+
+- Inventario de funciones y dónde está cada una: `docs/design/INVENTARIO_UI.md`. **Regla: no se pierde ninguna
+  función**; antes de reubicar algo, actualizar el inventario y comprobar que siguen todas las acciones.
+- Pestañas en el orden de una salida: Hoy · Preparar · Estrategia · Diario · Datos (icono `ic_nav_prepare`).
+- `ui/components/Navigation.kt`: `BackButton` (flecha ← de todas las subpantallas; no usar botones de texto
+  «Volver»), `NavRow` (fila «Título · qué hay dentro ›» para abrir otra pantalla) y `StepHeading` (pasos numerados
+  de Preparar y Estrategia).
+- `ActiveGuidedViewModel` + `ActiveGuidedBar`: banda «Sesión guiada en curso» encima de las pestañas (no en la guiada).
+- Preparar: ① Embalse → ② Puesto → ③ Cañas y cebos → ④ Preparar la próxima salida (+ aviso de la tarde) → Más (Lo
+  aprendido, Ajustes) → Ubicación; Ajustes también en el engranaje de la cabecera.
+- Estrategia: «Empezar sesión guiada con este plan» justo debajo del plan. Guiada: propuestas, caña y registro antes
+  que tiempo, IA y chat.
 
 ## Stack
 

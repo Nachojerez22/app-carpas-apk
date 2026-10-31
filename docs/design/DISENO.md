@@ -12,7 +12,7 @@ Los tokens ya están en código en `ui/theme/` y los componentes base en `ui/com
 | Apple | claro | `AppleLightColors` | alternativo |
 | Apple | oscuro | `AppleDarkColors` | alternativo |
 
-- `ThemePrefs(style, mode = System|Light|Dark, dynamicColor)` se guarda en DataStore y se elige en **Lugar → Apariencia**.
+- `ThemePrefs(style, mode = System|Light|Dark, dynamicColor)` se guarda en DataStore y se elige en **Preparar → Ajustes → Apariencia**.
 - Color dinámico (Android 12+) solo aplica al estilo Material, y es opcional.
 - `CarpColors` (evidencia, avisos, bandas de gráfica, horas nocturnas) es **fijo**: nunca dinámico y es igual en ambos estilos.
 - Diferencias de **estilo Apple** (consulta `CarpTheme.style`):
@@ -44,7 +44,7 @@ Radios Material: 6 (insignia) · 12 (chip/campo) · 16 (tarjeta) · 20 (sección
 | `DemandMeter` | 5 barras crecientes (Muy baja → Muy alta), sin gramos. |
 | `SourcePriorityRow` | Posición, SourceBadge, nombre/descripción, subir/bajar (o arrastrar en Apple), Switch. |
 
-## 5. Pantallas (navegación inferior: Hoy · Estrategia · Datos · Diario · Lugar)
+## 5. Pantallas (navegación inferior: Hoy · Preparar · Estrategia · Diario · Datos; inventario en `INVENTARIO_UI.md`)
 1. **Hoy**: barra de antigüedad de los datos + Actualizar, chips de aviso, WaterTempCard, 4 DataCard (aire, viento con persistencia, lluvia 24/72 h, embalse % + hm³ + variación semanal), LegalWindowBar, «Se muestran, pero no cuentan» (luna y presión con insignia peso 0), gráfica de presión, gráfica de temperatura (aire y agua) y prioridad de fuentes.
 2. **Estrategia**: tarjeta de resultado («Moderadamente favorables», escala de 5 y chip «Limita el nivel 2 · Temperatura», más el descargo «No indica dónde están los peces»), cadena de filtros 0→4, demanda alimentaria, Cuándo (franjas solo dentro de la ventana legal), Dónde / Cebado / Presentación / Qué evitar (en `errorContainer`) y reglas activadas (código, efecto, porqué e insignia).
 3. **Datos**: segmentado Todos/Por hora/Por día, aviso de registros sin verificar, lista agrupada por día (fuente M, origen Manual/Importado/Sin verificar; este último con borde discontinuo arcilla) y FAB «Nuevo registro». Sub-pantallas: **Alta/edición** (todo opcional: fecha, hora, por hora/día, agua sup./fondo, turbidez 1–5, aire, presión, viento con dirección de 8 rumbos y velocidad, lluvia, nivel en hm³/%/cota, notas, eliminar) e **Importar JSON** (pegar/archivo/copiar ejemplo, editor monoespaciado, vista previa por registro con errores por campo, «Importar N válidos»).

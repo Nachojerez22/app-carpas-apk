@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.strategy
 
+import com.nachojerez.carpstrategy.ui.components.BackButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -106,7 +107,7 @@ fun PreparedOutingContent(
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+            BackButton(onBack)
             ScreenHeader(stringResource(R.string.prepared_title), stringResource(R.string.prepared_overline))
         }
         if (outing == null) {

@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.navigation
 
+import com.nachojerez.carpstrategy.ui.components.BackButton
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
@@ -32,7 +33,11 @@ import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.ui.assistant.AssistantScreen
 import com.nachojerez.carpstrategy.ui.conditions.ConditionsScreen
 import com.nachojerez.carpstrategy.ui.diary.DiaryScreen
+import com.nachojerez.carpstrategy.ui.guided.ActiveGuidedBar
+import com.nachojerez.carpstrategy.ui.guided.ActiveGuidedViewModel
 import com.nachojerez.carpstrategy.ui.guided.GearScreen
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.ui.guided.GuidedScreen
 import com.nachojerez.carpstrategy.ui.guided.SpotsMapScreen
 import com.nachojerez.carpstrategy.ui.guided.SpotsScreen
@@ -94,11 +99,12 @@ private enum class TopLevelDestination(
     @StringRes val label: Int,
     @DrawableRes val icon: Int,
 ) {
+    // Revisión de UI (7.28): en el orden de una salida (mirar → preparar → pescar → apuntar) y Datos al final.
     Today(TodayRoute, TodayRoute::class, R.string.nav_today, R.drawable.ic_nav_today),
+    Place(PlaceRoute, PlaceRoute::class, R.string.nav_place, R.drawable.ic_nav_prepare),
     Strategy(StrategyRoute, StrategyRoute::class, R.string.nav_strategy, R.drawable.ic_nav_strategy),
-    Data(DataRoute(), DataRoute::class, R.string.nav_data, R.drawable.ic_nav_data),
     Diary(DiaryRoute(), DiaryRoute::class, R.string.nav_diary, R.drawable.ic_nav_diary),
-    Place(PlaceRoute, PlaceRoute::class, R.string.nav_place, R.drawable.ic_nav_location),
+    Data(DataRoute(), DataRoute::class, R.string.nav_data, R.drawable.ic_nav_data),
 }
 
 private fun NavHostController.navigateToTab(route: Any) = navigate(route) {
@@ -115,31 +121,39 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
     val currentDestination = backStackEntry?.destination
     val apple = CarpTheme.style.translucentNavBar
     val cs = MaterialTheme.colorScheme
+    val activeGuided by hiltViewModel<ActiveGuidedViewModel>().active.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = cs.background,
         bottomBar = {
-            NavigationBar(
-                // Apple: barra translúcida, icono activo en primary y sin píldora.
-                containerColor = if (apple) cs.surfaceContainer.copy(alpha = 0.92f) else cs.surfaceContainer,
-            ) {
-                TopLevelDestination.entries.forEach { destination ->
-                    val selected = currentDestination?.hierarchy?.any { it.hasRoute(destination.routeClass) } == true
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = { navController.navigateToTab(destination.route) },
-                        icon = { Icon(painterResource(destination.icon), contentDescription = null) },
-                        label = { Text(stringResource(destination.label)) },
-                        colors = if (apple) {
-                            NavigationBarItemDefaults.colors(
-                                selectedIconColor = cs.primary,
-                                selectedTextColor = cs.primary,
-                                indicatorColor = Color.Transparent,
-                            )
-                        } else {
-                            NavigationBarItemDefaults.colors()
-                        },
-                    )
+            Column {
+                // Con una sesión guiada abierta, volver a ella desde cualquier pestaña (no en la propia guiada).
+                val guidedOpen = currentDestination?.hierarchy?.any { it.hasRoute(GuidedRoute::class) } == true
+                activeGuided?.takeIf { !guidedOpen }?.let { active ->
+                    ActiveGuidedBar(active, onOpen = { navController.navigate(GuidedRoute) { launchSingleTop = true } })
+                }
+                NavigationBar(
+                    // Apple: barra translúcida, icono activo en primary y sin píldora.
+                    containerColor = if (apple) cs.surfaceContainer.copy(alpha = 0.92f) else cs.surfaceContainer,
+                ) {
+                    TopLevelDestination.entries.forEach { destination ->
+                        val selected = currentDestination?.hierarchy?.any { it.hasRoute(destination.routeClass) } == true
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = { navController.navigateToTab(destination.route) },
+                            icon = { Icon(painterResource(destination.icon), contentDescription = null) },
+                            label = { Text(stringResource(destination.label)) },
+                            colors = if (apple) {
+                                NavigationBarItemDefaults.colors(
+                                    selectedIconColor = cs.primary,
+                                    selectedTextColor = cs.primary,
+                                    indicatorColor = Color.Transparent,
+                                )
+                            } else {
+                                NavigationBarItemDefaults.colors()
+                            },
+                        )
+                    }
                 }
             }
         },
@@ -233,7 +247,7 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
             }
             composable<RawDataRoute> {
                 Column {
-                    TextButton(onClick = { navController.popBackStack() }) { Text(stringResource(R.string.action_back)) }
+                    BackButton({ navController.popBackStack() })
                     ConditionsScreen(onOpenManualData = { navController.navigateToTab(DataRoute()) })
                 }
             }

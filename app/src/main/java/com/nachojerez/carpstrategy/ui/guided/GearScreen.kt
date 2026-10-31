@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import com.nachojerez.carpstrategy.ui.components.BackButton
 import com.nachojerez.carpstrategy.domain.advice.BaitUsage
 import com.nachojerez.carpstrategy.domain.advice.BaitShelf
 import androidx.compose.ui.res.pluralStringResource
@@ -86,7 +87,7 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+            BackButton(onBack)
             ScreenHeader(stringResource(R.string.gear_title), stringResource(R.string.gear_overline))
         }
         // Fase 7.15: fichas hechas sin búsqueda que ya se pueden rehacer (lo pulsas tú: gasta cuota).

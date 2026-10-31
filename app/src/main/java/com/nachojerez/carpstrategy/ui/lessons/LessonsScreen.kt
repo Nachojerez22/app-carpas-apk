@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.lessons
 
+import com.nachojerez.carpstrategy.ui.components.BackButton
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -69,7 +70,7 @@ fun LessonsScreen(onBack: () -> Unit, viewModel: LessonsViewModel = hiltViewMode
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+            BackButton(onBack)
             ScreenHeader(stringResource(R.string.lessons_title), stringResource(R.string.lessons_overline))
         }
         item {
