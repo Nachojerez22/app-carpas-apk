@@ -472,6 +472,8 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   aprendido, Ajustes) → Ubicación; Ajustes también en el engranaje de la cabecera.
 - Estrategia: «Empezar sesión guiada con este plan» justo debajo del plan. Guiada: propuestas, caña y registro antes
   que tiempo, IA y chat.
+- Fase 2 (0.35.0): Mi equipo con pestañas Cañas · Cebos · Montajes (`GEAR_TABS`, empieza en Cañas) y resumen de lo
+  que llevas hoy.
 
 ## Stack
 

@@ -1,5 +1,9 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SegmentedButton
 import com.nachojerez.carpstrategy.ui.components.BackButton
 import com.nachojerez.carpstrategy.domain.advice.BaitUsage
 import com.nachojerez.carpstrategy.domain.advice.BaitShelf
@@ -71,6 +75,7 @@ import java.time.Instant
  * lleva, enlace de tienda, ficha de la IA y si lo llevas hoy (fase 7.13); las propuestas eligen
  * entre los que llevas hoy.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
     val gear by viewModel.gear.collectAsStateWithLifecycle()
@@ -80,6 +85,8 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
     val refresh by viewModel.pendingRefresh.collectAsStateWithLifecycle()
     val usage by viewModel.baitUsage.collectAsStateWithLifecycle()
     var draft by remember { mutableStateOf<GearDraft?>(null) }
+    // Revisión de UI (7.28, fase 2): una pestaña por tipo, empezando por las cañas (el plan sale de ellas).
+    var tab by rememberSaveable { mutableStateOf(GearCategory.ROD) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -94,9 +101,25 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
         if (pending > 0 || refresh != PendingRefresh.Idle) {
             item { PendingSheetsCard(pending, refresh, viewModel::refreshPendingSheets) }
         }
-        GearCategory.entries.forEach { category ->
+        item {
+            // Lo que llevas hoy, de un vistazo.
+            val rodsToday = gear.count { it.category == GearCategory.ROD && it.carriedToday }
+            val baitsToday = gear.count { it.category == GearCategory.BAIT && it.available }
+            Caption(stringResource(R.string.gear_today_summary, rodsToday, baitsToday))
+        }
+        item {
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                GEAR_TABS.forEachIndexed { i, category ->
+                    SegmentedButton(
+                        selected = tab == category,
+                        onClick = { tab = category },
+                        shape = SegmentedButtonDefaults.itemShape(i, GEAR_TABS.size),
+                    ) { Text(stringResource(R.string.gear_tab, stringResource(category.titleRes()), gear.count { it.category == category })) }
+                }
+            }
+        }
+        tab.let { category ->
             item {
-                SectionTitle(stringResource(category.titleRes()))
                 CarpCard {
                     val items = gear.filter { it.category == category }
                     if (items.isEmpty()) Caption(stringResource(R.string.gear_none))
@@ -192,6 +215,9 @@ internal fun BaitShelfSection(
         }
     }
 }
+
+/** Pestañas de Mi equipo, en el orden en que se prepara una salida. */
+private val GEAR_TABS = listOf(GearCategory.ROD, GearCategory.BAIT, GearCategory.RIG)
 
 /** Cebos del diario que se ofrecen como mucho. */
 private const val MAX_DIARY_BAITS = 8
