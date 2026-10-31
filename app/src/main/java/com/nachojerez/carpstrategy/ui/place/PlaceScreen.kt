@@ -1,5 +1,9 @@
 package com.nachojerez.carpstrategy.ui.place
 
+import com.nachojerez.carpstrategy.ui.strategy.PrepareStep
+import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -62,12 +66,14 @@ import com.nachojerez.carpstrategy.ui.theme.Spacing
  * aviso de la próxima salida. Con [settings], la pantalla Ajustes: cuenta, IA, apariencia, fuentes,
  * leyenda, limitaciones y normativa.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PlaceScreen(
     settings: Boolean = false,
     onBack: () -> Unit = {},
     onOpenGear: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
+    onOpenPrepared: () -> Unit = {},
     onOpenSpots: () -> Unit = {},
     onOpenAssistant: () -> Unit = {},
     onOpenLessons: () -> Unit = {},
@@ -76,6 +82,8 @@ fun PlaceScreen(
     viewModel: PlaceViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val prep by viewModel.prep.collectAsStateWithLifecycle()
+    val prepared by viewModel.prepared.collectAsStateWithLifecycle()
     val myLocationName = stringResource(R.string.place_my_location)
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
         if (granted.values.any { it }) viewModel.useDeviceLocation(myLocationName) else viewModel.onPermissionDenied()
@@ -181,16 +189,30 @@ fun PlaceScreen(
                 }
             }
 
-            item { SectionTitle(stringResource(R.string.prepare_gear_title), subtitle = stringResource(R.string.prepare_gear_subtitle)) }
-            item { CarpCard { OutlinedButton(onClick = onOpenGear) { Text(stringResource(R.string.guided_gear_open)) } } }
-
-            item { SectionTitle(stringResource(R.string.spots_title), subtitle = stringResource(R.string.spots_open_detail)) }
+            // Fase 7.25: el puesto de hoy se elige aquí (Estrategia solo lo muestra).
+            item { SectionTitle(stringResource(R.string.prepare_spot_title), subtitle = stringResource(R.string.prepare_spot_subtitle)) }
             item {
                 CarpCard {
-                    Caption(stringResource(R.string.spots_intro))
+                    if (state.spots.isEmpty()) {
+                        Caption(stringResource(R.string.strategy_place_no_spots))
+                    } else {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                            FilterChip(selected = state.chosenSpotId == null, onClick = { viewModel.chooseSpot(null) }, label = { Text(stringResource(R.string.strategy_place_auto)) })
+                            state.spots.forEach { spot ->
+                                FilterChip(selected = state.chosenSpotId == spot.id, onClick = { viewModel.chooseSpot(spot.id) }, label = { Text(spot.name) })
+                            }
+                        }
+                        if (state.chosenSpotId == null) Caption(stringResource(R.string.prepare_spot_auto_hint))
+                    }
                     OutlinedButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
                 }
             }
+
+            item { SectionTitle(stringResource(R.string.prepare_gear_title), subtitle = stringResource(R.string.prepare_gear_subtitle)) }
+            item { CarpCard { OutlinedButton(onClick = onOpenGear) { Text(stringResource(R.string.guided_gear_open)) } } }
+
+            // Fase 7.25: con todo elegido, dejar lista la próxima salida (la noche antes, con cobertura).
+            item { PrepareStep(prep, prepared, viewModel::prepareNextOuting, onOpenPrepared) }
 
             item { SectionTitle(stringResource(R.string.place_location_title), subtitle = stringResource(R.string.place_location_subtitle)) }
             item {
