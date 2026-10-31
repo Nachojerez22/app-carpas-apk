@@ -21,7 +21,7 @@ Los tokens ya están en código en `ui/theme/` y los componentes base en `ui/com
   - `translucentNavBar`: barra inferior `surfaceContainer` semitransparente con desenfoque; icono activo en `primary`, sin píldora.
   - Interruptores verdes tipo iOS (51×31), control segmentado gris con pastilla blanca.
   - Tarjeta del agua sólida `tertiaryContainer`, número de 84 sp en peso ligero.
-- Estilo Material: tarjetas `surface` con borde `outlineVariant` de 1 dp sin sombra, NavigationBar M3 con indicador `primaryContainer` y FAB extendido.
+- Estilo Material: tarjetas `surface` con sombra suave teñida de verde y filo tenue en claro (Soft UI, revisión de UI fase 4; en oscuro, borde `outlineVariant` de 1 dp), animación de tamaño de 250 ms (`Motion`), NavigationBar M3 con indicador `primaryContainer` y FAB extendido.
 
 ## 2. Tipografía
 Atkinson Hyperlegible Next (empaquetada en `res/font`, debe funcionar offline). Cifras tabulares siempre. Escala en `Type.kt` (cuerpo 17 sp, dato clave 64 sp).

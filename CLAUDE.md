@@ -478,6 +478,9 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `StepHeading` son encabezados para TalkBack (`semantics { heading() }`); plegables con flecha y `stateDescription`;
   Hoy enlaza a Estrategia (`onOpenStrategy`). El sistema visual sigue siendo el de DISENO.md (la propuesta genérica de la
   skill no aplica).
+- Fase 4 en adelante (0.37.0+): el estilo de la skill **adaptado**, pantalla por pantalla y un PR por pantalla o grupo:
+  «Soft UI» en `CarpCard` (sombra suave teñida en claro, borde en oscuro, `animateContentSize`) y `Motion`
+  (`SHORT` 150 ms, `MEDIUM` 250 ms) en `ui/theme`. Se mantiene Atkinson Hyperlegible (no letra manuscrita).
 
 ## Stack
 

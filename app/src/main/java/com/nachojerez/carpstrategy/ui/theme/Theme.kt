@@ -36,6 +36,15 @@ data class CarpStyle(
     val cardBorder: Boolean,         // Material: tarjetas sin sombra, borde outlineVariant 1 dp
 )
 
+/**
+ * Tiempos de animación (revisión de UI 7.28, estilo «Soft UI» adaptado de la skill ui-ux-pro-max):
+ * respuestas a un toque en 150 ms y cambios de tamaño (desplegar, mostrar el porqué) en 250 ms.
+ */
+object Motion {
+    const val SHORT: Int = 150
+    const val MEDIUM: Int = 250
+}
+
 object Spacing {
     val xs: Dp = 4.dp; val sm: Dp = 8.dp; val md: Dp = 12.dp
     val lg: Dp = 16.dp; val xl: Dp = 24.dp; val xxl: Dp = 32.dp

@@ -165,8 +165,9 @@ fun TodayContent(
         }
 
         if (derived != null || raw?.forecast != null) {
+            // Fase 4 de la revisión: lo que decide la salida arriba (agua, si se puede pescar ahora y la
+            // estrategia); después los datos, lo que no cuenta y las gráficas.
             item { WaterTempCard(derived?.water, onAddMeasurement) }
-            item { DataGrid(state, stale || offline) }
             derived?.let { d ->
                 item {
                     CarpCard {
@@ -192,6 +193,9 @@ fun TodayContent(
                         NavRow(stringResource(R.string.today_to_strategy), stringResource(R.string.today_to_strategy_detail), onClick = onOpenStrategy)
                     }
                 }
+            }
+            item { DataGrid(state, stale || offline) }
+            derived?.let { d ->
                 item {
                     CarpCard {
                         Row(verticalAlignment = Alignment.CenterVertically) {
