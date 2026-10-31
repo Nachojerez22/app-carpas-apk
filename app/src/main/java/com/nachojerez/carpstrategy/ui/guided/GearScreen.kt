@@ -1,5 +1,9 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import com.nachojerez.carpstrategy.domain.advice.BaitUsage
+import com.nachojerez.carpstrategy.domain.advice.BaitShelf
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.material3.AssistChip
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -73,6 +77,7 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
     val sheet by viewModel.sheetState.collectAsStateWithLifecycle()
     val pending by viewModel.pendingSheets.collectAsStateWithLifecycle()
     val refresh by viewModel.pendingRefresh.collectAsStateWithLifecycle()
+    val usage by viewModel.baitUsage.collectAsStateWithLifecycle()
     var draft by remember { mutableStateOf<GearDraft?>(null) }
 
     LazyColumn(
@@ -94,7 +99,16 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
                 CarpCard {
                     val items = gear.filter { it.category == category }
                     if (items.isEmpty()) Caption(stringResource(R.string.gear_none))
-                    items.forEach { item ->
+                    // Fase 7.24: los cebos como estaban en Estrategia: «Hoy llevo», guardados y del diario.
+                    if (category == GearCategory.BAIT && items.isNotEmpty() || category == GearCategory.BAIT && usage.isNotEmpty()) {
+                        BaitShelfSection(
+                            gear, usage,
+                            onToggle = viewModel::toggleToday,
+                            onEdit = { item -> viewModel.clearSheetState(); draft = GearDraft.of(item) },
+                            onClearToday = viewModel::clearToday,
+                            onAddFromDiary = viewModel::addFromDiary,
+                        )
+                    } else items.forEach { item ->
                         if (category == GearCategory.BAIT) {
                             BaitRow(item, onToggle = { viewModel.toggleToday(item.id) }, onEdit = { viewModel.clearSheetState(); draft = GearDraft.of(item) })
                         } else if (category == GearCategory.ROD) {
@@ -132,6 +146,54 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
         )
     }
 }
+
+/**
+ * Cebos (fase 7.24, antes en Estrategia): «Hoy llevo» (con «Empezar de cero hoy»), «Mis cebos
+ * guardados» por último uso y cebos del diario que faltan en tu lista.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun BaitShelfSection(
+    gear: List<GearItem>,
+    usage: List<BaitUsage>,
+    onToggle: (String) -> Unit,
+    onEdit: (GearItem) -> Unit,
+    onClearToday: () -> Unit,
+    onAddFromDiary: (BaitUsage) -> Unit,
+) {
+    val shelf = remember(gear, usage) { BaitShelf.view(gear, usage) }
+    if (shelf.today.isNotEmpty() || shelf.saved.isNotEmpty()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.strategy_baits_today, shelf.today.size), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+            if (shelf.today.isNotEmpty()) TextButton(onClick = onClearToday) { Text(stringResource(R.string.strategy_baits_clear)) }
+        }
+        if (shelf.today.isEmpty()) Caption(stringResource(R.string.strategy_baits_today_empty))
+        shelf.today.forEach { item -> BaitRow(item, onToggle = { onToggle(item.id) }, onEdit = { onEdit(item) }) }
+    }
+    if (shelf.saved.isNotEmpty()) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Text(stringResource(R.string.strategy_baits_saved, shelf.saved.size), style = MaterialTheme.typography.titleSmall)
+        shelf.saved.forEach { item ->
+            BaitRow(item, onToggle = { onToggle(item.id) }, onEdit = { onEdit(item) })
+            shelf.usageById[item.id]?.let { u ->
+                Caption(pluralStringResource(R.plurals.strategy_baits_used, u.sessions, u.sessions, Formatting.hour(u.lastUsed)), Modifier.padding(start = 48.dp))
+            }
+        }
+    }
+    if (shelf.fromDiary.isNotEmpty()) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Text(stringResource(R.string.strategy_baits_from_diary), style = MaterialTheme.typography.titleSmall)
+        Caption(stringResource(R.string.strategy_baits_from_diary_hint))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            shelf.fromDiary.take(MAX_DIARY_BAITS).forEach { u ->
+                AssistChip(onClick = { onAddFromDiary(u) }, label = { Text(stringResource(R.string.strategy_baits_add_from_diary, u.name, u.sessions)) })
+            }
+        }
+    }
+}
+
+/** Cebos del diario que se ofrecen como mucho. */
+private const val MAX_DIARY_BAITS = 8
 
 /** «Buscar de nuevo las fichas pendientes (N)» y cómo fue la última vez. */
 @Composable
