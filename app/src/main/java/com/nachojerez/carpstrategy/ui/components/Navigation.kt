@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.ui.theme.Spacing
@@ -63,6 +65,6 @@ fun StepHeading(number: Int, title: String, modifier: Modifier = Modifier) {
         stringResource(R.string.strategy_step, number, title),
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.primary,
-        modifier = modifier,
+        modifier = modifier.semantics { heading() },
     )
 }

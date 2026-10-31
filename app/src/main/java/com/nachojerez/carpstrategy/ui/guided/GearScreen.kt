@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -114,7 +115,13 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
                         selected = tab == category,
                         onClick = { tab = category },
                         shape = SegmentedButtonDefaults.itemShape(i, GEAR_TABS.size),
-                    ) { Text(stringResource(R.string.gear_tab, stringResource(category.titleRes()), gear.count { it.category == category })) }
+                    ) {
+                        Text(
+                            stringResource(R.string.gear_tab, stringResource(category.titleRes()), gear.count { it.category == category }),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
         }

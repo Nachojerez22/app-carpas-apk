@@ -15,7 +15,7 @@ solo se reubican, se renombran o se les cambia el icono. Al final, la comprobaci
 | Abrir la guiada desde la notificación | igual | igual |
 
 ## Hoy
-Sin cambios de función: actualizar, avisos de antigüedad, temperatura del agua (medida/estimada) y «Añadir
+Fase 3 (0.36.0): fila nueva «Ver la estrategia para hoy ›» bajo el horario legal (lleva a Estrategia). Sin cambios de función: actualizar, avisos de antigüedad, temperatura del agua (medida/estimada) y «Añadir
 medición», datos clave, horario legal, datos con peso 0, gráficas de presión y temperatura, prioridad de
 fuentes, «Ver datos en bruto» (subpantalla, ahora con flecha ←), «Fijar ubicación» (abre Preparar).
 
@@ -81,6 +81,15 @@ limitaciones, normativa con «última revisión» y versión. Flecha ← para vo
 Sin cambios de función: sesiones, sesión en curso, nueva sesión, ficha (capturas, fotos, viento observado,
 mediciones), borrar, exportar/restaurar diario y fotos, «¿Acierta la app?»; Datos: filtros, nuevo registro,
 editar, borrar, importar y exportar.
+
+## Fase 3 (0.36.0): accesibilidad e interacción (skills ui-ux-pro-max y frontend-design)
+| Cambio | Por qué (regla de la skill) |
+|---|---|
+| Títulos de pantalla, de sección y de paso marcados como encabezado para TalkBack | Accesibilidad (prioridad 1): navegar por encabezados |
+| «Ver detalles» de Estrategia con flecha ▾/▴ y estado «Plegado/Desplegado» | Estado visible y anunciado, no solo por el texto |
+| Hoy → «Ver la estrategia para hoy ›» | Navegación (prioridad 9): siguiente paso sin buscar la pestaña |
+| Guiada: selector de caña en varias líneas si los nombres son largos | Layout (prioridad 5): nada se sale de la pantalla |
+| Mi equipo: pestañas en una línea con «…» si no caben | Layout: sin saltos de línea en controles |
 
 ## Comprobación
 Se compararon, fichero a fichero, todas las acciones de la interfaz (`viewModel::…`, `onX = …`,

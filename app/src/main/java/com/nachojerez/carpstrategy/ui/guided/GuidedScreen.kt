@@ -83,6 +83,7 @@ import java.time.Duration
  * Sesión guiada (§5.9): plan A, avisos, respuestas rápidas y alternativas cuando no funciona.
  * Al terminar, [onFinished] abre la ficha de la sesión en el diario para anotar el resultado.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GuidedScreen(
     onBack: () -> Unit,
@@ -152,7 +153,8 @@ fun GuidedScreen(
                 item {
                     val res = LocalContext.current.resources
                     Text(stringResource(R.string.guided_which_rod), style = MaterialTheme.typography.titleSmall)
-                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    // FlowRow: con nombres largos, las cañas bajan de línea en vez de salirse de la pantalla.
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                         rods.forEach { r ->
                             FilterChip(selected = rod?.id == r.id, onClick = { selectedRod = r.id }, label = { Text(res.rodLabel(r.id, r.name)) })
                         }

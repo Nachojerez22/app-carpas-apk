@@ -1,5 +1,6 @@
 package com.nachojerez.carpstrategy.ui.today
 
+import com.nachojerez.carpstrategy.ui.components.NavRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -66,6 +67,7 @@ fun TodayScreen(
     onOpenRawData: () -> Unit,
     onAddMeasurement: () -> Unit,
     onOpenPlace: () -> Unit,
+    onOpenStrategy: () -> Unit = {},
     viewModel: ConditionsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -75,6 +77,7 @@ fun TodayScreen(
         onOpenRawData = onOpenRawData,
         onAddMeasurement = onAddMeasurement,
         onOpenPlace = onOpenPlace,
+        onOpenStrategy = onOpenStrategy,
         priorityActions = PriorityActions(viewModel::movePriorityUp, viewModel::movePriorityDown, viewModel::togglePriority),
     )
 }
@@ -88,6 +91,7 @@ fun TodayContent(
     onAddMeasurement: () -> Unit,
     onOpenPlace: () -> Unit,
     priorityActions: PriorityActions,
+    onOpenStrategy: () -> Unit = {},
 ) {
     val raw = state.raw
     val derived = state.derived
@@ -180,6 +184,12 @@ fun TodayContent(
                         }
                         LegalWindowBar(d.legalToday, d.sunToday, state.now)
                         Caption(stringResource(R.string.legal_caption, Formatting.clock(d.sunToday.sunrise), Formatting.clock(d.sunToday.sunset)))
+                    }
+                }
+                // Revisión de UI (7.28, fase 3): de los datos al siguiente paso, sin buscar la pestaña.
+                item {
+                    CarpCard {
+                        NavRow(stringResource(R.string.today_to_strategy), stringResource(R.string.today_to_strategy_detail), onClick = onOpenStrategy)
                     }
                 }
                 item {
