@@ -19,6 +19,7 @@ import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.guided.GearEditor
 import com.nachojerez.carpstrategy.ui.guided.GuidedSessionManager
 import java.time.Clock
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
@@ -55,9 +56,17 @@ class OutingPreparer @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + io)
     private val prepFlow = MutableStateFlow(PrepUiState())
     val state: StateFlow<PrepUiState> = prepFlow
+    private val chosenFlow = MutableStateFlow<Instant?>(null)
+
+    /** Día y hora elegidos para la salida (fase 7.27); null = la de siempre ([nextOuting]). */
+    val chosen: StateFlow<Instant?> = chosenFlow
+
+    fun choose(target: Instant) {
+        chosenFlow.value = target
+    }
 
     /**
-     * Con cobertura: previsión nueva, plan de la IA para la próxima salida (el embalse, puesto,
+     * Con cobertura: previsión nueva, plan de la IA para la salida elegida (día y hora; el embalse, puesto,
      * cañas y cebos elegidos) y fichas de cebos pendientes. Cada paso puede fallar sin parar los
      * demás: lo que no se pueda se queda como estaba.
      */
@@ -79,7 +88,8 @@ class OutingPreparer @Inject constructor(
         run {
             val place = settings.observeLocation().first()
             val now = clock.instant()
-            val target = nextOuting(now, place.point, Formatting.MADRID) ?: return
+            val days = outingDays(now, place.point, Formatting.MADRID)
+            val target = chooseOuting(chosenFlow.value, days, nextOuting(now, place.point, Formatting.MADRID)) ?: return
             prepFlow.value = PrepUiState(step = PrepStep.FORECAST)
             val forecastOk = weather.refreshForecast(place.point) is RefreshOutcome.Success
             weather.refreshObservations(place.point)

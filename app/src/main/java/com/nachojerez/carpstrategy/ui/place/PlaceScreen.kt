@@ -84,6 +84,7 @@ fun PlaceScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val prep by viewModel.prep.collectAsStateWithLifecycle()
     val prepared by viewModel.prepared.collectAsStateWithLifecycle()
+    val outing by viewModel.outing.collectAsStateWithLifecycle()
     val myLocationName = stringResource(R.string.place_my_location)
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
         if (granted.values.any { it }) viewModel.useDeviceLocation(myLocationName) else viewModel.onPermissionDenied()
@@ -212,7 +213,7 @@ fun PlaceScreen(
             item { CarpCard { OutlinedButton(onClick = onOpenGear) { Text(stringResource(R.string.guided_gear_open)) } } }
 
             // Fase 7.25: con todo elegido, dejar lista la próxima salida (la noche antes, con cobertura).
-            item { PrepareStep(prep, prepared, viewModel::prepareNextOuting, onOpenPrepared) }
+            item { PrepareStep(prep, prepared, outing, viewModel::selectOuting, viewModel::prepareNextOuting, onOpenPrepared) }
 
             item { SectionTitle(stringResource(R.string.place_location_title), subtitle = stringResource(R.string.place_location_subtitle)) }
             item {

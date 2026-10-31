@@ -1,6 +1,7 @@
 package com.nachojerez.carpstrategy.ui.strategy
 
 import com.nachojerez.carpstrategy.data.assistant.AiOutcome
+import com.nachojerez.carpstrategy.data.remote.openmeteo.OpenMeteoRequest
 import com.nachojerez.carpstrategy.domain.assistant.AiPlan
 import com.nachojerez.carpstrategy.domain.derived.LegalWindow
 import com.nachojerez.carpstrategy.domain.derived.SolarCalculator
@@ -10,10 +11,11 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 /*
  * Preparar la salida (fase 7.15): con cobertura (la noche antes) se descarga la previsión, se pide el
- * plan de la IA para la mañana siguiente y se completan las fichas de cebos pendientes. En el
+ * plan de la IA para la salida elegida (día y hora, fase 7.27; por defecto la mañana siguiente) y se completan las fichas de cebos pendientes. En el
  * embalse, sin red, el plan preparado sigue valiendo toda la jornada.
  */
 
@@ -26,6 +28,49 @@ fun nextOuting(now: Instant, point: GeoPoint, zone: ZoneId): Instant? {
     val todayStart = LegalWindow.of(SolarCalculator.sunTimes(today, point))?.start
     val day = if (todayStart != null && now.isBefore(todayStart)) today else today.plusDays(1)
     return LegalWindow.of(SolarCalculator.sunTimes(day, point))?.start?.plus(PREP_AFTER_LEGAL_START)
+}
+
+/** Días que se pueden preparar: los de la previsión de Open-Meteo (hoy, mañana y pasado). */
+const val OUTING_DAYS = OpenMeteoRequest.FORECAST_DAYS
+
+/** Un día que se puede preparar y sus horas de salida (todas dentro del horario legal y por venir). */
+data class OutingDay(val date: LocalDate, val hours: List<Instant>)
+
+/**
+ * Elegir día y hora de la salida (fase 7.27). Cada día: el inicio legal + [PREP_AFTER_LEGAL_START] y
+ * luego cada hora en punto hasta [PREP_AFTER_LEGAL_START] antes del fin legal. Solo horas posteriores a
+ * [now] (hoy por la tarde sí; lo que ya pasó, no). Legalidad = filtro duro: nunca horas nocturnas.
+ */
+fun outingDays(now: Instant, point: GeoPoint, zone: ZoneId, days: Int = OUTING_DAYS): List<OutingDay> {
+    val today = now.atZone(zone).toLocalDate()
+    return (0 until days).mapNotNull { i ->
+        val date = today.plusDays(i.toLong())
+        val legal = LegalWindow.of(SolarCalculator.sunTimes(date, point)) ?: return@mapNotNull null
+        val first = legal.start.plus(PREP_AFTER_LEGAL_START)
+        val last = legal.end.minus(PREP_AFTER_LEGAL_START)
+        val firstFull = first.atZone(zone).truncatedTo(ChronoUnit.HOURS).plusHours(1).toInstant()
+        val full = generateSequence(firstFull) { it.plus(OUTING_STEP) }.takeWhile { !it.isAfter(last) }
+        val hours = (sequenceOf(first) + full).filter { it.isAfter(now) && !it.isAfter(last) }.toList()
+        hours.takeIf { it.isNotEmpty() }?.let { OutingDay(date, it) }
+    }
+}
+
+/**
+ * La salida que se prepara: la elegida si sigue entre las posibles; si no, la de siempre
+ * ([nextOuting]) o, si esa tampoco vale, la primera posible.
+ */
+fun chooseOuting(chosen: Instant?, days: List<OutingDay>, default: Instant?): Instant? {
+    val all = days.flatMap { it.hours }
+    return chosen?.takeIf { it in all } ?: default?.takeIf { it in all } ?: all.firstOrNull()
+}
+
+/** Lo que se ofrece para elegir la salida y la elegida ahora. */
+data class OutingPicker(val days: List<OutingDay> = emptyList(), val selected: Instant? = null, val today: LocalDate? = null)
+
+/** Al cambiar de día se mantiene la hora si ese día existe; si no, la primera del día. */
+fun switchDay(day: OutingDay, current: Instant?, zone: ZoneId): Instant {
+    val time = current?.atZone(zone)?.toLocalTime()
+    return day.hours.firstOrNull { it.atZone(zone).toLocalTime() == time } ?: day.hours.first()
 }
 
 /** El [planKey] sin la franja del día: un plan preparado vale para toda la jornada. */
@@ -101,7 +146,7 @@ fun bestWindow(hours: List<OutingHour>, cap: Instant): BestWindow? {
     return BestWindow(longest.first().at, maxOf(end, longest.first().at), best)
 }
 
-/** Pasos de «Preparar mañana». */
+/** Pasos de «Preparar la próxima salida». */
 enum class PrepStep { FORECAST, PLAN, SHEETS }
 
 /** Cómo quedó el plan preparado. */

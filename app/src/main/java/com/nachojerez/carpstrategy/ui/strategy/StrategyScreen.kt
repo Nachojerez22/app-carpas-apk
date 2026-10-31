@@ -99,6 +99,8 @@ import com.nachojerez.carpstrategy.ui.theme.CarpTheme
 import com.nachojerez.carpstrategy.ui.theme.EvidenceKind
 import com.nachojerez.carpstrategy.ui.theme.Spacing
 import java.time.Duration
+import java.time.temporal.ChronoUnit
+import java.time.Instant
 
 @Composable
 fun StrategyScreen(
@@ -278,7 +280,7 @@ fun StrategyContent(
 private fun PreparedTodayCard(p: PreparedOuting, activating: Boolean, review: ReviewUiState, aiConfigured: Boolean, choicesChanged: Boolean, actions: StrategyActions) {
     val cs = MaterialTheme.colorScheme
     CarpCard(containerColor = cs.tertiaryContainer) {
-        Caption(stringResource(R.string.prepared_today_overline), color = cs.onTertiaryContainer)
+        Caption(stringResource(R.string.prepared_today_overline, Formatting.clock(p.target)), color = cs.onTertiaryContainer)
         val spot = p.spotName?.let { if (p.spotAuto) stringResource(R.string.prepared_spot_auto, it) else it } ?: "—"
         Text(
             stringResource(R.string.prepared_place, p.reservoirName ?: stringResource(R.string.strategy_place_no_reservoir), spot, p.rodLines.size),
@@ -352,10 +354,18 @@ private fun ReviewLines(r: OutingReview) {
 
 /** «Preparar la próxima salida»: previsión, plan de la IA y fichas, para tenerlo todo sin cobertura. */
 @Composable
-internal fun PrepareStep(prep: PrepUiState, prepared: PreparedOuting?, onPrepare: () -> Unit, onOpenPrepared: () -> Unit) {
+internal fun PrepareStep(
+    prep: PrepUiState,
+    prepared: PreparedOuting?,
+    picker: OutingPicker,
+    onChoose: (Instant) -> Unit,
+    onPrepare: () -> Unit,
+    onOpenPrepared: () -> Unit,
+) {
     CarpCard {
         Text(stringResource(R.string.prep_title), style = MaterialTheme.typography.titleMedium)
         Caption(stringResource(R.string.prep_hint))
+        OutingChooser(picker, enabled = !prep.running, onChoose = onChoose)
         prep.step?.let { step ->
             LinearProgressIndicator(Modifier.fillMaxWidth())
             Caption(
@@ -377,6 +387,39 @@ internal fun PrepareStep(prep: PrepUiState, prepared: PreparedOuting?, onPrepare
             Text(stringResource(if (prep.result == null && prepared == null) R.string.prep_button else R.string.prep_button_again))
         }
     }
+}
+
+/** «¿Cuándo vas?»: día (hoy, mañana, pasado) y hora de la salida, solo dentro del horario legal (fase 7.27). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun OutingChooser(picker: OutingPicker, enabled: Boolean, onChoose: (Instant) -> Unit) {
+    val zone = Formatting.MADRID
+    val selectedDate = picker.selected?.atZone(zone)?.toLocalDate()
+    val day = picker.days.firstOrNull { it.date == selectedDate }
+    Text(stringResource(R.string.prep_when), style = MaterialTheme.typography.titleSmall)
+    if (picker.days.isEmpty()) {
+        Caption(stringResource(R.string.prep_when_none))
+        return
+    }
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+        picker.days.forEach { d ->
+            val label = when (picker.today?.let { ChronoUnit.DAYS.between(it, d.date) }) {
+                0L -> stringResource(R.string.prep_day_today)
+                1L -> stringResource(R.string.prep_day_tomorrow)
+                2L -> stringResource(R.string.prep_day_after)
+                else -> Formatting.weekday(d.date)
+            }
+            FilterChip(selected = d.date == selectedDate, enabled = enabled, onClick = { onChoose(switchDay(d, picker.selected, zone)) }, label = { Text(label) })
+        }
+    }
+    day?.let { d ->
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            d.hours.forEach { h ->
+                FilterChip(selected = h == picker.selected, enabled = enabled, onClick = { onChoose(h) }, label = { Text(Formatting.clock(h)) })
+            }
+        }
+    }
+    Caption(stringResource(R.string.prep_when_legal))
 }
 
 /** Cómo fue cada paso de la preparación (previsión, plan de la IA y fichas). */

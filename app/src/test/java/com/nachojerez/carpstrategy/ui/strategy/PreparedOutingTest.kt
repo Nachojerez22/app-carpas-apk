@@ -163,6 +163,16 @@ class PreparedOutingTest {
     }
 
     @Test
+    fun `una salida preparada para esta tarde se ofrece hoy desde por la manana`() {
+        val zone = Formatting.MADRID
+        // Preparada a las 10:00 UTC para las 16:00 UTC del mismo día (fase 7.27).
+        val outing = plannedOuting().copy(target = now.plus(Duration.ofHours(6)), reservoirId = "brovales", reservoirName = "Brovales")
+        val legalEnd = now.plus(Duration.ofHours(8))
+        assertTrue(outing.activatableAt(now, zone, "brovales", "Brovales", legalEnd))
+        assertFalse(outing.activatableAt(now.minus(Duration.ofDays(1)), zone, "brovales", "Brovales", legalEnd))
+    }
+
+    @Test
     fun `al activar se empieza con el puesto, su zona, el cebado y las canas del plan`() {
         val outing = plannedOuting()
         val spots = state().spots.map { if (it.id == outing.spotId) it.copy(zone = com.nachojerez.carpstrategy.domain.journal.FishingZone.entries.first()) else it }

@@ -450,6 +450,15 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - Aviso de la tarde: `outingHours` (jornada legal hora a hora) + `bestWindow` (mejor escala sin filtro duro y su franja
   seguida más larga) en `TripPrep.kt`.
 
+## Elegir día y hora de la salida (fase 7.27)
+
+- «Preparar la próxima salida» pregunta **cuándo vas**: `outingDays` (`TripPrep.kt`, pura: hoy, mañana y pasado, los
+  días de `OpenMeteoRequest.FORECAST_DAYS`; inicio legal + 30 min y luego horas en punto hasta 30 min antes del fin
+  legal, solo las que están por venir), `chooseOuting` (la elegida si sigue valiendo; si no, `nextOuting`) y `switchDay`.
+  La elección vive en `OutingPreparer.chosen` (no se guarda: al volver, la de siempre). `PlaceViewModel.outing` y
+  `OutingChooser` (chips de día y hora en `PrepareStep`). La tarjeta de Estrategia sale el día de la salida
+  (`activatableAt`) y dice a qué hora es. El aviso de la tarde sigue con `nextOuting`.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

@@ -1331,7 +1331,13 @@
     <string name="outlook_very_favorable">muy favorables</string>
     <!-- Preparar la próxima salida (fase 7.15) -->
     <string name="prep_title">Preparar la próxima salida</string>
-    <string name="prep_hint">Hazlo con cobertura (en casa, la noche antes): descarga la previsión, pide el plan de la IA para el embalse, puesto, cañas y cebos que tienes elegidos y completa las fichas de cebos pendientes. En el embalse lo tendrás todo aunque no haya red, sin gastar otra consulta.</string>
+    <string name="prep_hint">Elige cuándo vas y hazlo con cobertura (en casa, antes de salir): descarga la previsión, pide el plan de la IA para el embalse, puesto, cañas y cebos que tienes elegidos y completa las fichas de cebos pendientes. En el embalse lo tendrás todo aunque no haya red, sin gastar otra consulta.</string>
+    <string name="prep_when">¿Cuándo vas?</string>
+    <string name="prep_day_today">Hoy</string>
+    <string name="prep_day_tomorrow">Mañana</string>
+    <string name="prep_day_after">Pasado mañana</string>
+    <string name="prep_when_legal">Solo horas del horario legal y dentro de la previsión (hoy, mañana y pasado). La hora es la de llegada: las condiciones y el plan se calculan para esa hora.</string>
+    <string name="prep_when_none">No queda ninguna hora del horario legal en los días de la previsión.</string>
     <string name="prep_button">Preparar la próxima salida</string>
     <string name="prep_button_again">Volver a preparar</string>
     <string name="prep_step_forecast">Descargando la previsión…</string>
@@ -1366,7 +1372,7 @@
     <string name="review_keep">Mantener el plan y activar</string>
     <string name="review_new_plan">Pedir un plan nuevo para lo de ahora</string>
     <string name="review_close">Cerrar</string>
-    <string name="prepared_today_overline">Salida preparada para hoy</string>
+    <string name="prepared_today_overline">Salida preparada para hoy a las %1$s</string>
     <string name="prepared_today_band">Condiciones previstas al prepararla: %1$s</string>
     <string name="prepared_today_at">Preparada el %1$s. Al activarla se usan sus cañas, su puesto, su cebado y su plan, aunque no haya red.</string>
     <string name="prepared_overline">Preparación guardada</string>
