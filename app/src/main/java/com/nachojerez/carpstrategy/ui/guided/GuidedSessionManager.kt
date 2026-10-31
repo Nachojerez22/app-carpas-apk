@@ -47,6 +47,7 @@ import com.nachojerez.carpstrategy.domain.usecase.RefreshWeatherUseCase
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.completeSession
 import com.nachojerez.carpstrategy.ui.strategy.KEY_PLAN_RODS
+import com.nachojerez.carpstrategy.ui.strategy.KEY_PLAN_KEY
 import com.nachojerez.carpstrategy.ui.strategy.KEY_PREPARED_KEY
 import com.nachojerez.carpstrategy.ui.strategy.PreparedOuting
 import com.nachojerez.carpstrategy.ui.strategy.adviceFor
@@ -167,7 +168,11 @@ class GuidedSessionManager @Inject constructor(
         val withWeather = weather?.let { w -> started.copy(session = started.session.copy(guided = started.session.guided?.withWeather(w))) } ?: started
         // El plan con IA de Estrategia (si es reciente) queda con la sesión para comparar después.
         // Si no hay uno reciente, el preparado con «Preparar mañana» para hoy (fase 7.15).
-        val recent = GuidedJson.decodeAi(localSettings.get(KEY_LAST_PLAN))?.takeIf { Duration.between(it.time, now) <= PLAN_MAX_AGE && !it.time.isAfter(now) }
+        // Fase 7.24: el reciente también tiene que ser válido y de este embalse (pudiste mirar otro en Estrategia).
+        val recent = GuidedJson.decodeAi(localSettings.get(KEY_LAST_PLAN))?.takeIf {
+            it.valid && Duration.between(it.time, now) <= PLAN_MAX_AGE && !it.time.isAfter(now) &&
+                preparedPlanFits(localSettings.get(KEY_PLAN_KEY), reservoir?.reservoir?.id, now.atZone(Formatting.MADRID).toLocalDate())
+        }
         val prepared = GuidedJson.decodeAi(localSettings.get(KEY_PREPARED_PLAN))?.takeIf {
             it.valid && preparedPlanFits(localSettings.get(KEY_PREPARED_KEY), reservoir?.reservoir?.id, now.atZone(Formatting.MADRID).toLocalDate())
         }

@@ -274,52 +274,65 @@ class StrategyViewModel @Inject constructor(
     fun prepareNextOuting() {
         if (prepFlow.value.running) return
         viewModelScope.launch {
-            val place = location.first()
-            val now = clock.instant()
-            val target = nextOuting(now, place.point, Formatting.MADRID) ?: return@launch
-            prepFlow.value = PrepUiState(step = PrepStep.FORECAST)
-            val forecastOk = weather.refreshForecast(place.point) is RefreshOutcome.Success
-            weather.refreshObservations(place.point)
+            // Si algo falla a medias, el botón vuelve (fase 7.24): nunca se queda «en marcha».
+            try {
+                prepare()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // Lo que ya se guardó se queda; el resto, como estaba.
+            } finally {
+                if (prepFlow.value.running) prepFlow.value = PrepUiState()
+            }
+        }
+    }
 
-            prepFlow.value = PrepUiState(step = PrepStep.PLAN)
-            val base = buildStrategyState(observeRawWeather(place.point).first(), rules.first(), target, place.point, journal.observeSessions().first())
-            val state = withInputs(base, adviceInputs.first())
-            val key = planKey(state)
-            val input = planInput(state, state.planRods, state.gear, target)
-            val apiKey = assistantSettings.apiKey()
-            var prepared: AiOutcome<AiPlan>? = null
-            val (planResult, detail) = when {
-                key == null || input == null -> PrepPlan.NOTHING to null
-                apiKey == null -> PrepPlan.NO_KEY to null
-                else -> {
-                    val outcome = withContext(io) {
-                        assistant.plan(
-                            assistantSettings.config(), apiKey, AssistantPrompts.planState(input), planContext(state, state.planRods, state.gear, target),
-                            knowledge.forPlan(state.reservoir?.isBrovales ?: true),
-                        )
-                    }
-                    if (outcome.value != null) {
-                        prepared = outcome
-                        localSettings.put(GuidedSessionManager.KEY_PREPARED_PLAN, GuidedJson.encodeAi(outcome.exchange))
-                        localSettings.put(KEY_PREPARED_KEY, key)
-                        planFlow.value = planFlow.value.copy(prepared = outcome, preparedKey = key)
-                        PrepPlan.READY to null
-                    } else {
-                        PrepPlan.FAILED to outcome.exchange.errorDetail
-                    }
+    private suspend fun prepare() {
+        val place = location.first()
+        val now = clock.instant()
+        val target = nextOuting(now, place.point, Formatting.MADRID) ?: return
+        prepFlow.value = PrepUiState(step = PrepStep.FORECAST)
+        val forecastOk = weather.refreshForecast(place.point) is RefreshOutcome.Success
+        weather.refreshObservations(place.point)
+
+        prepFlow.value = PrepUiState(step = PrepStep.PLAN)
+        val base = buildStrategyState(observeRawWeather(place.point).first(), rules.first(), target, place.point, journal.observeSessions().first())
+        val state = withInputs(base, adviceInputs.first())
+        val key = planKey(state)
+        val input = planInput(state, state.planRods, state.gear, target)
+        val apiKey = assistantSettings.apiKey()
+        var prepared: AiOutcome<AiPlan>? = null
+        val (planResult, detail) = when {
+            key == null || input == null -> PrepPlan.NOTHING to null
+            apiKey == null -> PrepPlan.NO_KEY to null
+            else -> {
+                val outcome = withContext(io) {
+                    assistant.plan(
+                        assistantSettings.config(), apiKey, AssistantPrompts.planState(input), planContext(state, state.planRods, state.gear, target),
+                        knowledge.forPlan(state.reservoir?.isBrovales ?: true),
+                    )
+                }
+                if (outcome.value != null) {
+                    prepared = outcome
+                    localSettings.put(GuidedSessionManager.KEY_PREPARED_PLAN, GuidedJson.encodeAi(outcome.exchange))
+                    localSettings.put(KEY_PREPARED_KEY, key)
+                    planFlow.value = planFlow.value.copy(prepared = outcome, preparedKey = key)
+                    PrepPlan.READY to null
+                } else {
+                    PrepPlan.FAILED to outcome.exchange.errorDetail
                 }
             }
-
-            prepFlow.value = PrepUiState(step = PrepStep.SHEETS)
-            val improved = gearEditor.refreshPendingSheets()
-            val pending = gearEditor.observePendingSheets().first().size
-            val result = PrepResult(target, forecastOk, planResult, detail, improved, pending)
-            // Fase 7.19: se guarda lo que salió para poder abrirlo y analizarlo después.
-            val dayPlan = dayPlanFor(state, PlanUiState(prepared = prepared, preparedKey = key))
-            val outing = preparedOutingOf(state, dayPlan, prepared?.value?.advice.orEmpty(), result, clock.instant())
-            localSettings.put(KEY_PREPARED_OUTING, PreparedOutingJson.encode(outing))
-            prepFlow.value = PrepUiState(result = result)
         }
+
+        prepFlow.value = PrepUiState(step = PrepStep.SHEETS)
+        val improved = gearEditor.refreshPendingSheets()
+        val pending = gearEditor.observePendingSheets().first().size
+        val result = PrepResult(target, forecastOk, planResult, detail, improved, pending)
+        // Fase 7.19: se guarda lo que salió para poder abrirlo y analizarlo después.
+        val dayPlan = dayPlanFor(state, PlanUiState(prepared = prepared, preparedKey = key))
+        val outing = preparedOutingOf(state, dayPlan, prepared?.value?.advice.orEmpty(), result, clock.instant())
+        localSettings.put(KEY_PREPARED_OUTING, PreparedOutingJson.encode(outing))
+        prepFlow.value = PrepUiState(result = result)
     }
 
     /** La preparación que se puede activar ahora (fase 7.21): de hoy y de este embalse. */
@@ -444,7 +457,8 @@ const val KEY_RODS = "strategy_rods"
 
 /** Nombres de las cañas del plan de Estrategia, uno por línea (0.26.1): la guiada empieza con ellas. */
 const val KEY_PLAN_RODS = "strategy_plan_rods"
-private const val KEY_PLAN_KEY = "strategy_plan_key"
+/** [planKey] del último plan pedido en Estrategia (la guiada lo usa para saber de qué embalse es). */
+const val KEY_PLAN_KEY = "strategy_plan_key"
 
 
 /** Espera tras el último cambio de embalse, puesto o cañas antes de consultar a la IA. */
