@@ -121,6 +121,13 @@ Todas las funciones de Preparar y Estrategia siguen en el mismo sitio.
 
 Mismas acciones en la guiada (registro, propuestas, tiempo, IA, chat, terminar) y en el Diario: nueva sesión, sesión guiada, abrir, terminar, ficha, borrar, «¿Acierta la app?», exportar y restaurar.
 
+## Fase 7 (0.40.0): Datos, Mi equipo y Ajustes
+| Cambio | Antes | Ahora |
+|---|---|---|
+| Datos: abrir un registro | solo con «Editar» | toda la tarjeta lo abre; «Editar» sigue a la vista |
+| Mi equipo | pestañas desde la fase 2, filas ya pulsables | sin cambios: revisado y conforme |
+| Ajustes | ordenado en la fase 1 (cuenta, IA, apariencia, fuentes, leyenda, limitaciones, normativa, versión) | sin cambios: revisado y conforme; tarjetas con el estilo de la fase 4 |
+
 ## Comprobación
 Se compararon, fichero a fichero, todas las acciones de la interfaz (`viewModel::…`, `onX = …`,
 `onClick = …` y rutas de navegación) entre 0.33.0 y esta versión: las mismas, más las nuevas (banda de la

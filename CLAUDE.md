@@ -484,6 +484,7 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - Diario (0.39.0): el tono cálido arcilla (`secondaryContainer`) es del Diario (resumen del mes, insignia de capturas);
   copias de seguridad agrupadas en una tarjeta. Guiada: tiempo pescando en `displaySmall`, «No funciona» ≥ 56 dp y
   `FlowRow` siempre con `verticalArrangement`.
+- Datos (0.40.0): la tarjeta de cada registro se abre entera (como las sesiones del Diario).
 
 ## Stack
 

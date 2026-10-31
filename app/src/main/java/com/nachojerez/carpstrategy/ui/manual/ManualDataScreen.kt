@@ -3,6 +3,7 @@ package com.nachojerez.carpstrategy.ui.manual
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -217,7 +218,9 @@ private fun RecordList(
 @Composable
 private fun RecordRow(record: ManualRecord, onClick: () -> Unit) {
     val imported = record.origin is ManualOrigin.Imported
+    // Toda la tarjeta abre el registro (objetivo grande); «Editar» se queda como acción visible.
     CarpCard(
+        modifier = Modifier.clickable(onClick = onClick),
         border = if (imported) CardBorder.Dashed else CardBorder.Normal,
         dashedColor = MaterialTheme.colorScheme.secondary,
         contentPadding = Spacing.md,
