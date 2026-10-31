@@ -410,6 +410,13 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   fuentes, leyenda, limitaciones, normativa y versión) va en **Ajustes** (`SettingsRoute` = `PlaceScreen(settings = true)`).
   Los textos que decían «Lugar → …» dicen ahora «Preparar → …» o «Preparar → Ajustes → …».
 
+## Cañas y cebos fuera de Estrategia (fase 7.24)
+
+- Estrategia ya no edita equipo: el paso ③ es `TodayGearStep` (resumen de cañas y cebos de hoy y botón a Mi equipo; sin
+  cañas apuntadas, el número de cañas se sigue eligiendo ahí). `BaitsStep` y las casillas de cañas de `SpotStep` se han quitado.
+- Mi equipo (desde Preparar) tiene lo que estaba en Estrategia: `BaitShelfSection` (internal en `GearScreen.kt`: «Hoy llevo»,
+  «Empezar de cero hoy», guardados por último uso y «Del diario»); `GearViewModel.baitUsage`, `clearToday`, `addFromDiary`.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

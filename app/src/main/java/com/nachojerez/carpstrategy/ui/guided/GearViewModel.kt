@@ -1,5 +1,8 @@
 package com.nachojerez.carpstrategy.ui.guided
 
+import com.nachojerez.carpstrategy.domain.repository.JournalRepository
+import com.nachojerez.carpstrategy.domain.advice.BaitUsage
+import com.nachojerez.carpstrategy.domain.advice.BaitShelf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nachojerez.carpstrategy.domain.guided.GearItem
@@ -18,7 +21,20 @@ import kotlinx.coroutines.launch
 class GearViewModel @Inject constructor(
     private val settings: SettingsRepository,
     private val editor: GearEditor,
+    journal: JournalRepository,
 ) : ViewModel() {
+    /** Uso de cada cebo en el diario (fase 7.24: «Mis cebos guardados» y «Del diario»). */
+    val baitUsage: StateFlow<List<BaitUsage>> = journal.observeSessions().map(BaitShelf::usage)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun clearToday() {
+        viewModelScope.launch { editor.clearToday() }
+    }
+
+    fun addFromDiary(usage: BaitUsage) {
+        viewModelScope.launch { editor.addFromDiary(usage) }
+    }
+
     val gear: StateFlow<List<GearItem>> = settings.observeGear().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** Tu cebado «normal» en kg por caña y sesión (fase 7.13). */
