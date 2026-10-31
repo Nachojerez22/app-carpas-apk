@@ -385,6 +385,15 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `fixedChoice`/`withFixedChoice` y `AiContext.carriedRods`). `StrategyUiState.planSetups` aplica la elección; los
   nombres del plan van al ajuste local `strategy_plan_rods` (`KEY_PLAN_RODS`) y la guiada empieza con ellos (`plannedRods`).
 
+## Activar la salida preparada (fase 7.21)
+
+- `PreparedOuting` guarda `reservoirId` y `spotId` (JSON `embalse_id`, `puesto_id`; también el puesto automático).
+  `activatableAt` (pura: con plan, sin filtro duro, de hoy, del embalse activo, por nombre si es antigua, y antes del fin
+  legal) y `preparedStartOf` (puesto por id o nombre, su zona, cebado y cañas del plan).
+- `PreparedActivation` (singleton, en Estrategia y «Ver la preparación»): `observeToday` y `activate` →
+  `GuidedSessionManager.startPrepared` (`start(…, planRods, preferPrepared = true)`: el plan preparado manda sobre el
+  reciente). `PreparedTodayCard` arriba de Estrategia con «Activar».
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

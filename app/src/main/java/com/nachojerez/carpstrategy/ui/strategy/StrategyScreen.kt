@@ -124,6 +124,8 @@ fun StrategyScreen(
     val sheet by viewModel.sheetState.collectAsStateWithLifecycle()
     val prep by viewModel.prep.collectAsStateWithLifecycle()
     val prepared by viewModel.preparedOuting.collectAsStateWithLifecycle()
+    val preparedToday by viewModel.preparedToday.collectAsStateWithLifecycle()
+    val activating by viewModel.activating.collectAsStateWithLifecycle()
     StrategyContent(
         state, plan,
         StrategyActions(
@@ -148,10 +150,13 @@ fun StrategyScreen(
             onAddFromDiary = viewModel::addFromDiary,
             onPrepare = viewModel::prepareNextOuting,
             onOpenPrepared = onOpenPrepared,
+            onActivatePrepared = { viewModel.activatePrepared(onStartGuided) },
         ),
         sheet,
         prep,
         prepared,
+        preparedToday,
+        activating,
     )
 }
 
@@ -178,6 +183,7 @@ data class StrategyActions(
     val onAddFromDiary: (BaitUsage) -> Unit = {},
     val onPrepare: () -> Unit = {},
     val onOpenPrepared: () -> Unit = {},
+    val onActivatePrepared: () -> Unit = {},
 )
 
 /**
@@ -196,6 +202,8 @@ fun StrategyContent(
     sheet: SheetUiState = SheetUiState(),
     prep: PrepUiState = PrepUiState(),
     prepared: PreparedOuting? = null,
+    preparedToday: PreparedOuting? = null,
+    activating: Boolean = false,
 ) {
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
     val dayPlan = remember(state, plan) { dayPlanFor(state, plan) }
@@ -216,6 +224,8 @@ fun StrategyContent(
             }
             return@LazyColumn
         }
+        // Fase 7.21: la salida que preparaste para hoy, lista para activarla en el puesto.
+        preparedToday?.let { p -> item { PreparedTodayCard(p, activating, actions.onActivatePrepared, actions.onOpenPrepared) } }
         // Condiciones para hoy (escala de 5 tramos y nivel que limita): siempre arriba.
         state.result?.let { result -> item { ResultCard(result) } }
         // ① Embalse.
@@ -267,6 +277,32 @@ fun StrategyContent(
         }
         // Fase 7.15: con cobertura (la noche antes), dejar lista la próxima salida.
         item { PrepareStep(prep, prepared, actions.onPrepare, actions.onOpenPrepared) }
+    }
+}
+
+/**
+ * «Salida preparada» (fase 7.21): lo que preparaste para hoy en este embalse, con «Activar» para
+ * empezar la sesión guiada con ese plan en un toque (sin red) y «Ver la preparación».
+ */
+@Composable
+private fun PreparedTodayCard(p: PreparedOuting, activating: Boolean, onActivate: () -> Unit, onOpen: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    CarpCard(containerColor = cs.tertiaryContainer) {
+        Caption(stringResource(R.string.prepared_today_overline), color = cs.onTertiaryContainer)
+        val spot = p.spotName?.let { if (p.spotAuto) stringResource(R.string.prepared_spot_auto, it) else it } ?: "—"
+        Text(
+            stringResource(R.string.prepared_place, p.reservoirName ?: stringResource(R.string.strategy_place_no_reservoir), spot, p.rodLines.size),
+            style = MaterialTheme.typography.titleMedium,
+            color = cs.onTertiaryContainer,
+        )
+        p.conditions?.band?.let { band ->
+            Text(stringResource(R.string.prepared_today_band, stringResource(band.labelRes())), color = cs.onTertiaryContainer)
+        }
+        Caption(stringResource(R.string.prepared_today_at, Formatting.hour(p.preparedAt)), color = cs.onTertiaryContainer)
+        Button(onClick = onActivate, enabled = !activating, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(if (activating) R.string.guided_starting else R.string.prepared_activate))
+        }
+        TextButton(onClick = onOpen, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.prep_view_button)) }
     }
 }
 

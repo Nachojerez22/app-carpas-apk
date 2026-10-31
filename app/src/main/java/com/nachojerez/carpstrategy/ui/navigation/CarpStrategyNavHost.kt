@@ -171,7 +171,12 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                     onOpenPrepared = { navController.navigate(PreparedOutingRoute) },
                 )
             }
-            composable<PreparedOutingRoute> { PreparedOutingScreen(onBack = { navController.popBackStack() }) }
+            composable<PreparedOutingRoute> {
+                PreparedOutingScreen(
+                    onBack = { navController.popBackStack() },
+                    onStartGuided = { navController.navigate(GuidedRoute) { launchSingleTop = true } },
+                )
+            }
             composable<DataRoute> { entry ->
                 DataScreen(startWithNewRecord = entry.toRoute<DataRoute>().newRecord)
             }

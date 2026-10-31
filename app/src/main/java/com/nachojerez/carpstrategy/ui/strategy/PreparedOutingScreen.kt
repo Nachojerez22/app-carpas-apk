@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,16 +37,43 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
 import java.time.Instant
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /** Solo lee la última preparación guardada: abrirla no gasta red ni IA. */
 @HiltViewModel
-class PreparedOutingViewModel @Inject constructor(localSettings: LocalSettings, private val clock: Clock) : ViewModel() {
+class PreparedOutingViewModel @Inject constructor(
+    localSettings: LocalSettings,
+    private val clock: Clock,
+    private val activation: PreparedActivation,
+) : ViewModel() {
     val outing: StateFlow<PreparedOuting?> = localSettings.observe(KEY_PREPARED_OUTING).map(PreparedOutingJson::decode)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Fase 7.21: se puede activar si es la de hoy y de este embalse. */
+    val canActivate: StateFlow<Boolean> = activation.observeToday().map { it != null }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    private val activatingFlow = MutableStateFlow(false)
+    val activating: StateFlow<Boolean> = activatingFlow
+
+    fun activate(onStarted: () -> Unit) {
+        val prepared = outing.value ?: return
+        if (activatingFlow.value || !canActivate.value) return
+        activatingFlow.value = true
+        viewModelScope.launch {
+            try {
+                activation.activate(prepared)
+                onStarted()
+            } finally {
+                activatingFlow.value = false
+            }
+        }
+    }
 
     fun now(): Instant = clock.instant()
 }
@@ -55,13 +84,22 @@ class PreparedOutingViewModel @Inject constructor(localSettings: LocalSettings, 
  * Es una foto de cuando se preparó; para actualizarla, se vuelve a preparar desde Estrategia.
  */
 @Composable
-fun PreparedOutingScreen(onBack: () -> Unit, viewModel: PreparedOutingViewModel = hiltViewModel()) {
+fun PreparedOutingScreen(onBack: () -> Unit, onStartGuided: () -> Unit = {}, viewModel: PreparedOutingViewModel = hiltViewModel()) {
     val outing by viewModel.outing.collectAsStateWithLifecycle()
-    PreparedOutingContent(outing, viewModel.now(), onBack)
+    val canActivate by viewModel.canActivate.collectAsStateWithLifecycle()
+    val activating by viewModel.activating.collectAsStateWithLifecycle()
+    PreparedOutingContent(outing, viewModel.now(), onBack, canActivate, activating) { viewModel.activate(onStartGuided) }
 }
 
 @Composable
-fun PreparedOutingContent(outing: PreparedOuting?, now: Instant, onBack: () -> Unit = {}) {
+fun PreparedOutingContent(
+    outing: PreparedOuting?,
+    now: Instant,
+    onBack: () -> Unit = {},
+    canActivate: Boolean = false,
+    activating: Boolean = false,
+    onActivate: () -> Unit = {},
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = Spacing.screen, end = Spacing.screen, top = Spacing.sm, bottom = 48.dp),
@@ -76,6 +114,14 @@ fun PreparedOutingContent(outing: PreparedOuting?, now: Instant, onBack: () -> U
             return@LazyColumn
         }
         item { SummaryCard(outing, now) }
+        // Fase 7.21: ya en el puesto, empezar con esto en un toque.
+        if (canActivate) {
+            item {
+                Button(onClick = onActivate, enabled = !activating, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(if (activating) R.string.guided_starting else R.string.prepared_activate))
+                }
+            }
+        }
         outing.conditions?.let { c -> item { ConditionsCard(c) } }
         item { PlanCard(outing) }
         item { CarpCard { PrepResultLines(outing.result) } }

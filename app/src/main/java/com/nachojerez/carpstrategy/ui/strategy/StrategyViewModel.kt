@@ -79,6 +79,7 @@ class StrategyViewModel @Inject constructor(
     private val knowledge: KnowledgeAsset,
     private val reservoirs: ReservoirRepository,
     private val gearEditor: GearEditor,
+    private val activation: PreparedActivation,
     @param:IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
     private val location = settings.observeLocation()
@@ -318,6 +319,28 @@ class StrategyViewModel @Inject constructor(
             val outing = preparedOutingOf(state, dayPlan, prepared?.value?.advice.orEmpty(), result, clock.instant())
             localSettings.put(KEY_PREPARED_OUTING, PreparedOutingJson.encode(outing))
             prepFlow.value = PrepUiState(result = result)
+        }
+    }
+
+    /** La preparación que se puede activar ahora (fase 7.21): de hoy y de este embalse. */
+    val preparedToday: StateFlow<PreparedOuting?> = activation.observeToday()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    private val activatingFlow = MutableStateFlow(false)
+    val activating: StateFlow<Boolean> = activatingFlow
+
+    /** «Activar»: empieza la sesión guiada con lo preparado y, al tenerla, abre la pantalla. */
+    fun activatePrepared(onStarted: () -> Unit) {
+        val prepared = preparedToday.value ?: return
+        if (activatingFlow.value) return
+        activatingFlow.value = true
+        viewModelScope.launch {
+            try {
+                activation.activate(prepared)
+                onStarted()
+            } finally {
+                activatingFlow.value = false
+            }
         }
     }
 
