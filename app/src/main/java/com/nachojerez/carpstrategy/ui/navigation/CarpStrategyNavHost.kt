@@ -58,6 +58,9 @@ import kotlinx.serialization.Serializable
 @Serializable data class DiaryRoute(val openSessionId: Long = 0L)
 @Serializable data object PlaceRoute
 
+/** Ajustes de la app (fase 7.23), desde Preparar. */
+@Serializable data object SettingsRoute
+
 /** Datos en bruto por fuente (la antigua pantalla Condiciones). */
 @Serializable data object RawDataRoute
 
@@ -208,8 +211,17 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                 ReservoirsScreen(onBack = { navController.popBackStack() }, onOpenSheet = { navController.navigate(ReservoirSheetRoute) })
             }
             composable<ReservoirSheetRoute> { ReservoirSheetScreen(onBack = { navController.popBackStack() }) }
+            composable<SettingsRoute> {
+                PlaceScreen(
+                    settings = true,
+                    onBack = { navController.popBackStack() },
+                    onOpenAssistant = { navController.navigate(AssistantRoute) },
+                )
+            }
             composable<PlaceRoute> {
                 PlaceScreen(
+                    onOpenGear = { navController.navigate(GearRoute) },
+                    onOpenSettings = { navController.navigate(SettingsRoute) },
                     onOpenSpots = { navController.navigate(SpotsRoute) },
                     onOpenAssistant = { navController.navigate(AssistantRoute) },
                     onOpenLessons = { navController.navigate(LessonsRoute) },

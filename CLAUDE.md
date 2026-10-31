@@ -89,7 +89,7 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   Hyperlegible Next en `res/font` (OFL, `docs/licencias/`).
 - Componentes reutilizables en `ui/components` (insignias de evidencia y fuente, tarjetas,
   cadena de filtros, gráficas con `Canvas`). Vistas previas con `@CarpPreviews` (4 variantes).
-- Navegación: Hoy · Estrategia · Datos · Diario · Lugar, más la subruta de datos en bruto.
+- Navegación: Hoy · Estrategia · Datos · Diario · Preparar (antes Lugar; clase `PlaceRoute`), más la subruta de datos en bruto.
 - La apariencia y la ubicación se guardan en la tabla de ajustes de `UserDataDatabase`
   (no en DataStore). GPS: una sola lectura con `DeviceLocationProvider`, permiso pedido al pulsar.
 - La lógica de cada pantalla que se pueda probar va en funciones puras (`chainRows`,
@@ -402,6 +402,13 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - `StrategyViewModel.reevaluatePrepared` (previsión y observaciones, sin red compara con la caché), `review`
   (`ReviewUiState`), `closeReview` y `replacePrepared` (= `requestPlan`). `PreparedTodayCard` avisa si cambiaste lo
   elegido, muestra `ReviewLines` y no ofrece activar con filtro duro.
+
+## Preparar y Ajustes (fase 7.23)
+
+- La pestaña Lugar se llama **Preparar** (sigue siendo `PlaceRoute`/`PlaceScreen`): embalse, Mi equipo (cañas y cebos),
+  puestos, ubicación, lo aprendido y el aviso de la próxima salida. Lo de la app (cuenta, asistente de IA, apariencia,
+  fuentes, leyenda, limitaciones, normativa y versión) va en **Ajustes** (`SettingsRoute` = `PlaceScreen(settings = true)`).
+  Los textos que decían «Lugar → …» dicen ahora «Preparar → …» o «Preparar → Ajustes → …».
 
 ## Stack
 

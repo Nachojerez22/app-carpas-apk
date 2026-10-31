@@ -127,7 +127,7 @@ Para que los avisos lleguen a su hora, permite las notificaciones y las alarmas 
 
 ### Mis puestos, el tiempo en cada aviso y Estrategia (fase 7.3)
 
-En **Lugar → Mis puestos** guardas tus puestos con lo que mediste tú: estructura (borde somero,
+En **Preparar → Mis puestos** guardas tus puestos con lo que mediste tú: estructura (borde somero,
 primera caída, antiguo cauce, recula, punta, llano), profundidad, distancia del lance y hacia
 dónde mira la orilla. Al empezar la sesión guiada eliges el puesto y cada aviso trae el tiempo:
 la previsión de la hora (aire, viento y rachas, lluvia, tormenta, agua medida o estimada), qué ha
@@ -140,7 +140,7 @@ el porqué (cadena de filtros, demanda y reglas).
 
 ### Asistente de IA (fase 7.4)
 
-Opcional. En **Lugar → Asistente de IA** pegas la clave de tu proveedor (Gemini de Google AI
+Opcional. En **Preparar → Ajustes → Asistente de IA** pegas la clave de tu proveedor (Gemini de Google AI
 Studio, nivel gratuito, u otro compatible con OpenAI) y el modelo. La clave se guarda en el móvil y,
 si activas «Guardar la clave en mi cuenta de Google», también en la carpeta privada de la app en tu
 Drive, para tenerla en todos tus móviles (fase 7.11); nunca va en las exportaciones. En cada aviso de la sesión guiada la IA dice
@@ -184,6 +184,13 @@ El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla
   y el plan de la IA de la preparación, aunque no haya red. También está en «Ver la preparación».
 - Solo se ofrece ese día, en ese embalse y dentro del horario legal.
 
+### Preparar y Ajustes (fase 7.23)
+
+- La pestaña **Lugar** pasa a llamarse **Preparar**: ahí se configura todo lo de pescar (embalse, tus cañas y cebos,
+  puestos, ubicación, lo aprendido y el aviso de la próxima salida).
+- Lo de la app (cuenta de Google, asistente de IA, apariencia, fuentes, leyenda, limitaciones y normativa) está en
+  **Ajustes**, con el botón del final de Preparar.
+
 ### Reevaluar la salida preparada (fase 7.22)
 
 - En la tarjeta **Salida preparada para hoy**, **Reevaluar** descarga la previsión (si hay cobertura) y te dice qué ha
@@ -202,7 +209,7 @@ El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla
 
 ### Aviso de la próxima salida y fotos (fase 7.17)
 
-- **Aviso por la tarde** (Lugar → «Aviso de la próxima salida», desactivado por defecto): hacia las 19:00 la app mira
+- **Aviso por la tarde** (Preparar → «Aviso de la próxima salida», desactivado por defecto): hacia las 19:00 la app mira
   la próxima salida con las mismas reglas que Estrategia y solo si sale favorable o muy favorable según tus datos te
   avisa una vez para que la prepares. No promete peces.
 - **Fotos de las capturas** en la ficha del diario («Hacer foto» o «Galería»). Se guardan solo en el móvil donde se
@@ -232,7 +239,7 @@ El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla
 
 ### Consumo de la IA (fase 7.14)
 
-En **Lugar → Asistente de IA**, al final, ves lo que ha gastado la app **hoy** (día de cuota de Google,
+En **Preparar → Ajustes → Asistente de IA**, al final, ves lo que ha gastado la app **hoy** (día de cuota de Google,
 que se renueva a medianoche de California: las 9:00 en España, las 8:00 en verano) sumando tus dos
 móviles: consultas, búsquedas en Google y tokens (entrada, salida y razonamiento), por tipo de consulta,
 y los errores de cuota con el mensaje de Google. Debajo, los últimos 7 días. Si escribes tus límites
@@ -303,7 +310,7 @@ Las respuestas pasan las mismas comprobaciones que el resto del asistente. La co
 
 ### Varios embalses (fase 7.6)
 
-En **Lugar → Embalse → Cambiar de embalse** eliges dónde vas a pescar:
+En **Preparar → Embalse → Cambiar de embalse** eliges dónde vas a pescar:
 - la lista son los cotos del listado oficial de la Junta de Extremadura más Brovales, del más cercano al más lejano, y se puede buscar por embalse, pueblo o coto;
 - si el tuyo no está, lo añades con sus coordenadas.
 
@@ -324,7 +331,7 @@ Los datos de Brovales del documento (§6) solo se usan en Brovales. Formato del 
 
 ### Cuenta de Google y versiones nuevas (fase 7.2)
 
-En **Lugar → Cuenta de Google** inicias sesión una vez y tus datos (diario, datos manuales,
+En **Preparar → Ajustes → Cuenta de Google** inicias sesión una vez y tus datos (diario, datos manuales,
 equipo y ajustes) quedan en una carpeta privada de tu Google Drive que solo ve la app. La app
 tira de ahí al abrirse y sube cada cambio; sin cobertura funciona igual y sincroniza después.
 Requiere configurar una vez un proyecto en Google Cloud: [docs/CUENTA_GOOGLE.md](docs/CUENTA_GOOGLE.md).
@@ -407,6 +414,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
 - [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
+- [x] **Fase 7.23**: la pestaña Lugar pasa a ser Preparar y los ajustes de la app van aparte
 - [x] **Fase 7.22**: reevaluar la salida preparada (qué ha cambiado desde anoche) antes de activarla
 - [x] **Fase 7.21**: activar en un toque la salida preparada la noche antes
 - [x] **Fase 7.20**: tus cañas (fija con longitud o carpfishing) y un plan que respeta cada una

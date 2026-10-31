@@ -57,9 +57,17 @@ import com.nachojerez.carpstrategy.ui.theme.EvidenceKind
 import com.nachojerez.carpstrategy.ui.theme.SourceKind
 import com.nachojerez.carpstrategy.ui.theme.Spacing
 
-/** Pestaña Lugar: ubicación, apariencia, fuentes, leyenda, limitaciones y normativa. */
+/**
+ * Pestaña Preparar (antes Lugar, fase 7.23): embalse, equipo, puestos, ubicación, lo aprendido y el
+ * aviso de la próxima salida. Con [settings], la pantalla Ajustes: cuenta, IA, apariencia, fuentes,
+ * leyenda, limitaciones y normativa.
+ */
 @Composable
 fun PlaceScreen(
+    settings: Boolean = false,
+    onBack: () -> Unit = {},
+    onOpenGear: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     onOpenSpots: () -> Unit = {},
     onOpenAssistant: () -> Unit = {},
     onOpenLessons: () -> Unit = {},
@@ -80,130 +88,145 @@ fun PlaceScreen(
         contentPadding = PaddingValues(horizontal = Spacing.screen, vertical = Spacing.sm),
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
-        item { ScreenHeader(stringResource(R.string.place_title), state.location.name) }
-
-        item { SectionTitle(stringResource(R.string.account_title), subtitle = stringResource(R.string.account_subtitle)) }
-        item { AccountCard() }
-
-        item { SectionTitle(stringResource(R.string.reservoirs_place_title), subtitle = stringResource(R.string.reservoirs_place_subtitle)) }
-        item {
-            CarpCard {
-                val reservoir = state.reservoir
-                if (reservoir == null) {
-                    Caption(stringResource(R.string.reservoirs_none_active))
-                } else {
-                    Text(reservoir.reservoir.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-                    Caption(reservoirLine(reservoir.reservoir))
-                }
-                Button(onClick = onOpenReservoirs) { Text(stringResource(R.string.reservoirs_open)) }
-                if (reservoir != null) OutlinedButton(onClick = onOpenReservoirSheet) { Text(stringResource(R.string.reservoir_sheet_open)) }
+        if (settings) {
+            // Ajustes (fase 7.23): lo de la app, aparte de lo de pescar.
+            item {
+                TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+                ScreenHeader(stringResource(R.string.settings_title), stringResource(R.string.settings_overline))
             }
-        }
+            item { SectionTitle(stringResource(R.string.account_title), subtitle = stringResource(R.string.account_subtitle)) }
+            item { AccountCard() }
 
-        item { SectionTitle(stringResource(R.string.place_location_title), subtitle = stringResource(R.string.place_location_subtitle)) }
-        item {
-            LocationCard(
-                state = state,
-                onUseGps = {
-                    permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
-                },
-                onSave = viewModel::saveCoordinates,
-                onReset = viewModel::resetToDefault,
-            )
-        }
+            item { SectionTitle(stringResource(R.string.ai_settings_title), subtitle = stringResource(R.string.ai_settings_subtitle)) }
+            item { CarpCard { OutlinedButton(onClick = onOpenAssistant) { Text(stringResource(R.string.ai_settings_open)) } } }
 
-        item { SectionTitle(stringResource(R.string.spots_title), subtitle = stringResource(R.string.spots_open_detail)) }
-        item {
-            CarpCard {
-                Caption(stringResource(R.string.spots_intro))
-                OutlinedButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+            item { SectionTitle(stringResource(R.string.place_appearance_title)) }
+            item {
+                AppearanceCard(
+                    state = state,
+                    onStyle = viewModel::setStyle,
+                    onMode = viewModel::setMode,
+                    onDynamic = viewModel::setDynamicColor,
+                )
             }
-        }
 
-        item { SectionTitle(stringResource(R.string.ai_settings_title), subtitle = stringResource(R.string.ai_settings_subtitle)) }
-        item {
-            CarpCard {
-                OutlinedButton(onClick = onOpenAssistant) { Text(stringResource(R.string.ai_settings_open)) }
-                OutlinedButton(onClick = onOpenLessons) { Text(stringResource(R.string.lessons_open)) }
-            }
-        }
-
-        // Fase 7.17: aviso por la tarde si la próxima salida pinta bien.
-        item { SectionTitle(stringResource(R.string.outlook_settings_title)) }
-        item {
-            CarpCard {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    Text(stringResource(R.string.outlook_settings_switch), modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = state.outlookEnabled,
-                        onCheckedChange = { on ->
-                            if (on && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            viewModel.setOutlook(on)
-                        },
+            item { SectionTitle(stringResource(R.string.place_sources_title)) }
+            item {
+                CarpCard {
+                    SourceRow(SourceKind.Forecast, stringResource(R.string.place_source_openmeteo), stringResource(R.string.about_source_openmeteo))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SourceRow(SourceKind.Aemet, stringResource(R.string.source_aemet), stringResource(R.string.about_source_aemet))
+                    Caption(
+                        stringResource(if (BuildConfig.AEMET_API_KEY.isBlank()) R.string.about_aemet_key_missing else R.string.about_aemet_key_present),
                     )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SourceRow(SourceKind.Manual, stringResource(R.string.source_manual), stringResource(R.string.place_source_manual))
                 }
-                Caption(stringResource(R.string.outlook_settings_hint))
             }
-        }
 
-        item { SectionTitle(stringResource(R.string.place_appearance_title)) }
-        item {
-            AppearanceCard(
-                state = state,
-                onStyle = viewModel::setStyle,
-                onMode = viewModel::setMode,
-                onDynamic = viewModel::setDynamicColor,
-            )
-        }
-
-        item { SectionTitle(stringResource(R.string.place_sources_title)) }
-        item {
-            CarpCard {
-                SourceRow(SourceKind.Forecast, stringResource(R.string.place_source_openmeteo), stringResource(R.string.about_source_openmeteo))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                SourceRow(SourceKind.Aemet, stringResource(R.string.source_aemet), stringResource(R.string.about_source_aemet))
-                Caption(
-                    stringResource(if (BuildConfig.AEMET_API_KEY.isBlank()) R.string.about_aemet_key_missing else R.string.about_aemet_key_present),
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                SourceRow(SourceKind.Manual, stringResource(R.string.source_manual), stringResource(R.string.place_source_manual))
-            }
-        }
-
-        item { SectionTitle(stringResource(R.string.place_legend_title), subtitle = stringResource(R.string.place_legend_subtitle)) }
-        item {
-            CarpCard {
-                LegendRow({ EvidenceBadge(EvidenceKind.Strong) }, stringResource(R.string.legend_strong))
-                LegendRow({ EvidenceBadge(EvidenceKind.Moderate) }, stringResource(R.string.legend_moderate))
-                LegendRow({ EvidenceBadge(EvidenceKind.NoEvidence) }, stringResource(R.string.legend_none))
-                LegendRow({ EvidenceBadge(EvidenceKind.LocalHypothesis) }, stringResource(R.string.legend_local))
-                LegendRow({ EvidenceBadge(EvidenceKind.IndividualVariability) }, stringResource(R.string.legend_individual))
-                LegendRow({ RegulationBadge() }, stringResource(R.string.legend_regulation))
-            }
-        }
-
-        item { SectionTitle(stringResource(R.string.about_disclaimers_title)) }
-        item {
-            CarpCard {
-                Text(stringResource(R.string.about_description))
-                Text(stringResource(R.string.about_disclaimer_water))
-                Text(stringResource(R.string.about_disclaimer_rules))
-                Text(stringResource(R.string.about_disclaimer_legal))
-            }
-        }
-
-        item { SectionTitle(stringResource(R.string.place_regulation_title)) }
-        item {
-            CarpCard {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    RegulationBadge()
-                    Text(stringResource(R.string.place_regulation_hours), modifier = Modifier.weight(1f))
+            item { SectionTitle(stringResource(R.string.place_legend_title), subtitle = stringResource(R.string.place_legend_subtitle)) }
+            item {
+                CarpCard {
+                    LegendRow({ EvidenceBadge(EvidenceKind.Strong) }, stringResource(R.string.legend_strong))
+                    LegendRow({ EvidenceBadge(EvidenceKind.Moderate) }, stringResource(R.string.legend_moderate))
+                    LegendRow({ EvidenceBadge(EvidenceKind.NoEvidence) }, stringResource(R.string.legend_none))
+                    LegendRow({ EvidenceBadge(EvidenceKind.LocalHypothesis) }, stringResource(R.string.legend_local))
+                    LegendRow({ EvidenceBadge(EvidenceKind.IndividualVariability) }, stringResource(R.string.legend_individual))
+                    LegendRow({ RegulationBadge() }, stringResource(R.string.legend_regulation))
                 }
-                Text(
-                    stringResource(R.string.place_regulation_reviewed, state.regulationReviewed ?: Formatting.number(null)),
-                    style = MaterialTheme.typography.labelLarge,
+            }
+
+            item { SectionTitle(stringResource(R.string.about_disclaimers_title)) }
+            item {
+                CarpCard {
+                    Text(stringResource(R.string.about_description))
+                    Text(stringResource(R.string.about_disclaimer_water))
+                    Text(stringResource(R.string.about_disclaimer_rules))
+                    Text(stringResource(R.string.about_disclaimer_legal))
+                }
+            }
+
+            item { SectionTitle(stringResource(R.string.place_regulation_title)) }
+            item {
+                CarpCard {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        RegulationBadge()
+                        Text(stringResource(R.string.place_regulation_hours), modifier = Modifier.weight(1f))
+                    }
+                    Text(
+                        stringResource(R.string.place_regulation_reviewed, state.regulationReviewed ?: Formatting.number(null)),
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                    Caption(stringResource(R.string.place_regulation_check))
+                }
+            }
+
+        } else {
+            // Preparar (fase 7.23): todo lo que se configura para pescar.
+            item { ScreenHeader(stringResource(R.string.place_title), state.location.name) }
+            item { Caption(stringResource(R.string.prepare_intro)) }
+
+            item { SectionTitle(stringResource(R.string.reservoirs_place_title), subtitle = stringResource(R.string.reservoirs_place_subtitle)) }
+            item {
+                CarpCard {
+                    val reservoir = state.reservoir
+                    if (reservoir == null) {
+                        Caption(stringResource(R.string.reservoirs_none_active))
+                    } else {
+                        Text(reservoir.reservoir.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                        Caption(reservoirLine(reservoir.reservoir))
+                    }
+                    Button(onClick = onOpenReservoirs) { Text(stringResource(R.string.reservoirs_open)) }
+                    if (reservoir != null) OutlinedButton(onClick = onOpenReservoirSheet) { Text(stringResource(R.string.reservoir_sheet_open)) }
+                }
+            }
+
+            item { SectionTitle(stringResource(R.string.prepare_gear_title), subtitle = stringResource(R.string.prepare_gear_subtitle)) }
+            item { CarpCard { OutlinedButton(onClick = onOpenGear) { Text(stringResource(R.string.guided_gear_open)) } } }
+
+            item { SectionTitle(stringResource(R.string.spots_title), subtitle = stringResource(R.string.spots_open_detail)) }
+            item {
+                CarpCard {
+                    Caption(stringResource(R.string.spots_intro))
+                    OutlinedButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
+                }
+            }
+
+            item { SectionTitle(stringResource(R.string.place_location_title), subtitle = stringResource(R.string.place_location_subtitle)) }
+            item {
+                LocationCard(
+                    state = state,
+                    onUseGps = {
+                        permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+                    },
+                    onSave = viewModel::saveCoordinates,
+                    onReset = viewModel::resetToDefault,
                 )
-                Caption(stringResource(R.string.place_regulation_check))
+            }
+
+            item { SectionTitle(stringResource(R.string.lessons_title)) }
+            item { CarpCard { OutlinedButton(onClick = onOpenLessons) { Text(stringResource(R.string.lessons_open)) } } }
+
+            // Fase 7.17: aviso por la tarde si la próxima salida pinta bien.
+            item { SectionTitle(stringResource(R.string.outlook_settings_title)) }
+            item {
+                CarpCard {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        Text(stringResource(R.string.outlook_settings_switch), modifier = Modifier.weight(1f))
+                        Switch(
+                            checked = state.outlookEnabled,
+                            onCheckedChange = { on ->
+                                if (on && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                viewModel.setOutlook(on)
+                            },
+                        )
+                    }
+                    Caption(stringResource(R.string.outlook_settings_hint))
+                }
+            }
+
+            item {
+                OutlinedButton(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.settings_open)) }
             }
         }
 
