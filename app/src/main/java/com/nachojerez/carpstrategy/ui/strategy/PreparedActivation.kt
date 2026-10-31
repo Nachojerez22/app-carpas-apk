@@ -24,8 +24,8 @@ import kotlinx.coroutines.flow.map
 @Singleton
 class PreparedActivation @Inject constructor(
     localSettings: LocalSettings,
-    reservoirs: ReservoirRepository,
-    settings: SettingsRepository,
+    private val reservoirs: ReservoirRepository,
+    private val settings: SettingsRepository,
     private val manager: GuidedSessionManager,
     private val clock: Clock,
 ) {
