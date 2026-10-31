@@ -394,6 +394,15 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `GuidedSessionManager.startPrepared` (`start(…, planRods, preferPrepared = true)`: el plan preparado manda sobre el
   reciente). `PreparedTodayCard` arriba de Estrategia con «Activar».
 
+## Reevaluar la salida preparada (fase 7.22)
+
+- `ui/strategy/OutingReview.kt` (puro): `reviewOuting(prepared, ahora, preparedKey, currentKey)` → `OutingReview` (filtro
+  duro ahora, escala, nivel que limita, agua/aire/viento/rachas con umbrales 🟣 de `ReviewThresholds` y
+  `choicesChanged` por `outingKey`). Solo informa: no cambia `aiPlanFor`.
+- `StrategyViewModel.reevaluatePrepared` (previsión y observaciones, sin red compara con la caché), `review`
+  (`ReviewUiState`), `closeReview` y `replacePrepared` (= `requestPlan`). `PreparedTodayCard` avisa si cambiaste lo
+  elegido, muestra `ReviewLines` y no ofrece activar con filtro duro.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

@@ -329,6 +329,41 @@ class StrategyViewModel @Inject constructor(
     private val activatingFlow = MutableStateFlow(false)
     val activating: StateFlow<Boolean> = activatingFlow
 
+    // Fase 7.22: «Reevaluar» la salida preparada antes de activarla.
+    private val reviewRunning = MutableStateFlow(false)
+    private val reviewShown = MutableStateFlow(false)
+
+    /** Qué ha cambiado desde que la preparaste (solo tras pulsar «Reevaluar»). */
+    val review: StateFlow<ReviewUiState> = combine(reviewShown, reviewRunning, uiState, preparedToday, planFlow) { shown, running, state, p, plan ->
+        ReviewUiState(running = running, review = if (shown && !running && p != null) reviewOuting(p, state, plan.preparedKey, planKey(state)) else null)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ReviewUiState())
+
+    /** Con cobertura, previsión y observaciones nuevas; sin ella, se compara con lo que ya hay. */
+    fun reevaluatePrepared() {
+        if (reviewRunning.value) return
+        reviewRunning.value = true
+        viewModelScope.launch {
+            try {
+                val place = location.first()
+                weather.refreshForecast(place.point)
+                weather.refreshObservations(place.point)
+            } finally {
+                reviewRunning.value = false
+                reviewShown.value = true
+            }
+        }
+    }
+
+    fun closeReview() {
+        reviewShown.value = false
+    }
+
+    /** «Pedir un plan nuevo»: plan de la IA para lo de ahora (aparece en «Tu plan»). */
+    fun replacePrepared() {
+        reviewShown.value = false
+        requestPlan()
+    }
+
     /** «Activar»: empieza la sesión guiada con lo preparado y, al tenerla, abre la pantalla. */
     fun activatePrepared(onStarted: () -> Unit) {
         val prepared = preparedToday.value ?: return
