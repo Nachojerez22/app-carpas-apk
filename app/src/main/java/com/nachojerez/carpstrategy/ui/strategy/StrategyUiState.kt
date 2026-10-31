@@ -104,6 +104,9 @@ data class PlanUiState(
     val preparedKey: String? = null,
 )
 
+/** «Reevaluar» la salida preparada (fase 7.22). */
+data class ReviewUiState(val running: Boolean = false, val review: OutingReview? = null)
+
 /** Cañas por defecto si aún no has elegido. */
 const val DEFAULT_RODS = 2
 

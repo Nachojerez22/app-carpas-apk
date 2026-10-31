@@ -126,6 +126,7 @@ fun StrategyScreen(
     val prepared by viewModel.preparedOuting.collectAsStateWithLifecycle()
     val preparedToday by viewModel.preparedToday.collectAsStateWithLifecycle()
     val activating by viewModel.activating.collectAsStateWithLifecycle()
+    val review by viewModel.review.collectAsStateWithLifecycle()
     StrategyContent(
         state, plan,
         StrategyActions(
@@ -151,12 +152,16 @@ fun StrategyScreen(
             onPrepare = viewModel::prepareNextOuting,
             onOpenPrepared = onOpenPrepared,
             onActivatePrepared = { viewModel.activatePrepared(onStartGuided) },
+            onReevaluate = viewModel::reevaluatePrepared,
+            onCloseReview = viewModel::closeReview,
+            onReplacePrepared = viewModel::replacePrepared,
         ),
         sheet,
         prep,
         prepared,
         preparedToday,
         activating,
+        review,
     )
 }
 
@@ -184,6 +189,9 @@ data class StrategyActions(
     val onPrepare: () -> Unit = {},
     val onOpenPrepared: () -> Unit = {},
     val onActivatePrepared: () -> Unit = {},
+    val onReevaluate: () -> Unit = {},
+    val onCloseReview: () -> Unit = {},
+    val onReplacePrepared: () -> Unit = {},
 )
 
 /**
@@ -204,6 +212,7 @@ fun StrategyContent(
     prepared: PreparedOuting? = null,
     preparedToday: PreparedOuting? = null,
     activating: Boolean = false,
+    review: ReviewUiState = ReviewUiState(),
 ) {
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
     val dayPlan = remember(state, plan) { dayPlanFor(state, plan) }
@@ -225,7 +234,11 @@ fun StrategyContent(
             return@LazyColumn
         }
         // Fase 7.21: la salida que preparaste para hoy, lista para activarla en el puesto.
-        preparedToday?.let { p -> item { PreparedTodayCard(p, activating, actions.onActivatePrepared, actions.onOpenPrepared) } }
+        preparedToday?.let { p ->
+            // No se descarta en silencio: si cambiaste lo elegido, se avisa (fase 7.22).
+            val changed = plan.preparedKey != null && planKey(state)?.let(::outingKey)?.let { it != outingKey(plan.preparedKey) } == true
+            item { PreparedTodayCard(p, activating, review, plan.configured, changed, actions) }
+        }
         // Condiciones para hoy (escala de 5 tramos y nivel que limita): siempre arriba.
         state.result?.let { result -> item { ResultCard(result) } }
         // ① Embalse.
@@ -285,7 +298,7 @@ fun StrategyContent(
  * empezar la sesión guiada con ese plan en un toque (sin red) y «Ver la preparación».
  */
 @Composable
-private fun PreparedTodayCard(p: PreparedOuting, activating: Boolean, onActivate: () -> Unit, onOpen: () -> Unit) {
+private fun PreparedTodayCard(p: PreparedOuting, activating: Boolean, review: ReviewUiState, aiConfigured: Boolean, choicesChanged: Boolean, actions: StrategyActions) {
     val cs = MaterialTheme.colorScheme
     CarpCard(containerColor = cs.tertiaryContainer) {
         Caption(stringResource(R.string.prepared_today_overline), color = cs.onTertiaryContainer)
@@ -299,11 +312,65 @@ private fun PreparedTodayCard(p: PreparedOuting, activating: Boolean, onActivate
             Text(stringResource(R.string.prepared_today_band, stringResource(band.labelRes())), color = cs.onTertiaryContainer)
         }
         Caption(stringResource(R.string.prepared_today_at, Formatting.hour(p.preparedAt)), color = cs.onTertiaryContainer)
-        Button(onClick = onActivate, enabled = !activating, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(if (activating) R.string.guided_starting else R.string.prepared_activate))
+        val r = review.review
+        if (r == null && choicesChanged) Caption(stringResource(R.string.review_choices), color = cs.onTertiaryContainer)
+        when {
+            review.running -> {
+                LinearProgressIndicator(Modifier.fillMaxWidth())
+                Caption(stringResource(R.string.review_running), color = cs.onTertiaryContainer)
+            }
+            r != null -> ReviewLines(r)
         }
-        TextButton(onClick = onOpen, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.prep_view_button)) }
+        // Con filtro duro ahora no se ofrece activar (CONOCIMIENTO.md: legalidad = filtro duro).
+        if (r?.blockedNow != true) {
+            Button(onClick = actions.onActivatePrepared, enabled = !activating && !review.running, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(if (activating) R.string.guided_starting else if (r != null) R.string.review_keep else R.string.prepared_activate))
+            }
+        }
+        if (r == null) {
+            OutlinedButton(onClick = actions.onReevaluate, enabled = !review.running, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.review_button))
+            }
+        } else {
+            if (aiConfigured && !r.nothingChanged) {
+                OutlinedButton(onClick = actions.onReplacePrepared, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.review_new_plan)) }
+            }
+            TextButton(onClick = actions.onCloseReview, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.review_close)) }
+        }
+        TextButton(onClick = actions.onOpenPrepared, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.prep_view_button)) }
     }
+}
+
+/** Lo que ha cambiado desde que la preparaste, con su evidencia; o que no ha cambiado nada importante. */
+@Composable
+private fun ReviewLines(r: OutingReview) {
+    val cs = MaterialTheme.colorScheme
+    val color = cs.onTertiaryContainer
+    HorizontalDivider(color = cs.outlineVariant)
+    Text(stringResource(R.string.review_title), style = MaterialTheme.typography.titleSmall, color = color)
+    if (r.blockedNow) Text(stringResource(R.string.review_blocked), color = cs.error)
+    if (r.nothingChanged) Text(stringResource(R.string.review_nothing), color = color)
+    r.band?.let { c ->
+        val before = c.before?.let { stringResource(it.labelRes()) } ?: "—"
+        val after = c.after?.let { stringResource(it.labelRes()) } ?: "—"
+        Text(stringResource(R.string.review_band, before, after), color = color)
+    }
+    r.limiting?.let { c ->
+        val before = c.before?.let { stringResource(it.titleRes()) } ?: stringResource(R.string.review_none)
+        val after = c.after?.let { stringResource(it.titleRes()) } ?: stringResource(R.string.review_none)
+        Text(stringResource(R.string.review_limiting, before, after), color = color)
+    }
+    r.waterC?.let { c ->
+        Text(
+            stringResource(if (r.waterMeasuredNow) R.string.review_water_measured else R.string.review_water, Formatting.number(c.before), Formatting.number(c.after)),
+            color = color,
+        )
+    }
+    r.airC?.let { c -> Text(stringResource(R.string.review_air, Formatting.number(c.before), Formatting.number(c.after)), color = color) }
+    r.windKmh?.let { c -> Text(stringResource(R.string.review_wind, Formatting.number(c.before), Formatting.number(c.after)), color = color) }
+    r.gustKmh?.let { c -> Text(stringResource(R.string.review_gusts, Formatting.number(c.before), Formatting.number(c.after)), color = color) }
+    if (r.choicesChanged) Text(stringResource(R.string.review_choices), color = color)
+    Caption(stringResource(R.string.review_hint), color = color)
 }
 
 /** «Preparar la próxima salida»: previsión, plan de la IA y fichas, para tenerlo todo sin cobertura. */

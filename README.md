@@ -184,6 +184,13 @@ El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla
   y el plan de la IA de la preparación, aunque no haya red. También está en «Ver la preparación».
 - Solo se ofrece ese día, en ese embalse y dentro del horario legal.
 
+### Reevaluar la salida preparada (fase 7.22)
+
+- En la tarjeta **Salida preparada para hoy**, **Reevaluar** descarga la previsión (si hay cobertura) y te dice qué ha
+  cambiado desde que la preparaste: condiciones, lo que limita, agua (🟢, medida o estimada), aire, viento (🟡) y rachas.
+  Si cambiaste el puesto, las cañas o los cebos, también te lo dice en vez de quitar el plan en silencio.
+- Luego eliges: **Mantener el plan y activar** o **Pedir un plan nuevo para lo de ahora**. Con filtro duro no se activa.
+
 ### Tus cañas: fija o carpfishing (fase 7.20)
 
 - En **Mi equipo → Cañas** apuntas cada caña con su nombre y su tipo: **fija** (9, 8, 7 o 5 m) o **carpfishing**,
@@ -400,6 +407,7 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
 - [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
+- [x] **Fase 7.22**: reevaluar la salida preparada (qué ha cambiado desde anoche) antes de activarla
 - [x] **Fase 7.21**: activar en un toque la salida preparada la noche antes
 - [x] **Fase 7.20**: tus cañas (fija con longitud o carpfishing) y un plan que respeta cada una
 - [x] **Fase 7.19**: ver la preparación de la próxima salida (guardada, sin red) para analizarla
