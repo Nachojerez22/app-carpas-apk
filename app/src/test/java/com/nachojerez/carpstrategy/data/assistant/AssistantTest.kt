@@ -119,6 +119,13 @@ class AssistantTest {
     }
 
     @Test
+    fun `plan con las fijas que elige la IA`() {
+        assertEquals(listOf("Fija 9", "Fija 5"), AssistantJson.parsePlan("""{"resumen":"A fondo","canas_fijas":[" Fija 9 ","Fija 5"],"canas":[]}""")!!.fixedRods)
+        assertNull(AssistantJson.parsePlan("""{"resumen":"A fondo","canas_fijas":null,"canas":[]}""")!!.fixedRods)
+        assertNull(AssistantJson.parsePlan("""{"resumen":"A fondo","canas_fijas":[],"canas":[]}""")!!.fixedRods)
+    }
+
+    @Test
     fun `repaso de sesion con lecciones validas y descartadas`() {
         server.enqueue(
             gemini(

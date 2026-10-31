@@ -125,8 +125,14 @@ fun List<GearItem>.pendingSheets(searchAllowed: Boolean): List<GearItem> = filte
     !sheet.searched && sheet.searchError != null && (item.url.isNotBlank() || searchAllowed)
 }
 
+/**
+ * Si lo llevas hoy. La caña de carpfishing siempre (decisión del usuario, §5.9.13): sale en todas
+ * las salidas, aunque su casilla esté desmarcada.
+ */
+val GearItem.carriedToday: Boolean get() = available || (category == GearCategory.ROD && rodKind == RodKind.CARP)
+
 /** Lo que llevas hoy (fase 7.13): solo eso entra en el plan, en la IA y en la sesión guiada. */
-fun List<GearItem>.today(): List<GearItem> = filter { it.available }
+fun List<GearItem>.today(): List<GearItem> = filter { it.carriedToday }
 
 /** Cebo elegido para una propuesta: del equipo del usuario si lo tiene. */
 data class BaitChoice(

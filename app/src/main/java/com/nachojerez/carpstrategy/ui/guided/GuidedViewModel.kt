@@ -16,6 +16,7 @@ import com.nachojerez.carpstrategy.domain.guided.today
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
+import com.nachojerez.carpstrategy.ui.strategy.KEY_PLAN_RODS
 import com.nachojerez.carpstrategy.ui.strategy.KEY_RODS
 import com.nachojerez.carpstrategy.ui.strategy.chosenSpotKey
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -66,14 +67,16 @@ class GuidedViewModel @Inject constructor(
     }
 
     /** Puestos del embalse activo, el puesto y las cañas elegidos en Estrategia (fase 7.12). */
-    private data class StartPrefs(val spots: List<Spot>, val spotId: Long?, val rods: Int?)
+    private data class StartPrefs(val spots: List<Spot>, val spotId: Long?, val rods: Int?, val planRods: List<String> = emptyList())
 
     /** Puestos del embalse activo y el elegido en Estrategia (viene marcado al empezar, fase 7.10). */
     private val spotsAndPreferred = reservoirs.observeActive().flatMapLatest { r ->
         val reservoirId = r?.reservoir?.id
-        combine(settings.observeSpots(), localSettings.observe(chosenSpotKey(reservoirId)), localSettings.observe(KEY_RODS)) { all, chosen, rods ->
+        combine(
+            settings.observeSpots(), localSettings.observe(chosenSpotKey(reservoirId)), localSettings.observe(KEY_RODS), localSettings.observe(KEY_PLAN_RODS),
+        ) { all, chosen, rods, planRods ->
             val spots = Spots.of(all, reservoirId)
-            StartPrefs(spots, chosen?.toLongOrNull()?.takeIf { id -> spots.any { it.id == id } }, rods?.toIntOrNull())
+            StartPrefs(spots, chosen?.toLongOrNull()?.takeIf { id -> spots.any { it.id == id } }, rods?.toIntOrNull(), planRodNames(planRods))
         }
     }
 
@@ -88,7 +91,7 @@ class GuidedViewModel @Inject constructor(
             },
         ) { session, (gear, prefs), next, now, aux ->
             val (isStarting, lastSaved, perms) = Triple(aux.starting, aux.saved, aux.permissions)
-            buildGuidedState(session, gear, now, next, Formatting.MADRID, prefs.spots).copy(
+            buildGuidedState(session, gear, now, next, Formatting.MADRID, prefs.spots, prefs.planRods).copy(
                 preferredSpotId = prefs.spotId,
                 preferredRods = prefs.rods?.coerceIn(1, GuidedSessions.MAX_RODS),
                 aiConfigured = aux.aiKeyHint != null,

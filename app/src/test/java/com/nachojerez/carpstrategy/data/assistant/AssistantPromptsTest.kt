@@ -35,6 +35,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -104,6 +105,13 @@ class AssistantPromptsTest {
         assertEquals(listOf("BOTTOM", "POPUP"), carp["columnas_permitidas"]!!.jsonArray.map { it.jsonPrimitive.content })
         assertEquals("40-90", carp["plomo_g"]!!.jsonPrimitive.content)
         assertTrue(AssistantPrompts.PLAN_SYSTEM.contains("NUNCA con boilies"))
+        // Sin más fijas de las que caben, no hay nada que elegir.
+        assertNull(Json.parseToJsonElement(AssistantPrompts.planState(input)).jsonObject["fijas_que_llevas"])
+        val carried = listOf(RodSetup("Larga", RodKind.FIXED, 9), RodSetup("Corta", RodKind.FIXED, 5), RodSetup("Carrete", RodKind.CARP))
+        val choice = Json.parseToJsonElement(AssistantPrompts.planState(input.copy(carriedRods = carried))).jsonObject["fijas_que_llevas"]!!.jsonArray
+        assertEquals(listOf("Larga", "Corta"), choice.map { it.jsonObject["nombre"]!!.jsonPrimitive.content })
+        assertEquals(5, choice[1].jsonObject["longitud_m"]!!.jsonPrimitive.content.toInt())
+        assertTrue(AssistantPrompts.PLAN_SYSTEM.contains("canas_fijas"))
     }
 
     @Test

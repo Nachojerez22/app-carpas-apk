@@ -67,4 +67,26 @@ class RodRulesAiTest {
         assertEquals(setOf(AiIssue.WEIGHT_OUT_OF_RANGE), AiValidator.textIssues("Plomo de 120 g"))
         assertEquals(setOf(AiIssue.GRAMS), AiValidator.textIssues("Plomo de 60 g y ceba 500 g de maíz"))
     }
+
+    @Test
+    fun `pluma y boya cuentan como flotador`() {
+        assertTrue(AiValidator.textIssues("Pluma de 3 g a media agua").isEmpty())
+        assertTrue(AiValidator.textIssues("Boya de 4 g cerca de la orilla").isEmpty())
+        assertTrue(AiValidator.textIssues("Pon 3 g de pluma").isEmpty())
+        assertEquals(setOf(AiIssue.WEIGHT_OUT_OF_RANGE), AiValidator.textIssues("Pluma de 60 g"))
+        assertEquals(setOf(AiIssue.GRAMS), AiValidator.textIssues("Pluma de 3 g y ceba 300 g de maíz"))
+    }
+
+    @Test
+    fun `la IA puede elegir las fijas entre las que llevas`() {
+        val carried = listOf(RodSetup("Fija 9", RodKind.FIXED, 9), RodSetup("Fija 7", RodKind.FIXED, 7), RodSetup("Fija 5", RodKind.FIXED, 5), RodSetup("Carrete", RodKind.CARP))
+        val withCarried = ctx.copy(rodSetups = mapOf(1 to RodSetup("Fija 7", RodKind.FIXED, 7), 2 to RodSetup("Carrete", RodKind.CARP)), carriedRods = carried)
+        val far = AiRodPlan(1, baitName = "Maíz", distanceM = 8.5, reason = "más lejos con la de 9", evidence = Evidence.PURPLE)
+        // Con la de 7 m no llega a 8,5 m; si la IA elige la de 9, sí.
+        assertEquals(setOf(AiIssue.DISTANCE_OUT_OF_RANGE), AiValidator.validate(plan(far), withCarried))
+        assertTrue(AiValidator.validate(plan(far).copy(fixedRods = listOf("fija 9")), withCarried).isEmpty())
+        // Una fija que no llevas, repetida o de más: la respuesta no vale.
+        assertTrue(AiIssue.UNKNOWN_ROD in AiValidator.validate(plan(far).copy(fixedRods = listOf("Fija 8")), withCarried))
+        assertTrue(AiIssue.UNKNOWN_ROD in AiValidator.validate(plan(far).copy(fixedRods = listOf("Fija 9", "Fija 5")), withCarried))
+    }
 }

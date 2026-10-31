@@ -22,7 +22,7 @@ import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.GuidedEnv
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
-import com.nachojerez.carpstrategy.domain.guided.rodsToday
+import com.nachojerez.carpstrategy.domain.guided.plannedRods
 import com.nachojerez.carpstrategy.domain.guided.GuidedUpdate
 import com.nachojerez.carpstrategy.domain.guided.RejectReason
 import com.nachojerez.carpstrategy.domain.guided.Spot
@@ -46,6 +46,7 @@ import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
 import com.nachojerez.carpstrategy.domain.usecase.RefreshWeatherUseCase
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.completeSession
+import com.nachojerez.carpstrategy.ui.strategy.KEY_PLAN_RODS
 import com.nachojerez.carpstrategy.ui.strategy.KEY_PREPARED_KEY
 import com.nachojerez.carpstrategy.ui.strategy.adviceFor
 import com.nachojerez.carpstrategy.ui.strategy.buildStrategyState
@@ -122,8 +123,9 @@ class GuidedSessionManager @Inject constructor(
         waterC?.let { saveWaterMeasurement(it, location, now) }
         val sessions = journal.observeSessions().first()
         val gear = settings.observeGear().first().today()
-        // Fase 7.20: con cañas apuntadas en Mi equipo, mandan ellas (nombre, tipo y longitud).
-        val setups = gear.rodsToday()
+        // Fase 7.20: con cañas apuntadas en Mi equipo, mandan ellas (nombre, tipo y longitud); 0.26.1:
+        // las del plan de Estrategia, con las fijas que eligiera la IA.
+        val setups = gear.plannedRods(planRodNames(localSettings.get(KEY_PLAN_RODS)))
         val names = if (setups.isNotEmpty()) setups.map { it.name } else rodNames
         val (reservoir, all) = reservoirAt(location)
         val lessons = Lessons.forReservoir(settings.observeLessons().first(), reservoir?.reservoir?.id)

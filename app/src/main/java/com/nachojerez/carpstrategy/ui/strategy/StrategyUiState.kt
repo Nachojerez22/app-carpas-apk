@@ -26,7 +26,9 @@ import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.RodSetup
+import com.nachojerez.carpstrategy.domain.guided.carriedRods
 import com.nachojerez.carpstrategy.domain.guided.rodsToday
+import com.nachojerez.carpstrategy.domain.guided.withFixedChoice
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.journal.JournalStats
@@ -105,8 +107,14 @@ data class PlanUiState(
 /** Cañas por defecto si aún no has elegido. */
 const val DEFAULT_RODS = 2
 
-/** Cañas de Mi equipo que llevas hoy (fase 7.20); vacío = se elige el número de cañas. */
-val StrategyUiState.rodSetups: List<RodSetup> get() = gear.rodsToday()
+/**
+ * Cañas del plan de la app (fase 7.20): las de Mi equipo que llevas hoy y, si llevas más fijas de
+ * las que caben, las que propone la app con el viento de hoy (0.26.1). Vacío = se elige el número.
+ */
+val StrategyUiState.rodSetups: List<RodSetup> get() = gear.rodsToday(derived?.wind24h?.meanSpeedKmh)
+
+/** Cañas del plan con las fijas que haya elegido la IA (si su elección vale). */
+fun StrategyUiState.planSetups(ai: AiPlan?): List<RodSetup> = withFixedChoice(rodSetups, gear.carriedRods(), ai?.fixedRods)
 
 /** Número de cañas del plan: las de Mi equipo que llevas hoy o las elegidas por número. */
 val StrategyUiState.planRods: Int get() = rodSetups.size.takeIf { it > 0 } ?: rods
@@ -140,7 +148,7 @@ fun dayPlanFor(state: StrategyUiState, plan: PlanUiState): DayPlan? {
     val ai = aiPlanFor(state, plan)?.value
     val aiSpot = ai?.bestSpot?.let { best -> advice.spots.firstOrNull { it.spot.name.trim().equals(best.spotName.trim(), ignoreCase = true) } }
     val spot = advice.chosen ?: aiSpot ?: advice.spots.firstOrNull()
-    return DayPlans.build(advice, state.rods, phaseOf(derived), state.gear, ai, spot, state.groundbaitNormalKg, state.rodSetups)
+    return DayPlans.build(advice, state.rods, phaseOf(derived), state.gear, ai, spot, state.groundbaitNormalKg, state.planSetups(ai))
 }
 
 /**
@@ -239,7 +247,8 @@ fun planInput(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: Inst
         now = now,
         zone = Formatting.MADRID,
         rods = rods.coerceIn(1, GuidedSessions.MAX_RODS),
-        rodSetups = gear.rodsToday(),
+        rodSetups = state.rodSetups,
+        carriedRods = gear.carriedRods(),
         band = result.band?.name,
         limitingLevel = result.limitingLevel?.name,
         legalStart = derived?.legalToday?.start,
@@ -272,7 +281,8 @@ fun planContext(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: In
     legalStart = state.derived?.legalToday?.start,
     zone = Formatting.MADRID,
     groundbaitNormalKg = state.groundbaitNormalKg,
-    rodSetups = gear.rodsToday().withIndex().associate { (i, r) -> i + 1 to r },
+    rodSetups = state.rodSetups.withIndex().associate { (i, r) -> i + 1 to r },
+    carriedRods = gear.carriedRods(),
 )
 
 /** Estación de las reglas en el texto que usa la sesión guiada (`estacion` de rules.json). */

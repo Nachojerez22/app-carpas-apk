@@ -76,8 +76,10 @@ data class PlanInput(
     /** Nivel de cebado de la app (null = no se ceba) y tu medida en kg por caña (fase 7.13). */
     val groundbait: GroundbaitLevel? = null,
     val groundbaitNormalKg: Double? = null,
-    /** Cañas de Mi equipo que lleva hoy, en orden (fase 7.20); vacío = sin tipo. */
+    /** Cañas del plan de hoy, en orden (fase 7.20); vacío = sin tipo. */
     val rodSetups: List<RodSetup> = emptyList(),
+    /** Todas las cañas que lleva hoy (0.26.1): si hay más fijas que en el plan, la IA elige cuáles. */
+    val carriedRods: List<RodSetup> = emptyList(),
 )
 
 /**
@@ -101,7 +103,7 @@ Formato y límites (si no los cumples, la app descarta tu respuesta):
 4. La app ya controla el horario: no hables de normativa, permisos ni horario legal. No propongas horas de noche ni fuera de "horario_de_pesca".
 5. Cada motivo lleva etiqueta de evidencia en "evidencia": 🟢 demostrado, 🟡 indicio o experiencia, 🔴 sin evidencia, 🟣 hipótesis local o datos propios, 🔵 variabilidad individual.
 6. Responde en español, breve (cada texto como mucho 300 caracteres) y SOLO con el JSON pedido, sin texto alrededor.
-7. Respeta el tipo de cada caña ("tipo" en "canas" o "canas_de_hoy"). FIJA (sin carrete, de "longitud_m"): a fondo (BOTTOM), a media agua con flotador (ZIG) o en superficie (SURFACE), siempre a una distancia hasta su longitud, con flotador de 3 a 4 g y NUNCA con boilies (ni pop-up ni boilie duro). CARPFISHING: siempre a fondo (BOTTOM o POPUP, nunca ZIG ni SURFACE), de 7 a 100 m, con plomo de 40 a 90 g; vale cualquier cebo, también maíz. En los textos puedes citar el flotador o el plomo en gramos («flotador de 3 g», «plomo de 60 g») dentro de esos rangos.
+7. Respeta el tipo de cada caña ("tipo" en "canas" o "canas_de_hoy"). FIJA (sin carrete, de "longitud_m"): a fondo (BOTTOM), a media agua con flotador (ZIG) o en superficie (SURFACE), siempre a una distancia hasta su longitud, con flotador (pluma o boya) de 3 a 4 g y NUNCA con boilies (ni pop-up ni boilie duro); no hables del plomo de la fija: lo pone el usuario. CARPFISHING: siempre a fondo (BOTTOM o POPUP, nunca ZIG ni SURFACE), de 7 a 100 m, con plomo de 40 a 90 g; vale cualquier cebo, también maíz. En los textos puedes citar el flotador o el plomo en gramos («flotador de 3 g», «pluma de 4 g», «plomo de 60 g») dentro de esos rangos.
 """
 
     val CHECK_IN_SYSTEM = RULES + """
@@ -111,8 +113,8 @@ Con MANTENER, "cambios" va vacío. No propongas cambios en cañas con "propuesta
 """
 
     val PLAN_SYSTEM = RULES + """
-Tarea: estrategia concreta para hoy con las cañas indicadas, para sacar el máximo de carpas. Ayúdale también a decidir dónde pescar: compara todos los puestos de "mis_puestos" (estructura, profundidad, distancia, orientación, fetch, cómo les da el viento con el agua y el aire de hoy, y lo que le ha funcionado en "lo_que_te_ha_funcionado", "lecciones_aceptadas" y "recomendacion_de_la_app") y elige el mejor para hoy en "puesto_recomendado" con un motivo concreto (si no hay puestos, null). Si hay "puesto_elegido", es el que el usuario tiene pensado: el plan por caña es para ese puesto (adaptado a su estructura, profundidad, distancia y viento), y si recomiendas otro, explica en el motivo qué gana con el cambio; si el elegido ya es el mejor, recomiéndalo y di por qué. Sin "puesto_elegido", el plan es para el puesto que recomiendas. Da un plan por caña (puesto, cebo, montaje, columna y distancia en metros si el puesto la tiene) y consejos por apartado: dónde (WHERE), cuándo (WHEN: mejores horas dentro de "horario_de_pesca"), cebado (BAIT: poco, normal o mucho y cada cuánto recebar), presentación (PRESENTATION), qué evitar (AVOID) y notas (NOTES). Como mucho 2 consejos por apartado. Propón también el engodo con lo que lleva hoy ("equipo.cebos": engodos y mixes, harinas, pellet, partícula, líquidos, boilies triturados), teniendo en cuenta su marca, "que_lleva" y "ficha_ia", la fase, el agua y las especies: qué mezcla, en partes (de 1 a 10), cuántos kilos por caña según "cebado" (solo si hay "tu_normal_kg_por_cana"; si no, null) y cómo recebar. Si "embalse.se_puede_cebar" es false o "cebado.nivel" es "sin_cebar", "engodo" es null. Responde con este JSON:
-{"resumen":"…","evidencia":"🟡","puesto_recomendado":{"puesto":"nombre exacto","motivo":"…","evidencia":"🟡"} o null,"engodo":{"mezcla":[{"cebo":"nombre exacto","partes":2}],"kg_por_cana":1.5 o null,"recebado":"cómo y cuándo recebar, sin gramos","motivo":"…","evidencia":"🟡"} o null,"canas":[{"cana":1,"puesto":"nombre exacto o null","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","distancia_m":40 o null,"peso_g":60 o null,"motivo":"…","evidencia":"🟡"}],"consejos":[{"apartado":"WHERE","texto":"…","evidencia":"🟡"}],"avisos":[]}
+Tarea: estrategia concreta para hoy con las cañas indicadas, para sacar el máximo de carpas. Ayúdale también a decidir dónde pescar: compara todos los puestos de "mis_puestos" (estructura, profundidad, distancia, orientación, fetch, cómo les da el viento con el agua y el aire de hoy, y lo que le ha funcionado en "lo_que_te_ha_funcionado", "lecciones_aceptadas" y "recomendacion_de_la_app") y elige el mejor para hoy en "puesto_recomendado" con un motivo concreto (si no hay puestos, null). Si hay "puesto_elegido", es el que el usuario tiene pensado: el plan por caña es para ese puesto (adaptado a su estructura, profundidad, distancia y viento), y si recomiendas otro, explica en el motivo qué gana con el cambio; si el elegido ya es el mejor, recomiéndalo y di por qué. Sin "puesto_elegido", el plan es para el puesto que recomiendas. Da un plan por caña (puesto, cebo, montaje, columna y distancia en metros si el puesto la tiene) y consejos por apartado: dónde (WHERE), cuándo (WHEN: mejores horas dentro de "horario_de_pesca"), cebado (BAIT: poco, normal o mucho y cada cuánto recebar), presentación (PRESENTATION), qué evitar (AVOID) y notas (NOTES). Como mucho 2 consejos por apartado. Propón también el engodo con lo que lleva hoy ("equipo.cebos": engodos y mixes, harinas, pellet, partícula, líquidos, boilies triturados), teniendo en cuenta su marca, "que_lleva" y "ficha_ia", la fase, el agua y las especies: qué mezcla, en partes (de 1 a 10), cuántos kilos por caña según "cebado" (solo si hay "tu_normal_kg_por_cana"; si no, null) y cómo recebar. Si "embalse.se_puede_cebar" es false o "cebado.nivel" es "sin_cebar", "engodo" es null. Si hay "fijas_que_llevas", elige en "canas_fijas" cuáles monta hoy (nombres exactos, tantas como fijas hay en "canas_de_hoy" y en su orden) según el puesto, la profundidad, la distancia a la que conviene pescar y el viento, y explícalo en el motivo de esas cañas; el plan de cada fija de "canas_de_hoy" es para la que elijas en su lugar. Si te valen las de "canas_de_hoy", "canas_fijas" es null. Responde con este JSON:
+{"resumen":"…","evidencia":"🟡","canas_fijas":["nombre exacto"] o null,"puesto_recomendado":{"puesto":"nombre exacto","motivo":"…","evidencia":"🟡"} o null,"engodo":{"mezcla":[{"cebo":"nombre exacto","partes":2}],"kg_por_cana":1.5 o null,"recebado":"cómo y cuándo recebar, sin gramos","motivo":"…","evidencia":"🟡"} o null,"canas":[{"cana":1,"puesto":"nombre exacto o null","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","distancia_m":40 o null,"peso_g":60 o null,"motivo":"…","evidencia":"🟡"}],"consejos":[{"apartado":"WHERE","texto":"…","evidencia":"🟡"}],"avisos":[]}
 """
 
     val REVIEW_SYSTEM = RULES + """
@@ -346,6 +348,18 @@ Normas (si no las cumples, la app descarta la respuesta):
                         put("cana", i + 1)
                         if (r.name.isNotBlank()) put("nombre", r.name)
                         rodKind(r)
+                    }
+                }
+            }
+            // 0.26.1: si lleva más fijas de las que caben, la IA elige cuáles monta.
+            val fixed = input.carriedRods.filter { it.kind == RodKind.FIXED && it.name.isNotBlank() }
+            if (fixed.size > input.rodSetups.count { it.kind == RodKind.FIXED } && input.rodSetups.any { it.kind == RodKind.FIXED }) {
+                putJsonArray("fijas_que_llevas") {
+                    fixed.forEach { r ->
+                        addJsonObject {
+                            put("nombre", r.name)
+                            r.lengthM?.let { put("longitud_m", it) }
+                        }
                     }
                 }
             }

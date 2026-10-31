@@ -58,6 +58,62 @@ class RodsTest {
     }
 
     @Test
+    fun `la cana de carpfishing siempre entra aunque lleves mas fijas que el maximo`() {
+        val fixed = listOf(9, 8, 7, 5).map { GearItem("f$it", GearCategory.ROD, "Fija $it", rodKind = RodKind.FIXED, rodLengthM = it) }
+        val carp = GearItem("c", GearCategory.ROD, "Carrete", rodKind = RodKind.CARP)
+        assertEquals(
+            listOf(RodSetup("Fija 9", RodKind.FIXED, 9), RodSetup("Fija 8", RodKind.FIXED, 8), RodSetup("Carrete", RodKind.CARP, null)),
+            (fixed + carp).rodsToday(),
+        )
+        // Sin carpfishing, las tres primeras fijas; con una de carpfishing ya entre las tres, no cambia nada.
+        assertEquals(fixed.take(3).map { it.toRodSetup() }, fixed.rodsToday())
+        assertEquals(listOf("Carrete", "Fija 9", "Fija 8"), (listOf(carp) + fixed).rodsToday().map { it.name })
+    }
+
+    @Test
+    fun `con viento fuerte la app propone las fijas mas cortas`() {
+        val carried = listOf(9, 8, 7, 5).map { RodSetup("Fija $it", RodKind.FIXED, it) } + RodSetup("Carrete", RodKind.CARP)
+        assertEquals(listOf("Fija 9", "Fija 8", "Carrete"), pickRods(carried, windKmh = 10.0).map { it.name })
+        assertEquals(listOf("Fija 7", "Fija 5", "Carrete"), pickRods(carried, windKmh = RodRules.STRONG_WIND_KMH).map { it.name })
+        // Si caben todas, no se quita ninguna.
+        assertEquals(carried.take(3), pickRods(carried.take(3), windKmh = 30.0))
+    }
+
+    @Test
+    fun `la IA cambia las fijas del plan por otras que llevas`() {
+        val carried = listOf(9, 8, 7, 5).map { RodSetup("Fija $it", RodKind.FIXED, it) } + RodSetup("Carrete", RodKind.CARP)
+        val setups = pickRods(carried)
+        assertEquals(listOf("Fija 7", "Fija 5", "Carrete"), withFixedChoice(setups, carried, listOf("fija 7", "Fija 5")).map { it.name })
+        // Elección que no vale (otro número, una que no llevas o repetida): se queda la de la app.
+        assertEquals(setups, withFixedChoice(setups, carried, listOf("Fija 7")))
+        assertEquals(setups, withFixedChoice(setups, carried, listOf("Fija 7", "Fija 6")))
+        assertEquals(setups, withFixedChoice(setups, carried, listOf("Fija 7", "Fija 7")))
+        assertEquals(setups, withFixedChoice(setups, carried, listOf("Carrete", "Fija 7")))
+        assertEquals(setups, withFixedChoice(setups, carried, null))
+    }
+
+    @Test
+    fun `la guiada empieza con las canas del plan de Estrategia`() {
+        val gear = listOf(9, 8, 7, 5).map { GearItem("f$it", GearCategory.ROD, "Fija $it", rodKind = RodKind.FIXED, rodLengthM = it) } +
+            GearItem("c", GearCategory.ROD, "Carrete", rodKind = RodKind.CARP, available = false)
+        assertEquals(listOf("Fija 7", "Fija 5", "Carrete"), gear.plannedRods(listOf("Fija 7", "Fija 5", "Carrete")).map { it.name })
+        // Sin plan, con una caña que ya no llevas o sin la de carpfishing: las de hoy.
+        assertEquals(gear.rodsToday(), gear.plannedRods(emptyList()))
+        assertEquals(gear.rodsToday(), gear.plannedRods(listOf("Fija 6", "Carrete")))
+        assertEquals(gear.rodsToday(), gear.plannedRods(listOf("Fija 7", "Fija 5")))
+    }
+
+    @Test
+    fun `la cana de carpfishing se lleva siempre aunque este desmarcada`() {
+        val carp = GearItem("c", GearCategory.ROD, "Carrete", rodKind = RodKind.CARP, available = false)
+        val fixed = GearItem("f", GearCategory.ROD, "Fija 7", rodKind = RodKind.FIXED, rodLengthM = 7, available = false)
+        assertTrue(carp.carriedToday)
+        assertFalse(fixed.carriedToday)
+        assertEquals(listOf(RodSetup("Carrete", RodKind.CARP, null)), listOf(carp, fixed).rodsToday())
+        assertEquals(listOf(carp), listOf(carp, fixed).today())
+    }
+
+    @Test
     fun `la fija nunca empieza con boilies y la de carpfishing puede`() {
         val fixed = GuidedEngine.initialProposal(ctx(FishingPhase.SUMMER, RodKind.FIXED))
         assertEquals(BaitType.MAIZE, fixed.bait)
