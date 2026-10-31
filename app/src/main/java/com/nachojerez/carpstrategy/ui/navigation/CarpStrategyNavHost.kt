@@ -172,6 +172,7 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                     onOpenReservoirs = { navController.navigate(ReservoirsRoute) },
                     onOpenGear = { navController.navigate(GearRoute) },
                     onOpenPrepared = { navController.navigate(PreparedOutingRoute) },
+                    onOpenPrepare = { navController.navigateToTab(PlaceRoute) },
                 )
             }
             composable<PreparedOutingRoute> {
@@ -222,6 +223,7 @@ fun CarpStrategyNavHost(openGuided: Boolean = false, onGuidedOpened: () -> Unit 
                 PlaceScreen(
                     onOpenGear = { navController.navigate(GearRoute) },
                     onOpenSettings = { navController.navigate(SettingsRoute) },
+                    onOpenPrepared = { navController.navigate(PreparedOutingRoute) },
                     onOpenSpots = { navController.navigate(SpotsRoute) },
                     onOpenAssistant = { navController.navigate(AssistantRoute) },
                     onOpenLessons = { navController.navigate(LessonsRoute) },

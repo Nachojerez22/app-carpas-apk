@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -45,7 +44,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.data.assistant.AiOutcome
-import com.nachojerez.carpstrategy.domain.advice.BaitShelf
 import com.nachojerez.carpstrategy.domain.advice.BaitUsage
 import com.nachojerez.carpstrategy.domain.advice.Contingency
 import com.nachojerez.carpstrategy.domain.advice.ContingencyLine
@@ -92,11 +90,6 @@ import com.nachojerez.carpstrategy.ui.components.WarningChip
 import com.nachojerez.carpstrategy.ui.components.WarningType
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
 import com.nachojerez.carpstrategy.ui.diary.zoneLabelRes
-import com.nachojerez.carpstrategy.ui.guided.BaitRow
-import com.nachojerez.carpstrategy.ui.guided.GearDialog
-import com.nachojerez.carpstrategy.ui.guided.GearDraft
-import com.nachojerez.carpstrategy.ui.guided.GroundbaitNormalRow
-import com.nachojerez.carpstrategy.ui.guided.SheetUiState
 import com.nachojerez.carpstrategy.ui.guided.baitText
 import com.nachojerez.carpstrategy.ui.guided.rodKindLabel
 import com.nachojerez.carpstrategy.ui.guided.shortRes
@@ -117,11 +110,11 @@ fun StrategyScreen(
     onOpenReservoirs: () -> Unit = {},
     onOpenGear: () -> Unit = {},
     onOpenPrepared: () -> Unit = {},
+    onOpenPrepare: () -> Unit = {},
     viewModel: StrategyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val plan by viewModel.plan.collectAsStateWithLifecycle()
-    val sheet by viewModel.sheetState.collectAsStateWithLifecycle()
     val prep by viewModel.prep.collectAsStateWithLifecycle()
     val prepared by viewModel.preparedOuting.collectAsStateWithLifecycle()
     val preparedToday by viewModel.preparedToday.collectAsStateWithLifecycle()
@@ -141,22 +134,14 @@ fun StrategyScreen(
             onChooseRods = viewModel::chooseRods,
             onAskAgain = viewModel::requestPlan,
             onOpenGear = onOpenGear,
-            onToggleBait = viewModel::toggleToday,
-            onSaveGear = viewModel::saveGear,
-            onDeleteGear = viewModel::deleteGear,
-            onFetchSheet = viewModel::fetchSheet,
-            onClearSheet = viewModel::clearSheetState,
-            onSetGroundbaitNormal = viewModel::setGroundbaitNormalKg,
-            onClearToday = viewModel::clearToday,
-            onAddFromDiary = viewModel::addFromDiary,
             onPrepare = viewModel::prepareNextOuting,
             onOpenPrepared = onOpenPrepared,
             onActivatePrepared = { viewModel.activatePrepared(onStartGuided) },
+            onOpenPrepare = onOpenPrepare,
             onReevaluate = viewModel::reevaluatePrepared,
             onCloseReview = viewModel::closeReview,
             onReplacePrepared = viewModel::replacePrepared,
         ),
-        sheet,
         prep,
         prepared,
         preparedToday,
@@ -178,17 +163,10 @@ data class StrategyActions(
     val onChooseRods: (Int) -> Unit = {},
     val onAskAgain: () -> Unit = {},
     val onOpenGear: () -> Unit = {},
-    val onToggleBait: (String) -> Unit = {},
-    val onSaveGear: (GearDraft) -> Unit = {},
-    val onDeleteGear: (String) -> Unit = {},
-    val onFetchSheet: (GearDraft, (GearDraft) -> Unit) -> Unit = { _, _ -> },
-    val onClearSheet: () -> Unit = {},
-    val onSetGroundbaitNormal: (Double?) -> Unit = {},
-    val onClearToday: () -> Unit = {},
-    val onAddFromDiary: (BaitUsage) -> Unit = {},
     val onPrepare: () -> Unit = {},
     val onOpenPrepared: () -> Unit = {},
     val onActivatePrepared: () -> Unit = {},
+    val onOpenPrepare: () -> Unit = {},
     val onReevaluate: () -> Unit = {},
     val onCloseReview: () -> Unit = {},
     val onReplacePrepared: () -> Unit = {},
@@ -207,7 +185,6 @@ fun StrategyContent(
     state: StrategyUiState,
     plan: PlanUiState = PlanUiState(),
     actions: StrategyActions = StrategyActions(),
-    sheet: SheetUiState = SheetUiState(),
     prep: PrepUiState = PrepUiState(),
     prepared: PreparedOuting? = null,
     preparedToday: PreparedOuting? = null,
@@ -241,12 +218,10 @@ fun StrategyContent(
         }
         // Condiciones para hoy (escala de 5 tramos y nivel que limita): siempre arriba.
         state.result?.let { result -> item { ResultCard(result) } }
-        // ① Embalse.
-        item { ReservoirStep(state, actions) }
-        // ② Puesto (con la recomendación de la app o de la IA) y cañas.
+        // ① Dónde (embalse y puesto, con la recomendación de la app o de la IA; se cambia en Preparar).
         item { SpotStep(state, dayPlan, currentAi?.value?.bestSpot, actions) }
-        // ③ Cebos que llevas hoy (y tu medida de cebado).
-        item { BaitsStep(state, actions, sheet) }
+        // ② Lo que llevas hoy (se cambia en Preparar → Mi equipo).
+        item { TodayGearStep(state, actions) }
         when {
             state.ruleIssues.isNotEmpty() -> {
                 item {
@@ -288,8 +263,10 @@ fun StrategyContent(
                 if (!result.blocked && dayPlan != null) item { StartStep(state, dayPlan, actions.onStartGuided) }
             }
         }
-        // Fase 7.15: con cobertura (la noche antes), dejar lista la próxima salida.
-        item { PrepareStep(prep, prepared, actions.onPrepare, actions.onOpenPrepared) }
+        // Fase 7.25: «Preparar la próxima salida» está en Preparar; aquí, solo el acceso.
+        item {
+            OutlinedButton(onClick = actions.onOpenPrepare, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.strategy_prepare_link)) }
+        }
     }
 }
 
@@ -375,7 +352,7 @@ private fun ReviewLines(r: OutingReview) {
 
 /** «Preparar la próxima salida»: previsión, plan de la IA y fichas, para tenerlo todo sin cobertura. */
 @Composable
-private fun PrepareStep(prep: PrepUiState, prepared: PreparedOuting?, onPrepare: () -> Unit, onOpenPrepared: () -> Unit) {
+internal fun PrepareStep(prep: PrepUiState, prepared: PreparedOuting?, onPrepare: () -> Unit, onOpenPrepared: () -> Unit) {
     CarpCard {
         Text(stringResource(R.string.prep_title), style = MaterialTheme.typography.titleMedium)
         Caption(stringResource(R.string.prep_hint))
@@ -660,66 +637,31 @@ private fun StepTitle(number: Int, title: String) {
 }
 
 /**
- * ① Embalse: desplegable con tus embalses (los que tienen puestos) y «Otro embalse…» para la
- * lista completa. Cambiar de embalse es cambiar la ubicación, como en Lugar.
- */
-@Composable
-private fun ReservoirStep(state: StrategyUiState, actions: StrategyActions) {
-    var menuOpen by remember { mutableStateOf(false) }
-    CarpCard {
-        StepTitle(1, stringResource(R.string.reservoirs_place_title))
-        Box {
-            OutlinedButton(onClick = { menuOpen = true }, modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    (state.reservoir?.reservoir?.name ?: stringResource(R.string.strategy_place_no_reservoir)) + " ▾",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                state.myReservoirs.forEach { (reservoir, count) ->
-                    DropdownMenuItem(
-                        text = {
-                            Column {
-                                Text(reservoir.name)
-                                Caption(pluralStringResource(R.plurals.strategy_place_spots_count, count, count))
-                            }
-                        },
-                        onClick = {
-                            menuOpen = false
-                            if (reservoir.id != state.reservoir?.reservoir?.id) actions.onChooseReservoir(reservoir)
-                        },
-                    )
-                }
-                if (state.myReservoirs.isNotEmpty()) HorizontalDivider()
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.strategy_place_other)) },
-                    onClick = {
-                        menuOpen = false
-                        actions.onOpenReservoirs()
-                    },
-                )
-            }
-        }
-        state.reservoir?.takeIf { it.sheet == null && !it.isBrovales }?.let {
-            Caption(stringResource(R.string.advice_no_sheet))
-            TextButton(onClick = actions.onOpenReservoir) { Text(stringResource(R.string.reservoir_sheet_open)) }
-        }
-    }
-}
-
-/**
- * ② Puesto y cañas: la recomendación (de la IA si ya ha contestado para lo elegido; si no, de la
- * app) con su porqué y un botón para cambiarte; tus puestos del embalse y cuántas cañas.
+ * ① Dónde (fase 7.25): embalse y puesto elegidos, la recomendación (de la IA si ya ha contestado
+ * para lo elegido; si no, de la app) con su porqué y «Pescar en …». Se cambian en Preparar.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SpotStep(state: StrategyUiState, dayPlan: DayPlan?, aiBest: AiSpotPick?, actions: StrategyActions) {
     val cs = MaterialTheme.colorScheme
     CarpCard {
-        StepTitle(2, stringResource(R.string.guided_start_spot))
+        StepTitle(1, stringResource(R.string.strategy_where_title))
+        val reservoirName = state.reservoir?.reservoir?.name ?: stringResource(R.string.strategy_place_no_reservoir)
+        val chosen = state.spots.firstOrNull { it.id == state.chosenSpotId }
+        Text(
+            when {
+                chosen != null -> stringResource(R.string.strategy_where_line, reservoirName, chosen.name)
+                state.spots.isNotEmpty() -> stringResource(R.string.strategy_where_line, reservoirName, stringResource(R.string.strategy_place_auto))
+                else -> reservoirName
+            },
+            style = MaterialTheme.typography.titleMedium,
+        )
+        state.reservoir?.takeIf { it.sheet == null && !it.isBrovales }?.let {
+            Caption(stringResource(R.string.advice_no_sheet))
+            TextButton(onClick = actions.onOpenReservoir) { Text(stringResource(R.string.reservoir_sheet_open)) }
+        }
         if (state.spots.isEmpty()) {
             Caption(stringResource(R.string.strategy_place_no_spots))
-            TextButton(onClick = actions.onOpenSpots) { Text(stringResource(R.string.spots_open)) }
         } else {
             val appBest = state.advice?.spots?.firstOrNull()
             val aiSpot = aiBest?.let { b -> state.spots.firstOrNull { it.name.trim().equals(b.spotName.trim(), ignoreCase = true) } }
@@ -737,35 +679,9 @@ private fun SpotStep(state: StrategyUiState, dayPlan: DayPlan?, aiBest: AiSpotPi
                     OutlinedButton(onClick = { actions.onChooseSpot(recommended.id) }) { Text(stringResource(R.string.strategy_ai_best_use, recommended.name)) }
                 }
             }
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                FilterChip(selected = state.chosenSpotId == null, onClick = { actions.onChooseSpot(null) }, label = { Text(stringResource(R.string.strategy_place_auto)) })
-                state.spots.forEach { spot ->
-                    FilterChip(selected = state.chosenSpotId == spot.id, onClick = { actions.onChooseSpot(spot.id) }, label = { Text(spot.name) })
-                }
-            }
             if (state.chosenSpotId == null) dayPlan?.spot?.let { Caption(stringResource(R.string.strategy_auto_spot, it.spot.name)) }
         }
-        Text(stringResource(R.string.strategy_rods_title), style = MaterialTheme.typography.titleSmall)
-        // Fase 7.20: con cañas en Mi equipo se marcan las que llevas hoy (cada una con su tipo); si no, el número.
-        val myRods = state.allGear.filter { it.category == GearCategory.ROD }
-        if (myRods.isNotEmpty()) {
-            val res = LocalContext.current.resources
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                myRods.forEach { r ->
-                    FilterChip(
-                        selected = r.available,
-                        onClick = { actions.onToggleBait(r.id) },
-                        label = { Text(listOf(r.name, res.rodKindLabel(r.rodKind, r.rodLengthM)).filter { it.isNotBlank() }.joinToString(" · ")) },
-                    )
-                }
-            }
-            Caption(stringResource(if (state.rodSetups.isEmpty()) R.string.strategy_rods_none_today else R.string.strategy_rods_from_gear, GuidedSessions.MAX_RODS))
-        } else {
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                (1..DayPlans.MAX_RODS).forEach { n -> FilterChip(selected = state.rods == n, onClick = { actions.onChooseRods(n) }, label = { Text("$n") }) }
-            }
-            TextButton(onClick = actions.onOpenGear) { Text(stringResource(R.string.strategy_rods_add)) }
-        }
+        OutlinedButton(onClick = actions.onOpenPrepare, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.strategy_where_change)) }
     }
 }
 
@@ -785,7 +701,7 @@ private fun PlanStep(
     val cs = MaterialTheme.colorScheme
     val res = LocalContext.current.resources
     CarpCard {
-        StepTitle(4, if (advice.deferred) stringResource(R.string.strategy_plan_title_next, Formatting.clock(advice.forTime)) else stringResource(R.string.strategy_plan_title))
+        StepTitle(3, if (advice.deferred) stringResource(R.string.strategy_plan_title_next, Formatting.clock(advice.forTime)) else stringResource(R.string.strategy_plan_title))
         // Mejor rato (las condiciones están arriba, en su tarjeta).
         state.result?.evaluatedAt?.let { now ->
             nextWindow(state.windows, now)?.let { w ->
@@ -996,76 +912,33 @@ private fun durationText(d: Duration): String {
  * medida de cebado en kilos.
  */
 @OptIn(ExperimentalLayoutApi::class)
+/**
+ * ③ Lo que llevas hoy (fase 7.24): solo el resumen de cañas y cebos; se cambian en Preparar → Mi equipo.
+ */
 @Composable
-private fun BaitsStep(state: StrategyUiState, actions: StrategyActions, sheet: SheetUiState) {
-    var draft by remember { mutableStateOf<GearDraft?>(null) }
-    val shelf = remember(state.allGear, state.baitUsage) { BaitShelf.view(state.allGear, state.baitUsage) }
-    fun edit(item: GearItem) {
-        actions.onClearSheet()
-        draft = GearDraft.of(item)
-    }
+private fun TodayGearStep(state: StrategyUiState, actions: StrategyActions) {
+    val res = LocalContext.current.resources
     CarpCard {
-        StepTitle(3, stringResource(R.string.strategy_baits_title))
-        if (shelf.today.isEmpty() && shelf.saved.isEmpty()) Caption(stringResource(R.string.strategy_baits_none)) else Caption(stringResource(R.string.strategy_baits_count))
-
-        // Hoy llevo: solo los marcados; tocar la casilla los devuelve a «guardados».
-        if (shelf.today.isNotEmpty() || shelf.saved.isNotEmpty()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.strategy_baits_today, shelf.today.size), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                if (shelf.today.isNotEmpty()) TextButton(onClick = actions.onClearToday) { Text(stringResource(R.string.strategy_baits_clear)) }
-            }
-            if (shelf.today.isEmpty()) Caption(stringResource(R.string.strategy_baits_today_empty))
-            shelf.today.forEach { item -> BaitRow(item, onToggle = { actions.onToggleBait(item.id) }, onEdit = { edit(item) }) }
-        }
-
-        // Mis cebos guardados: un toque en la casilla y pasan a «Hoy llevo».
-        if (shelf.saved.isNotEmpty()) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Text(stringResource(R.string.strategy_baits_saved, shelf.saved.size), style = MaterialTheme.typography.titleSmall)
-            shelf.saved.forEach { item ->
-                BaitRow(item, onToggle = { actions.onToggleBait(item.id) }, onEdit = { edit(item) })
-                shelf.usageById[item.id]?.let { u ->
-                    Caption(pluralStringResource(R.plurals.strategy_baits_used, u.sessions, u.sessions, Formatting.hour(u.lastUsed)), Modifier.padding(start = 48.dp))
-                }
+        StepTitle(2, stringResource(R.string.strategy_today_gear_title))
+        val myRods = state.allGear.filter { it.category == GearCategory.ROD }
+        if (myRods.isNotEmpty()) {
+            val rods = state.rodSetups.joinToString(", ") { r -> listOf(r.name, res.rodKindLabel(r.kind, r.lengthM)).filter { it.isNotBlank() }.joinToString(" · ") }
+            Text(stringResource(R.string.strategy_today_rods, rods.ifBlank { "—" }))
+        } else {
+            // Sin cañas apuntadas, el número de cañas sigue eligiéndose aquí.
+            Text(stringResource(R.string.strategy_rods_title), style = MaterialTheme.typography.titleSmall)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                (1..DayPlans.MAX_RODS).forEach { n -> FilterChip(selected = state.rods == n, onClick = { actions.onChooseRods(n) }, label = { Text("$n") }) }
             }
         }
-
-        // Del diario: cebos que usaste y no están en tu lista.
-        if (shelf.fromDiary.isNotEmpty()) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Text(stringResource(R.string.strategy_baits_from_diary), style = MaterialTheme.typography.titleSmall)
-            Caption(stringResource(R.string.strategy_baits_from_diary_hint))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                shelf.fromDiary.take(MAX_DIARY_BAITS).forEach { u ->
-                    AssistChip(onClick = { actions.onAddFromDiary(u) }, label = { Text(stringResource(R.string.strategy_baits_add_from_diary, u.name, u.sessions)) })
-                }
-            }
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            OutlinedButton(onClick = { actions.onClearSheet(); draft = GearDraft(category = GearCategory.BAIT) }) { Text(stringResource(R.string.strategy_baits_add)) }
-            TextButton(onClick = actions.onOpenGear) { Text(stringResource(R.string.strategy_baits_all)) }
-        }
-        GroundbaitNormalRow(state.groundbaitNormalKg, actions.onSetGroundbaitNormal)
-    }
-    draft?.let { current ->
-        GearDialog(
-            draft = current,
-            onChange = { draft = it },
-            onSave = {
-                actions.onSaveGear(current)
-                draft = null
-            },
-            onDelete = current.id?.let { id -> { actions.onDeleteGear(id); draft = null } },
-            onDismiss = { draft = null },
-            sheet = sheet,
-            onFetchSheet = { actions.onFetchSheet(current) { updated -> draft = updated } },
+        val baits = state.gear.filter { it.category == GearCategory.BAIT }
+        Text(
+            if (baits.isEmpty()) stringResource(R.string.strategy_today_baits_none)
+            else stringResource(R.string.strategy_today_baits, baits.joinToString(", ") { it.fullName.ifBlank { it.name } }),
         )
+        OutlinedButton(onClick = actions.onOpenGear, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.strategy_today_gear_change)) }
     }
 }
-
-/** Cebos del diario que se ofrecen como mucho. */
-private const val MAX_DIARY_BAITS = 8
 
 /** «750 g» por debajo de 1 kg (de 50 en 50 g); si no, «1,5 kg». */
 @Composable

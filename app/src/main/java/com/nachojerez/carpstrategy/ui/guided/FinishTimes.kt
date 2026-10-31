@@ -8,7 +8,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /*
- * Terminar la sesión guiada con las horas que dices tú (fase 7.24): la sesión la cierras siempre
+ * Terminar la sesión guiada con las horas que dices tú (fase 7.26): la sesión la cierras siempre
  * tú, y si se te olvidó, pones de qué hora a qué hora estuviste. Así las horas-caña salen bien.
  */
 

@@ -168,7 +168,7 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
-### Terminar con tus horas, avisos fiables y copia de las fotos (fase 7.24)
+### Terminar con tus horas, avisos fiables y copia de las fotos (fase 7.26)
 
 - **Terminar la sesión guiada** pide «Desde» y «Hasta»: la sesión la cierras tú, y si se te olvidó, pones de qué
   hora a qué hora estuviste (si ya pasó el horario legal, «Hasta» viene con la hora de recoger). Así las horas-caña y
@@ -197,6 +197,18 @@ El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla
   y el plan de la IA de la preparación, aunque no haya red. También está en «Ver la preparación».
 - Solo se ofrece ese día, en ese embalse y dentro del horario legal.
 
+### Estrategia más simple (fase 7.25)
+
+- En **Preparar** eliges el embalse y el **puesto** de hoy (o automático) y pulsas **Preparar la próxima salida**.
+- **Estrategia** queda en tres pasos: ① Dónde (con la recomendación de la app o de la IA y «Pescar en …»), ② Lo que
+  llevas hoy y ③ tu plan; arriba, la salida preparada para activarla o reevaluarla.
+
+### Cañas y cebos en Preparar (fase 7.24)
+
+- Estrategia ya solo enseña **lo que llevas hoy** (cañas y cebos) con un botón para cambiarlo.
+- Se cambia en **Preparar → Mi equipo**: «Hoy llevo», «Empezar de cero hoy», tus cebos guardados con su último uso y
+  los cebos del diario que aún no tienes en la lista.
+
 ### Preparar y Ajustes (fase 7.23)
 
 - La pestaña **Lugar** pasa a llamarse **Preparar**: ahí se configura todo lo de pescar (embalse, tus cañas y cebos,
@@ -224,9 +236,9 @@ El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla
 
 - **Aviso por la tarde** (Preparar → «Aviso de la próxima salida», desactivado por defecto): hacia las 19:00 la app mira
   la próxima salida con las mismas reglas que Estrategia y solo si sale favorable o muy favorable según tus datos te
-  avisa una vez para que la prepares (desde la fase 7.24, con la mejor franja de la jornada). No promete peces.
+  avisa una vez para que la prepares (desde la fase 7.26, con la mejor franja de la jornada). No promete peces.
 - **Fotos de las capturas** en la ficha del diario («Hacer foto» o «Galería»). Se guardan solo en el móvil donde se
-  hacen, reducidas para que ocupen poco; no se suben a tu cuenta ni van en el JSON del diario (desde la fase 7.24 hay
+  hacen, reducidas para que ocupen poco; no se suben a tu cuenta ni van en el JSON del diario (desde la fase 7.26 hay
   una copia aparte en ZIP).
 
 ### ¿Acierta la app? y registro rápido (fase 7.16)
@@ -428,6 +440,8 @@ WorkManager. Los detalles de los paquetes y las convenciones están en [`CLAUDE.
 - [x] **Fase 7.2**: cuenta de Google (datos en Drive) y aviso de versiones nuevas
 - [x] **Fase 7.3–7.5**: puestos y tiempo por aviso, asistente de IA, «Qué hago ahora» y lo aprendido
 - [x] **Fase 7.9**: mapa de puestos (Google Maps satélite, orientación y fetch con dos toques, color según el viento)
+- [x] **Fase 7.25**: embalse, puesto y «Preparar la próxima salida» en Preparar; Estrategia en tres pasos
+- [x] **Fase 7.24**: cañas y cebos fuera de Estrategia, en Preparar → Mi equipo
 - [x] **Fase 7.23**: la pestaña Lugar pasa a ser Preparar y los ajustes de la app van aparte
 - [x] **Fase 7.22**: reevaluar la salida preparada (qué ha cambiado desde anoche) antes de activarla
 - [x] **Fase 7.21**: activar en un toque la salida preparada la noche antes

@@ -232,7 +232,7 @@ object GuidedSessions {
         val answer = ChatMessage(
             time = env.now,
             fromUser = false,
-            text = if (valid) reply?.text?.trim().orEmpty() else "",
+            text = if (valid) reply.text.trim() else "",
             proposedRods = if (session.isOngoing) freeRods.filter { it in update.newProposals } else emptyList(),
             rejected = !valid,
         )
@@ -261,7 +261,7 @@ object GuidedSessions {
     fun finish(session: Session, at: Instant): Session =
         session.copy(end = session.end ?: at, guided = session.guided?.finish(at))
 
-    /** Termina con las horas que pone el usuario («de qué hora a qué hora he estado», fase 7.24). */
+    /** Termina con las horas que pone el usuario («de qué hora a qué hora he estado», fase 7.26). */
     fun finish(session: Session, start: Instant, end: Instant): Session =
         session.copy(start = start, end = end, guided = session.guided?.finish(start, end))
 

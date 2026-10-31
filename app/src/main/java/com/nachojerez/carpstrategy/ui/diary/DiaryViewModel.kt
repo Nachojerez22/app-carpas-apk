@@ -44,7 +44,7 @@ sealed interface ExportStatus {
     data class Restored(val added: Int, val total: Int) : ExportStatus
     data object NotADiary : ExportStatus
 
-    /** Fotos copiadas en el ZIP (fase 7.24). */
+    /** Fotos copiadas en el ZIP (fase 7.26). */
     data class PhotosDone(val count: Int) : ExportStatus
 
     /** Fotos nuevas restauradas del ZIP. */
@@ -248,7 +248,7 @@ class DiaryViewModel @Inject constructor(
         }
     }
 
-    /** Copia de las fotos de las capturas en un ZIP (solo están en el móvil, fase 7.24). */
+    /** Copia de las fotos de las capturas en un ZIP (solo están en el móvil, fase 7.26). */
     fun exportPhotosTo(uri: Uri) {
         viewModelScope.launch {
             export.value = try {

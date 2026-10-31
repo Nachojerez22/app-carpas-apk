@@ -9,7 +9,7 @@
     <!-- Sesión guiada: avisos cada 30 min (solo vibración) mientras dura la sesión. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- Avisos a su hora (fase 7.24). La app no se distribuye por Google Play: USE_EXACT_ALARM se concede
+    <!-- Avisos a su hora (fase 7.26). La app no se distribuye por Google Play: USE_EXACT_ALARM se concede
          al instalar en Android 13 o posterior; en Android 12, SCHEDULE_EXACT_ALARM (opcional). -->
     <uses-permission
         android:name="android.permission.SCHEDULE_EXACT_ALARM"

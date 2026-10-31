@@ -167,7 +167,7 @@ class SyncManager @Inject constructor(
         local.put(KEY_KEYS, Tombstones.encodeKeys(Tombstones.keysOf(store.snapshot())))
     }
 
-    /** Lo borrado (o con clave cambiada) en este móvil desde la última sincronización deja su marca (fase 7.24). */
+    /** Lo borrado (o con clave cambiada) en este móvil desde la última sincronización deja su marca (fase 7.26). */
     private suspend fun recordDeletions(snapshot: SyncSnapshot, now: Instant): SyncSnapshot {
         val deleted = Tombstones.deletedSince(Tombstones.decodeKeys(local.get(KEY_KEYS)), snapshot, now)
         if (deleted.isEmpty()) return snapshot

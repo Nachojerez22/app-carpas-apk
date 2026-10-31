@@ -224,7 +224,7 @@ class GuidedSessionManager @Inject constructor(
 
     /**
      * Termina y devuelve la sesión para completar el resultado en su ficha. Con [start] y [end], las
-     * horas que pone el usuario (fase 7.24: si se olvidó de terminar, las horas-caña salen bien).
+     * horas que pone el usuario (fase 7.26: si se olvidó de terminar, las horas-caña salen bien).
      */
     suspend fun finish(start: Instant? = null, end: Instant? = null): Long? = mutex.withLock {
         val session = active() ?: return null
@@ -415,7 +415,7 @@ class GuidedSessionManager @Inject constructor(
 
     /**
      * Al abrir la app: si hay sesión guiada y no hay aviso programado, se vuelve a programar. Con
-     * [force] (tras reiniciar el móvil, fase 7.24) se programa siempre: Android ha borrado las alarmas.
+     * [force] (tras reiniciar el móvil, fase 7.26) se programa siempre: Android ha borrado las alarmas.
      */
     suspend fun restore(force: Boolean = false): Unit = mutex.withLock {
         val session = active()

@@ -410,7 +410,25 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   fuentes, leyenda, limitaciones, normativa y versión) va en **Ajustes** (`SettingsRoute` = `PlaceScreen(settings = true)`).
   Los textos que decían «Lugar → …» dicen ahora «Preparar → …» o «Preparar → Ajustes → …».
 
-## Terminar con tus horas, avisos y sincronización (fase 7.24)
+## Cañas y cebos fuera de Estrategia (fase 7.24)
+
+- Estrategia ya no edita equipo: el paso ③ es `TodayGearStep` (resumen de cañas y cebos de hoy y botón a Mi equipo; sin
+  cañas apuntadas, el número de cañas se sigue eligiendo ahí). `BaitsStep` y las casillas de cañas de `SpotStep` se han quitado.
+- Mi equipo (desde Preparar) tiene lo que estaba en Estrategia: `BaitShelfSection` (internal en `GearScreen.kt`: «Hoy llevo»,
+  «Empezar de cero hoy», guardados por último uso y «Del diario»); `GearViewModel.baitUsage`, `clearToday`, `addFromDiary`.
+
+## Embalse, puesto y preparar en Preparar (fase 7.25)
+
+- `ui/strategy/StrategyInputs.kt`: `AdviceInputs`, `StrategyInputsSource` (singleton: ajustes, diario, embalse activo, puesto
+  elegido `chosenSpotKey`, `KEY_RODS`) y `withInputs(state, inputs, now)` (pura). Los usan Estrategia y `OutingPreparer`.
+- `OutingPreparer` (singleton con su ámbito): «Preparar la próxima salida» (antes en `StrategyViewModel`); escribe
+  `KEY_PREPARED_PLAN`, `KEY_PREPARED_KEY` y `KEY_PREPARED_OUTING`. `StrategyViewModel` relee el plan preparado cuando
+  cambia `KEY_PREPARED_PLAN`.
+- Preparar: puesto de hoy (chips, mismo ajuste que Estrategia), Mi equipo y `PrepareStep` (internal en StrategyScreen).
+  Estrategia: ① Dónde (resumen + recomendación + «Pescar en …» + «Cambiar en Preparar»), ② Lo que llevas hoy, ③ plan;
+  al final solo un acceso a Preparar.
+
+## Terminar con tus horas, avisos y sincronización (fase 7.26)
 
 - La sesión guiada **la cierra siempre el usuario** (no hay cierre automático): `ui/guided/FinishTimes.kt` (puro:
   `finishDefaults` — inicio y ahora, o el fin legal si ya pasó —, `parseFinishTimes` — horas del día de inicio, fin
@@ -427,7 +445,7 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - Fotos: `data/photos/PhotoArchive` (ZIP con `fotos/<nombre>`, solo nombres de la app, ≤ 15 MB por foto) y
   `CatchPhotos.exportZip`/`importZip`; botones en Diario.
 - `AiClient.complete`: una respuesta con forma inesperada (`IllegalArgumentException`/`IllegalStateException`) es
-  `AiException.Empty`. `prepareNextOuting` nunca se queda «en marcha». La guiada solo copia el último plan de
+  `AiException.Empty`. La guiada solo copia el último plan de
   Estrategia si es válido y del embalse donde empieza (`KEY_PLAN_KEY` + `preparedPlanFits`).
 - Aviso de la tarde: `outingHours` (jornada legal hora a hora) + `bestWindow` (mejor escala sin filtro duro y su franja
   seguida más larga) en `TripPrep.kt`.

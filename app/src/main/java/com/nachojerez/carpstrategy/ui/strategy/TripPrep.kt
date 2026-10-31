@@ -69,7 +69,7 @@ fun shouldNotifyOutlook(band: FavorabilityBand?, blocked: Boolean, outingDate: L
 /** Una hora de la jornada evaluada con las reglas: su escala y si un filtro duro la impide. */
 data class OutingHour(val at: Instant, val band: FavorabilityBand?, val blocked: Boolean)
 
-/** La mejor franja de la jornada (fase 7.24): de [start] a [end], con la escala [band]. */
+/** La mejor franja de la jornada (fase 7.26): de [start] a [end], con la escala [band]. */
 data class BestWindow(val start: Instant, val end: Instant, val band: FavorabilityBand)
 
 /** Separación entre las horas que se evalúan. */

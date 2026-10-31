@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 
 /*
- * Borrados que viajan con la sincronización (fase 7.24). Al unir dos fotos se juntaban todas las
+ * Borrados que viajan con la sincronización (fase 7.26). Al unir dos fotos se juntaban todas las
  * filas, así que una sesión o un registro borrado en un móvil volvía si el otro (o Drive) aún lo
  * tenía. Cada borrado deja una marca en el ajuste sincronizado [Tombstones.SETTING_KEY]; al unir,
  * se quitan las filas marcadas creadas antes del borrado. Cambiar la hora de inicio de una sesión

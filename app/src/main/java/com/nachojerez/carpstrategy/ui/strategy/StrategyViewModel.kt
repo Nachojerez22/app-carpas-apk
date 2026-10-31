@@ -55,6 +55,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -80,6 +81,8 @@ class StrategyViewModel @Inject constructor(
     private val reservoirs: ReservoirRepository,
     private val gearEditor: GearEditor,
     private val activation: PreparedActivation,
+    private val inputsSource: StrategyInputsSource,
+    private val preparer: OutingPreparer,
     @param:IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
     private val location = settings.observeLocation()
@@ -93,21 +96,7 @@ class StrategyViewModel @Inject constructor(
         }
     }
 
-    /** Puesto elegido para el embalse activo (se recuerda por embalse, solo en este móvil). */
-    private val chosenSpot = reservoirs.observeActive().map { it?.reservoir?.id }.distinctUntilChanged()
-        .flatMapLatest { id -> localSettings.observe(chosenSpotKey(id)).map { it?.toLongOrNull() } }
-
-    private val rods = localSettings.observe(KEY_RODS).map { it?.toIntOrNull()?.coerceIn(1, DayPlans.MAX_RODS) ?: DEFAULT_RODS }
-
-    private val adviceInputs = combine(
-        combine(settings.observeSpots(), settings.observeGear(), settings.observeLessons(), journal.observeSessions(), settings.observeGroundbaitNormalKg()) { spots, gear, lessons, sessions, normal ->
-            AdviceInputs(spots, gear, lessons, sessions, groundbaitNormalKg = normal)
-        },
-        reservoirs.observeActive(),
-        reservoirs.observeAll(),
-        chosenSpot,
-        rods,
-    ) { inputs, active, all, chosen, n -> inputs.copy(reservoir = active, reservoirs = all, chosenSpotId = chosen, rods = n) }
+    private val adviceInputs = inputsSource.observe()
 
     private val placeAndRaw = location.flatMapLatest { place -> observeRawWeather(place.point).map { place to it } }
 
@@ -119,34 +108,9 @@ class StrategyViewModel @Inject constructor(
             // "lo que dijo la app antes de salir", sin sesgo retrospectivo.
             state.result?.let { result -> viewModelScope.launch { journal.recordPrediction(JournalStats.snapshotOf(result, place.point, state.ruleContext, state.rulesFingerprint)) } }
         }.map { it.second }
-            .combine(adviceInputs, ::withInputs)
+            .combine(adviceInputs) { state, inputs -> withInputs(state, inputs, clock.instant()) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StrategyUiState())
 
-    /** Lo elegido (embalse, puesto, cañas, cebos) y tus datos sobre la valoración de las reglas. */
-    private fun withInputs(state: StrategyUiState, inputs: AdviceInputs): StrategyUiState {
-        val reservoirId = inputs.reservoir?.reservoir?.id
-        val accepted = Lessons.forReservoir(inputs.lessons, reservoirId)
-        val spots = Spots.of(inputs.spots, reservoirId)
-        // Un puesto borrado o de otro embalse vuelve a «automático».
-        val chosenId = inputs.chosenSpotId?.takeIf { id -> spots.any { it.id == id } }
-        return state.copy(
-            spots = spots,
-            chosenSpotId = chosenId,
-            rods = inputs.rods,
-            gear = inputs.gear.today(),
-            allGear = inputs.gear,
-            groundbaitNormalKg = inputs.groundbaitNormalKg,
-            baitUsage = BaitShelf.usage(inputs.sessions),
-            myReservoirs = Reservoirs.withSpots(inputs.spots, inputs.reservoirs, inputs.reservoir?.reservoir),
-            lessons = accepted,
-            pendingLessons = inputs.lessons.count { it.status == LessonStatus.PROPOSED },
-            reservoir = inputs.reservoir,
-            advice = adviceFor(
-                state.derived, state.result?.evaluatedAt ?: clock.instant(), inputs.sessions, inputs.gear.today(), spots, accepted,
-                inputs.reservoir, inputs.reservoirs, chosenId,
-            ),
-        )
-    }
 
     private val planFlow = MutableStateFlow(PlanUiState())
 
@@ -228,6 +192,8 @@ class StrategyViewModel @Inject constructor(
             // El último plan válido de hoy se vuelve a mostrar sin gastar otra consulta.
             restoreLastPlan()
             restorePreparedPlan()
+            // Si se prepara desde Preparar, el plan nuevo llega aquí por el ajuste.
+            launch { localSettings.observe(GuidedSessionManager.KEY_PREPARED_PLAN).drop(1).collect { restorePreparedPlan() } }
             // Opción A (fase 7.12): al elegir embalse, puesto y cañas, la IA se consulta sola una vez
             // por día, puesto, cañas y franja; esperar a que dejes de tocar evita consultas de más.
             uiState.map { planKey(it) to it }
@@ -263,77 +229,10 @@ class StrategyViewModel @Inject constructor(
         planFlow.value = planFlow.value.copy(prepared = AiOutcome(prepared, plan), preparedKey = key)
     }
 
-    private val prepFlow = MutableStateFlow(PrepUiState())
-    val prep: StateFlow<PrepUiState> = prepFlow
+    /** «Preparar la próxima salida» (fase 7.25: vive en Preparar; aquí solo se lee). */
+    val prep: StateFlow<PrepUiState> = preparer.state
 
-    /**
-     * «Preparar mañana» (fase 7.15), con cobertura: previsión nueva, plan de la IA para la próxima
-     * salida (el embalse, puesto, cañas y cebos elegidos) y fichas de cebos pendientes. Cada paso
-     * puede fallar sin parar los demás: lo que no se pueda se queda como estaba.
-     */
-    fun prepareNextOuting() {
-        if (prepFlow.value.running) return
-        viewModelScope.launch {
-            // Si algo falla a medias, el botón vuelve (fase 7.24): nunca se queda «en marcha».
-            try {
-                prepare()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (_: Exception) {
-                // Lo que ya se guardó se queda; el resto, como estaba.
-            } finally {
-                if (prepFlow.value.running) prepFlow.value = PrepUiState()
-            }
-        }
-    }
-
-    private suspend fun prepare() {
-        val place = location.first()
-        val now = clock.instant()
-        val target = nextOuting(now, place.point, Formatting.MADRID) ?: return
-        prepFlow.value = PrepUiState(step = PrepStep.FORECAST)
-        val forecastOk = weather.refreshForecast(place.point) is RefreshOutcome.Success
-        weather.refreshObservations(place.point)
-
-        prepFlow.value = PrepUiState(step = PrepStep.PLAN)
-        val base = buildStrategyState(observeRawWeather(place.point).first(), rules.first(), target, place.point, journal.observeSessions().first())
-        val state = withInputs(base, adviceInputs.first())
-        val key = planKey(state)
-        val input = planInput(state, state.planRods, state.gear, target)
-        val apiKey = assistantSettings.apiKey()
-        var prepared: AiOutcome<AiPlan>? = null
-        val (planResult, detail) = when {
-            key == null || input == null -> PrepPlan.NOTHING to null
-            apiKey == null -> PrepPlan.NO_KEY to null
-            else -> {
-                val outcome = withContext(io) {
-                    assistant.plan(
-                        assistantSettings.config(), apiKey, AssistantPrompts.planState(input), planContext(state, state.planRods, state.gear, target),
-                        knowledge.forPlan(state.reservoir?.isBrovales ?: true),
-                    )
-                }
-                if (outcome.value != null) {
-                    prepared = outcome
-                    localSettings.put(GuidedSessionManager.KEY_PREPARED_PLAN, GuidedJson.encodeAi(outcome.exchange))
-                    localSettings.put(KEY_PREPARED_KEY, key)
-                    planFlow.value = planFlow.value.copy(prepared = outcome, preparedKey = key)
-                    PrepPlan.READY to null
-                } else {
-                    PrepPlan.FAILED to outcome.exchange.errorDetail
-                }
-            }
-        }
-
-        prepFlow.value = PrepUiState(step = PrepStep.SHEETS)
-        val improved = gearEditor.refreshPendingSheets()
-        val pending = gearEditor.observePendingSheets().first().size
-        val result = PrepResult(target, forecastOk, planResult, detail, improved, pending)
-        // Fase 7.19: se guarda lo que salió para poder abrirlo y analizarlo después.
-        val dayPlan = dayPlanFor(state, PlanUiState(prepared = prepared, preparedKey = key))
-        val outing = preparedOutingOf(state, dayPlan, prepared?.value?.advice.orEmpty(), result, clock.instant())
-        localSettings.put(KEY_PREPARED_OUTING, PreparedOutingJson.encode(outing))
-        prepFlow.value = PrepUiState(result = result)
-    }
+    fun prepareNextOuting() = preparer.prepare()
 
     /** La preparación que se puede activar ahora (fase 7.21): de hoy y de este embalse. */
     val preparedToday: StateFlow<PreparedOuting?> = activation.observeToday()
@@ -440,17 +339,6 @@ class StrategyViewModel @Inject constructor(
     }
 }
 
-private data class AdviceInputs(
-    val spots: List<Spot>,
-    val gear: List<GearItem>,
-    val lessons: List<Lesson>,
-    val sessions: List<Session>,
-    val reservoir: ReservoirContext? = null,
-    val reservoirs: List<Reservoir> = emptyList(),
-    val chosenSpotId: Long? = null,
-    val rods: Int = DEFAULT_RODS,
-    val groundbaitNormalKg: Double? = null,
-)
 
 /** Ajustes locales (no se sincronizan) de Estrategia. */
 const val KEY_RODS = "strategy_rods"

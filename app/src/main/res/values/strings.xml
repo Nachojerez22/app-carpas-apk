@@ -457,7 +457,19 @@
 
     <!-- Fase 5: Lugar (Preparar desde la fase 7.23) -->
     <string name="place_title">Preparar</string>
-    <string name="prepare_intro">Aquí se configura todo lo de pescar: embalse, cañas y cebos, puestos y ubicación. Lo de la app (cuenta, IA, apariencia) está en Ajustes, al final.</string>
+    <string name="strategy_today_gear_title">Lo que llevas hoy</string>
+    <string name="strategy_today_rods">Cañas: %1$s</string>
+    <string name="strategy_today_baits">Cebos: %1$s</string>
+    <string name="strategy_today_baits_none">Cebos: ninguno marcado para hoy. El plan usará cebos genéricos.</string>
+    <string name="strategy_today_gear_change">Cambiar cañas y cebos (Preparar → Mi equipo)</string>
+    <string name="strategy_where_title">Dónde</string>
+    <string name="strategy_where_line">%1$s · %2$s</string>
+    <string name="strategy_where_change">Cambiar embalse o puesto (en Preparar)</string>
+    <string name="strategy_prepare_link">Preparar la próxima salida (en Preparar)</string>
+    <string name="prepare_spot_title">Puesto</string>
+    <string name="prepare_spot_subtitle">Dónde te pones hoy</string>
+    <string name="prepare_spot_auto_hint">En automático, la app (o la IA) elige el mejor de tus puestos para el día.</string>
+    <string name="prepare_intro">Aquí se configura todo lo de pescar: embalse, puesto, cañas y cebos, y se prepara la próxima salida. Lo de la app (cuenta, IA, apariencia) está en Ajustes, al final.</string>
     <string name="prepare_gear_title">Tus cañas y cebos</string>
     <string name="prepare_gear_subtitle">Lo que tienes y lo que llevas hoy</string>
     <string name="settings_open">Ajustes, cuenta y acerca de</string>

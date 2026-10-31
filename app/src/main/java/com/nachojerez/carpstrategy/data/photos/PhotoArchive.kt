@@ -9,7 +9,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 /**
- * Copia de las fotos de las capturas en un ZIP (fase 7.24): las fotos solo están en el móvil, y
+ * Copia de las fotos de las capturas en un ZIP (fase 7.26): las fotos solo están en el móvil, y
  * así no se pierden al cambiar de móvil o reinstalar. Cada foto va con su nombre en la carpeta
  * `fotos/`; la captura guarda ese nombre, así que al restaurar vuelve a su sitio.
  */

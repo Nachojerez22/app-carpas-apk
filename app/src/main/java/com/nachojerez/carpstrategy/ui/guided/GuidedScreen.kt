@@ -200,7 +200,7 @@ private fun ForgottenCard(session: Session, onFinish: () -> Unit) {
     }
 }
 
-/** «¿De qué hora a qué hora has estado?»: las horas de la sesión, por si se te olvidó terminarla (fase 7.24). */
+/** «¿De qué hora a qué hora has estado?»: las horas de la sesión, por si se te olvidó terminarla (fase 7.26). */
 @Composable
 private fun FinishDialog(
     defaults: FinishDefaults,

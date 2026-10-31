@@ -148,7 +148,7 @@ class AiClient(
             throw e
         } catch (_: IllegalArgumentException) {
             // Respuesta con una forma que no esperamos (`.jsonObject` sobre otra cosa…): como vacía,
-            // así la consulta se anota como fallida y no cierra la app (fase 7.24).
+            // así la consulta se anota como fallida y no cierra la app (fase 7.26).
             throw AiException.Empty()
         } catch (_: IllegalStateException) {
             throw AiException.Empty()

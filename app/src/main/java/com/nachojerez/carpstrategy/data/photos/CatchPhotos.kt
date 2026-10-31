@@ -22,7 +22,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * Fotos de las capturas (fase 7.17): solo en este móvil, en la carpeta privada de la app (no van
- * a la cuenta de Google; la captura guarda el nombre del archivo). Desde la fase 7.24 se pueden
+ * a la cuenta de Google; la captura guarda el nombre del archivo). Desde la fase 7.26 se pueden
  * copiar en un ZIP aparte ([exportZip]) y restaurar. Se
  * reducen a [MAX_SIDE_PX] y se enderezan según la cámara, para que ocupen poco.
  */
@@ -79,7 +79,7 @@ class CatchPhotos @Inject constructor(
     }
 
     /**
-     * Copia de las fotos de [names] en el ZIP elegido con «Guardar como» (fase 7.24). Devuelve
+     * Copia de las fotos de [names] en el ZIP elegido con «Guardar como» (fase 7.26). Devuelve
      * cuántas van. @throws IOException si no se puede escribir.
      */
     suspend fun exportZip(uri: Uri, names: Set<String>): Int = withContext(io) {

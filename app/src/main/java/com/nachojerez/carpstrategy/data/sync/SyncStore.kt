@@ -24,7 +24,7 @@ class SyncStore @Inject constructor(private val db: UserDataDatabase, private va
         records = records.all().map { it.toRow() },
         settings = settings.all().filterNot { SyncSnapshot.isLocalOnly(it.key) }.map { it.toRow() },
         sessions = sessions.all().map { it.toRow() },
-        // Solo las valoraciones recientes (fase 7.24): una sesión copia la suya al crearse, las
+        // Solo las valoraciones recientes (fase 7.26): una sesión copia la suya al crearse, las
         // viejas no sirven en otro móvil y subirlas en cada cambio gasta datos en el embalse.
         predictions = predictions.all().filter { it.computedAtEpochSecond >= clock.instant().minus(PREDICTIONS_WINDOW).epochSecond }.map { it.toRow() },
     ).canonical()

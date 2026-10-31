@@ -191,7 +191,7 @@ data class GuidedLog(
     fun finish(at: Instant): GuidedLog = copy(segments = segments.dropLast(1) + current.copy(end = current.end ?: at))
 
     /**
-     * Cierra con las horas que dice el usuario (fase 7.24, por si se olvidó de terminar): el primer
+     * Cierra con las horas que dice el usuario (fase 7.26, por si se olvidó de terminar): el primer
      * tramo empieza en [start] y ningún tramo se sale de [start]…[end].
      */
     fun finish(start: Instant, end: Instant): GuidedLog {
