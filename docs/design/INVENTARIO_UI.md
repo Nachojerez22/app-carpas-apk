@@ -109,6 +109,18 @@ peor que Atkinson Hyperlegible, que está hecha para eso. La paleta cálida de �
 
 Todas las funciones de Preparar y Estrategia siguen en el mismo sitio.
 
+## Fase 6 (0.39.0): Sesión guiada y Diario
+| Cambio | Antes | Ahora |
+|---|---|---|
+| Resumen del mes | tarjeta blanca | tarjeta en tono arcilla cálido (el «cuaderno», solo en Diario); cada cifra se lee con su etiqueta en TalkBack |
+| Insignia «N capturas» de cada sesión | verde | arcilla cálido (verde queda para la escala de condiciones) |
+| Exportar/restaurar diario y fotos | 4 botones sueltos al final | apartado «Copias de seguridad» con una tarjeta: Sesiones (exportar, restaurar) y Fotos (copia, restaurar) |
+| Guiada: tiempo pescando | dentro de una línea de texto | cifra grande arriba de la cabecera (se ve de un vistazo al sol) y «Pescando desde las …» debajo; TalkBack: «Llevas 1:20 pescando» |
+| Guiada: «No funciona» | botón normal | más alto (56 dp), para manos mojadas o guantes |
+| Guiada: filas de chips que no caben | se pegaban al saltar de línea | separación entre líneas |
+
+Mismas acciones en la guiada (registro, propuestas, tiempo, IA, chat, terminar) y en el Diario: nueva sesión, sesión guiada, abrir, terminar, ficha, borrar, «¿Acierta la app?», exportar y restaurar.
+
 ## Comprobación
 Se compararon, fichero a fichero, todas las acciones de la interfaz (`viewModel::…`, `onX = …`,
 `onClick = …` y rutas de navegación) entre 0.33.0 y esta versión: las mismas, más las nuevas (banda de la

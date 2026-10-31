@@ -481,6 +481,9 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - Fase 4 en adelante (0.37.0+): el estilo de la skill **adaptado**, pantalla por pantalla y un PR por pantalla o grupo:
   «Soft UI» en `CarpCard` (sombra suave teñida en claro, borde en oscuro, `animateContentSize`) y `Motion`
   (`SHORT` 150 ms, `MEDIUM` 250 ms) en `ui/theme`. Se mantiene Atkinson Hyperlegible (no letra manuscrita).
+- Diario (0.39.0): el tono cálido arcilla (`secondaryContainer`) es del Diario (resumen del mes, insignia de capturas);
+  copias de seguridad agrupadas en una tarjeta. Guiada: tiempo pescando en `displaySmall`, «No funciona» ≥ 56 dp y
+  `FlowRow` siempre con `verticalArrangement`.
 
 ## Stack
 

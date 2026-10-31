@@ -549,6 +549,9 @@
     <string name="diary_empty_title">Aún no hay sesiones</string>
     <string name="diary_empty_text">Pulsa «Nueva sesión» al llegar al agua: la app guarda en ese momento su valoración para compararla luego con lo que pasó. Los bolos también cuentan.</string>
     <string name="diary_sessions_title">Sesiones</string>
+    <string name="diary_backup_title">Copias de seguridad</string>
+    <string name="diary_backup_sessions">Sesiones</string>
+    <string name="diary_backup_photos">Fotos de las capturas</string>
     <string name="diary_new_session">Nueva sesión</string>
     <string name="diary_one_catch">1 captura</string>
     <string name="diary_n_catches">%1$d capturas</string>
@@ -682,7 +685,8 @@
     <string name="guided_notifications_off">Las notificaciones están desactivadas: no te llegarán los avisos. Puedes anotar desde esta pantalla.</string>
     <string name="guided_exact_alarms">Los avisos pueden llegar con unos minutos de retraso. Para que lleguen a su hora, permite las alarmas exactas.</string>
     <string name="guided_exact_alarms_action">Permitir alarmas exactas</string>
-    <string name="guided_elapsed">Pescando desde las %1$s · %2$s</string>
+    <string name="guided_elapsed">Pescando desde las %1$s</string>
+    <string name="guided_elapsed_spoken">Llevas %1$s pescando</string>
     <string name="guided_phase">Fase: %1$s</string>
     <string name="guided_next_check">Próximo aviso: %1$s</string>
     <string name="guided_next_none">Sin más avisos hoy (hora de recoger).</string>
