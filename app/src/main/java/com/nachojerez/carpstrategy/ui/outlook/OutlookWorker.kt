@@ -18,6 +18,8 @@ import com.nachojerez.carpstrategy.MainActivity
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.data.reservoir.ReservoirRepository
 import com.nachojerez.carpstrategy.data.userdata.LocalSettings
+import com.nachojerez.carpstrategy.domain.derived.LegalWindow
+import com.nachojerez.carpstrategy.domain.derived.SolarCalculator
 import com.nachojerez.carpstrategy.domain.repository.JournalRepository
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
 import com.nachojerez.carpstrategy.domain.repository.WeatherRepository
@@ -25,8 +27,12 @@ import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
 import com.nachojerez.carpstrategy.domain.rules.RulesRepository
 import com.nachojerez.carpstrategy.domain.usecase.ObserveRawWeatherUseCase
 import com.nachojerez.carpstrategy.ui.conditions.Formatting
+import com.nachojerez.carpstrategy.ui.strategy.BestWindow
+import com.nachojerez.carpstrategy.ui.strategy.OutingHour
+import com.nachojerez.carpstrategy.ui.strategy.bestWindow
 import com.nachojerez.carpstrategy.ui.strategy.buildStrategyState
 import com.nachojerez.carpstrategy.ui.strategy.nextOuting
+import com.nachojerez.carpstrategy.ui.strategy.outingHours
 import com.nachojerez.carpstrategy.ui.strategy.shouldNotifyOutlook
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -60,17 +66,26 @@ class OutlookWorker @AssistedInject constructor(
         val place = settings.observeLocation().first()
         val target = nextOuting(now, place.point, Formatting.MADRID) ?: return Result.success()
         withTimeoutOrNull(REFRESH_TIMEOUT_MS) { weather.refreshForecast(place.point) }
-        val state = buildStrategyState(observeRawWeather(place.point).first(), rulesRepository.load(), target, place.point, journal.observeSessions().first())
-        val result = state.result ?: return Result.success()
+        // Fase 7.24: toda la jornada legal, no solo la primera hora (muchas carpas entran por la tarde).
+        val raw = observeRawWeather(place.point).first()
+        val rules = rulesRepository.load()
+        val sessions = journal.observeSessions().first()
+        val hours = outingHours(target, place.point, Formatting.MADRID).map { at ->
+            val result = buildStrategyState(raw, rules, at, place.point, sessions).result
+            OutingHour(at, result?.band, result?.blocked ?: true)
+        }
         val date = target.atZone(Formatting.MADRID).toLocalDate()
+        val legalEnd = LegalWindow.of(SolarCalculator.sunTimes(date, place.point))?.end ?: target
+        val best = bestWindow(hours, legalEnd) ?: return Result.success()
         val last = local.get(KEY_LAST_NOTIFIED)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-        if (!shouldNotifyOutlook(result.band, result.blocked, date, last)) return Result.success()
+        if (!shouldNotifyOutlook(best.band, false, date, last)) return Result.success()
         val name = reservoirs.observeActive().first()?.reservoir?.name ?: place.name
-        if (notify(name, result.band ?: return Result.success(), target)) local.put(KEY_LAST_NOTIFIED, date.toString())
+        if (notify(name, best)) local.put(KEY_LAST_NOTIFIED, date.toString())
         return Result.success()
     }
 
-    private fun notify(reservoir: String, band: FavorabilityBand, target: java.time.Instant): Boolean {
+    private fun notify(reservoir: String, best: BestWindow): Boolean {
+        val band = best.band
         val context = applicationContext
         val manager = NotificationManagerCompat.from(context)
         val allowed = manager.areNotificationsEnabled() &&
@@ -86,7 +101,7 @@ class OutlookWorker @AssistedInject constructor(
             Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val text = res.getString(R.string.outlook_text, Formatting.hour(target), quality)
+        val text = res.getString(R.string.outlook_text, Formatting.hour(best.start), Formatting.clock(best.end), quality)
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_nav_strategy)
             .setContentTitle(res.getString(R.string.outlook_title, reservoir))

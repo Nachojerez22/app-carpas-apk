@@ -410,6 +410,28 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   fuentes, leyenda, limitaciones, normativa y versión) va en **Ajustes** (`SettingsRoute` = `PlaceScreen(settings = true)`).
   Los textos que decían «Lugar → …» dicen ahora «Preparar → …» o «Preparar → Ajustes → …».
 
+## Terminar con tus horas, avisos y sincronización (fase 7.24)
+
+- La sesión guiada **la cierra siempre el usuario** (no hay cierre automático): `ui/guided/FinishTimes.kt` (puro:
+  `finishDefaults` — inicio y ahora, o el fin legal si ya pasó —, `parseFinishTimes` — horas del día de inicio, fin
+  después del inicio y no en el futuro — e `isForgotten`) → `GuidedSessionManager.finish(start, end)` →
+  `GuidedSessions.finish(session, start, end)` (`GuidedLog.finish(start, end)` recorta los tramos). `ForgottenCard`
+  arriba de la guiada si sigue abierta tras el fin legal o desde otro día.
+- Alarmas: `USE_EXACT_ALARM` (la app no va por Play; `SCHEDULE_EXACT_ALARM` solo hasta API 32) y `GuidedBootReceiver`
+  (`BOOT_COMPLETED`, `MY_PACKAGE_REPLACED` → `restore(force = true)`).
+- `data/sync/Tombstones.kt`: marcas de borrado en el ajuste sincronizado `sync_borrados`. `SyncManager` compara las
+  claves de la última sincronización (`local_sync_keys`) con las de ahora: lo que falta se marca (también la clave
+  vieja de una sesión con otra hora de inicio). `mergeSnapshots(…, now)` junta las marcas y quita las filas marcadas
+  creadas antes del borrado. `SyncStore` solo sube las valoraciones de `PREDICTIONS_WINDOW` (2 días) y al bajar
+  conserva las del móvil.
+- Fotos: `data/photos/PhotoArchive` (ZIP con `fotos/<nombre>`, solo nombres de la app, ≤ 15 MB por foto) y
+  `CatchPhotos.exportZip`/`importZip`; botones en Diario.
+- `AiClient.complete`: una respuesta con forma inesperada (`IllegalArgumentException`/`IllegalStateException`) es
+  `AiException.Empty`. `prepareNextOuting` nunca se queda «en marcha». La guiada solo copia el último plan de
+  Estrategia si es válido y del embalse donde empieza (`KEY_PLAN_KEY` + `preparedPlanFits`).
+- Aviso de la tarde: `outingHours` (jornada legal hora a hora) + `bestWindow` (mejor escala sin filtro duro y su franja
+  seguida más larga) en `TripPrep.kt`.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

@@ -168,6 +168,19 @@ En **Lo aprendido** quedan las lecciones de tus sesiones: la IA propone las suya
 
 El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla.
 
+### Terminar con tus horas, avisos fiables y copia de las fotos (fase 7.24)
+
+- **Terminar la sesión guiada** pide «Desde» y «Hasta»: la sesión la cierras tú, y si se te olvidó, pones de qué
+  hora a qué hora estuviste (si ya pasó el horario legal, «Hasta» viene con la hora de recoger). Así las horas-caña y
+  «¿Acierta la app?» salen bien. Si la sesión sigue abierta tras el fin legal o desde otro día, un aviso arriba te lo
+  recuerda.
+- **Avisos a su hora**: la app usa alarmas exactas sin pedir permiso (no va por Google Play) y, si el móvil se
+  reinicia durante la sesión, vuelve a programar el aviso.
+- **Sincronización**: lo que borras en un móvil ya no vuelve al unir con Drive, y cambiar la hora de inicio de una
+  sesión no la duplica. Se suben menos datos (solo las valoraciones de 2 días).
+- **Copia de las fotos**: en Diario, «Copia de las fotos (ZIP)» y «Restaurar las fotos».
+- **Aviso de la tarde**: mira la jornada legal entera, hora a hora, y te dice la mejor franja.
+
 ### Ver la preparación de la próxima salida (fase 7.19)
 
 - Tras pulsar **Preparar la próxima salida** (al final de Estrategia), la app guarda lo que salió y aparece el botón
@@ -211,9 +224,10 @@ El horario de pesca se sigue respetando, pero ya no se recuerda en cada pantalla
 
 - **Aviso por la tarde** (Preparar → «Aviso de la próxima salida», desactivado por defecto): hacia las 19:00 la app mira
   la próxima salida con las mismas reglas que Estrategia y solo si sale favorable o muy favorable según tus datos te
-  avisa una vez para que la prepares. No promete peces.
+  avisa una vez para que la prepares (desde la fase 7.24, con la mejor franja de la jornada). No promete peces.
 - **Fotos de las capturas** en la ficha del diario («Hacer foto» o «Galería»). Se guardan solo en el móvil donde se
-  hacen, reducidas para que ocupen poco; no se suben a tu cuenta ni van en las exportaciones.
+  hacen, reducidas para que ocupen poco; no se suben a tu cuenta ni van en el JSON del diario (desde la fase 7.24 hay
+  una copia aparte en ZIP).
 
 ### ¿Acierta la app? y registro rápido (fase 7.16)
 

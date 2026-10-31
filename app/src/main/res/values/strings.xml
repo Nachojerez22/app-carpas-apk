@@ -1310,11 +1310,11 @@
     <!-- Aviso «Mañana pinta bien» (fase 7.17) -->
     <string name="outlook_settings_title">Aviso de la próxima salida</string>
     <string name="outlook_settings_switch">Avisarme por la tarde si la próxima salida pinta bien</string>
-    <string name="outlook_settings_hint">Hacia las 19:00 la app mira la próxima salida (primera hora legal) con las mismas reglas que Estrategia y, solo si sale favorable o muy favorable según tus datos, te avisa una vez para que la prepares. No promete peces. Solo en este móvil.</string>
+    <string name="outlook_settings_hint">Hacia las 19:00 la app mira la próxima salida (toda la jornada legal, hora a hora) con las mismas reglas que Estrategia y, solo si sale favorable o muy favorable según tus datos, te avisa una vez con la mejor franja para que la prepares. No promete peces. Solo en este móvil.</string>
     <string name="outlook_channel_name">Próxima salida</string>
     <string name="outlook_channel_description">Aviso por la tarde si la próxima salida sale favorable según tus datos</string>
     <string name="outlook_title">Pinta bien en %1$s</string>
-    <string name="outlook_text">%1$s: condiciones %2$s según tus datos (no es promesa de peces). Abre Estrategia y pulsa «Preparar la próxima salida».</string>
+    <string name="outlook_text">De %1$s a %2$s: condiciones %3$s según tus datos (no es promesa de peces). Abre Estrategia y pulsa «Preparar la próxima salida».</string>
     <string name="outlook_favorable">favorables</string>
     <string name="outlook_very_favorable">muy favorables</string>
     <!-- Preparar la próxima salida (fase 7.15) -->
