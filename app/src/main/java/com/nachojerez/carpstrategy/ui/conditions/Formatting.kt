@@ -6,6 +6,7 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -17,6 +18,7 @@ object Formatting {
     private const val MISSING = "—"
     private val HOUR_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE d HH:mm", SPANISH)
     private val CLOCK_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", SPANISH)
+    private val WEEKDAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE d", SPANISH)
     private val DAY_MONTH_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("d/M", SPANISH)
     private val COMPASS = listOf("N", "NE", "E", "SE", "S", "SO", "O", "NO")
 
@@ -46,6 +48,9 @@ object Formatting {
 
     /** Solo la hora local ("08:24"). */
     fun clock(time: Instant?, zone: ZoneId = MADRID): String = time?.let { CLOCK_FORMAT.format(it.atZone(zone)) } ?: MISSING
+
+    /** «sáb 2»: para elegir el día de la salida. */
+    fun weekday(date: LocalDate): String = WEEKDAY_FORMAT.format(date)
 
     /** Día y mes ("30/10"). */
     fun dayMonth(time: Instant, zone: ZoneId = MADRID): String = DAY_MONTH_FORMAT.format(time.atZone(zone))

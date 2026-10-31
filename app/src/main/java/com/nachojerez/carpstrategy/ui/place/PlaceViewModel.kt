@@ -8,6 +8,15 @@ import com.nachojerez.carpstrategy.ui.strategy.PreparedOutingJson
 import com.nachojerez.carpstrategy.ui.strategy.PreparedOuting
 import com.nachojerez.carpstrategy.ui.strategy.PrepUiState
 import com.nachojerez.carpstrategy.ui.strategy.OutingPreparer
+import com.nachojerez.carpstrategy.ui.strategy.OutingPicker
+import com.nachojerez.carpstrategy.ui.strategy.chooseOuting
+import com.nachojerez.carpstrategy.ui.strategy.nextOuting
+import com.nachojerez.carpstrategy.ui.strategy.outingDays
+import com.nachojerez.carpstrategy.ui.conditions.Formatting
+import java.time.Clock
+import java.time.Instant
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import com.nachojerez.carpstrategy.ui.strategy.KEY_PREPARED_OUTING
 import com.nachojerez.carpstrategy.domain.guided.Spots
 import com.nachojerez.carpstrategy.domain.guided.Spot
@@ -66,6 +75,7 @@ class PlaceViewModel @Inject constructor(
     private val outlook: OutlookScheduler,
     private val localSettings: LocalSettings,
     private val preparer: OutingPreparer,
+    private val clock: Clock,
 ) : ViewModel() {
     private val gps = MutableStateFlow(GpsStatus.IDLE)
     private val coordinateError = MutableStateFlow<CoordinateError?>(null)
@@ -119,6 +129,22 @@ class PlaceViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun prepareNextOuting() = preparer.prepare()
+
+    /** Cada minuto: las horas que ya pasaron dejan de ofrecerse. */
+    private val ticker = flow {
+        while (true) {
+            emit(clock.instant())
+            delay(60_000)
+        }
+    }
+
+    /** Día y hora de la salida que se prepara (fase 7.27). */
+    val outing: StateFlow<OutingPicker> = combine(settings.observeLocation(), preparer.chosen, ticker) { place, chosen, now ->
+        val days = outingDays(now, place.point, Formatting.MADRID)
+        OutingPicker(days, chooseOuting(chosen, days, nextOuting(now, place.point, Formatting.MADRID)), now.atZone(Formatting.MADRID).toLocalDate())
+    }.distinctUntilChanged().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), OutingPicker())
+
+    fun selectOuting(target: Instant) = preparer.choose(target)
 
     fun setOutlook(enabled: Boolean) {
         viewModelScope.launch { outlook.setEnabled(enabled) }
