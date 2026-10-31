@@ -546,6 +546,12 @@
     <string name="diary_export_file_name">carpstrategy-diario.json</string>
     <string name="diary_export_done">Diario exportado: %1$d sesiones.</string>
     <string name="diary_export_failed">No se pudo exportar: %1$s</string>
+    <string name="diary_photos_export">Copia de las fotos (ZIP)</string>
+    <string name="diary_photos_restore">Restaurar las fotos</string>
+    <string name="diary_photos_hint">Las fotos de tus capturas no van a tu cuenta de Google ni al JSON: guarda también esta copia. Al restaurar, cada foto vuelve a su captura.</string>
+    <string name="diary_photos_file_name">carpstrategy-fotos.zip</string>
+    <string name="diary_photos_done">Fotos copiadas: %1$d.</string>
+    <string name="diary_photos_restored">Fotos restauradas: %1$d (las que ya estaban no se tocan).</string>
     <string name="diary_delete_confirm">¿Borrar esta sesión? Se pierde también la valoración previa guardada.</string>
     <string name="zone_north">N</string>
     <string name="zone_east">E</string>

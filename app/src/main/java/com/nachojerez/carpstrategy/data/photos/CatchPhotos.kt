@@ -12,6 +12,7 @@ import androidx.core.content.FileProvider
 import com.nachojerez.carpstrategy.di.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.util.UUID
 import javax.inject.Inject
@@ -21,7 +22,8 @@ import kotlinx.coroutines.withContext
 
 /**
  * Fotos de las capturas (fase 7.17): solo en este móvil, en la carpeta privada de la app (no van
- * a la cuenta de Google ni a las exportaciones; la captura guarda el nombre del archivo). Se
+ * a la cuenta de Google; la captura guarda el nombre del archivo). Desde la fase 7.24 se pueden
+ * copiar en un ZIP aparte ([exportZip]) y restaurar. Se
  * reducen a [MAX_SIDE_PX] y se enderezan según la cámara, para que ocupen poco.
  */
 @Singleton
@@ -76,15 +78,40 @@ class CatchPhotos @Inject constructor(
         file(name)?.delete()
     }
 
+    /**
+     * Copia de las fotos de [names] en el ZIP elegido con «Guardar como» (fase 7.24). Devuelve
+     * cuántas van. @throws IOException si no se puede escribir.
+     */
+    suspend fun exportZip(uri: Uri, names: Set<String>): Int = withContext(io) {
+        val output = context.contentResolver.openOutputStream(uri, "wt") ?: throw IOException("No se pudo abrir el archivo")
+        output.use { out -> PhotoArchive.write(out, names.sorted().mapNotNull { name -> file(name)?.let { name to it } }) }
+    }
+
+    /** Restaura las fotos de un ZIP de [exportZip]; las que ya están no se tocan. Devuelve cuántas son nuevas. */
+    suspend fun importZip(uri: Uri): Int = withContext(io) {
+        val input = context.contentResolver.openInputStream(uri) ?: throw IOException("No se pudo abrir el archivo")
+        var added = 0
+        input.use {
+            PhotoArchive.read(it) { name, bytes ->
+                val target = file(name)
+                if (target != null && !target.exists()) {
+                    target.writeBytes(bytes)
+                    added++
+                }
+            }
+        }
+        added
+    }
+
     /** Borra las fotos que no usa ninguna captura y son anteriores a [olderThan]. */
     suspend fun sweep(used: Set<String>, olderThan: java.time.Instant) = withContext(io) {
         dir.listFiles().orEmpty()
-            .filter { NAME.matches(it.name) && it.name !in used && it.lastModified() < olderThan.toEpochMilli() }
+            .filter { PhotoArchive.isPhotoName(it.name) && it.name !in used && it.lastModified() < olderThan.toEpochMilli() }
             .forEach { it.delete() }
     }
 
     /** Solo nombres generados por la app: nada de rutas. */
-    private fun file(name: String): File? = name.takeIf { NAME.matches(it) }?.let { File(dir, it) }
+    private fun file(name: String): File? = name.takeIf(PhotoArchive::isPhotoName)?.let { File(dir, it) }
 
     private fun newName() = "captura_" + UUID.randomUUID().toString().replace("-", "").take(16) + ".jpg"
 
@@ -118,6 +145,5 @@ class CatchPhotos @Inject constructor(
         const val MAX_SIDE_PX = 1600
         const val THUMB_SIDE_PX = 480
         private const val JPEG_QUALITY = 85
-        private val NAME = Regex("captura_[a-z0-9]{1,32}\\.jpg")
     }
 }

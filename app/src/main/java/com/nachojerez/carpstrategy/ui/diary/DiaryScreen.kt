@@ -79,6 +79,13 @@ fun DiaryScreen(
     val restorer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let(viewModel::restoreFrom)
     }
+    val photosName = stringResource(R.string.diary_photos_file_name)
+    val photosExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        uri?.let(viewModel::exportPhotosTo)
+    }
+    val photosRestorer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(viewModel::restorePhotosFrom)
+    }
 
     val editor = state.editor
     if (editor != null) {
@@ -102,6 +109,8 @@ fun DiaryScreen(
             onFinish = viewModel::finish,
             onExport = { exporter.launch(exportName) },
             onRestore = { restorer.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
+            onExportPhotos = { photosExporter.launch(photosName) },
+            onRestorePhotos = { photosRestorer.launch(arrayOf("application/zip", "application/octet-stream")) },
         )
     }
 
@@ -130,6 +139,16 @@ fun DiaryScreen(
             text = { Text(stringResource(R.string.diary_restore_invalid)) },
             confirmButton = { TextButton(onClick = viewModel::dismissExport) { Text(stringResource(R.string.action_ok)) } },
         )
+        is ExportStatus.PhotosDone -> AlertDialog(
+            onDismissRequest = viewModel::dismissExport,
+            text = { Text(stringResource(R.string.diary_photos_done, status.count)) },
+            confirmButton = { TextButton(onClick = viewModel::dismissExport) { Text(stringResource(R.string.action_ok)) } },
+        )
+        is ExportStatus.PhotosRestored -> AlertDialog(
+            onDismissRequest = viewModel::dismissExport,
+            text = { Text(stringResource(R.string.diary_photos_restored, status.added)) },
+            confirmButton = { TextButton(onClick = viewModel::dismissExport) { Text(stringResource(R.string.action_ok)) } },
+        )
         is ExportStatus.Failed -> AlertDialog(
             onDismissRequest = viewModel::dismissExport,
             text = { Text(stringResource(R.string.diary_export_failed, status.message)) },
@@ -147,6 +166,8 @@ private fun DiaryList(
     onFinish: (Session) -> Unit,
     onExport: () -> Unit,
     onRestore: () -> Unit,
+    onExportPhotos: () -> Unit,
+    onRestorePhotos: () -> Unit,
 ) {
     val year = state.now.atZone(Formatting.MADRID).year
     Box(Modifier.fillMaxSize()) {
@@ -198,6 +219,9 @@ private fun DiaryList(
                     OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.diary_export)) }
                     TextButton(onClick = onRestore, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.diary_restore)) }
                     Caption(stringResource(R.string.diary_export_hint))
+                    OutlinedButton(onClick = onExportPhotos, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.diary_photos_export)) }
+                    TextButton(onClick = onRestorePhotos, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.diary_photos_restore)) }
+                    Caption(stringResource(R.string.diary_photos_hint))
                 }
             }
         }
