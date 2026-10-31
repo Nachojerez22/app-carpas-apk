@@ -417,6 +417,17 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 - Mi equipo (desde Preparar) tiene lo que estaba en Estrategia: `BaitShelfSection` (internal en `GearScreen.kt`: «Hoy llevo»,
   «Empezar de cero hoy», guardados por último uso y «Del diario»); `GearViewModel.baitUsage`, `clearToday`, `addFromDiary`.
 
+## Embalse, puesto y preparar en Preparar (fase 7.25)
+
+- `ui/strategy/StrategyInputs.kt`: `AdviceInputs`, `StrategyInputsSource` (singleton: ajustes, diario, embalse activo, puesto
+  elegido `chosenSpotKey`, `KEY_RODS`) y `withInputs(state, inputs, now)` (pura). Los usan Estrategia y `OutingPreparer`.
+- `OutingPreparer` (singleton con su ámbito): «Preparar la próxima salida» (antes en `StrategyViewModel`); escribe
+  `KEY_PREPARED_PLAN`, `KEY_PREPARED_KEY` y `KEY_PREPARED_OUTING`. `StrategyViewModel` relee el plan preparado cuando
+  cambia `KEY_PREPARED_PLAN`.
+- Preparar: puesto de hoy (chips, mismo ajuste que Estrategia), Mi equipo y `PrepareStep` (internal en StrategyScreen).
+  Estrategia: ① Dónde (resumen + recomendación + «Pescar en …» + «Cambiar en Preparar»), ② Lo que llevas hoy, ③ plan;
+  al final solo un acceso a Preparar.
+
 ## Stack
 
 - Kotlin 2.4, AGP 9.4 (Kotlin integrado: **no** se aplica `org.jetbrains.kotlin.android`) y Gradle 9.6.

@@ -1,5 +1,17 @@
 package com.nachojerez.carpstrategy.ui.place
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flatMapLatest
+import com.nachojerez.carpstrategy.ui.strategy.chosenSpotKey
+import com.nachojerez.carpstrategy.ui.strategy.PreparedOutingJson
+import com.nachojerez.carpstrategy.ui.strategy.PreparedOuting
+import com.nachojerez.carpstrategy.ui.strategy.PrepUiState
+import com.nachojerez.carpstrategy.ui.strategy.OutingPreparer
+import com.nachojerez.carpstrategy.ui.strategy.KEY_PREPARED_OUTING
+import com.nachojerez.carpstrategy.domain.guided.Spots
+import com.nachojerez.carpstrategy.domain.guided.Spot
+import com.nachojerez.carpstrategy.data.userdata.LocalSettings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nachojerez.carpstrategy.data.location.DeviceLocationProvider
@@ -39,15 +51,21 @@ data class PlaceUiState(
     val reservoir: ReservoirContext? = null,
     /** Aviso «Mañana pinta bien» activado en este móvil (fase 7.17). */
     val outlookEnabled: Boolean = false,
+    /** Puestos del embalse activo y el elegido (null = automático), fase 7.25. */
+    val spots: List<Spot> = emptyList(),
+    val chosenSpotId: Long? = null,
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PlaceViewModel @Inject constructor(
     private val settings: SettingsRepository,
     private val device: DeviceLocationProvider,
     rulesRepository: RulesRepository,
-    reservoirs: ReservoirRepository,
+    private val reservoirs: ReservoirRepository,
     private val outlook: OutlookScheduler,
+    private val localSettings: LocalSettings,
+    private val preparer: OutingPreparer,
 ) : ViewModel() {
     private val gps = MutableStateFlow(GpsStatus.IDLE)
     private val coordinateError = MutableStateFlow<CoordinateError?>(null)
@@ -63,6 +81,7 @@ class PlaceViewModel @Inject constructor(
         PlaceUiState(location, appearance, gps, error, reviewed)
     }.combine(reservoirs.observeActive()) { state, reservoir -> state.copy(reservoir = reservoir) }
         .combine(outlook.observeEnabled()) { state, enabled -> state.copy(outlookEnabled = enabled) }
+        .combine(chosenSpot()) { state, (spots, chosen) -> state.copy(spots = spots, chosenSpotId = chosen?.takeIf { id -> spots.any { it.id == id } }) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PlaceUiState())
 
     /** Se llama tras conceder el permiso: una única lectura, sin seguimiento. */
@@ -80,6 +99,26 @@ class PlaceViewModel @Inject constructor(
             }
         }
     }
+
+    /** Puestos del embalse activo y el elegido para él (el mismo ajuste que usa Estrategia). */
+    private fun chosenSpot() = combine(reservoirs.observeActive(), settings.observeSpots()) { r, all -> r?.reservoir?.id to Spots.of(all, r?.reservoir?.id) }
+        .flatMapLatest { (id, spots) -> localSettings.observe(chosenSpotKey(id)).map { spots to it?.toLongOrNull() } }
+
+    /** Elige el puesto (null = automático: la app o la IA lo eligen). */
+    fun chooseSpot(id: Long?) {
+        viewModelScope.launch {
+            val reservoirId = reservoirs.observeActive().first()?.reservoir?.id
+            localSettings.put(chosenSpotKey(reservoirId), id?.toString())
+        }
+    }
+
+    /** «Preparar la próxima salida» (fase 7.25: se pulsa aquí; Estrategia lee lo que sale). */
+    val prep: StateFlow<PrepUiState> = preparer.state
+
+    val prepared: StateFlow<PreparedOuting?> = localSettings.observe(KEY_PREPARED_OUTING).map(PreparedOutingJson::decode)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun prepareNextOuting() = preparer.prepare()
 
     fun setOutlook(enabled: Boolean) {
         viewModelScope.launch { outlook.setEnabled(enabled) }

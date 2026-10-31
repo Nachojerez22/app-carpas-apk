@@ -110,6 +110,7 @@ fun StrategyScreen(
     onOpenReservoirs: () -> Unit = {},
     onOpenGear: () -> Unit = {},
     onOpenPrepared: () -> Unit = {},
+    onOpenPrepare: () -> Unit = {},
     viewModel: StrategyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -136,6 +137,7 @@ fun StrategyScreen(
             onPrepare = viewModel::prepareNextOuting,
             onOpenPrepared = onOpenPrepared,
             onActivatePrepared = { viewModel.activatePrepared(onStartGuided) },
+            onOpenPrepare = onOpenPrepare,
             onReevaluate = viewModel::reevaluatePrepared,
             onCloseReview = viewModel::closeReview,
             onReplacePrepared = viewModel::replacePrepared,
@@ -164,6 +166,7 @@ data class StrategyActions(
     val onPrepare: () -> Unit = {},
     val onOpenPrepared: () -> Unit = {},
     val onActivatePrepared: () -> Unit = {},
+    val onOpenPrepare: () -> Unit = {},
     val onReevaluate: () -> Unit = {},
     val onCloseReview: () -> Unit = {},
     val onReplacePrepared: () -> Unit = {},
@@ -215,11 +218,9 @@ fun StrategyContent(
         }
         // Condiciones para hoy (escala de 5 tramos y nivel que limita): siempre arriba.
         state.result?.let { result -> item { ResultCard(result) } }
-        // ① Embalse.
-        item { ReservoirStep(state, actions) }
-        // ② Puesto (con la recomendación de la app o de la IA).
+        // ① Dónde (embalse y puesto, con la recomendación de la app o de la IA; se cambia en Preparar).
         item { SpotStep(state, dayPlan, currentAi?.value?.bestSpot, actions) }
-        // ③ Lo que llevas hoy (se cambia en Preparar → Mi equipo).
+        // ② Lo que llevas hoy (se cambia en Preparar → Mi equipo).
         item { TodayGearStep(state, actions) }
         when {
             state.ruleIssues.isNotEmpty() -> {
@@ -262,8 +263,10 @@ fun StrategyContent(
                 if (!result.blocked && dayPlan != null) item { StartStep(state, dayPlan, actions.onStartGuided) }
             }
         }
-        // Fase 7.15: con cobertura (la noche antes), dejar lista la próxima salida.
-        item { PrepareStep(prep, prepared, actions.onPrepare, actions.onOpenPrepared) }
+        // Fase 7.25: «Preparar la próxima salida» está en Preparar; aquí, solo el acceso.
+        item {
+            OutlinedButton(onClick = actions.onOpenPrepare, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.strategy_prepare_link)) }
+        }
     }
 }
 
@@ -349,7 +352,7 @@ private fun ReviewLines(r: OutingReview) {
 
 /** «Preparar la próxima salida»: previsión, plan de la IA y fichas, para tenerlo todo sin cobertura. */
 @Composable
-private fun PrepareStep(prep: PrepUiState, prepared: PreparedOuting?, onPrepare: () -> Unit, onOpenPrepared: () -> Unit) {
+internal fun PrepareStep(prep: PrepUiState, prepared: PreparedOuting?, onPrepare: () -> Unit, onOpenPrepared: () -> Unit) {
     CarpCard {
         Text(stringResource(R.string.prep_title), style = MaterialTheme.typography.titleMedium)
         Caption(stringResource(R.string.prep_hint))
@@ -634,66 +637,31 @@ private fun StepTitle(number: Int, title: String) {
 }
 
 /**
- * ① Embalse: desplegable con tus embalses (los que tienen puestos) y «Otro embalse…» para la
- * lista completa. Cambiar de embalse es cambiar la ubicación, como en Lugar.
- */
-@Composable
-private fun ReservoirStep(state: StrategyUiState, actions: StrategyActions) {
-    var menuOpen by remember { mutableStateOf(false) }
-    CarpCard {
-        StepTitle(1, stringResource(R.string.reservoirs_place_title))
-        Box {
-            OutlinedButton(onClick = { menuOpen = true }, modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    (state.reservoir?.reservoir?.name ?: stringResource(R.string.strategy_place_no_reservoir)) + " ▾",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                state.myReservoirs.forEach { (reservoir, count) ->
-                    DropdownMenuItem(
-                        text = {
-                            Column {
-                                Text(reservoir.name)
-                                Caption(pluralStringResource(R.plurals.strategy_place_spots_count, count, count))
-                            }
-                        },
-                        onClick = {
-                            menuOpen = false
-                            if (reservoir.id != state.reservoir?.reservoir?.id) actions.onChooseReservoir(reservoir)
-                        },
-                    )
-                }
-                if (state.myReservoirs.isNotEmpty()) HorizontalDivider()
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.strategy_place_other)) },
-                    onClick = {
-                        menuOpen = false
-                        actions.onOpenReservoirs()
-                    },
-                )
-            }
-        }
-        state.reservoir?.takeIf { it.sheet == null && !it.isBrovales }?.let {
-            Caption(stringResource(R.string.advice_no_sheet))
-            TextButton(onClick = actions.onOpenReservoir) { Text(stringResource(R.string.reservoir_sheet_open)) }
-        }
-    }
-}
-
-/**
- * ② Puesto y cañas: la recomendación (de la IA si ya ha contestado para lo elegido; si no, de la
- * app) con su porqué y un botón para cambiarte; tus puestos del embalse y cuántas cañas.
+ * ① Dónde (fase 7.25): embalse y puesto elegidos, la recomendación (de la IA si ya ha contestado
+ * para lo elegido; si no, de la app) con su porqué y «Pescar en …». Se cambian en Preparar.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SpotStep(state: StrategyUiState, dayPlan: DayPlan?, aiBest: AiSpotPick?, actions: StrategyActions) {
     val cs = MaterialTheme.colorScheme
     CarpCard {
-        StepTitle(2, stringResource(R.string.guided_start_spot))
+        StepTitle(1, stringResource(R.string.strategy_where_title))
+        val reservoirName = state.reservoir?.reservoir?.name ?: stringResource(R.string.strategy_place_no_reservoir)
+        val chosen = state.spots.firstOrNull { it.id == state.chosenSpotId }
+        Text(
+            when {
+                chosen != null -> stringResource(R.string.strategy_where_line, reservoirName, chosen.name)
+                state.spots.isNotEmpty() -> stringResource(R.string.strategy_where_line, reservoirName, stringResource(R.string.strategy_place_auto))
+                else -> reservoirName
+            },
+            style = MaterialTheme.typography.titleMedium,
+        )
+        state.reservoir?.takeIf { it.sheet == null && !it.isBrovales }?.let {
+            Caption(stringResource(R.string.advice_no_sheet))
+            TextButton(onClick = actions.onOpenReservoir) { Text(stringResource(R.string.reservoir_sheet_open)) }
+        }
         if (state.spots.isEmpty()) {
             Caption(stringResource(R.string.strategy_place_no_spots))
-            TextButton(onClick = actions.onOpenSpots) { Text(stringResource(R.string.spots_open)) }
         } else {
             val appBest = state.advice?.spots?.firstOrNull()
             val aiSpot = aiBest?.let { b -> state.spots.firstOrNull { it.name.trim().equals(b.spotName.trim(), ignoreCase = true) } }
@@ -711,14 +679,9 @@ private fun SpotStep(state: StrategyUiState, dayPlan: DayPlan?, aiBest: AiSpotPi
                     OutlinedButton(onClick = { actions.onChooseSpot(recommended.id) }) { Text(stringResource(R.string.strategy_ai_best_use, recommended.name)) }
                 }
             }
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                FilterChip(selected = state.chosenSpotId == null, onClick = { actions.onChooseSpot(null) }, label = { Text(stringResource(R.string.strategy_place_auto)) })
-                state.spots.forEach { spot ->
-                    FilterChip(selected = state.chosenSpotId == spot.id, onClick = { actions.onChooseSpot(spot.id) }, label = { Text(spot.name) })
-                }
-            }
             if (state.chosenSpotId == null) dayPlan?.spot?.let { Caption(stringResource(R.string.strategy_auto_spot, it.spot.name)) }
         }
+        OutlinedButton(onClick = actions.onOpenPrepare, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.strategy_where_change)) }
     }
 }
 
@@ -738,7 +701,7 @@ private fun PlanStep(
     val cs = MaterialTheme.colorScheme
     val res = LocalContext.current.resources
     CarpCard {
-        StepTitle(4, if (advice.deferred) stringResource(R.string.strategy_plan_title_next, Formatting.clock(advice.forTime)) else stringResource(R.string.strategy_plan_title))
+        StepTitle(3, if (advice.deferred) stringResource(R.string.strategy_plan_title_next, Formatting.clock(advice.forTime)) else stringResource(R.string.strategy_plan_title))
         // Mejor rato (las condiciones están arriba, en su tarjeta).
         state.result?.evaluatedAt?.let { now ->
             nextWindow(state.windows, now)?.let { w ->
@@ -956,7 +919,7 @@ private fun durationText(d: Duration): String {
 private fun TodayGearStep(state: StrategyUiState, actions: StrategyActions) {
     val res = LocalContext.current.resources
     CarpCard {
-        StepTitle(3, stringResource(R.string.strategy_today_gear_title))
+        StepTitle(2, stringResource(R.string.strategy_today_gear_title))
         val myRods = state.allGear.filter { it.category == GearCategory.ROD }
         if (myRods.isNotEmpty()) {
             val rods = state.rodSetups.joinToString(", ") { r -> listOf(r.name, res.rodKindLabel(r.kind, r.lengthM)).filter { it.isNotBlank() }.joinToString(" · ") }
