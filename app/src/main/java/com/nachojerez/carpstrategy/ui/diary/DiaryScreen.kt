@@ -28,8 +28,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -214,11 +216,15 @@ private fun DiaryList(
                 item { SectionTitle(stringResource(R.string.diary_accuracy_title), subtitle = stringResource(R.string.diary_accuracy_subtitle)) }
                 item { AccuracyCard(state) }
             }
+            item { SectionTitle(stringResource(R.string.diary_backup_title), subtitle = stringResource(R.string.diary_export_hint)) }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                // Copias de seguridad agrupadas en una tarjeta: el diario y, aparte, las fotos.
+                CarpCard {
+                    Text(stringResource(R.string.diary_backup_sessions), style = MaterialTheme.typography.titleSmall)
                     OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.diary_export)) }
                     TextButton(onClick = onRestore, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.diary_restore)) }
-                    Caption(stringResource(R.string.diary_export_hint))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Text(stringResource(R.string.diary_backup_photos), style = MaterialTheme.typography.titleSmall)
                     OutlinedButton(onClick = onExportPhotos, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.diary_photos_export)) }
                     TextButton(onClick = onRestorePhotos, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.diary_photos_restore)) }
                     Caption(stringResource(R.string.diary_photos_hint))
@@ -240,25 +246,29 @@ private fun DiaryList(
 private fun MonthSummary(state: DiaryUiState) {
     val month = state.month?.let { MONTH.format(it) }.orEmpty()
     val s = state.monthSummary
-    CarpCard {
+    val cs = MaterialTheme.colorScheme
+    // Tono cálido de «diario» (arcilla `secondary`), solo en esta pestaña: es tu cuaderno, no un dato del tiempo.
+    CarpCard(containerColor = cs.secondaryContainer) {
         Row(Modifier.fillMaxWidth()) {
-            Stat("${s.sessions}", stringResource(R.string.diary_stat_sessions, month), Modifier.weight(1f))
-            Stat(Formatting.number(s.rodHours, 0), stringResource(R.string.diary_stat_rod_hours), Modifier.weight(1f))
-            Stat("${s.catches}", stringResource(R.string.diary_stat_catches), Modifier.weight(1f))
-            Stat("${s.blanks}", stringResource(R.string.diary_stat_blanks), Modifier.weight(1f))
+            Stat("${s.sessions}", stringResource(R.string.diary_stat_sessions, month), Modifier.weight(1f), cs.onSecondaryContainer)
+            Stat(Formatting.number(s.rodHours, 0), stringResource(R.string.diary_stat_rod_hours), Modifier.weight(1f), cs.onSecondaryContainer)
+            Stat("${s.catches}", stringResource(R.string.diary_stat_catches), Modifier.weight(1f), cs.onSecondaryContainer)
+            Stat("${s.blanks}", stringResource(R.string.diary_stat_blanks), Modifier.weight(1f), cs.onSecondaryContainer)
         }
         Caption(
             s.catchesPerRodHour?.let { stringResource(R.string.diary_rate, Formatting.number(it, 2)) }
                 ?: stringResource(R.string.diary_rate_none),
+            color = cs.onSecondaryContainer,
         )
     }
 }
 
 @Composable
-private fun Stat(value: String, label: String, modifier: Modifier = Modifier) {
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.headlineMedium)
-        Caption(label)
+private fun Stat(value: String, label: String, modifier: Modifier = Modifier, color: Color = Color.Unspecified) {
+    // Número y etiqueta se leen juntos con TalkBack («3 sesiones»), no como dos elementos sueltos.
+    Column(modifier.semantics(mergeDescendants = true) {}, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, style = MaterialTheme.typography.headlineMedium, color = color)
+        if (color == Color.Unspecified) Caption(label) else Caption(label, color = color)
     }
 }
 
@@ -301,8 +311,8 @@ private fun SessionCard(session: Session, onClick: () -> Unit) {
             when {
                 session.catches.isNotEmpty() -> Pill(
                     pluralCatches(session.catches.size),
-                    cs.primaryContainer,
-                    cs.onPrimaryContainer,
+                    cs.secondaryContainer,
+                    cs.onSecondaryContainer,
                 )
                 session.isBlank -> Pill(stringResource(R.string.diary_blank), cs.surfaceVariant, cs.onSurfaceVariant)
                 else -> Pill(stringResource(R.string.diary_no_result), CarpTheme.colors.warnContainer, CarpTheme.colors.onWarnContainer)
@@ -329,7 +339,6 @@ private fun SessionCard(session: Session, onClick: () -> Unit) {
     }
 }
 
-/** Capturas por hora-caña según lo que dijo la app antes: ¿acierta con tus datos? */
 /**
  * ¿Acierta la app? (fase 7.16, §10): capturas y picadas por hora-caña con su intervalo (no un
  * ranking) según la valoración previa, y un veredicto solo con ~10 sesiones a cada lado.

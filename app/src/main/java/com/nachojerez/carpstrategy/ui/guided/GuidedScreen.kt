@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -37,6 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -154,7 +157,7 @@ fun GuidedScreen(
                     val res = LocalContext.current.resources
                     Text(stringResource(R.string.guided_which_rod), style = MaterialTheme.typography.titleSmall)
                     // FlowRow: con nombres largos, las cañas bajan de línea en vez de salirse de la pantalla.
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                         rods.forEach { r ->
                             FilterChip(selected = rod?.id == r.id, onClick = { selectedRod = r.id }, label = { Text(res.rodLabel(r.id, r.name)) })
                         }
@@ -295,7 +298,7 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots:
             state.rodSetups.forEach { r -> Text(listOf(r.name, res.rodKindLabel(r.kind, r.lengthM)).filter { it.isNotBlank() }.joinToString(" · ")) }
             Caption(stringResource(R.string.guided_rods_from_gear))
         } else {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 (1..GuidedSessions.MAX_RODS).forEach { n -> FilterChip(selected = rods == n, onClick = { rods = n }, label = { Text("$n") }) }
             }
             Text(stringResource(R.string.guided_rods_names), style = MaterialTheme.typography.titleSmall)
@@ -314,7 +317,7 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots:
         if (state.spots.isEmpty()) {
             Caption(stringResource(R.string.guided_start_spot_none))
         } else {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 state.spots.forEach { s ->
                     FilterChip(
                         selected = spotId == s.id,
@@ -329,13 +332,13 @@ private fun StartCard(state: GuidedUiState, onOpenGear: () -> Unit, onOpenSpots:
         }
         TextButton(onClick = onOpenSpots) { Text(stringResource(R.string.spots_open)) }
         Text(stringResource(R.string.guided_zone), style = MaterialTheme.typography.titleSmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             FishingZone.entries.forEach { z ->
                 FilterChip(selected = zone == z, onClick = { zone = if (zone == z) null else z }, label = { Text(stringResource(z.zoneLabelRes())) })
             }
         }
         Text(stringResource(R.string.guided_groundbait_start), style = MaterialTheme.typography.titleSmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             GroundbaitLevel.entries.forEach { g ->
                 FilterChip(selected = groundbait == g, onClick = { groundbait = if (groundbait == g) null else g }, label = { Text(stringResource(g.titleRes())) })
             }
@@ -383,8 +386,17 @@ private fun HeaderCard(
     var conditionsOpen by rememberSaveable { mutableStateOf(false) }
     val elapsed = Duration.between(session.start, state.now).coerceAtLeast(Duration.ZERO)
     CarpCard(containerColor = cs.primaryContainer) {
+        // El tiempo pescando, grande: se mira de un vistazo con el móvil en la mano y al sol.
+        val clock = "${elapsed.toHours()}:${(elapsed.toMinutes() % 60).toString().padStart(2, '0')}"
+        val spoken = stringResource(R.string.guided_elapsed_spoken, clock)
         Text(
-            stringResource(R.string.guided_elapsed, Formatting.clock(session.start), "${elapsed.toHours()}:${(elapsed.toMinutes() % 60).toString().padStart(2, '0')}"),
+            clock,
+            style = MaterialTheme.typography.displaySmall,
+            color = cs.onPrimaryContainer,
+            modifier = Modifier.semantics { contentDescription = spoken },
+        )
+        Text(
+            stringResource(R.string.guided_elapsed, Formatting.clock(session.start)),
             style = MaterialTheme.typography.titleMedium,
             color = cs.onPrimaryContainer,
         )
@@ -435,7 +447,7 @@ private fun WeatherCard(spot: Spot?, report: WeatherReport?, onAnswer: (WeatherQ
             when (report.question) {
                 WeatherQuestion.RAIN -> {
                     Text(stringResource(R.string.guided_weather_ask_rain_short), style = MaterialTheme.typography.titleSmall)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                         OutlinedButton(onClick = { onAnswer(WeatherQuestion.RAIN, true, false) }) { Text(stringResource(R.string.guided_weather_rain_yes_light)) }
                         OutlinedButton(onClick = { onAnswer(WeatherQuestion.RAIN, true, true) }) { Text(stringResource(R.string.guided_weather_rain_yes_heavy)) }
                         OutlinedButton(onClick = { onAnswer(WeatherQuestion.RAIN, false, false) }) { Text(stringResource(R.string.guided_weather_no)) }
@@ -537,7 +549,7 @@ private fun ConditionsDialog(active: Set<FieldCondition>, onToggle: (FieldCondit
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 Caption(stringResource(R.string.guided_conditions_hint))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     FieldCondition.entries.forEach { c ->
                         val on = c in active
                         FilterChip(selected = on, onClick = { onToggle(c, !on) }, label = { Text(stringResource(c.titleRes())) })
@@ -581,7 +593,7 @@ private fun ProposalCard(rod: RodUi, showRod: Boolean, proposal: Proposal, phase
             title = { Text(stringResource(R.string.guided_reject_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                         RejectReason.entries.forEach { r ->
                             FilterChip(selected = reason == r, onClick = { reason = r }, label = { Text(stringResource(r.titleRes())) })
                         }
@@ -652,20 +664,20 @@ private fun RegisterCard(rod: RodUi, onCheckIn: (CheckInDraft) -> Unit) {
     CarpCard {
         Text(stringResource(R.string.guided_register_title), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.guided_signals), style = MaterialTheme.typography.titleSmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             SignalLevel.entries.forEach { s -> FilterChip(selected = signals == s, onClick = { signals = s }, label = { Text(stringResource(s.titleRes())) }) }
         }
         Caption(stringResource(R.string.guided_signal_hint))
         Text(stringResource(R.string.guided_seen_at), style = MaterialTheme.typography.titleSmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             ActivityPlace.entries.forEach { p -> FilterChip(selected = seenAt == p, onClick = { seenAt = if (seenAt == p) null else p }, label = { Text(stringResource(p.titleRes())) }) }
         }
         Text(stringResource(R.string.guided_jumps), style = MaterialTheme.typography.titleSmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             JumpCount.entries.forEach { j -> FilterChip(selected = jumps == j, onClick = { jumps = if (jumps == j) null else j }, label = { Text(stringResource(j.titleRes())) }) }
         }
         Text(stringResource(R.string.guided_bait_state), style = MaterialTheme.typography.titleSmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             BaitState.entries.forEach { b -> FilterChip(selected = bait == b, onClick = { bait = b }, label = { Text(stringResource(b.titleRes())) }) }
         }
         Text(stringResource(R.string.guided_activity), style = MaterialTheme.typography.titleSmall)
@@ -680,7 +692,8 @@ private fun RegisterCard(rod: RodUi, onCheckIn: (CheckInDraft) -> Unit) {
         }
         Button(
             onClick = { send(CheckInDraft(notWorking = true)) },
-            modifier = Modifier.fillMaxWidth(),
+            // Más alto que el resto: se pulsa con las manos mojadas o con guantes.
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = CarpTheme.colors.warnStrong),
         ) { Text(stringResource(R.string.guided_not_working)) }
         Caption(stringResource(R.string.guided_not_working_hint))
@@ -721,7 +734,7 @@ private fun <T> ChoiceDialog(title: String, options: List<Pair<T, String>>, onPi
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 options.forEach { (value, label) ->
                     FilterChip(selected = false, onClick = {
                         onPick(value)
