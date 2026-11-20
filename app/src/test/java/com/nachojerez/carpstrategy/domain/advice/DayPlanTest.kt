@@ -134,7 +134,7 @@ class DayPlanTest {
         assertEquals(1.5..4.0, fixed.weightRange)
         // La fija lleva una de tus plumas (§5.9.14); la de carpfishing, no.
         assertTrue(RodRules.isOwnFloat(fixed.float!!.grams))
-        assertEquals(fixed.float!!.grams, fixed.shownWeightG)
+        assertEquals(fixed.float.grams, fixed.shownWeightG)
         assertTrue(plan.contingencies.any { it.kind == Contingency.FLOAT_SHY_BITES || it.kind == Contingency.FLOAT_DRIFT })
         val carp = plan.rods[2]
         // La 3.ª caña probaría zig, pero en carpfishing se pesca siempre a fondo.
