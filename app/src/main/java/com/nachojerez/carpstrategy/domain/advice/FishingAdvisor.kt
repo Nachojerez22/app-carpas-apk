@@ -98,7 +98,26 @@ data class FishingAdvice(
     val chosen: SpotPick? = null,
     /** Otro puesto que hoy encaja claramente mejor que el elegido (solo se avisa, no se impone). */
     val better: SpotPick? = null,
-)
+    /** El tiempo de la hora para elegir la pluma de las fijas (§5.9.14). */
+    val floatWeather: FloatWeather = FloatWeather(),
+) {
+    /** Pluma para una fija en [spot] con [column] (null si no tienes plumas). */
+    fun floatFor(spot: SpotPick?, column: Column): FloatChoice? = FloatChooser.choose(
+        FloatInput(
+            depthM = spot?.spot?.depthM,
+            depthBand = depth,
+            column = column,
+            windKmh = floatWeather.windKmh,
+            gustKmh = floatWeather.gustKmh,
+            wind = spot?.wind,
+            waterC = floatWeather.waterC,
+            smallFish = species.selective,
+        ),
+    )
+}
+
+/** Agua, viento y rachas de la hora del consejo: lo que mueve la pluma. */
+data class FloatWeather(val waterC: Double? = null, val windKmh: Double? = null, val gustKmh: Double? = null)
 
 /**
  * Recomendación concreta para pescar más (fase 7.5): cebo, presentación, puesto, distancia,
@@ -156,6 +175,7 @@ object FishingAdvisor {
             experience = exp,
             chosen = chosen,
             better = chosen?.let { better(it, spots) },
+            floatWeather = FloatWeather(input.waterC, input.windKmh, input.gustKmh),
         )
     }
 

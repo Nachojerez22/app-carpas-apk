@@ -1,8 +1,5 @@
 package com.nachojerez.carpstrategy.ui.strategy
 
-import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.material3.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +22,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -42,6 +40,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -53,6 +53,8 @@ import com.nachojerez.carpstrategy.domain.advice.ContingencyLine
 import com.nachojerez.carpstrategy.domain.advice.DayPlan
 import com.nachojerez.carpstrategy.domain.advice.DayPlans
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
+import com.nachojerez.carpstrategy.domain.advice.FloatChoice
+import com.nachojerez.carpstrategy.domain.advice.FloatReason
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmount
 import com.nachojerez.carpstrategy.domain.advice.PlanSource
 import com.nachojerez.carpstrategy.domain.advice.RodLine
@@ -67,6 +69,7 @@ import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
 import com.nachojerez.carpstrategy.domain.guided.GuidedSessions
 import com.nachojerez.carpstrategy.domain.guided.RodKind
+import com.nachojerez.carpstrategy.domain.guided.RodRules
 import com.nachojerez.carpstrategy.domain.guided.StepKind
 import com.nachojerez.carpstrategy.domain.guided.WindRelation
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
@@ -103,8 +106,8 @@ import com.nachojerez.carpstrategy.ui.theme.CarpTheme
 import com.nachojerez.carpstrategy.ui.theme.EvidenceKind
 import com.nachojerez.carpstrategy.ui.theme.Spacing
 import java.time.Duration
-import java.time.temporal.ChronoUnit
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun StrategyScreen(
@@ -911,6 +914,7 @@ internal fun RodLineRow(r: RodLine, planSpot: String?) {
                     ?: r.proven?.let { stringResource(R.string.advice_bait_proven, it.catches, it.sessions) }
                     ?: stringResource(R.string.strategy_rod_why_app, stringResource(r.depth.titleRes()), stringResource(r.distance.titleRes()))
                 Caption(why)
+                r.float?.let { f -> Caption(floatWhyText(f, r.weightG)) }
                 if (r.baitName == null && r.source == PlanSource.APP) Caption(stringResource(R.string.advice_bait_not_in_gear))
             } else {
                 Caption(stringResource(R.string.strategy_rod_why_show))
@@ -920,12 +924,52 @@ internal fun RodLineRow(r: RodLine, planSpot: String?) {
     }
 }
 
-/** «flotador de 3–4 g» o «plomo de 60 g» (el de la IA o tu rango); null sin tipo de caña. */
+/**
+ * «pluma de 2,4 g» (la de la IA o la que propone la app, §5.9.14) o «plomo de 60 g» (el de la IA
+ * o tu rango); null sin tipo de caña.
+ */
 @Composable
 private fun weightText(r: RodLine): String? {
     val range = r.weightRange ?: return null
-    val grams = r.weightG?.let { Formatting.number(it, 0) } ?: "${range.first}–${range.last}"
+    val grams = r.shownWeightG?.let { gramsText(it) } ?: "${gramsText(range.start)}–${gramsText(range.endInclusive)}"
     return stringResource(if (r.setup?.kind == RodKind.FIXED) R.string.strategy_rod_float else R.string.strategy_rod_lead, grams)
+}
+
+/** «3», «2,4»: los gramos sin decimales si son enteros. */
+internal fun gramsText(g: Double): String = Formatting.number(g, if (g % 1.0 == 0.0) 0 else 1)
+
+/** Por qué esa pluma, en una frase: «Pluma de 2,4 g: 2 m de fondo, viento de cara. Desconfiadas: 1,8 g; si deriva: 3 g.» */
+@Composable
+internal fun floatWhyText(f: FloatChoice, aiGrams: Double?): String {
+    val res = LocalContext.current.resources
+    // A media agua manda la columna, no el fondo.
+    val offBottom = FloatReason.OFF_BOTTOM in f.reasons
+    val why = f.reasons.filter { !offBottom || (it != FloatReason.DEPTH && it != FloatReason.DEPTH_BAND) }
+        .joinToString(", ") { res.getString(it.titleRes()) }
+    val head = if (aiGrams != null && kotlin.math.abs(aiGrams - f.grams) > RodRules.FLOAT_TOLERANCE_G) {
+        stringResource(R.string.strategy_float_app_differs, gramsText(f.grams))
+    } else {
+        stringResource(R.string.strategy_float_why, gramsText(f.grams))
+    }
+    return listOfNotNull(
+        "$head $why.",
+        f.lighter?.let { stringResource(R.string.strategy_float_lighter, gramsText(it)) },
+        f.heavier?.let { stringResource(R.string.strategy_float_heavier, gramsText(it)) },
+    ).joinToString(" ")
+}
+
+private fun FloatReason.titleRes(): Int = when (this) {
+    FloatReason.DEPTH -> R.string.float_reason_depth
+    FloatReason.DEPTH_BAND -> R.string.float_reason_depth_band
+    FloatReason.OFF_BOTTOM -> R.string.float_reason_off_bottom
+    FloatReason.CALM -> R.string.float_reason_calm
+    FloatReason.WIND -> R.string.float_reason_wind
+    FloatReason.WIND_FACING -> R.string.float_reason_wind_facing
+    FloatReason.SHELTERED -> R.string.float_reason_sheltered
+    FloatReason.GUSTS -> R.string.float_reason_gusts
+    FloatReason.COLD -> R.string.float_reason_cold
+    FloatReason.SMALL_FISH -> R.string.float_reason_small_fish
+    FloatReason.TOO_WINDY -> R.string.float_reason_too_windy
 }
 
 /** Qué hacer si pasa algo, en una frase. */
@@ -943,6 +987,8 @@ internal fun contingencyText(c: ContingencyLine): String {
         Contingency.CARP_UP -> stringResource(R.string.strategy_if_carp_up)
         Contingency.OTHER_SPECIES -> stringResource(if (c.step == StepKind.ANTI_CRAB) R.string.strategy_if_crab else R.string.strategy_if_other_species)
         Contingency.WIND -> c.windTip?.let { stringResource(it.titleRes()) }.orEmpty()
+        Contingency.FLOAT_SHY_BITES -> stringResource(R.string.strategy_if_float_shy, c.grams?.let { gramsText(it) }.orEmpty())
+        Contingency.FLOAT_DRIFT -> stringResource(R.string.strategy_if_float_drift, c.grams?.let { gramsText(it) }.orEmpty())
     }
 }
 

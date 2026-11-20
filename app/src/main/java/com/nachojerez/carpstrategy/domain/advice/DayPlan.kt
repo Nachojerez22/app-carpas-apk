@@ -38,11 +38,16 @@ data class RodLine(
     val source: PlanSource,
     /** La caña de Mi equipo (fase 7.20): nombre, tipo y longitud; null si eliges por número. */
     val setup: RodSetup? = null,
-    /** Gramos del flotador o del plomo que dice la IA (dentro de [weightRange]). */
+    /** Gramos del flotador o del plomo que dice la IA (una de tus plumas o dentro de [weightRange]). */
     val weightG: Double? = null,
+    /** Pluma que propone la app para la fija (§5.9.14); null en carpfishing o sin tipo. */
+    val float: FloatChoice? = null,
 ) {
     /** Flotador (fija) o plomo (carpfishing) de tu rango; null sin tipo de caña. */
-    val weightRange: IntRange? get() = RodRules.weightRange(setup?.kind)
+    val weightRange: ClosedFloatingPointRange<Double>? get() = RodRules.weightRange(setup?.kind)
+
+    /** Gramos que se muestran: los de la IA o, en la fija, la pluma de la app. */
+    val shownWeightG: Double? get() = weightG ?: float?.grams
 }
 
 /** Qué hacer si pasa algo durante la sesión (§5.9): lo mismo que propondrá la sesión guiada. */
@@ -64,6 +69,12 @@ enum class Contingency {
 
     /** Aviso práctico del viento en tu puesto ([ContingencyLine.windTip]). */
     WIND,
+
+    /** Picadas desconfiadas en la fija (la pluma tiembla o se hunde a medias): baja a [ContingencyLine.grams]. */
+    FLOAT_SHY_BITES,
+
+    /** La pluma de la fija deriva o el cebo se arrastra: sube a [ContingencyLine.grams]. */
+    FLOAT_DRIFT,
 }
 
 data class ContingencyLine(
@@ -72,6 +83,8 @@ data class ContingencyLine(
     val step: StepKind? = null,
     val windTip: WindTip? = null,
     val evidence: Evidence,
+    /** Gramos de la pluma a la que cambiar ([Contingency.FLOAT_SHY_BITES], [Contingency.FLOAT_DRIFT]). */
+    val grams: Double? = null,
 )
 
 /**
@@ -123,12 +136,13 @@ object DayPlans {
             val bait = baits.takeIf { it.isNotEmpty() }?.let { it[(rod - 1) % it.size] }
                 ?: BaitPick(BaitType.MAIZE, null, evidence = Evidence.YELLOW).takeIf { advice.baits.isNotEmpty() }
             val wanted = if (rod == 3 && advice.altColumn != null) advice.altColumn else advice.column
+            val column = columnFor(kind, wanted, advice.column)
             RodLine(
                 rod = rod,
                 spotName = spot?.spot?.name,
                 baitType = bait?.type,
                 baitName = bait?.gearName,
-                column = columnFor(kind, wanted, advice.column),
+                column = column,
                 distanceM = RodRules.clampDistance(setup, spot?.spot?.distanceM),
                 distance = advice.distance,
                 depth = advice.depth,
@@ -136,9 +150,10 @@ object DayPlans {
                 evidence = bait?.evidence ?: Evidence.YELLOW,
                 source = PlanSource.APP,
                 setup = setup,
+                float = if (kind == RodKind.FIXED) advice.floatFor(spot, column) else null,
             )
         }
-        val lines = if (ai == null) app else app.map { line -> merge(line, ai, gear) }
+        val lines = if (ai == null) app else app.map { line -> merge(line, ai, gear, advice, spot) }
         // Kilos: los que dice la IA (validados con tu medida) o los de tu medida y el nivel.
         val amount = advice.groundbait?.let { level ->
             val base = GroundbaitAmounts.amount(level, groundbaitNormalKg, count)
@@ -151,7 +166,7 @@ object DayPlans {
             }
         }
         return DayPlan(
-            spot, lines, advice.groundbait, contingencies(advice, phase, spot), ai?.summary?.takeIf { it.isNotBlank() },
+            spot, lines, advice.groundbait, contingencies(advice, phase, spot, lines), ai?.summary?.takeIf { it.isNotBlank() },
             groundbaitAmount = amount,
             aiGroundbait = ai?.groundbait?.takeIf { advice.groundbait != null },
         )
@@ -168,7 +183,7 @@ object DayPlans {
     }
 
     /** La IA manda en lo que dice; lo que no dice lo pone la app. */
-    private fun merge(line: RodLine, ai: AiPlan, gear: List<GearItem>): RodLine {
+    private fun merge(line: RodLine, ai: AiPlan, gear: List<GearItem>, advice: FishingAdvice, spot: SpotPick?): RodLine {
         val r = ai.rods.firstOrNull { it.rod == line.rod } ?: return line
         val baitItem = r.baitName?.let { name ->
             gear.firstOrNull { it.category == GearCategory.BAIT && (it.name.trim().equals(name.trim(), ignoreCase = true) || it.fullName.equals(name.trim(), ignoreCase = true)) }
@@ -181,6 +196,7 @@ object DayPlans {
             column = r.column ?: line.column,
             distanceM = r.distanceM ?: line.distanceM,
             weightG = r.weightG ?: line.weightG,
+            float = line.float?.let { f -> if (r.column != null && r.column != line.column) advice.floatFor(spot, r.column) ?: f else f },
             proven = if (r.baitName == null) line.proven else null,
             reason = r.reason.takeIf { it.isNotBlank() },
             evidence = r.evidence ?: line.evidence,
@@ -192,7 +208,7 @@ object DayPlans {
      * Lo que hará la sesión guiada si pasa algo (§5.9.2–§5.9.4, tiempos 🟣 de [GuidedEngine.THRESHOLDS])
      * y los avisos prácticos del viento en el puesto (§5.9.12).
      */
-    fun contingencies(advice: FishingAdvice, phase: FishingPhase, spot: SpotPick?): List<ContingencyLine> = buildList {
+    fun contingencies(advice: FishingAdvice, phase: FishingPhase, spot: SpotPick?, rods: List<RodLine> = emptyList()): List<ContingencyLine> = buildList {
         val th = GuidedEngine.THRESHOLDS.getValue(phase)
         val ladder = GuidedEngine.noSignalLadder(phase)
         ladder.firstOrNull { it != StepKind.ZONE }?.let { add(ContingencyLine(Contingency.NO_SIGNALS, th.step1, it, evidence = Evidence.PURPLE)) }
@@ -201,6 +217,14 @@ object DayPlans {
         if (advice.altColumn == Column.ZIG && advice.column != Column.ZIG) add(ContingencyLine(Contingency.CARP_UP, step = StepKind.COLUMN, evidence = Evidence.YELLOW))
         if (advice.species.selective || advice.species.hardBaits) {
             add(ContingencyLine(Contingency.OTHER_SPECIES, step = if (advice.species.hardBaits) StepKind.ANTI_CRAB else StepKind.SELECTIVE, evidence = Evidence.YELLOW))
+        }
+        // §5.9.14: la pluma de la fija (la primera fija del plan; con varias, cada una lleva la suya).
+        rods.firstOrNull { it.float != null }?.let { line ->
+            val shown = line.shownWeightG ?: return@let
+            val lighter = RodRules.FLOATS_G.filter { it < shown - RodRules.FLOAT_TOLERANCE_G }.maxOrNull()
+            val heavier = RodRules.FLOATS_G.filter { it > shown + RodRules.FLOAT_TOLERANCE_G }.minOrNull()
+            lighter?.let { add(ContingencyLine(Contingency.FLOAT_SHY_BITES, grams = it, evidence = Evidence.YELLOW)) }
+            heavier?.let { add(ContingencyLine(Contingency.FLOAT_DRIFT, grams = it, evidence = Evidence.YELLOW)) }
         }
         spot?.windTips?.forEach { add(ContingencyLine(Contingency.WIND, windTip = it, evidence = Evidence.YELLOW)) }
     }

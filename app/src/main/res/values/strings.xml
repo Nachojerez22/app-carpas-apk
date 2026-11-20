@@ -1330,7 +1330,7 @@
     <string name="strategy_rods_from_gear">Marca las que llevas hoy (como mucho %1$d): el plan hace una línea por caña y respeta su tipo.</string>
     <string name="strategy_rods_none_today">No has marcado ninguna caña para hoy: marca las que llevas (como mucho %1$d).</string>
     <string name="strategy_rods_add">Apuntar mis cañas (fija o carpfishing)</string>
-    <string name="strategy_rod_float">flotador de %1$s g</string>
+    <string name="strategy_rod_float">pluma de %1$s g</string>
     <string name="strategy_rod_lead">plomo de %1$s g</string>
     <string name="strategy_plan_title">Tu plan para hoy</string>
     <string name="strategy_plan_title_next">Tu plan para el amanecer (%1$s)</string>
@@ -1431,6 +1431,24 @@
     <string name="strategy_if_step_distance">cambia la distancia</string>
     <string name="strategy_if_no_signals_zone">Sigue sin nada a las %1$s: cambia de zona o de puesto.</string>
     <string name="strategy_if_signals">Pitidos o bobbins que se mueven sin picada en %1$s: cambia la presentación.</string>
+    <string name="strategy_if_float_shy">Picadas desconfiadas en la fija (la pluma tiembla, sube o se hunde a medias y no clavas): baja a la pluma de %1$s g si el viento te deja tenerla quieta.</string>
+    <string name="strategy_if_float_drift">Si la pluma de la fija deriva, se tumba con el oleaje o el cebo se arrastra: sube a la de %1$s g.</string>
+    <!-- Pluma de la fija (CONOCIMIENTO.md §5.9.14) -->
+    <string name="strategy_float_why">🟣 Pluma de %1$s g:</string>
+    <string name="strategy_float_app_differs">🟣 La app pondría la de %1$s g:</string>
+    <string name="strategy_float_lighter">Si las picadas son desconfiadas, la de %1$s g.</string>
+    <string name="strategy_float_heavier">Si deriva o no se queda quieta, la de %1$s g.</string>
+    <string name="float_reason_depth">la profundidad de tu puesto</string>
+    <string name="float_reason_depth_band">la profundidad aconsejada (sin medida en el puesto)</string>
+    <string name="float_reason_off_bottom">a media agua o arriba, para que el cebo caiga despacio</string>
+    <string name="float_reason_calm">agua en calma: la más ligera que se quede quieta</string>
+    <string name="float_reason_wind">viento y deriva</string>
+    <string name="float_reason_wind_facing">el viento te da de cara (oleaje)</string>
+    <string name="float_reason_sheltered">orilla resguardada del viento</string>
+    <string name="float_reason_gusts">rachas fuertes</string>
+    <string name="float_reason_cold">agua fría: carpas poco activas y picadas finas</string>
+    <string name="float_reason_small_fish">peces pequeños activos: que el cebo baje rápido</string>
+    <string name="float_reason_too_windy">ni con la de 4 g se quedará quieta: busca resguardo o la fija más corta</string>
     <string name="strategy_if_carp_up">Si ves carpas arriba con calor: prueba una caña en zig.</string>
     <string name="strategy_if_crab">Si el cebo vuelve comido (cangrejo u otras especies): cebo duro o protegido.</string>
     <string name="strategy_if_other_species">Si pican otras especies: cebo más grande y selectivo.</string>

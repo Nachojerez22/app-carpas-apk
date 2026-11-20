@@ -6,6 +6,8 @@ import com.nachojerez.carpstrategy.domain.advice.ContingencyLine
 import com.nachojerez.carpstrategy.domain.advice.DayPlan
 import com.nachojerez.carpstrategy.domain.advice.DepthBand
 import com.nachojerez.carpstrategy.domain.advice.DistanceBand
+import com.nachojerez.carpstrategy.domain.advice.FloatChoice
+import com.nachojerez.carpstrategy.domain.advice.FloatReason
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmount
 import com.nachojerez.carpstrategy.domain.advice.PlanSource
 import com.nachojerez.carpstrategy.domain.advice.RodLine
@@ -18,11 +20,11 @@ import com.nachojerez.carpstrategy.domain.derived.WaterTempSource
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
-import com.nachojerez.carpstrategy.domain.guided.Spot
-import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.guided.RodKind
 import com.nachojerez.carpstrategy.domain.guided.RodSetup
+import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.StepKind
+import com.nachojerez.carpstrategy.domain.journal.FishingZone
 import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.domain.rules.FavorabilityBand
 import com.nachojerez.carpstrategy.domain.rules.RuleLevel
@@ -259,6 +261,18 @@ object PreparedOutingJson {
         @SerialName("tipo_cana") val rodKind: String? = null,
         @SerialName("longitud_m") val rodLengthM: Int? = null,
         @SerialName("peso_g") val weightG: Double? = null,
+        /** Pluma de la app para la fija (§5.9.14). */
+        @SerialName("pluma") val float: FloatDto? = null,
+    )
+
+    @Serializable
+    data class FloatDto(
+        @SerialName("g") val grams: Double,
+        @SerialName("mas_ligera_g") val lighter: Double? = null,
+        @SerialName("mas_pesada_g") val heavier: Double? = null,
+        @SerialName("ideal_g") val targetG: Double,
+        @SerialName("motivos") val reasons: List<String> = emptyList(),
+        @SerialName("evidencia") val evidence: String,
     )
 
     @Serializable
@@ -304,6 +318,7 @@ object PreparedOutingJson {
         @SerialName("paso") val step: String? = null,
         @SerialName("viento") val windTip: String? = null,
         @SerialName("evidencia") val evidence: String,
+        @SerialName("pluma_g") val grams: Double? = null,
     )
 
     @Serializable
@@ -341,6 +356,7 @@ object PreparedOutingJson {
                 r.rod, r.spotName, r.baitType?.name, r.baitName, r.rigName, r.column.name, r.distanceM, r.distance.name, r.depth.name,
                 r.proven?.let { ProvenDto(it.value, it.rodHours, it.catches, it.sessions) }, r.reason, r.evidence.name, r.source.name,
                 r.setup?.name, r.setup?.kind?.name, r.setup?.lengthM, r.weightG,
+                r.float?.let { f -> FloatDto(f.grams, f.lighter, f.heavier, f.targetG, f.reasons.map { it.name }, f.evidence.name) },
             )
         },
         planSource = planSource?.name,
@@ -350,7 +366,7 @@ object PreparedOutingJson {
         groundbaitAmount = groundbaitAmount?.let { AmountDto(it.level.name, it.perRodKg, it.totalKg, it.initialPerRodKg, it.rebaitPerRodKg) },
         aiGroundbait = aiGroundbait?.let { g -> MixDto(g.mix.map { PartDto(it.baitName, it.parts) }, g.perRodKg, g.rebait, g.reason, g.evidence?.name) },
         aiTips = aiTips.map { TipDto(it.field?.name, it.text, it.evidence?.name) },
-        contingencies = contingencies.map { ContingencyDto(it.kind.name, it.after?.toMinutes(), it.step?.name, it.windTip?.name, it.evidence.name) },
+        contingencies = contingencies.map { ContingencyDto(it.kind.name, it.after?.toMinutes(), it.step?.name, it.windTip?.name, it.evidence.name, it.grams) },
         result = ResultDto(result.forecastOk, result.plan.name, result.planDetail, result.sheetsImproved, result.sheetsPending),
         reservoirId = reservoirId,
         spotId = spotId,
@@ -400,6 +416,9 @@ object PreparedOutingJson {
                     source = enumOrNull<PlanSource>(r.source) ?: PlanSource.APP,
                     setup = if (r.rodName != null || r.rodKind != null) RodSetup(r.rodName.orEmpty(), enumOrNull<RodKind>(r.rodKind), r.rodLengthM) else null,
                     weightG = r.weightG,
+                    float = r.float?.let { f ->
+                        FloatChoice(f.grams, f.lighter, f.heavier, f.targetG, f.reasons.mapNotNull { enumOrNull<FloatReason>(it) }, enumOrNull<Evidence>(f.evidence) ?: Evidence.PURPLE)
+                    },
                 )
             },
             planSource = enumOrNull<PlanSource>(planSource),
@@ -420,6 +439,7 @@ object PreparedOutingJson {
                     step = enumOrNull<StepKind>(c.step),
                     windTip = enumOrNull<WindTip>(c.windTip),
                     evidence = enumOrNull<Evidence>(c.evidence) ?: Evidence.PURPLE,
+                    grams = c.grams,
                 )
             },
             result = PrepResult(

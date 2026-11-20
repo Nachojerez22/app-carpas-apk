@@ -3,6 +3,7 @@ package com.nachojerez.carpstrategy.data.assistant
 import com.nachojerez.carpstrategy.domain.advice.DayPart
 import com.nachojerez.carpstrategy.domain.advice.ExperienceSummary
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
+import com.nachojerez.carpstrategy.domain.advice.FloatChoice
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmounts
 import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.advice.Stat
@@ -10,6 +11,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiKind
 import com.nachojerez.carpstrategy.domain.assistant.AiValidator
 import com.nachojerez.carpstrategy.domain.guided.BaitType
 import com.nachojerez.carpstrategy.domain.guided.CheckIn
+import com.nachojerez.carpstrategy.domain.guided.Column
 import com.nachojerez.carpstrategy.domain.guided.FieldWeather
 import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
@@ -103,7 +105,7 @@ Formato y límites (si no los cumples, la app descarta tu respuesta):
 4. La app ya controla el horario: no hables de normativa, permisos ni horario legal. No propongas horas de noche ni fuera de "horario_de_pesca".
 5. Cada motivo lleva etiqueta de evidencia en "evidencia": 🟢 demostrado, 🟡 indicio o experiencia, 🔴 sin evidencia, 🟣 hipótesis local o datos propios, 🔵 variabilidad individual.
 6. Responde en español, breve (cada texto como mucho 300 caracteres) y SOLO con el JSON pedido, sin texto alrededor.
-7. Respeta el tipo de cada caña ("tipo" en "canas" o "canas_de_hoy"). FIJA (sin carrete, de "longitud_m"): a fondo (BOTTOM), a media agua con flotador (ZIG) o en superficie (SURFACE), siempre a una distancia hasta su longitud, con flotador (pluma o boya) de 3 a 4 g y NUNCA con boilies (ni pop-up ni boilie duro); no hables del plomo de la fija: lo pone el usuario. CARPFISHING: siempre a fondo (BOTTOM o POPUP, nunca ZIG ni SURFACE), de 7 a 100 m, con plomo de 40 a 90 g; vale cualquier cebo, también maíz. En los textos puedes citar el flotador o el plomo en gramos («flotador de 3 g», «pluma de 4 g», «plomo de 60 g») dentro de esos rangos.
+7. Respeta el tipo de cada caña ("tipo" en "canas" o "canas_de_hoy"). FIJA (sin carrete, de "longitud_m"): a fondo (BOTTOM), a media agua con flotador (ZIG) o en superficie (SURFACE), siempre a una distancia hasta su longitud, con una de sus plumas ("plumas_que_tienes_g": 1,5 · 1,8 · 2,4 · 3 · 3,4 · 4 g) y NUNCA con boilies (ni pop-up ni boilie duro); no hables del plomo de la fija: lo pone el usuario. CARPFISHING: siempre a fondo (BOTTOM o POPUP, nunca ZIG ni SURFACE), de 7 a 100 m, con plomo de 40 a 90 g; vale cualquier cebo, también maíz. Para la pluma de cada fija di en "peso_g" una de "plumas_que_tienes_g" (§5.9.14): la más ligera que mantenga el cebo quieto; más pesada con más fondo, viento, oleaje de cara, deriva o peces pequeños activos; más ligera a media agua o en superficie, con calma y con agua fría o carpas poco activas (picadas desconfiadas). Parte de "recomendacion_de_la_app.pluma_fija_a_fondo" y cámbiala solo si tienes un motivo y dilo. En los textos puedes citar la pluma o el plomo en gramos («pluma de 2,4 g», «flotador de 3 g», «plomo de 60 g»): la pluma, solo una de las que tiene; el plomo, dentro de su rango.
 """
 
     val CHECK_IN_SYSTEM = RULES + """
@@ -467,7 +469,20 @@ Normas (si no las cumples, la app descarta la respuesta):
                 put("cebado", a.groundbait?.name ?: "NO_SE_PUEDE_CEBAR")
                 if (a.groundbaitDoubt) put("cebado_por_confirmar", true)
                 putJsonArray("puestos_ordenados") { a.spots.take(MAX_STATS).forEach { add(it.spot.name) } }
+                // §5.9.14: la pluma que pondría la app en una fija a fondo (y a media agua si hay zig).
+                val spot = a.chosen ?: a.spots.firstOrNull()
+                a.floatFor(spot, Column.BOTTOM)?.let { f -> floatJson("pluma_fija_a_fondo", f) }
+                if (a.altColumn == Column.ZIG || a.column == Column.ZIG) a.floatFor(spot, Column.ZIG)?.let { f -> floatJson("pluma_fija_media_agua", f) }
             }
+        }
+    }
+
+    private fun JsonObjectBuilder.floatJson(key: String, f: FloatChoice) {
+        putJsonObject(key) {
+            put("g", f.grams)
+            f.lighter?.let { put("si_picadas_desconfiadas_g", it) }
+            f.heavier?.let { put("si_deriva_g", it) }
+            putJsonArray("motivos") { f.reasons.forEach { add(it.name) } }
         }
     }
 
@@ -610,8 +625,10 @@ Normas (si no las cumples, la app descarta la respuesta):
             put("distancia_min_m", d.start)
             put("distancia_max_m", d.endInclusive)
         }
-        RodRules.weightRange(kind)?.let { w ->
-            put(if (kind == RodKind.FIXED) "flotador_g" else "plomo_g", "${w.first}-${w.last}")
+        if (kind == RodKind.FIXED) {
+            putJsonArray("plumas_que_tienes_g") { RodRules.FLOATS_G.forEach { add(it) } }
+        } else {
+            RodRules.weightRange(kind)?.let { w -> put("plomo_g", "${w.start.toInt()}-${w.endInclusive.toInt()}") }
         }
         put("boilies", RodRules.baitAllowed(kind, BaitType.BOILIE))
     }
