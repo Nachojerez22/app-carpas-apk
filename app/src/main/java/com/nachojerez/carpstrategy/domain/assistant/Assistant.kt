@@ -16,6 +16,7 @@ import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GuidedEngine
 import com.nachojerez.carpstrategy.domain.guided.Proposal
 import com.nachojerez.carpstrategy.domain.guided.ProposalSource
+import com.nachojerez.carpstrategy.domain.guided.RodKind
 import com.nachojerez.carpstrategy.domain.guided.RodRules
 import com.nachojerez.carpstrategy.domain.guided.RodSetup
 import com.nachojerez.carpstrategy.domain.guided.Situation
@@ -222,7 +223,7 @@ enum class AiIssue {
     /** No respeta el tipo de caña (fase 7.20): boilies en la fija o carpfishing fuera del fondo. */
     ROD_RULES,
 
-    /** Flotador o plomo fuera de tu rango (fija 3–4 g, carpfishing 40–90 g). */
+    /** Pluma que no tienes (fija: 1,5 · 1,8 · 2,4 · 3 · 3,4 · 4 g) o plomo fuera de 40–90 g. */
     WEIGHT_OUT_OF_RANGE,
 }
 
@@ -296,10 +297,10 @@ object AiValidator {
     private fun tackleWeightIssue(text: String): Boolean = TACKLE_WEIGHT.findAll(text).any { m ->
         val g = m.groupValues
         val float = (g[1].ifEmpty { g[5] }).lowercase().let { it.startsWith("flotador") || it.startsWith("pluma") || it.startsWith("boya") }
-        val range = if (float) RodRules.FLOAT_MIN_G..RodRules.FLOAT_MAX_G else RodRules.LEAD_MIN_G..RodRules.LEAD_MAX_G
         listOf(g[2], g[3], g[4]).filter { it.isNotEmpty() }.any { v ->
             val grams = v.replace(',', '.').toDoubleOrNull() ?: return@any true
-            grams < range.first || grams > range.last
+            // Pluma: solo las que tienes (§5.9.14); plomo: dentro de su rango.
+            if (float) !RodRules.isOwnFloat(grams) else grams !in RodRules.LEAD_MIN_G..RodRules.LEAD_MAX_G
         }
     }
 
@@ -400,7 +401,13 @@ object AiValidator {
             val setup = ctx.rodSetups[r.rod]
             val range = RodRules.distanceRange(setup?.kind, setup?.lengthM) ?: 0.0..MAX_DISTANCE_M
             r.distanceM?.let { if (it !in range) add(AiIssue.DISTANCE_OUT_OF_RANGE) }
-            r.weightG?.let { g -> RodRules.weightRange(setup?.kind)?.let { w -> if (g < w.first || g > w.last) add(AiIssue.WEIGHT_OUT_OF_RANGE) } }
+            r.weightG?.let { g ->
+                val ok = when (setup?.kind) {
+                    RodKind.FIXED -> RodRules.isOwnFloat(g)
+                    else -> RodRules.weightRange(setup?.kind)?.let { g in it } ?: true
+                }
+                if (!ok) add(AiIssue.WEIGHT_OUT_OF_RANGE)
+            }
             addAll(gearIssues(r.baitName, r.rigName, r.spotName, ctx))
             addAll(rodIssues(r.rod, r.baitName, r.rigName, r.column, ctx))
             checkText(r.reason, ctx)

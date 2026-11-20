@@ -56,6 +56,18 @@ class RodRulesAiTest {
         assertEquals(setOf(AiIssue.DISTANCE_OUT_OF_RANGE), AiValidator.validate(plan(AiRodPlan(2, distanceM = 120.0, reason = "lejos", evidence = Evidence.YELLOW)), ctx))
         assertEquals(setOf(AiIssue.WEIGHT_OUT_OF_RANGE), AiValidator.validate(plan(AiRodPlan(1, weightG = 2.0, reason = "fino", evidence = Evidence.YELLOW)), ctx))
         assertEquals(setOf(AiIssue.WEIGHT_OUT_OF_RANGE), AiValidator.validate(plan(AiRodPlan(2, weightG = 120.0, reason = "pesado", evidence = Evidence.YELLOW)), ctx))
+        // §5.9.14: en la fija, solo una de tus plumas.
+        assertTrue(AiValidator.validate(plan(AiRodPlan(1, weightG = 1.8, reason = "fino", evidence = Evidence.YELLOW)), ctx).isEmpty())
+        assertEquals(setOf(AiIssue.WEIGHT_OUT_OF_RANGE), AiValidator.validate(plan(AiRodPlan(1, weightG = 2.7, reason = "fino", evidence = Evidence.YELLOW)), ctx))
+    }
+
+    @Test
+    fun `plumas que tienes en los textos`() {
+        assertTrue(AiValidator.textIssues("Pluma de 2,4 g con calma").isEmpty())
+        assertTrue(AiValidator.textIssues("Pluma de 1,5 a 1,8 g a media agua").isEmpty())
+        assertTrue(AiValidator.textIssues("Sube a la pluma de 3,4 g").isEmpty())
+        assertEquals(setOf(AiIssue.WEIGHT_OUT_OF_RANGE), AiValidator.textIssues("Pluma de 1 g"))
+        assertEquals(setOf(AiIssue.WEIGHT_OUT_OF_RANGE), AiValidator.textIssues("Pluma de 5 g"))
     }
 
     @Test

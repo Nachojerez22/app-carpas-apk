@@ -99,7 +99,8 @@ class AssistantPromptsTest {
         assertEquals("FIJA", fixed["tipo"]!!.jsonPrimitive.content)
         assertEquals(9, fixed["longitud_m"]!!.jsonPrimitive.content.toInt())
         assertEquals("false", fixed["boilies"]!!.jsonPrimitive.content)
-        assertEquals("3-4", fixed["flotador_g"]!!.jsonPrimitive.content)
+        // §5.9.14: la IA recibe las plumas que tienes.
+        assertEquals(listOf(1.5, 1.8, 2.4, 3.0, 3.4, 4.0), fixed["plumas_que_tienes_g"]!!.jsonArray.map { it.jsonPrimitive.content.toDouble() })
         val carp = rods[1].jsonObject
         assertEquals("CARPFISHING", carp["tipo"]!!.jsonPrimitive.content)
         assertEquals(listOf("BOTTOM", "POPUP"), carp["columnas_permitidas"]!!.jsonArray.map { it.jsonPrimitive.content })

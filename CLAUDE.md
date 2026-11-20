@@ -385,6 +385,13 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `fixedChoice`/`withFixedChoice` y `AiContext.carriedRods`). `StrategyUiState.planSetups` aplica la elección; los
   nombres del plan van al ajuste local `strategy_plan_rods` (`KEY_PLAN_RODS`) y la guiada empieza con ellos (`plannedRods`).
 
+- 0.41.0, pluma de la fija (CONOCIMIENTO.md §5.9.14): `RodRules.FLOATS_G` (las plumas del usuario: 1,5 · 1,8 · 2,4 · 3 ·
+  3,4 · 4 g; `isOwnFloat`) y `domain/advice/FloatChoice.kt` (`FloatChooser.choose`: la más ligera que deja el cebo quieto;
+  sube con fondo, viento, cara, rachas y peces pequeños activos; baja a media agua, en calma y con agua fría; umbrales 🟣).
+  `FishingAdvice.floatFor(spot, column)` con `FloatWeather`; `RodLine.float` y `shownWeightG`; «Si cambia algo» con
+  `FLOAT_SHY_BITES` / `FLOAT_DRIFT` (`ContingencyLine.grams`). La IA recibe `plumas_que_tienes_g` y
+  `recomendacion_de_la_app.pluma_fija_a_fondo`; `peso_g` y los textos de la fija solo valen con una de tus plumas.
+
 ## Activar la salida preparada (fase 7.21)
 
 - `PreparedOuting` guarda `reservoirId` y `spotId` (JSON `embalse_id`, `puesto_id`; también el puesto automático).

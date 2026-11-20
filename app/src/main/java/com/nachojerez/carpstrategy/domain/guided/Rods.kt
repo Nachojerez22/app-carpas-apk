@@ -3,7 +3,8 @@ package com.nachojerez.carpstrategy.domain.guided
 /**
  * Tipo de caña (CONOCIMIENTO.md §5.9.13, decisión del usuario):
  * - [FIXED]: caña fija (sin carrete) de 9, 8, 7 o 5 m. Pesca a fondo, a media agua o en
- *   superficie con flotador de 3 a 4 g, siempre al alcance de la caña. Nunca con boilies.
+ *   superficie con pluma (flotador) de 1,5 a 4 g según el día (§5.9.14), siempre al alcance de
+ *   la caña. Nunca con boilies.
  * - [CARP]: caña de carpfishing (con carrete). Siempre a fondo (el pop-up corto también está
  *   anclado al fondo), de 7 a 100 m, con plomo de 40 a 90 g. Vale cualquier cebo.
  */
@@ -26,9 +27,19 @@ object RodRules {
     const val CARP_MIN_M = 7.0
     const val CARP_MAX_M = 100.0
 
-    /** Fija: flotador. */
-    const val FLOAT_MIN_G = 3
-    const val FLOAT_MAX_G = 4
+    /**
+     * Fija: las plumas (flotadores) que tiene el usuario, en gramos (nov. 2026, decisión del
+     * usuario). [com.nachojerez.carpstrategy.domain.advice.FloatChooser] elige una cada día.
+     */
+    val FLOATS_G: List<Double> = listOf(1.5, 1.8, 2.4, 3.0, 3.4, 4.0)
+    val FLOAT_MIN_G: Double = FLOATS_G.min()
+    val FLOAT_MAX_G: Double = FLOATS_G.max()
+
+    /** Tolerancia al comparar los gramos que dice la IA con tus plumas (3,0 = 3). */
+    const val FLOAT_TOLERANCE_G = 0.05
+
+    /** True si [grams] es una de tus plumas. */
+    fun isOwnFloat(grams: Double): Boolean = FLOATS_G.any { kotlin.math.abs(it - grams) <= FLOAT_TOLERANCE_G }
 
     /**
      * 🟣 Viento fuerte (km/h, como `viento_fuerte_oleaje` de rules.json): la app propone las fijas
@@ -37,8 +48,8 @@ object RodRules {
     const val STRONG_WIND_KMH = 15.0
 
     /** Carpfishing: plomo. */
-    const val LEAD_MIN_G = 40
-    const val LEAD_MAX_G = 90
+    const val LEAD_MIN_G = 40.0
+    const val LEAD_MAX_G = 90.0
 
     /** Cebos que no se pescan con la fija: los boilies (también el pop-up y los duros). */
     val FIXED_FORBIDDEN_BAITS: Set<BaitType> = setOf(BaitType.BOILIE, BaitType.BOILIE_HARD, BaitType.POPUP)
@@ -64,8 +75,8 @@ object RodRules {
         null -> null
     }
 
-    /** Peso del flotador (fija) o del plomo (carpfishing) en gramos. */
-    fun weightRange(kind: RodKind?): IntRange? = when (kind) {
+    /** Peso del flotador (fija: de tu pluma más ligera a la más pesada) o del plomo (carpfishing) en gramos. */
+    fun weightRange(kind: RodKind?): ClosedFloatingPointRange<Double>? = when (kind) {
         RodKind.FIXED -> FLOAT_MIN_G..FLOAT_MAX_G
         RodKind.CARP -> LEAD_MIN_G..LEAD_MAX_G
         null -> null

@@ -131,11 +131,16 @@ class DayPlanTest {
         assertEquals("Larga", fixed.setup?.name)
         assertTrue(RodRules.baitAllowed(RodKind.FIXED, fixed.baitType))
         assertEquals(7.0, fixed.distanceM)
-        assertEquals(3..4, fixed.weightRange)
+        assertEquals(1.5..4.0, fixed.weightRange)
+        // La fija lleva una de tus plumas (§5.9.14); la de carpfishing, no.
+        assertTrue(RodRules.isOwnFloat(fixed.float!!.grams))
+        assertEquals(fixed.float.grams, fixed.shownWeightG)
+        assertTrue(plan.contingencies.any { it.kind == Contingency.FLOAT_SHY_BITES || it.kind == Contingency.FLOAT_DRIFT })
         val carp = plan.rods[2]
         // La 3.ª caña probaría zig, pero en carpfishing se pesca siempre a fondo.
         assertEquals(Column.BOTTOM, carp.column)
         assertEquals(60.0, carp.distanceM)
-        assertEquals(40..90, carp.weightRange)
+        assertEquals(40.0..90.0, carp.weightRange)
+        assertNull(carp.float)
     }
 }

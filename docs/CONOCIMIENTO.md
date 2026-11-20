@@ -570,13 +570,31 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 
 > Equipo real del usuario. Son **límites del equipo**, no reglas sobre el pez: no puntúan, solo filtran lo que el plan, la sesión guiada y la IA pueden proponer en cada caña.
 
-- **Fija** (sin carrete; el usuario tiene de **9, 8, 7 y 5 m**): se pesca **a fondo, a media agua o en superficie** con **flotador (pluma o boya) de 3 a 4 g**, al alcance de la caña (distancia hasta su longitud). **Nunca con boilies** (ni pop-up ni boilie duro); sí maíz, masilla, pan, lombriz, chufa…
+- **Fija** (sin carrete; el usuario tiene de **9, 8, 7 y 5 m**): se pesca **a fondo, a media agua o en superficie** con **pluma (flotador o boya)**: el usuario tiene de **1,5 · 1,8 · 2,4 · 3 · 3,4 y 4 g** y la app le dice cuál montar cada día (§5.9.14), al alcance de la caña (distancia hasta su longitud). **Nunca con boilies** (ni pop-up ni boilie duro); sí maíz, masilla, pan, lombriz, chufa…
 - **Carpfishing** (con carrete): **siempre a fondo** (el pop-up corto está anclado al fondo y cuenta como fondo; nada de zig ni superficie), de **7 a 100 m**, con **plomo de 40 a 90 g**. Vale cualquier cebo, **también maíz**.
 - En la escalera de alternativas (§5.9.2): el peldaño «columna» de la carpfishing alterna fondo ↔ pop-up; el de la fija, con calor, fondo → media agua → superficie, y sin calor no hay peldaño de columna (sigue a fondo, §5.6). El cebo duro contra cangrejo (§5.9.1) en la fija va a fondo, sin pop-up.
 - **La caña de carpfishing se lleva siempre** y el plan siempre le dice qué hacer (también al preparar la próxima salida): cuenta como «la llevo hoy» aunque no esté marcada y, con más cañas que el máximo de 3, entra en lugar de la última fija. El usuario monta siempre la de carpfishing y dos fijas (oct. 2026, decisión del usuario).
 - **Qué dos fijas (🟣, decisión del usuario):** si llevas más fijas de las que caben, la IA elige cuáles montar según el puesto, la profundidad, la distancia y el viento, y lo explica. Sin IA (o si su elección no vale), la app propone las de más alcance y, con viento de 15 km/h o más, las más cortas, que se manejan mejor. Es una propuesta: no puntúa y se contrasta con el diario.
 - **El plomo de la fija lo pone el usuario:** la app y la IA no lo valoran ni lo recomiendan.
-- La IA puede citar el flotador (pluma o boya) o el plomo en gramos **solo dentro de esos rangos**; los gramos de cebo siguen prohibidos (§5.5).
+- La IA puede citar la pluma (flotador o boya) en gramos **solo si es una de las que tiene** y el plomo **solo dentro de su rango**; los gramos de cebo siguen prohibidos (§5.5).
+
+#### 5.9.14 Qué pluma montar en la fija (nov. 2026, petición del usuario)
+
+> Antes la app decía siempre «3 a 4 g». Ahora elige una de las plumas del usuario (**1,5 · 1,8 · 2,4 · 3 · 3,4 · 4 g**) según el puesto y el día. Es **equipo**: no puntúa ni cambia la valoración, solo dice qué montar. Los números son 🟣 (propuesta de la app) y se contrastan con el diario.
+
+- **Regla de fondo (🟡):** la pluma **más ligera que mantenga el cebo quieto y en su sitio**. Una pluma ligera ofrece menos resistencia y enseña picadas finas; una pesada da control con fondo, viento y deriva, pero la carpa desconfiada la nota antes. Prensa de pesca al coup y con pluma: se empieza por unos 0,1 g por pie de fondo (≈ 0,3 g/m) con agua quieta y se sube un punto en cuanto la pluma no se queda quieta con el viento ([Angling Times](https://anglingtimes.co.uk/advice/tips/how-to-pick-the-right-pole-float), [Fishing Magic](https://fishingmagic.com/forums/threads/pole-float-weights-depth-of-swim.6554/)); con agua fría la carpa come mucho a la vista y fuera del fondo, y un cebo que cae despacio bajo una pluma ligera da más picadas ([Angling Times, invierno](https://anglingtimes.co.uk/advice/tips/how-to-fish-a-waggler-float-in-winter)). Son fuentes de pesca en lagos comerciales del Reino Unido: se adaptan, no se copian.
+- **Cuándo SUBIR gramos:**
+  - **Más fondo** (🟣 +0,5 g por metro, partiendo de 1,5 g: con montaje de carpa, cebo y bajo de línea más gruesos que en el coup).
+  - **Viento y deriva** (🟡): brisa de 6–12 km/h +0,4 g; 12–20 km/h +0,8 g; 20 km/h o más +1,2 g (🟣). Si te da **de cara**, oleaje y deriva hacia la orilla: ×1,5; si es **de espaldas** (orilla resguardada): ×0,5. Rachas de 35 km/h o más (no de espaldas): +0,3 g (🟣).
+  - **Peces pequeños activos** que se comen el cebo al caer (barbos, bogas, alburnos…, §5.11) con agua de 18 °C o más, pescando a fondo: +0,4 g para que el cebo baje rápido (🟣, deducción: no hay fuente).
+- **Cuándo BAJAR gramos:**
+  - **A media agua o en superficie** (🟡): la pluma solo carga el bajo de línea y el cebo debe caer despacio; se calcula como si hubiera 1 m de fondo.
+  - **Calma** (menos de 6 km/h): no se añade nada por viento; es cuando más se nota una pluma ligera.
+  - **Agua fría (< 12 °C), carpas poco activas** (🟡): −0,5 g; picadas finas y desconfiadas.
+  - **Picadas desconfiadas durante la sesión** (🟡): la pluma tiembla, sube o se hunde a medias y no clavas → baja a la siguiente más ligera si el viento te deja tenerla quieta. Si la pluma **deriva, se tumba con el oleaje o el cebo se arrastra** → sube a la siguiente.
+- **Sin profundidad medida**, la app usa la que aconseja (poco fondo 1,5 m, media 3 m, mucho fondo 4,5 m, 🟣). Mide el fondo del puesto: la pluma depende sobre todo de él.
+- **Redondeo:** de tus plumas, la más ligera que llegue al peso calculado (admite quedarse 0,25 g por debajo). Si el cálculo pasa de 4,4 g, ni la de 4 g bastará: busca un puesto resguardado o la fija más corta (🟣).
+- La IA parte de la pluma de la app y puede cambiarla con un motivo, pero **solo a otra de las que tiene**.
 
 ### 5.10 Pescar más: recomendación concreta y conocimiento aprendido (oct. 2026, petición del usuario)
 
