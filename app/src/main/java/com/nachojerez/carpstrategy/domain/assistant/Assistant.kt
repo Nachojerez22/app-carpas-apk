@@ -1,6 +1,7 @@
 package com.nachojerez.carpstrategy.domain.assistant
 
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmounts
+import com.nachojerez.carpstrategy.domain.advice.HookChooser
 import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.advice.LessonConditions
 import com.nachojerez.carpstrategy.domain.advice.LessonSource
@@ -122,6 +123,8 @@ data class AiRodPlan(
     val evidence: Evidence? = null,
     /** Gramos del flotador (fija) o del plomo (carpfishing) (fase 7.20). */
     val weightG: Double? = null,
+    /** Anzuelo (§5.9.15): uno de los tuyos que admite la caña. */
+    val hookSize: Int? = null,
 )
 
 data class AiNote(val text: String, val evidence: Evidence?)
@@ -225,6 +228,9 @@ enum class AiIssue {
 
     /** Pluma que no tienes (fija: 1,5 · 1,8 · 2,4 · 3 · 3,4 · 4 g) o plomo fuera de 40–90 g. */
     WEIGHT_OUT_OF_RANGE,
+
+    /** Anzuelo que no tienes (18 · 16 · 14 · 12 · 10) o demasiado pequeño para la caña (§5.9.15). */
+    HOOK_NOT_OWNED,
 }
 
 /** Lo que la app sabe para validar una respuesta: cañas, equipo, puestos, hora legal y tormenta. */
@@ -274,6 +280,14 @@ object AiValidator {
         """\b(flotador(?:es)?|plumas?|boyas?|plomos?|plomadas?)\s+(?:de\s+)?(\d+(?:[.,]\d+)?)(?:\s*(?:a|-|–|o|y)\s*(\d+(?:[.,]\d+)?))?\s*(?:g|gr|grs|gramos?)\b|\b(\d+(?:[.,]\d+)?)\s*(?:g|gr|grs|gramos?)\s+de\s+(flotador|pluma|boya|plomo|plomada)\b""",
         RegexOption.IGNORE_CASE,
     )
+    /**
+     * «anzuelo del 12», «anzuelos del 14 o 16», «anzuelo n.º 10», «un 14 de anzuelo» (§5.9.15). Sin «del»
+     * o «n.º» no cuenta, para no confundir «anzuelo de 2 a 3 granos» con un tamaño.
+     */
+    private val HOOK_SIZE = Regex(
+        """\banzuelos?\s+(?:del\s+|n\.?\s*º\s*|número\s+|talla\s+)(\d{1,2})(?:\s*(?:a|-|–|o|y|u)\s*(?:el\s+|del\s+)?(\d{1,2}))?\b|\b(?:un|el|del)\s+(\d{1,2})\s+de\s+anzuelo\b""",
+        RegexOption.IGNORE_CASE,
+    )
     private val GRAMS = Regex("""\b\d+([.,]\d+)?\s*(g|gr|grs|gramos?|kg|kgs|kilos?|kilogramos?)\b""", RegexOption.IGNORE_CASE)
     private val NIGHT = Regex("""\bnoche\b|\bnocturn\w*|\bmadrugada\b|\bde madrugada\b""", RegexOption.IGNORE_CASE)
     private val CLOCK = Regex("""\b([01]?\d|2[0-3])[:h]([0-5]\d)\b""")
@@ -288,6 +302,7 @@ object AiValidator {
         if (t.length > maxLength) add(AiIssue.TEXT_TOO_LONG)
         if (PROBABILITY.containsMatchIn(t)) add(AiIssue.PROBABILITY)
         if (tackleWeightIssue(t)) add(AiIssue.WEIGHT_OUT_OF_RANGE)
+        if (hookSizeIssue(t)) add(AiIssue.HOOK_NOT_OWNED)
         if (GRAMS.containsMatchIn(TACKLE_WEIGHT.replace(t, ""))) add(AiIssue.GRAMS)
         if (NIGHT.containsMatchIn(t)) add(AiIssue.NIGHT)
         if (PROMISE.containsMatchIn(t)) add(AiIssue.PROMISE)
@@ -302,6 +317,11 @@ object AiValidator {
             // Pluma: solo las que tienes (§5.9.14); plomo: dentro de su rango.
             if (float) !RodRules.isOwnFloat(grams) else grams !in RodRules.LEAD_MIN_G..RodRules.LEAD_MAX_G
         }
+    }
+
+    /** True si el texto cita un anzuelo que no tienes ([HookChooser.SIZES]). */
+    private fun hookSizeIssue(text: String): Boolean = HOOK_SIZE.findAll(text).any { m ->
+        m.groupValues.drop(1).filter { it.isNotEmpty() }.any { it.toInt() !in HookChooser.SIZES }
     }
 
     /**
@@ -408,6 +428,7 @@ object AiValidator {
                 }
                 if (!ok) add(AiIssue.WEIGHT_OUT_OF_RANGE)
             }
+            r.hookSize?.let { if (!HookChooser.allowed(it, setup?.kind)) add(AiIssue.HOOK_NOT_OWNED) }
             addAll(gearIssues(r.baitName, r.rigName, r.spotName, ctx))
             addAll(rodIssues(r.rod, r.baitName, r.rigName, r.column, ctx))
             checkText(r.reason, ctx)

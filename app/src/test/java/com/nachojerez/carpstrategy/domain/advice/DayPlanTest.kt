@@ -142,5 +142,8 @@ class DayPlanTest {
         assertEquals(60.0, carp.distanceM)
         assertEquals(40.0..90.0, carp.weightRange)
         assertNull(carp.float)
+        // §5.9.15: cada caña lleva un anzuelo de los tuyos que admite su tipo.
+        plan.rods.forEach { r -> r.hook?.let { assertTrue(HookChooser.allowed(it.size, r.setup?.kind)) } }
+        assertTrue(plan.rods.any { it.hook != null })
     }
 }

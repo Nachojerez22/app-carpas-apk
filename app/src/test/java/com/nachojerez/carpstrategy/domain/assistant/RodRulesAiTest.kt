@@ -101,4 +101,22 @@ class RodRulesAiTest {
         assertTrue(AiIssue.UNKNOWN_ROD in AiValidator.validate(plan(far).copy(fixedRods = listOf("Fija 8")), withCarried))
         assertTrue(AiIssue.UNKNOWN_ROD in AiValidator.validate(plan(far).copy(fixedRods = listOf("Fija 9", "Fija 5")), withCarried))
     }
+
+    @Test
+    fun `anzuelo de los que tienes y que admite la cana`() {
+        // §5.9.15: fija hasta el 16, carpfishing hasta el 14; solo 18 · 16 · 14 · 12 · 10.
+        assertTrue(AiValidator.validate(plan(AiRodPlan(1, hookSize = 16, reason = "Anzuelo del 16 con un grano", evidence = Evidence.YELLOW)), ctx).isEmpty())
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(1, hookSize = 18, reason = "fino", evidence = Evidence.YELLOW)), ctx))
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(2, hookSize = 16, reason = "fino", evidence = Evidence.YELLOW)), ctx))
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(2, hookSize = 8, reason = "grande", evidence = Evidence.YELLOW)), ctx))
+    }
+
+    @Test
+    fun `anzuelos en los textos`() {
+        assertTrue(AiValidator.textIssues("Anzuelo del 12 con masilla").isEmpty())
+        assertTrue(AiValidator.textIssues("Prueba anzuelos del 14 o 16 en la fija").isEmpty())
+        assertTrue(AiValidator.textIssues("Pon en el anzuelo de 2 a 3 granos").isEmpty())
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.textIssues("Anzuelo del 8 con boilie grande"))
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.textIssues("Monta un 6 de anzuelo"))
+    }
 }

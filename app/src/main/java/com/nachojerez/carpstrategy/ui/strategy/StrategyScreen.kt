@@ -56,6 +56,9 @@ import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
 import com.nachojerez.carpstrategy.domain.advice.FloatChoice
 import com.nachojerez.carpstrategy.domain.advice.FloatReason
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmount
+import com.nachojerez.carpstrategy.domain.advice.HookChoice
+import com.nachojerez.carpstrategy.domain.advice.HookChooser
+import com.nachojerez.carpstrategy.domain.advice.HookReason
 import com.nachojerez.carpstrategy.domain.advice.PlanSource
 import com.nachojerez.carpstrategy.domain.advice.RodLine
 import com.nachojerez.carpstrategy.domain.advice.SpotPick
@@ -907,6 +910,7 @@ internal fun RodLineRow(r: RodLine, planSpot: String?) {
                 stringResource(r.column.titleRes(kind)),
                 r.distanceM?.let { stringResource(R.string.strategy_ai_plan_distance, Formatting.number(it, 0)) } ?: stringResource(r.distance.titleRes()),
                 weightText(r),
+                r.shownHookSize?.let { stringResource(R.string.strategy_rod_hook, it) },
             )
             Text(parts.joinToString(" · "))
             if (open) {
@@ -915,6 +919,7 @@ internal fun RodLineRow(r: RodLine, planSpot: String?) {
                     ?: stringResource(R.string.strategy_rod_why_app, stringResource(r.depth.titleRes()), stringResource(r.distance.titleRes()))
                 Caption(why)
                 r.float?.let { f -> Caption(floatWhyText(f, r.weightG)) }
+                r.hook?.let { h -> Caption(hookWhyText(h, r.aiHookSize)) }
                 if (r.baitName == null && r.source == PlanSource.APP) Caption(stringResource(R.string.advice_bait_not_in_gear))
             } else {
                 Caption(stringResource(R.string.strategy_rod_why_show))
@@ -972,6 +977,32 @@ private fun FloatReason.titleRes(): Int = when (this) {
     FloatReason.TOO_WINDY -> R.string.float_reason_too_windy
 }
 
+/** Por qué ese anzuelo: «Anzuelo del 14: va con el cebo, agua fría. Bajo de línea de 0,16 a 0,18 mm.» */
+@Composable
+internal fun hookWhyText(h: HookChoice, aiSize: Int?): String {
+    val res = LocalContext.current.resources
+    val why = h.reasons.joinToString(", ") { if (it == HookReason.NOT_OWNED) res.getString(R.string.hook_reason_not_owned, h.ideal) else res.getString(it.titleRes()) }
+    val head = if (aiSize != null && aiSize != h.size) {
+        stringResource(R.string.strategy_hook_app_differs, h.size)
+    } else {
+        stringResource(R.string.strategy_hook_why, h.size)
+    }
+    val leader = HookChooser.leaderMm(aiSize ?: h.size)?.let {
+        stringResource(R.string.strategy_hook_leader, Formatting.number(it.start, 2), Formatting.number(it.endInclusive, 2))
+    }
+    return listOfNotNull("$head $why.", leader).joinToString(" ")
+}
+
+private fun HookReason.titleRes(): Int = when (this) {
+    HookReason.BAIT -> R.string.hook_reason_bait
+    HookReason.COLD -> R.string.hook_reason_cold
+    HookReason.WARM -> R.string.hook_reason_warm
+    HookReason.SMALL_FISH -> R.string.hook_reason_small_fish
+    HookReason.CARP_LIMIT -> R.string.hook_reason_carp_limit
+    HookReason.FIXED_LIMIT -> R.string.hook_reason_fixed_limit
+    HookReason.NOT_OWNED -> R.string.hook_reason_not_owned
+}
+
 /** Qué hacer si pasa algo, en una frase. */
 @Composable
 internal fun contingencyText(c: ContingencyLine): String {
@@ -989,6 +1020,8 @@ internal fun contingencyText(c: ContingencyLine): String {
         Contingency.WIND -> c.windTip?.let { stringResource(it.titleRes()) }.orEmpty()
         Contingency.FLOAT_SHY_BITES -> stringResource(R.string.strategy_if_float_shy, c.grams?.let { gramsText(it) }.orEmpty())
         Contingency.FLOAT_DRIFT -> stringResource(R.string.strategy_if_float_drift, c.grams?.let { gramsText(it) }.orEmpty())
+        Contingency.HOOK_SHY_BITES -> stringResource(R.string.strategy_if_hook_shy, c.hookSize ?: 0)
+        Contingency.HOOK_SMALL_FISH -> stringResource(R.string.strategy_if_hook_small_fish, c.hookSize ?: 0)
     }
 }
 

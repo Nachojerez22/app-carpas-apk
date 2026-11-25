@@ -8,6 +8,8 @@ import com.nachojerez.carpstrategy.domain.advice.DepthBand
 import com.nachojerez.carpstrategy.domain.advice.DistanceBand
 import com.nachojerez.carpstrategy.domain.advice.FloatChoice
 import com.nachojerez.carpstrategy.domain.advice.FloatReason
+import com.nachojerez.carpstrategy.domain.advice.HookChoice
+import com.nachojerez.carpstrategy.domain.advice.HookReason
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmount
 import com.nachojerez.carpstrategy.domain.advice.PlanSource
 import com.nachojerez.carpstrategy.domain.advice.RodLine
@@ -263,6 +265,19 @@ object PreparedOutingJson {
         @SerialName("peso_g") val weightG: Double? = null,
         /** Pluma de la app para la fija (§5.9.14). */
         @SerialName("pluma") val float: FloatDto? = null,
+        /** Anzuelo de la app (§5.9.15) y el de la IA. */
+        @SerialName("anzuelo") val hook: HookDto? = null,
+        @SerialName("anzuelo_ia") val aiHookSize: Int? = null,
+    )
+
+    @Serializable
+    data class HookDto(
+        @SerialName("tamano") val size: Int,
+        @SerialName("mas_pequeno") val smaller: Int? = null,
+        @SerialName("mas_grande") val larger: Int? = null,
+        @SerialName("ideal") val ideal: Int,
+        @SerialName("motivos") val reasons: List<String> = emptyList(),
+        @SerialName("evidencia") val evidence: String,
     )
 
     @Serializable
@@ -319,6 +334,7 @@ object PreparedOutingJson {
         @SerialName("viento") val windTip: String? = null,
         @SerialName("evidencia") val evidence: String,
         @SerialName("pluma_g") val grams: Double? = null,
+        @SerialName("anzuelo") val hookSize: Int? = null,
     )
 
     @Serializable
@@ -357,6 +373,8 @@ object PreparedOutingJson {
                 r.proven?.let { ProvenDto(it.value, it.rodHours, it.catches, it.sessions) }, r.reason, r.evidence.name, r.source.name,
                 r.setup?.name, r.setup?.kind?.name, r.setup?.lengthM, r.weightG,
                 r.float?.let { f -> FloatDto(f.grams, f.lighter, f.heavier, f.targetG, f.reasons.map { it.name }, f.evidence.name) },
+                r.hook?.let { h -> HookDto(h.size, h.smaller, h.larger, h.ideal, h.reasons.map { it.name }, h.evidence.name) },
+                r.aiHookSize,
             )
         },
         planSource = planSource?.name,
@@ -366,7 +384,7 @@ object PreparedOutingJson {
         groundbaitAmount = groundbaitAmount?.let { AmountDto(it.level.name, it.perRodKg, it.totalKg, it.initialPerRodKg, it.rebaitPerRodKg) },
         aiGroundbait = aiGroundbait?.let { g -> MixDto(g.mix.map { PartDto(it.baitName, it.parts) }, g.perRodKg, g.rebait, g.reason, g.evidence?.name) },
         aiTips = aiTips.map { TipDto(it.field?.name, it.text, it.evidence?.name) },
-        contingencies = contingencies.map { ContingencyDto(it.kind.name, it.after?.toMinutes(), it.step?.name, it.windTip?.name, it.evidence.name, it.grams) },
+        contingencies = contingencies.map { ContingencyDto(it.kind.name, it.after?.toMinutes(), it.step?.name, it.windTip?.name, it.evidence.name, it.grams, it.hookSize) },
         result = ResultDto(result.forecastOk, result.plan.name, result.planDetail, result.sheetsImproved, result.sheetsPending),
         reservoirId = reservoirId,
         spotId = spotId,
@@ -419,6 +437,10 @@ object PreparedOutingJson {
                     float = r.float?.let { f ->
                         FloatChoice(f.grams, f.lighter, f.heavier, f.targetG, f.reasons.mapNotNull { enumOrNull<FloatReason>(it) }, enumOrNull<Evidence>(f.evidence) ?: Evidence.PURPLE)
                     },
+                    hook = r.hook?.let { h ->
+                        HookChoice(h.size, h.smaller, h.larger, h.ideal, h.reasons.mapNotNull { enumOrNull<HookReason>(it) }, enumOrNull<Evidence>(h.evidence) ?: Evidence.PURPLE)
+                    },
+                    aiHookSize = r.aiHookSize,
                 )
             },
             planSource = enumOrNull<PlanSource>(planSource),
@@ -440,6 +462,7 @@ object PreparedOutingJson {
                     windTip = enumOrNull<WindTip>(c.windTip),
                     evidence = enumOrNull<Evidence>(c.evidence) ?: Evidence.PURPLE,
                     grams = c.grams,
+                    hookSize = c.hookSize,
                 )
             },
             result = PrepResult(

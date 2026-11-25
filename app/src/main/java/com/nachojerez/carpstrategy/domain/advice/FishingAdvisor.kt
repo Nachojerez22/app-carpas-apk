@@ -9,6 +9,7 @@ import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
+import com.nachojerez.carpstrategy.domain.guided.RodKind
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.guided.Spots
@@ -113,6 +114,11 @@ data class FishingAdvice(
             waterC = floatWeather.waterC,
             smallFish = species.selective,
         ),
+    )
+
+    /** Anzuelo para [bait] en una caña [kind] (§5.9.15); null si el cebo no va al anzuelo. */
+    fun hookFor(bait: BaitType?, kind: RodKind?): HookChoice? = HookChooser.choose(
+        HookInput(bait = bait, rodKind = kind, waterC = floatWeather.waterC, smallFish = species.selective),
     )
 }
 

@@ -5,6 +5,7 @@ import com.nachojerez.carpstrategy.domain.advice.ExperienceSummary
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
 import com.nachojerez.carpstrategy.domain.advice.FloatChoice
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmounts
+import com.nachojerez.carpstrategy.domain.advice.HookChooser
 import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.advice.Stat
 import com.nachojerez.carpstrategy.domain.assistant.AiKind
@@ -105,7 +106,7 @@ Formato y límites (si no los cumples, la app descarta tu respuesta):
 4. La app ya controla el horario: no hables de normativa, permisos ni horario legal. No propongas horas de noche ni fuera de "horario_de_pesca".
 5. Cada motivo lleva etiqueta de evidencia en "evidencia": 🟢 demostrado, 🟡 indicio o experiencia, 🔴 sin evidencia, 🟣 hipótesis local o datos propios, 🔵 variabilidad individual.
 6. Responde en español, breve (cada texto como mucho 300 caracteres) y SOLO con el JSON pedido, sin texto alrededor.
-7. Respeta el tipo de cada caña ("tipo" en "canas" o "canas_de_hoy"). FIJA (sin carrete, de "longitud_m"): a fondo (BOTTOM), a media agua con flotador (ZIG) o en superficie (SURFACE), siempre a una distancia hasta su longitud, con una de sus plumas ("plumas_que_tienes_g": 1,5 · 1,8 · 2,4 · 3 · 3,4 · 4 g) y NUNCA con boilies (ni pop-up ni boilie duro); no hables del plomo de la fija: lo pone el usuario. CARPFISHING: siempre a fondo (BOTTOM o POPUP, nunca ZIG ni SURFACE), de 7 a 100 m, con plomo de 40 a 90 g; vale cualquier cebo, también maíz. Para la pluma de cada fija di en "peso_g" una de "plumas_que_tienes_g" (§5.9.14): la más ligera que mantenga el cebo quieto; más pesada con más fondo, viento, oleaje de cara, deriva o peces pequeños activos; más ligera a media agua o en superficie, con calma y con agua fría o carpas poco activas (picadas desconfiadas). Parte de "recomendacion_de_la_app.pluma_fija_a_fondo" y cámbiala solo si tienes un motivo y dilo. En los textos puedes citar la pluma o el plomo en gramos («pluma de 2,4 g», «flotador de 3 g», «plomo de 60 g»): la pluma, solo una de las que tiene; el plomo, dentro de su rango.
+7. Respeta el tipo de cada caña ("tipo" en "canas" o "canas_de_hoy"). FIJA (sin carrete, de "longitud_m"): a fondo (BOTTOM), a media agua con flotador (ZIG) o en superficie (SURFACE), siempre a una distancia hasta su longitud, con una de sus plumas ("plumas_que_tienes_g": 1,5 · 1,8 · 2,4 · 3 · 3,4 · 4 g) y NUNCA con boilies (ni pop-up ni boilie duro); no hables del plomo de la fija: lo pone el usuario. CARPFISHING: siempre a fondo (BOTTOM o POPUP, nunca ZIG ni SURFACE), de 7 a 100 m, con plomo de 40 a 90 g; vale cualquier cebo, también maíz. Para la pluma de cada fija di en "peso_g" una de "plumas_que_tienes_g" (§5.9.14): la más ligera que mantenga el cebo quieto; más pesada con más fondo, viento, oleaje de cara, deriva o peces pequeños activos; más ligera a media agua o en superficie, con calma y con agua fría o carpas poco activas (picadas desconfiadas). Parte de "recomendacion_de_la_app.pluma_fija_a_fondo" y cámbiala solo si tienes un motivo y dilo. En los textos puedes citar la pluma o el plomo en gramos («pluma de 2,4 g», «flotador de 3 g», «plomo de 60 g»): la pluma, solo una de las que tiene; el plomo, dentro de su rango. Para el anzuelo de cada caña di en "anzuelo" uno de "anzuelos_que_tienes" (18 · 16 · 14 · 12 · 10; número mayor = anzuelo más pequeño) que no sea más pequeño que "anzuelo_mas_pequeno" de esa caña (carpfishing 14, fija 16) (§5.9.15): el anzuelo va con el cebo (maíz o lombriz 14, masilla o pan 12, chufa, boilie o pop-up 10); un punto más pequeño con agua fría o toques sin clavada; más grande con peces pequeños activos o agua caliente. Parte de "recomendacion_de_la_app.anzuelos" y cámbialo solo con un motivo. En los textos puedes citarlo así: «anzuelo del 12»; solo uno de los que tiene.
 """
 
     val CHECK_IN_SYSTEM = RULES + """
@@ -116,7 +117,7 @@ Con MANTENER, "cambios" va vacío. No propongas cambios en cañas con "propuesta
 
     val PLAN_SYSTEM = RULES + """
 Tarea: estrategia concreta para hoy con las cañas indicadas, para sacar el máximo de carpas. Ayúdale también a decidir dónde pescar: compara todos los puestos de "mis_puestos" (estructura, profundidad, distancia, orientación, fetch, cómo les da el viento con el agua y el aire de hoy, y lo que le ha funcionado en "lo_que_te_ha_funcionado", "lecciones_aceptadas" y "recomendacion_de_la_app") y elige el mejor para hoy en "puesto_recomendado" con un motivo concreto (si no hay puestos, null). Si hay "puesto_elegido", es el que el usuario tiene pensado: el plan por caña es para ese puesto (adaptado a su estructura, profundidad, distancia y viento), y si recomiendas otro, explica en el motivo qué gana con el cambio; si el elegido ya es el mejor, recomiéndalo y di por qué. Sin "puesto_elegido", el plan es para el puesto que recomiendas. Da un plan por caña (puesto, cebo, montaje, columna y distancia en metros si el puesto la tiene) y consejos por apartado: dónde (WHERE), cuándo (WHEN: mejores horas dentro de "horario_de_pesca"), cebado (BAIT: poco, normal o mucho y cada cuánto recebar), presentación (PRESENTATION), qué evitar (AVOID) y notas (NOTES). Como mucho 2 consejos por apartado. Propón también el engodo con lo que lleva hoy ("equipo.cebos": engodos y mixes, harinas, pellet, partícula, líquidos, boilies triturados), teniendo en cuenta su marca, "que_lleva" y "ficha_ia", la fase, el agua y las especies: qué mezcla, en partes (de 1 a 10), cuántos kilos por caña según "cebado" (solo si hay "tu_normal_kg_por_cana"; si no, null) y cómo recebar. Si "embalse.se_puede_cebar" es false o "cebado.nivel" es "sin_cebar", "engodo" es null. Si hay "fijas_que_llevas", elige en "canas_fijas" cuáles monta hoy (nombres exactos, tantas como fijas hay en "canas_de_hoy" y en su orden) según el puesto, la profundidad, la distancia a la que conviene pescar y el viento, y explícalo en el motivo de esas cañas; el plan de cada fija de "canas_de_hoy" es para la que elijas en su lugar. Si te valen las de "canas_de_hoy", "canas_fijas" es null. Responde con este JSON:
-{"resumen":"…","evidencia":"🟡","canas_fijas":["nombre exacto"] o null,"puesto_recomendado":{"puesto":"nombre exacto","motivo":"…","evidencia":"🟡"} o null,"engodo":{"mezcla":[{"cebo":"nombre exacto","partes":2}],"kg_por_cana":1.5 o null,"recebado":"cómo y cuándo recebar, sin gramos","motivo":"…","evidencia":"🟡"} o null,"canas":[{"cana":1,"puesto":"nombre exacto o null","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","distancia_m":40 o null,"peso_g":60 o null,"motivo":"…","evidencia":"🟡"}],"consejos":[{"apartado":"WHERE","texto":"…","evidencia":"🟡"}],"avisos":[]}
+{"resumen":"…","evidencia":"🟡","canas_fijas":["nombre exacto"] o null,"puesto_recomendado":{"puesto":"nombre exacto","motivo":"…","evidencia":"🟡"} o null,"engodo":{"mezcla":[{"cebo":"nombre exacto","partes":2}],"kg_por_cana":1.5 o null,"recebado":"cómo y cuándo recebar, sin gramos","motivo":"…","evidencia":"🟡"} o null,"canas":[{"cana":1,"puesto":"nombre exacto o null","cebo":"nombre exacto o null","montaje":"nombre exacto o null","columna":"BOTTOM|POPUP|ZIG|SURFACE o null","distancia_m":40 o null,"peso_g":60 o null,"anzuelo":12 o null,"motivo":"…","evidencia":"🟡"}],"consejos":[{"apartado":"WHERE","texto":"…","evidencia":"🟡"}],"avisos":[]}
 """
 
     val REVIEW_SYSTEM = RULES + """
@@ -473,6 +474,24 @@ Normas (si no las cumples, la app descarta la respuesta):
                 val spot = a.chosen ?: a.spots.firstOrNull()
                 a.floatFor(spot, Column.BOTTOM)?.let { f -> floatJson("pluma_fija_a_fondo", f) }
                 if (a.altColumn == Column.ZIG || a.column == Column.ZIG) a.floatFor(spot, Column.ZIG)?.let { f -> floatJson("pluma_fija_media_agua", f) }
+                // §5.9.15: el anzuelo que pondría la app con cada cebo, en la fija y en la de carpfishing.
+                putJsonArray("anzuelos") {
+                    a.baits.forEach { b ->
+                        RodKind.entries.forEach { kind ->
+                            if (b.type != null && !RodRules.baitAllowed(kind, b.type)) return@forEach
+                            val h = a.hookFor(b.type, kind) ?: return@forEach
+                            addJsonObject {
+                                put("cebo", b.gearName ?: b.type?.name ?: "?")
+                                put("tipo_cana", if (kind == RodKind.FIXED) "FIJA" else "CARPFISHING")
+                                put("anzuelo", h.size)
+                                if (h.ideal != h.size) put("ideal_que_no_tienes", h.ideal)
+                                h.smaller?.let { put("si_toques_sin_clavada", it) }
+                                h.larger?.let { put("si_peces_pequenos", it) }
+                                putJsonArray("motivos") { h.reasons.forEach { add(it.name) } }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -631,6 +650,8 @@ Normas (si no las cumples, la app descarta la respuesta):
             RodRules.weightRange(kind)?.let { w -> put("plomo_g", "${w.start.toInt()}-${w.endInclusive.toInt()}") }
         }
         put("boilies", RodRules.baitAllowed(kind, BaitType.BOILIE))
+        putJsonArray("anzuelos_que_tienes") { HookChooser.SIZES.forEach { add(it) } }
+        HookChooser.smallestFor(kind)?.let { put("anzuelo_mas_pequeno", it) }
     }
 
     private fun JsonObjectBuilder.gear(gear: List<GearItem>) {

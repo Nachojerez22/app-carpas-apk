@@ -1141,6 +1141,7 @@
     <string name="ai_issue_amount">cantidad de engodo fuera de lo razonable para tu medida</string>
     <string name="ai_issue_rod_rules">no respeta el tipo de caña (boilies en la fija o carpfishing fuera del fondo)</string>
     <string name="ai_issue_weight">flotador o plomo fuera de tu rango (fija 3–4 g, carpfishing 40–90 g)</string>
+    <string name="ai_issue_hook">anzuelo que no tienes (18, 16, 14, 12 o 10) o demasiado pequeño para esa caña</string>
     <string name="ai_issue_hours">cita horas fuera del horario legal ⚖</string>
     <string name="ai_models_title">Modelos disponibles</string>
     <string name="ai_models_hint">Lista los modelos que admite tu clave. Toca uno para usarlo; se guarda y se prueba la conexión. Los «flash» son rápidos y entran en el nivel gratuito.</string>
@@ -1331,6 +1332,7 @@
     <string name="strategy_rods_none_today">No has marcado ninguna caña para hoy: marca las que llevas (como mucho %1$d).</string>
     <string name="strategy_rods_add">Apuntar mis cañas (fija o carpfishing)</string>
     <string name="strategy_rod_float">pluma de %1$s g</string>
+    <string name="strategy_rod_hook">anzuelo del %1$d</string>
     <string name="strategy_rod_lead">plomo de %1$s g</string>
     <string name="strategy_plan_title">Tu plan para hoy</string>
     <string name="strategy_plan_title_next">Tu plan para el amanecer (%1$s)</string>
@@ -1433,6 +1435,8 @@
     <string name="strategy_if_signals">Pitidos o bobbins que se mueven sin picada en %1$s: cambia la presentación.</string>
     <string name="strategy_if_float_shy">Picadas desconfiadas en la fija (la pluma tiembla, sube o se hunde a medias y no clavas): baja a la pluma de %1$s g si el viento te deja tenerla quieta.</string>
     <string name="strategy_if_float_drift">Si la pluma de la fija deriva, se tumba con el oleaje o el cebo se arrastra: sube a la de %1$s g.</string>
+    <string name="strategy_if_hook_shy">Si hay toques o picadas falladas: anzuelo del %1$d con un cebo más pequeño (cambia solo eso en esa caña).</string>
+    <string name="strategy_if_hook_small_fish">Si los peces pequeños se comen el cebo: anzuelo del %1$d con un cebo más grande o más duro.</string>
     <!-- Pluma de la fija (CONOCIMIENTO.md §5.9.14) -->
     <string name="strategy_float_why">🟣 Pluma de %1$s g:</string>
     <string name="strategy_float_app_differs">🟣 La app pondría la de %1$s g:</string>
@@ -1449,6 +1453,16 @@
     <string name="float_reason_cold">agua fría: carpas poco activas y picadas finas</string>
     <string name="float_reason_small_fish">peces pequeños activos: que el cebo baje rápido</string>
     <string name="float_reason_too_windy">ni con la de 4 g se quedará quieta: busca resguardo o la fija más corta</string>
+    <string name="strategy_hook_why">Anzuelo del %1$d:</string>
+    <string name="strategy_hook_app_differs">La app pondría el %1$d:</string>
+    <string name="strategy_hook_leader">Bajo de línea de %1$s a %2$s mm.</string>
+    <string name="hook_reason_bait">va con el cebo (que la punta quede libre)</string>
+    <string name="hook_reason_cold">agua fría, un punto más pequeño</string>
+    <string name="hook_reason_warm">agua caliente y carpas activas, un punto más grande</string>
+    <string name="hook_reason_small_fish">hay peces pequeños que se comen el cebo, más grande</string>
+    <string name="hook_reason_carp_limit">con plomo de carpfishing, no más pequeño que el 14</string>
+    <string name="hook_reason_fixed_limit">en la fija, no más pequeño que el 16</string>
+    <string name="hook_reason_not_owned">lo ideal sería un %1$d, que no tienes: el más cercano de los tuyos</string>
     <string name="strategy_if_carp_up">Si ves carpas arriba con calor: prueba una caña en zig.</string>
     <string name="strategy_if_crab">Si el cebo vuelve comido (cangrejo u otras especies): cebo duro o protegido.</string>
     <string name="strategy_if_other_species">Si pican otras especies: cebo más grande y selectivo.</string>
