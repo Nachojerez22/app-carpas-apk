@@ -596,31 +596,39 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - **Redondeo:** de tus plumas, la más ligera que llegue al peso calculado (admite quedarse 0,25 g por debajo). Si el cálculo pasa de 4,4 g, ni la de 4 g bastará: busca un puesto resguardado o la fija más corta (🟣).
 - La IA parte de la pluma de la app y puede cambiarla con un motivo, pero **solo a otra de las que tiene**.
 
-#### 5.9.15 Qué anzuelo montar (nov. 2026, petición del usuario)
+#### 5.9.15 Qué anzuelo montar (nov. 2026, petición y decisión del usuario)
 
-> El usuario tiene anzuelos del **18, 16, 14, 12 y 10** (cuanto **mayor es el número, más pequeño** es el anzuelo: el 18 es el más pequeño y el 10 el más grande). Antes la app no hablaba de anzuelos. Ahora propone uno por caña. Es **equipo**: no puntúa ni cambia la valoración. Los números son 🟣 (propuesta de la app) y se contrastan con el diario.
+> El usuario tiene anzuelos del **18, 16, 14, 12 y 10**. Cuanto **mayor es el número, más pequeño** es el anzuelo: el 18 es el más pequeño y el 10 el más grande. Antes la app no hablaba de anzuelos. Ahora propone uno por caña. Es **equipo**: no puntúa ni cambia la valoración. Los números son 🟣 (propuesta de la app) y se contrastan con el diario.
 
-- **Lo que dice la ciencia (🟢, pero con anzuelos más grandes que los tuyos):** el tamaño del anzuelo cambia **qué** carpas se capturan, no tanto **cuántas**. Con anzuelos marinos de 4/0 a 7/0, el más grande sacó carpas más grandes sin cambiar las capturas ni dónde se clavaban (Ateşşahin y Dürrani 2023, #45). En cambio, Rapp et al. 2008 (Fisheries Research), con anzuelos del 6 y del 1 cebados con maíz, vieron que **el pequeño capturaba más** y las grandes a un ritmo parecido. **No hay estudios con anzuelos del 10 al 18 en carpa** (🔴 como regla «anzuelo pequeño = más picadas»): lo de abajo es 🟡 (prensa y oficio de pesca) o 🟣.
-- **Regla de fondo (🟡): el anzuelo va con el cebo.** Que la punta quede libre y el cebo no lo tape (al pelo, la punta asoma justo del contorno del cebo; [Carpology](https://www.carpology.net/article/how-to-choose-the-right-hook-size), [DNA Baits](https://dnabaits.com/guide-to-carp-hook-sizes/)). Un anzuelo grande con un cebo pequeño se ve y pesa; uno pequeño con un cebo grande no clava. Punto de partida por cebo (🟣):
+- **Lo que dice la ciencia (🟢, pero con anzuelos más grandes que los tuyos):** el tamaño del anzuelo cambia sobre todo **qué** carpas se capturan.
+  - Ateşşahin y Dürrani 2023 (#45), con anzuelos marinos de 4/0 a 7/0: el más grande sacó carpas más grandes, sin cambiar las capturas ni dónde se clavaban.
+  - Rapp et al. 2008 (Fisheries Research), con anzuelos del 6 y del 1 cebados con maíz: **el pequeño capturaba más** y las grandes a un ritmo parecido.
+  - **No hay estudios con anzuelos del 10 al 18 en carpa** (🔴 como regla). Lo de abajo es 🟡 (prensa y oficio de pesca) o 🟣.
+- **Regla de fondo (🟡, decisión del usuario): manda la actividad de las carpas.** Cuanto **menos se mueven y comen, más pequeño el anzuelo**: la carpa poco activa inspecciona más, chupa con menos fuerza y nota antes el anzuelo. Con carpas activas que comen con ganas, el anzuelo más grande sujeta mejor y se suelta menos.
+  - La prensa de pesca lo hace así: en invierno bajan uno o dos números el anzuelo y el bajo ([Carpology](https://www.carpology.net/article/do-you-need-to-scale-down-your-rigs-for-winter-)), y bajan un número cuando las carpas empiezan a desconfiar tras un par de capturas (Angling Times, pesca en superficie).
+  - Hay quien defiende lo contrario en invierno: el anzuelo grande cuesta más escupirlo ([Angling Times](https://anglingtimes.co.uk/advice/tips/why-using-bigger-hooks-will-catch-you-more-fish-in-the-winter)). Por eso el diario decide (🔵).
+- **Actividad que deduce la app del agua (§5.1, 🟡/🟣):** baja por debajo de 12 °C; media de 12 a 18 °C; alta desde 18 °C. Sin temperatura del agua, se supone media: mídela.
 
-| Cebo de anzuelo | Anzuelo de partida | Comentario |
+| Actividad | Fija | Carpfishing |
 |---|---|---|
-| Maíz (1–3 granos), lombriz | **14** | 1 grano en frío → 16; 3 granos al pelo → 12 |
-| Masilla, pan | **12** | La masa cubre el anzuelo: que quede la punta fuera |
-| Chufa, boilie, boilie duro, pop-up | **10** | Boilie de 18–20 mm o 2 chufas: iría mejor un 8, que no tienes (se queda en el 10) |
+| Baja (< 12 °C) | **16** | **14** |
+| Media (12–18 °C) | **14** | **12** |
+| Alta (≥ 18 °C) | **12** | **10** |
 
-- **Cuándo un número MÁS (anzuelo más pequeño):**
-  - **Agua fría (< 12 °C)** (🟡): carpas poco activas, cebo más pequeño y anzuelo un punto más pequeño (§5.1, §5.9.5 «más pequeño en frío»).
-  - **Toques o picadas falladas** (🟡, escenario C de §5.9.1): anzuelo un número más pequeño **con un cebo más pequeño**, una sola variable por caña (§5.9.2).
-  - **Mucha presión de pesca** (🟡, #40): presentación más fina.
-- **Cuándo un número MENOS (anzuelo más grande):**
-  - **Peces pequeños activos** (barbos, bogas, alburnos…, §5.11) que se comen el cebo o se clavan ellos: **anzuelo y cebo más grandes** (🟡 + 🟢 #45: el anzuelo selecciona la talla).
-  - **Agua caliente (≥ 22 °C) con carpas activas** (🟣): un punto más grande, que la carpa come con ganas y el anzuelo pequeño se abre o se suelta más.
-- **Límites por caña (🟡/🟣, para no perder carpas grandes ni dejarles el anzuelo clavado):**
-  - **Carpfishing** (plomo de 40–90 g, el pez se clava solo contra el plomo): **nunca más pequeño que el 14**. El 16 y el 18 no tienen abertura para sujetar con un plomo pesado y se abren o desgarran. Lo normal, **10–12**.
-  - **Fija** (sin carrete ni freno): **nunca más pequeño que el 16**. El **18** solo vale para peces pequeños o como cebo de prueba, no para la carpa de Brovales. Con agua fría y picadas finas, el 14 o el 16 con un grano.
-- **Bajo de línea según el anzuelo (🟣, orientativo):** 18 → 0,12–0,14 mm · 16 → 0,14–0,16 · 14 → 0,16–0,18 · 12 → 0,18–0,22 · 10 → 0,20–0,25 (en carpfishing, trenzado de bajo de 15–25 lb). Anzuelo fino con hilo grueso no clava; anzuelo grande con hilo fino rompe.
-- **Si la app quiere un tamaño que no tienes** (p. ej. un 8 para boilie grande), propone el más cercano de los tuyos y lo dice. La IA parte del anzuelo de la app y puede cambiarlo con un motivo, pero **solo a otro de los que tienes** y respetando el límite de cada caña.
+  La fija va un punto más fina: el cebo va directo en el anzuelo y la picada se ve en la pluma. La de carpfishing lleva pelo y plomo pesado, y la carpa se clava sola.
+- **Durante la sesión, lo que veas manda sobre el agua (🟡):**
+  - **Toques o picadas falladas, o mucha presión de pesca** (#40): un número más pequeño **con un cebo más pequeño**. Una sola variable por caña (§5.9.2).
+  - **Peces pequeños** (barbos, bogas, alburnos…, §5.11) que se comen el cebo o se clavan ellos: **anzuelo y cebo más grandes** (🟡 + 🟢 #45: el anzuelo selecciona la talla).
+- **El cebo solo pone un límite (🟡): que quepa con la punta libre.**
+  - Masilla o pan: del 14 o más grande.
+  - Chufa en la fija (va directa en el anzuelo): del 12 o más grande. Con pelo (carpfishing) el cebo va aparte y no limita.
+  - Maíz y lombriz: cualquiera.
+  - Con anzuelo pequeño en frío, **baja también el cebo**: un grano de maíz o un boilie pequeño (§5.9.5 «más pequeño en frío»).
+- **Límites por caña (🟡/🟣), para no perder carpas grandes ni dejarles el anzuelo clavado:**
+  - **Carpfishing** (plomo de 40–90 g): **nunca más pequeño que el 14**. El 16 y el 18 no tienen abertura para sujetar con un plomo pesado y se abren o desgarran.
+  - **Fija** (sin carrete ni freno): **nunca más pequeño que el 16**. El **18** no es para la carpa de Brovales.
+- **Bajo de línea según el anzuelo (🟣, orientativo):** 18 → 0,12–0,14 mm · 16 → 0,14–0,16 · 14 → 0,16–0,18 · 12 → 0,18–0,22 · 10 → 0,20–0,25. En carpfishing, trenzado de bajo de 15–25 lb. Anzuelo fino con hilo grueso no clava; anzuelo grande con hilo fino rompe.
+- **Si la app quiere un tamaño que no tienes**, propone el más cercano de los tuyos y lo dice. La IA parte del anzuelo de la app y puede cambiarlo con un motivo, pero **solo a otro de los que tienes** y respetando el límite de cada caña.
 
 ### 5.10 Pescar más: recomendación concreta y conocimiento aprendido (oct. 2026, petición del usuario)
 

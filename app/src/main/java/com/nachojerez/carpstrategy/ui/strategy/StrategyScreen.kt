@@ -977,7 +977,7 @@ private fun FloatReason.titleRes(): Int = when (this) {
     FloatReason.TOO_WINDY -> R.string.float_reason_too_windy
 }
 
-/** Por qué ese anzuelo: «Anzuelo del 14: va con el cebo, agua fría. Bajo de línea de 0,16 a 0,18 mm.» */
+/** Por qué ese anzuelo: «Anzuelo del 16: agua fría: carpas poco activas… Bajo de línea de 0,16 a 0,18 mm.» */
 @Composable
 internal fun hookWhyText(h: HookChoice, aiSize: Int?): String {
     val res = LocalContext.current.resources
@@ -994,9 +994,11 @@ internal fun hookWhyText(h: HookChoice, aiSize: Int?): String {
 }
 
 private fun HookReason.titleRes(): Int = when (this) {
-    HookReason.BAIT -> R.string.hook_reason_bait
-    HookReason.COLD -> R.string.hook_reason_cold
-    HookReason.WARM -> R.string.hook_reason_warm
+    HookReason.ACTIVITY_LOW -> R.string.hook_reason_activity_low
+    HookReason.ACTIVITY_MEDIUM -> R.string.hook_reason_activity_medium
+    HookReason.ACTIVITY_HIGH -> R.string.hook_reason_activity_high
+    HookReason.ACTIVITY_UNKNOWN -> R.string.hook_reason_activity_unknown
+    HookReason.BAIT_FIT -> R.string.hook_reason_bait_fit
     HookReason.SMALL_FISH -> R.string.hook_reason_small_fish
     HookReason.CARP_LIMIT -> R.string.hook_reason_carp_limit
     HookReason.FIXED_LIMIT -> R.string.hook_reason_fixed_limit

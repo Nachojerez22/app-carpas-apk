@@ -14,30 +14,37 @@ class HookChoiceTest {
         HookChooser.choose(HookInput(bait, kind, waterC, smallFish))
 
     @Test
-    fun `el anzuelo va con el cebo`() {
-        assertEquals(14, choose(BaitType.MAIZE, RodKind.FIXED)!!.size)
-        assertEquals(12, choose(BaitType.PASTE, RodKind.FIXED)!!.size)
-        assertEquals(10, choose(BaitType.BOILIE, RodKind.CARP)!!.size)
-        assertEquals(10, choose(BaitType.TIGERNUT, RodKind.CARP)!!.size)
-        assertEquals(listOf(HookReason.BAIT), choose(BaitType.MAIZE, RodKind.FIXED)!!.reasons)
+    fun `manda la actividad, menos activas anzuelo mas pequeno`() {
+        assertEquals(16, choose(BaitType.MAIZE, RodKind.FIXED, waterC = 9.0)!!.size)
+        assertEquals(14, choose(BaitType.MAIZE, RodKind.FIXED, waterC = 15.0)!!.size)
+        assertEquals(12, choose(BaitType.MAIZE, RodKind.FIXED, waterC = 24.0)!!.size)
+        assertEquals(14, choose(BaitType.BOILIE, RodKind.CARP, waterC = 9.0)!!.size)
+        assertEquals(12, choose(BaitType.BOILIE, RodKind.CARP, waterC = 15.0)!!.size)
+        assertEquals(10, choose(BaitType.BOILIE, RodKind.CARP, waterC = 24.0)!!.size)
+        assertEquals(listOf(HookReason.ACTIVITY_LOW), choose(BaitType.MAIZE, RodKind.FIXED, waterC = 9.0)!!.reasons)
     }
 
     @Test
-    fun `con agua fria un punto mas pequeno y en la fija hasta el 16`() {
-        val c = choose(BaitType.MAIZE, RodKind.FIXED, waterC = 9.0)!!
-        assertEquals(16, c.size)
-        assertTrue(HookReason.COLD in c.reasons)
+    fun `el mismo cebo con distinta actividad cambia de anzuelo, y distinto cebo con la misma no`() {
+        assertEquals(choose(BaitType.MAIZE, RodKind.CARP)!!.size, choose(BaitType.TIGERNUT, RodKind.CARP)!!.size)
+        assertTrue(choose(BaitType.MAIZE, RodKind.CARP, waterC = 9.0)!!.size > choose(BaitType.MAIZE, RodKind.CARP, waterC = 24.0)!!.size)
+    }
+
+    @Test
+    fun `el cebo solo limita, que quepa con la punta libre`() {
+        val paste = choose(BaitType.PASTE, RodKind.FIXED, waterC = 9.0)!!
+        assertEquals(14, paste.size)
+        assertTrue(HookReason.BAIT_FIT in paste.reasons)
+        assertEquals(12, choose(BaitType.TIGERNUT, RodKind.FIXED, waterC = 15.0)!!.size)
+    }
+
+    @Test
+    fun `limites de cada cana`() {
+        val fixed = choose(BaitType.MAIZE, RodKind.FIXED, waterC = 9.0)!!
         // No baja al 18: no es anzuelo para la carpa de Brovales.
-        assertNull(c.smaller)
-        assertEquals(14, c.larger)
-    }
-
-    @Test
-    fun `en carpfishing nunca mas pequeno que el 14`() {
-        val c = choose(BaitType.MAIZE, RodKind.CARP, waterC = 9.0)!!
-        assertEquals(14, c.size)
-        assertTrue(HookReason.CARP_LIMIT in c.reasons)
-        assertNull(c.smaller)
+        assertNull(fixed.smaller)
+        assertEquals(14, fixed.larger)
+        assertNull(choose(BaitType.MAIZE, RodKind.CARP, waterC = 9.0)!!.smaller)
         assertFalse(HookChooser.allowed(16, RodKind.CARP))
         assertTrue(HookChooser.allowed(16, RodKind.FIXED))
         assertFalse(HookChooser.allowed(18, RodKind.FIXED))
@@ -45,21 +52,22 @@ class HookChoiceTest {
     }
 
     @Test
-    fun `peces pequenos o agua caliente, mas grande, y si no lo tienes el mas cercano`() {
+    fun `peces pequenos mas grande, y si no lo tienes el mas cercano`() {
         assertEquals(12, choose(BaitType.MAIZE, RodKind.FIXED, smallFish = true)!!.size)
-        val c = choose(BaitType.BOILIE, RodKind.CARP, waterC = 24.0)!!
+        val c = choose(BaitType.BOILIE, RodKind.CARP, waterC = 24.0, smallFish = true)!!
         assertEquals(10, c.size)
         assertEquals(8, c.ideal)
-        assertTrue(HookReason.WARM in c.reasons)
         assertTrue(HookReason.NOT_OWNED in c.reasons)
         assertEquals(12, c.smaller)
         assertNull(c.larger)
     }
 
     @Test
-    fun `cebos que no van al anzuelo no llevan anzuelo`() {
+    fun `sin agua actividad media y cebos que no van al anzuelo sin anzuelo`() {
+        val c = choose(BaitType.MAIZE, RodKind.FIXED, waterC = null)!!
+        assertEquals(14, c.size)
+        assertEquals(listOf(HookReason.ACTIVITY_UNKNOWN), c.reasons)
         assertNull(choose(BaitType.PELLET, RodKind.CARP))
-        assertEquals(12, choose(null, null)!!.size)
         assertEquals(0.16..0.18, HookChooser.leaderMm(14))
     }
 }

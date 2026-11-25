@@ -1456,9 +1456,11 @@
     <string name="strategy_hook_why">Anzuelo del %1$d:</string>
     <string name="strategy_hook_app_differs">La app pondría el %1$d:</string>
     <string name="strategy_hook_leader">Bajo de línea de %1$s a %2$s mm.</string>
-    <string name="hook_reason_bait">va con el cebo (que la punta quede libre)</string>
-    <string name="hook_reason_cold">agua fría, un punto más pequeño</string>
-    <string name="hook_reason_warm">agua caliente y carpas activas, un punto más grande</string>
+    <string name="hook_reason_activity_low">agua fría: carpas poco activas y desconfiadas, anzuelo pequeño</string>
+    <string name="hook_reason_activity_medium">agua templada: actividad media</string>
+    <string name="hook_reason_activity_high">agua cálida: carpas activas, anzuelo más grande que sujeta mejor</string>
+    <string name="hook_reason_activity_unknown">sin temperatura del agua, se supone actividad media (mídela)</string>
+    <string name="hook_reason_bait_fit">más pequeño no cabe el cebo con la punta libre</string>
     <string name="hook_reason_small_fish">hay peces pequeños que se comen el cebo, más grande</string>
     <string name="hook_reason_carp_limit">con plomo de carpfishing, no más pequeño que el 14</string>
     <string name="hook_reason_fixed_limit">en la fija, no más pequeño que el 16</string>
