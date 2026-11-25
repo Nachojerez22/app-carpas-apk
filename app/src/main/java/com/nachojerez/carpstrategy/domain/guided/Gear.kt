@@ -62,8 +62,8 @@ enum class RigType(val column: Column?) {
     OTHER(null),
 }
 
-/** Cebos, montajes y cañas (fase 7.20: fija o carpfishing, [RodKind]). */
-enum class GearCategory { BAIT, RIG, ROD }
+/** Cebos, montajes, cañas (fase 7.20: fija o carpfishing, [RodKind]) y anzuelos (§5.9.15, uno por tamaño). */
+enum class GearCategory { BAIT, RIG, ROD, HOOK }
 
 /** Elemento del equipo que lleva el usuario (se añade desde la app). */
 data class GearItem(
@@ -85,6 +85,12 @@ data class GearItem(
     /** Caña (fase 7.20): fija o de carpfishing y, si es fija, su longitud en metros. */
     val rodKind: RodKind? = null,
     val rodLengthM: Int? = null,
+    /** Fija: lleva elástico (null = el de siempre: la de 9 m sí, las demás no; §5.9.15). */
+    val rodElastic: Boolean? = null,
+    /** Carpfishing: pescas con cebador (method o in-line, bajo corto) en vez de plomo (§5.9.15). */
+    val carpFeeder: Boolean = false,
+    /** Anzuelo ([GearCategory.HOOK]): su número (cuanto mayor, más pequeño). */
+    val hookSize: Int? = null,
 ) {
     /** «Sonubaits · Supercrush Green»: marca y nombre, para la pantalla y la IA. */
     val fullName: String get() = listOf(brand.trim(), name.trim()).filter { it.isNotEmpty() }.joinToString(" · ")

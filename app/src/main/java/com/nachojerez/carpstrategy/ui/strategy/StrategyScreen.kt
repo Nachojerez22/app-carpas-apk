@@ -981,7 +981,14 @@ private fun FloatReason.titleRes(): Int = when (this) {
 @Composable
 internal fun hookWhyText(h: HookChoice, aiSize: Int?): String {
     val res = LocalContext.current.resources
-    val why = h.reasons.joinToString(", ") { if (it == HookReason.NOT_OWNED) res.getString(R.string.hook_reason_not_owned, h.ideal) else res.getString(it.titleRes()) }
+    val why = h.reasons.joinToString(", ") { r ->
+        when (r) {
+            HookReason.NOT_OWNED -> res.getString(R.string.hook_reason_not_owned, h.ideal)
+            HookReason.FLOOR -> res.getString(R.string.hook_reason_floor, h.floor ?: h.size)
+            HookReason.MISSING_STRONGER -> res.getString(R.string.hook_reason_missing_stronger, h.floor ?: h.size)
+            else -> res.getString(r.titleRes())
+        }
+    }
     val head = if (aiSize != null && aiSize != h.size) {
         stringResource(R.string.strategy_hook_app_differs, h.size)
     } else {
@@ -990,19 +997,26 @@ internal fun hookWhyText(h: HookChoice, aiSize: Int?): String {
     val leader = HookChooser.leaderMm(aiSize ?: h.size)?.let {
         stringResource(R.string.strategy_hook_leader, Formatting.number(it.start, 2), Formatting.number(it.endInclusive, 2))
     }
-    return listOfNotNull("$head $why.", leader).joinToString(" ")
+    val elastic = h.elasticGrade?.let { stringResource(R.string.strategy_hook_elastic, it.first, it.last) }
+    return listOfNotNull("$head $why.", leader, elastic).joinToString(" ")
 }
 
 private fun HookReason.titleRes(): Int = when (this) {
     HookReason.ACTIVITY_LOW -> R.string.hook_reason_activity_low
     HookReason.ACTIVITY_MEDIUM -> R.string.hook_reason_activity_medium
     HookReason.ACTIVITY_HIGH -> R.string.hook_reason_activity_high
+    HookReason.HEAT -> R.string.hook_reason_heat
+    HookReason.HEAT_CALM -> R.string.hook_reason_heat_calm
     HookReason.ACTIVITY_UNKNOWN -> R.string.hook_reason_activity_unknown
+    HookReason.WEIGHT -> R.string.hook_reason_weight
+    HookReason.WEIGHT_ASSUMED -> R.string.hook_reason_weight_assumed
     HookReason.BAIT_FIT -> R.string.hook_reason_bait_fit
     HookReason.SMALL_FISH -> R.string.hook_reason_small_fish
-    HookReason.CARP_LIMIT -> R.string.hook_reason_carp_limit
-    HookReason.FIXED_LIMIT -> R.string.hook_reason_fixed_limit
+    HookReason.FLOOR -> R.string.hook_reason_floor
+    HookReason.NOT_ADVISED -> R.string.hook_reason_not_advised
+    HookReason.AT_LIMIT -> R.string.hook_reason_at_limit
     HookReason.NOT_OWNED -> R.string.hook_reason_not_owned
+    HookReason.MISSING_STRONGER -> R.string.hook_reason_missing_stronger
 }
 
 /** Qué hacer si pasa algo, en una frase. */

@@ -214,6 +214,10 @@ object GuidedJson {
         /** Caña (fase 7.20): FIXED (fija) o CARP (carpfishing) y la longitud de la fija. */
         @SerialName("tipo_cana") val rodKind: String? = null,
         @SerialName("longitud_m") val rodLengthM: Int? = null,
+        /** Fija con elástico y carpfishing con cebador; número del anzuelo (§5.9.15). */
+        @SerialName("elastico") val rodElastic: Boolean? = null,
+        @SerialName("cebador") val carpFeeder: Boolean = false,
+        @SerialName("anzuelo") val hookSize: Int? = null,
     )
 
     /** Ficha de un cebo preparada por la IA (fase 7.13). */
@@ -422,7 +426,7 @@ object GuidedJson {
         runCatching { JournalJson.json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(SpotDto.serializer()), it) }.getOrNull()
     }.orEmpty().mapNotNull { it.toDomain() }
 
-    fun GearItem.toDto() = GearDto(id, category.name, name, baitType?.name, rigType?.name, brand, description, url, available, sheet?.toDto(), rodKind?.name, rodLengthM)
+    fun GearItem.toDto() = GearDto(id, category.name, name, baitType?.name, rigType?.name, brand, description, url, available, sheet?.toDto(), rodKind?.name, rodLengthM, rodElastic, carpFeeder, hookSize)
 
     fun GearDto.toDomain(): GearItem? = GearItem(
         id = id,
@@ -437,6 +441,9 @@ object GuidedJson {
         sheet = sheet?.toDomain(),
         rodKind = enumOf<RodKind>(rodKind),
         rodLengthM = rodLengthM,
+        rodElastic = rodElastic,
+        carpFeeder = carpFeeder,
+        hookSize = hookSize,
     )
 
     fun BaitSheet.toDto() = BaitSheetDto(

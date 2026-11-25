@@ -268,6 +268,9 @@ object PreparedOutingJson {
         /** Anzuelo de la app (§5.9.15) y el de la IA. */
         @SerialName("anzuelo") val hook: HookDto? = null,
         @SerialName("anzuelo_ia") val aiHookSize: Int? = null,
+        /** Fija con elástico y carpfishing con cebador (§5.9.15). */
+        @SerialName("elastico") val rodElastic: Boolean = false,
+        @SerialName("cebador") val rodFeeder: Boolean = false,
     )
 
     @Serializable
@@ -278,6 +281,8 @@ object PreparedOutingJson {
         @SerialName("ideal") val ideal: Int,
         @SerialName("motivos") val reasons: List<String> = emptyList(),
         @SerialName("evidencia") val evidence: String,
+        @SerialName("suelo") val floor: Int? = null,
+        @SerialName("grado_elastico") val elasticGrade: List<Int>? = null,
     )
 
     @Serializable
@@ -373,8 +378,12 @@ object PreparedOutingJson {
                 r.proven?.let { ProvenDto(it.value, it.rodHours, it.catches, it.sessions) }, r.reason, r.evidence.name, r.source.name,
                 r.setup?.name, r.setup?.kind?.name, r.setup?.lengthM, r.weightG,
                 r.float?.let { f -> FloatDto(f.grams, f.lighter, f.heavier, f.targetG, f.reasons.map { it.name }, f.evidence.name) },
-                r.hook?.let { h -> HookDto(h.size, h.smaller, h.larger, h.ideal, h.reasons.map { it.name }, h.evidence.name) },
-                r.aiHookSize,
+                r.hook?.let { h -> HookDto(
+                        h.size, h.smaller, h.larger, h.ideal, h.reasons.map { it.name }, h.evidence.name, h.floor,
+                        h.elasticGrade?.let { listOf(it.first, it.last) },
+                    )
+                },
+                r.aiHookSize, r.setup?.elastic == true, r.setup?.feeder == true,
             )
         },
         planSource = planSource?.name,
@@ -432,13 +441,17 @@ object PreparedOutingJson {
                     reason = r.reason,
                     evidence = enumOrNull<Evidence>(r.evidence) ?: Evidence.PURPLE,
                     source = enumOrNull<PlanSource>(r.source) ?: PlanSource.APP,
-                    setup = if (r.rodName != null || r.rodKind != null) RodSetup(r.rodName.orEmpty(), enumOrNull<RodKind>(r.rodKind), r.rodLengthM) else null,
+                    setup = if (r.rodName != null || r.rodKind != null) RodSetup(r.rodName.orEmpty(), enumOrNull<RodKind>(r.rodKind), r.rodLengthM, r.rodElastic, r.rodFeeder) else null,
                     weightG = r.weightG,
                     float = r.float?.let { f ->
                         FloatChoice(f.grams, f.lighter, f.heavier, f.targetG, f.reasons.mapNotNull { enumOrNull<FloatReason>(it) }, enumOrNull<Evidence>(f.evidence) ?: Evidence.PURPLE)
                     },
                     hook = r.hook?.let { h ->
-                        HookChoice(h.size, h.smaller, h.larger, h.ideal, h.reasons.mapNotNull { enumOrNull<HookReason>(it) }, enumOrNull<Evidence>(h.evidence) ?: Evidence.PURPLE)
+                        HookChoice(
+                            h.size, h.smaller, h.larger, h.ideal, h.reasons.mapNotNull { enumOrNull<HookReason>(it) },
+                            enumOrNull<Evidence>(h.evidence) ?: Evidence.PURPLE, h.floor,
+                            h.elasticGrade?.takeIf { it.size == 2 }?.let { it[0]..it[1] },
+                        )
                     },
                     aiHookSize = r.aiHookSize,
                 )

@@ -596,39 +596,88 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 - **Redondeo:** de tus plumas, la más ligera que llegue al peso calculado (admite quedarse 0,25 g por debajo). Si el cálculo pasa de 4,4 g, ni la de 4 g bastará: busca un puesto resguardado o la fija más corta (🟣).
 - La IA parte de la pluma de la app y puede cambiarla con un motivo, pero **solo a otra de las que tiene**.
 
-#### 5.9.15 Qué anzuelo montar (nov. 2026, petición y decisión del usuario)
+#### 5.9.15 Qué anzuelo montar (nov. 2026, estudio y decisión del usuario)
 
-> El usuario tiene anzuelos del **18, 16, 14, 12 y 10**. Cuanto **mayor es el número, más pequeño** es el anzuelo: el 18 es el más pequeño y el 10 el más grande. Antes la app no hablaba de anzuelos. Ahora propone uno por caña. Es **equipo**: no puntúa ni cambia la valoración. Los números son 🟣 (propuesta de la app) y se contrastan con el diario.
+> El usuario tiene anzuelos del **18, 16, 14, 12 y 10** (y puede apuntar el **8 y el 6** en Mi equipo → Montajes). Cuanto **mayor es el número, más pequeño** es el anzuelo. La app propone uno por caña. Es **equipo**: no puntúa ni cambia la valoración. Esta sección sale del estudio del usuario (nov. 2026, «Análisis técnico de anzuelos para carpa en Extremadura»). Los números de las tablas son 🟣 (propuesta de la app sobre ese estudio) y se contrastan con el diario.
 
-- **Lo que dice la ciencia (🟢, pero con anzuelos más grandes que los tuyos):** el tamaño del anzuelo cambia sobre todo **qué** carpas se capturan.
-  - Ateşşahin y Dürrani 2023 (#45), con anzuelos marinos de 4/0 a 7/0: el más grande sacó carpas más grandes, sin cambiar las capturas ni dónde se clavaban.
-  - Rapp et al. 2008 (Fisheries Research), con anzuelos del 6 y del 1 cebados con maíz: **el pequeño capturaba más** y las grandes a un ritmo parecido.
-  - **No hay estudios con anzuelos del 10 al 18 en carpa** (🔴 como regla). Lo de abajo es 🟡 (prensa y oficio de pesca) o 🟣.
-- **Regla de fondo (🟡, decisión del usuario): manda la actividad de las carpas.** Cuanto **menos se mueven y comen, más pequeño el anzuelo**: la carpa poco activa inspecciona más, chupa con menos fuerza y nota antes el anzuelo. Con carpas activas que comen con ganas, el anzuelo más grande sujeta mejor y se suelta menos.
-  - La prensa de pesca lo hace así: en invierno bajan uno o dos números el anzuelo y el bajo ([Carpology](https://www.carpology.net/article/do-you-need-to-scale-down-your-rigs-for-winter-)), y bajan un número cuando las carpas empiezan a desconfiar tras un par de capturas (Angling Times, pesca en superficie).
-  - Hay quien defiende lo contrario en invierno: el anzuelo grande cuesta más escupirlo ([Angling Times](https://anglingtimes.co.uk/advice/tips/why-using-bigger-hooks-will-catch-you-more-fish-in-the-winter)). Por eso el diario decide (🔵).
-- **Actividad que deduce la app del agua (§5.1, 🟡/🟣):** baja por debajo de 12 °C; media de 12 a 18 °C; alta desde 18 °C. Sin temperatura del agua, se supone media: mídela.
+**Cuatro cosas deciden el anzuelo, en este orden (🟡):**
+1. **La amortiguación de la caña** y **el peso habitual de las carpas del embalse** ponen el **suelo**: el anzuelo más pequeño que aguanta el combate.
+2. **La actividad de las carpas** (agua y lo que ves) mueve el anzuelo dentro de lo que aguanta: menos activas, más pequeño.
+3. **El cebo** solo obliga a uno más grande si no cabe con la punta libre.
+4. **Peces pequeños** que se comen el cebo: uno más grande.
 
-| Actividad | Fija | Carpfishing |
-|---|---|---|
-| Baja (< 12 °C) | **16** | **14** |
-| Media (12–18 °C) | **14** | **12** |
-| Alta (≥ 18 °C) | **12** | **10** |
+No es el calendario ni el tópico «anzuelo grande para pez grande».
 
-  La fija va un punto más fina: el cebo va directo en el anzuelo y la picada se ve en la pluma. La de carpfishing lleva pelo y plomo pesado, y la carpa se clava sola.
-- **Durante la sesión, lo que veas manda sobre el agua (🟡):**
-  - **Toques o picadas falladas, o mucha presión de pesca** (#40): un número más pequeño **con un cebo más pequeño**. Una sola variable por caña (§5.9.2).
-  - **Peces pequeños** (barbos, bogas, alburnos…, §5.11) que se comen el cebo o se clavan ellos: **anzuelo y cebo más grandes** (🟡 + 🟢 #45: el anzuelo selecciona la talla).
-- **El cebo solo pone un límite (🟡): que quepa con la punta libre.**
-  - Masilla o pan: del 14 o más grande.
-  - Chufa en la fija (va directa en el anzuelo): del 12 o más grande. Con pelo (carpfishing) el cebo va aparte y no limita.
-  - Maíz y lombriz: cualquiera.
-  - Con anzuelo pequeño en frío, **baja también el cebo**: un grano de maíz o un boilie pequeño (§5.9.5 «más pequeño en frío»).
-- **Límites por caña (🟡/🟣), para no perder carpas grandes ni dejarles el anzuelo clavado:**
-  - **Carpfishing** (plomo de 40–90 g): **nunca más pequeño que el 14**. El 16 y el 18 no tienen abertura para sujetar con un plomo pesado y se abren o desgarran.
-  - **Fija** (sin carrete ni freno): **nunca más pequeño que el 16**. El **18** no es para la carpa de Brovales.
-- **Bajo de línea según el anzuelo (🟣, orientativo):** 18 → 0,12–0,14 mm · 16 → 0,14–0,16 · 14 → 0,16–0,18 · 12 → 0,18–0,22 · 10 → 0,20–0,25. En carpfishing, trenzado de bajo de 15–25 lb. Anzuelo fino con hilo grueso no clava; anzuelo grande con hilo fino rompe.
-- **Si la app quiere un tamaño que no tienes**, propone el más cercano de los tuyos y lo dice. La IA parte del anzuelo de la app y puede cambiarlo con un motivo, pero **solo a otro de los que tienes** y respetando el límite de cada caña.
+##### Lo que dice la ciencia (y lo que es mito)
+
+- **No hay ningún estudio controlado en carpa con anzuelos del 10 al 18** (🔴 como regla). Toda la evidencia publicada usa anzuelos más grandes (del 8 al 1 y del 4/0 al 7/0). Por debajo del 10, la decisión se apoya en la resistencia del hilo, la fisiología del pez y el oficio de pesca (🟡).
+- **«Anzuelo grande saca carpas más grandes»: mito en el rango medio (🟢).** Rapp, Cooke y Arlinghaus 2008 (88 carpas de 486–930 mm, al pelo con maíz, anzuelo del 6 frente al del 1): el **6 capturó más** (56 frente a 32; 0,33 frente a 0,25 capturas por hora-caña, P = 0,096) y **algo más grandes** (704 frente a 666 mm de media, P = 0,051), con la misma proporción de peces sacados (84 %). La carpa aspira el cebo ajustando la succión a su peso, y un anzuelo pesado estorba esa entrada limpia.
+  - La selección por talla solo aparece con anzuelos **muy grandes**: Ateşşahin y Dürrani 2023 (#45, embalse de Keban, talla mínima de 40 cm, anzuelos de 4/0 a 7/0) sacaron carpas más grandes con los mayores, sin cambiar capturas, punto de clavada ni sangrado. Ateşşahin y Cilbiz 2026 (preprint, escala turca no equivalente; 162 carpas de 26–86 cm): el anzuelo mayor bajó los descartes de inmaduras del 44,9 % al 14,0 % sin perder capturas.
+- **«El anzuelo pequeño se traga más y daña más»: mito al pelo, riesgo real con el cebo directo (🟢/🟡).** En Rapp 2008 ninguna carpa se clavó en órganos vitales: con el 6, 64 % en la mandíbula inferior y 36 % en la comisura (con el 1, 81 % y 16 %), y menos daño. En seis lagos rumanos (92 carpas al pelo, anzuelos wide gape del 6 y del 8): 52 % labio inferior, 38 % comisuras, 6 % labio superior, 4 % otras zonas. **Con el cebo directo en el anzuelo (la fija) hay que clavar rápido a la mínima señal de la pluma**, porque un cebo pequeño directo se traga más hondo.
+- **«En invierno hay que bajar siempre uno o dos números»: discutido (🔵).** Con elástico y cebos ligeros, afinar (18 y 0,12 mm) marca diferencias. En carpfishing con boilies, varios especialistas lo rechazan salvo si se baja también el cebo: la carpa fría está más torpe y pesan más un anzuelo muy afilado y un montaje difícil de escupir. Con carpas medio aletargadas las sujeciones son precarias y castigan al anzuelo demasiado pequeño. Por eso el diario decide.
+- **Las carpas aprenden a esquivar el anzuelo: probado (🟢).** Por experiencia propia tras captura y suelta y por ver capturar a otras, en pocos días; dura meses (un estudio de 2023 no lo vio pasar de 7 meses). En embalses con presión, aligerar la presentación responde a algo real (#40).
+
+##### El número no lo es todo: forma y alambre (🟡)
+
+- **No hay un estándar entre marcas**: un 14 de una marca puede abrir como un 12 o un 16 de otra. Pesan más la **abertura** (gape), el **grosor del alambre** y la **punta** que el número impreso.
+- **Boca ancha** (wide gape): deja la punta libre con cebos voluminosos (masilla, pan, varios maíces, boilies).
+- **Punta en pico de loro** (beaked): aguanta mejor el roce en grava o piedra y agarra en la comisura; la recta clava antes pero se despunta. **Comprueba el afilado en la uña** tras lances en grava o tras una captura: muchos fallos que se achacan al tamaño son de punta.
+- **Alambre**: un 14 o 16 fino de peces blancos se abre antes de romper un 0,20 mm; los forjados o X-Strong de carpa aguantan mucho más en el mismo número, pero pesan más y restan naturalidad a un grano suelto.
+- **Con o sin muerte**: retienen igual con la línea tensa; sin muerte clava con menos resistencia y daña menos al desanzuelar.
+
+##### Los cuatro perfiles de caña (🟡, mecánica del estudio)
+
+Lo que cambia el anzuelo mínimo no es si la caña lleva carrete, sino si hay **algo que amortigüe** entre el anzuelo y el pez.
+
+- **Fija rígida** (sin elástico ni carrete): el tirón cae de golpe sobre la caña y unos metros de nailon, y la carga segura baja al **35–45 %** de la resistencia del nudo húmedo (un 0,14 mm aguanta 0,26–0,43 kg en tirón seco). **El 18 está vetado**; el 16 solo con agua fría, orilla limpia y carpas de menos de 2–4 kg. Con carpas de 5–10 kg, el suelo es el **14** (reforzado y con cebo pequeño) y lo normal, **12–10** sobre 0,18–0,22 mm. Con carpas de 10 kg o más, **no es recomendable** (alto riesgo de rotura).
+- **Fija con elástico** (en la app, por defecto la de 9 m; se cambia en Mi equipo): el elástico sube la carga segura al **60–70 %** del nudo y abre todo el rango, del **18** (frío, carpas de menos de 4 kg) al **10**. Con carpas de 5–10 kg, **14–12–10** (el 16 solo con agua muy fría y sin enganches). Grado de elástico orientativo (🟣): < 2 kg 6–10 · 2–5 kg 10–14 (8–10 en frío) · 5–10 kg 12–16 · 10–15 kg 16–20 (ideal con salida lateral, strippa) · > 15 kg 18–25 y **muy al límite**, solo en zona limpia. **Antes de montar elásticos gruesos (16–20 o más), comprueba el calibre máximo que admite el top kit** para no partir los tramos finos.
+- **Carpfishing con cebador** (method o in-line, línea madre de 0,40 mm, bajo corto de unos 10 cm que se clava solo contra el peso del cebador): el **18 no es viable** (rompe al lanzar 50–90 g o en la autoclavada); el **16 solo como límite extremo** con anzuelo reforzado de boca ancha, vástago elastificado (tipo X-Safe) y freno suave en zona limpia (la app no lo propone). **14 reforzado, 12 y 10** son el estándar para carpas de 2 a 12 kg, mejor con bajo de nailon de 0,18–0,22 mm que con trenzado rígido. **El cebador siempre corredizo o de liberación segura**, para que una carpa no quede anclada si rompe la madre.
+- **Carpfishing con plomo** de 40–90 g, al pelo: con anzuelos del 10 al 18, **suelo en el 12** (14 solo forjado y con un grano de maíz) y lo normal **12–10**. Con boilies desde 15 mm, chufas grandes, carpas de más de 10 kg o ramas y piedras, hacen falta el **8 y el 6** (forjados, boca ancha, con ojal) sobre 0,25–0,30 mm o trenzado de 15–25 lb.
+
+##### Tabla de la app: caña × peso habitual de las carpas del embalse (🟣)
+
+El **peso habitual** se apunta en la ficha del embalse (Embalses → Ficha): < 2 kg · 2–5 · 5–10 · 10–15 · > 15 kg. **Sin dato, la app supone 5–10 kg** (lo prudente para embalses extremeños, donde hay capturas habituales de 15–20 kg y récords de 22 kg en García de Sola, 24 en Cíjara y 27–35 en Orellana). Cada casilla: anzuelo con actividad **baja · media · alta**, y entre paréntesis el **más pequeño que aguanta** (suelo).
+
+| Peso habitual | Fija rígida | Fija con elástico | Carpfishing con cebador | Carpfishing con plomo |
+|---|---|---|---|---|
+| < 2 kg | 16 · 14 · 14 (16) | 18 · 16 · 16 (18) | 14 · 14 · 12 (14) | 14 · 12 · 12 (14) |
+| 2–5 kg | 16 · 14 · 12 (16) | 18 · 16 · 14 (18) | 14 · 12 · 10 (14) | 12 · 12 · 10 (12) |
+| 5–10 kg | 14 · 12 · 10 (14) | 16 · 14 · 12 (16) | 12 · 12 · 10 (12) | 10 · 10 · 8 (10) |
+| 10–15 kg | 10 (no recomendable) | 12 · 12 · 10 (12) | 10 · 10 · 8 (10) | 8 · 8 · 6 (8) |
+| > 15 kg | 10 (inviable) | 10 · 10 · 8 (10, al límite) | 10 · 8 · 6 (10) | 8 · 6 · 6 (8) |
+
+- **Si el que toca no lo tienes**, la app propone el más cercano de los tuyos **que aguante** y lo dice. Si **ninguno de los tuyos aguanta** (por ejemplo, carpas de 10–15 kg con plomo y sin el 8), monta el más grande que tengas y la app avisa de que te falta uno más fuerte.
+- Con carpas de 2–5 kg en la fija con elástico, el 18 solo con agua fría (actividad baja).
+
+##### Actividad: agua y lo que ves (🟡/🟣)
+
+- **Agua** (§5.1): **< 12 °C baja** (caen la digestión y el apetito) · **12–18 °C media** (en la zona de Brovales se cita el despertar claro a partir de 14 °C) · **18–26 °C alta** · **> 26 °C vuelve a media**, y **baja si además hay calma** (viento < 6 km/h, 🟣) o algas. Sin temperatura del agua, se supone media: mídela.
+- **Por qué por encima de 26 °C (🟢 fisiología, 🟣 el corte):** la respirometría en carpa sitúa el óptimo metabólico estable entre 22 y 26 °C, con alteraciones a 26 y 30 °C; la ingesta máxima de juveniles, entre 23 y 27 °C, y a 34 °C se desploma. En verano manda el **oxígeno disuelto**: crecimiento normal con 6–7 mg/L; entre 3 y 5 mg/L ya respira más deprisa; Rosenfeld y Lee 2022: el crecimiento cae por debajo de 3,95 mg/L y el consumo por debajo de 4,29 mg/L (4,0–4,6). La termoclina confina la comida a la capa de arriba y el estrés (cortisol) frena la ingestión. En un embalse pequeño como Brovales (~7 hm³), con agua de más de 26 °C, calma y algas, no se fuerza el anzuelo máximo.
+- **Lo que ves manda sobre el termómetro (🟡):** burbujeo sostenido, saltos y picadas francas a 13–15 °C = carpas activas. Presión de pesca, agua cristalina o picadas falladas en pleno verano = un número más pequeño o un cebo más pequeño.
+- **Durante la sesión:**
+  - **Toques o picadas falladas, o mucha presión** (#40): un número más pequeño **con un cebo más pequeño**, sin bajar del suelo de la caña. Una sola variable por caña (§5.9.2).
+  - **Peces pequeños** (barbos, bogas, alburnos…, §5.11) que se comen el cebo o se clavan ellos: **anzuelo y cebo más grandes** (🟡 + 🟢 #45).
+
+##### El cebo solo pone un límite: que quepa con la punta libre (🟡)
+
+| Cebo | Fija rígida | Fija con elástico | Carpfishing con cebador | Carpfishing con plomo |
+|---|---|---|---|---|
+| 1 grano de maíz, pellet de 6 mm | 16 (frío, < 4 kg) – 14 | 18 (frío, < 4 kg) – 16 – 14 | 14 – 12 | 14 (forjado) – 12 |
+| 2–3 granos de maíz, lombriz | 14 – 12 | 14 – 12 | 12 – 10 | 12 – 10 (u 8) |
+| Masilla o miga de pan | 14 – 12 | 14 – 12 | 12 – 10 (con muelle o pelo) | 12 – 10 (con muelle) |
+| Chufa | 12 – 10 | 12 – 10 | 10 – 8 | 10 – 8 (o 6 si es grande) |
+| Boilie o wafter de 8–12 mm | no (§5.9.13) | no (§5.9.13) | 12 – 10 – 8 | 10 – 8 (mejor 8) |
+| Boilie de 15–18 mm | no | no | 8 – 6 | 8 – 6 (mejor 6) |
+
+La app lo aplica así: en la fija, masilla, pan y lombriz piden **del 14 o más grande** y la chufa **del 12**; en carpfishing, masilla, pan y lombriz **del 12** y chufa y boilies **del 10**. El maíz cabe en cualquiera. Con anzuelo pequeño en frío, **baja también el cebo** (§5.9.5).
+
+##### Bajo de línea según el anzuelo (🟣, orientativo)
+
+18 → 0,12–0,14 mm (solo fija con elástico) · 16 → 0,15–0,17 · 14 → 0,17–0,19 · 12 → 0,18–0,22 · 10 → 0,20–0,25 (o trenzado de 10–15 lb) · 8 y 6 → 0,25–0,30 (o trenzado de 15–25 lb). Anzuelo fino con hilo grueso no clava; anzuelo grande con hilo fino rompe.
+
+##### La IA
+
+La IA parte del anzuelo de la app y puede cambiarlo con un motivo, pero **solo a otro de los que tienes** y que **aguante con esa caña y ese peso de carpas** (si no, la respuesta no vale). Sin peso en la ficha, también supone 5–10 kg.
 
 ### 5.10 Pescar más: recomendación concreta y conocimiento aprendido (oct. 2026, petición del usuario)
 
@@ -728,6 +777,11 @@ Fuente: Orden de 7/11/2022 (en vigor desde 1/1/2023, con tramos actualizados por
   - **Cebado previo permitido** con productos no tóxicos (Ley art. 40.2), salvo aguas trucheras o régimen especial que lo prohíba.
   - Sonda: no prohibida en aguas no trucheras.
   - Sanciones de referencia: cebar en lugar o con sustancia no autorizados, leve (20–100 €) o menos grave (101–500 €); cebo no permitido, menos grave; sustancias tóxicas, grave (501–5.000 €).
+- *(Añadido nov. 2026, estudio del usuario; confirmar en el DOE.)* Anzuelos y devolución:
+  - Rige la Orden de 7/11/2022 (DOE n.º 220), modificada por las resoluciones de 16/2/2024 (DOE n.º 39), 14/1/2025 (DOE n.º 18, especies, tallas y cupos) y 18/3/2026 (DOE n.º 59, tramos e impreso de licencia por declaración responsable). Según el estudio, desde el 5/8/2026 la licencia autonómica está bonificada al 100 % (Ley 2/2026).
+  - **No hay talla mínima ni máxima de anzuelo** para la carpa. El «anzuelo sencillo sin muerte» solo es obligatorio en los **tramos de pesca sin muerte del anexo II** (art. 8.5, solo cebo artificial, sobre todo aguas trucheras). Sacadera como único auxiliar.
+  - **Devolución según especie y agua:** carpa, solo se puede devolver viva en aguas embalsadas antes de 2007 (Brovales: ya figura en el BOE-A-2004-298); en ríos y aguas corrientes, no. Boga: 12 cm, cupo 6/día. Barbo: 18 cm, cupo 6/día (boga y barbo, sin muerte en remontes reproductivos en aguas corrientes, art. 7.2). Tenca: 15 cm, cupo 10/día. **Alburno, carpín, black bass, lucio, siluro, pez sol y pez gato** (catálogo de especies exóticas invasoras): **prohibido devolverlos vivos**, poseerlos o transportarlos vivos (art. 5.2; 101–500 €).
+  - Brovales no aparece en el articulado general: comprobar en pescayrios.juntaextremadura.es si hay coto o restricción de cebado.
 
 ---
 
@@ -871,6 +925,10 @@ Viento (añadido oct. 2026, [informe de viento](investigacion/2026-10-viento.md)
 - Yamamoto et al. Aquaculture (autoselección de macronutrientes).
 - Ateşşahin y Dürrani 2023. Fisheries Research 261:106640.
 - Rapp, T., Cooke, S. J. y Arlinghaus, R. 2008. Exploitation of specialised fisheries resources: the importance of hook size in recreational angling for large common carp (*Cyprinus carpio* L.). Fisheries Research 94:79–83.
+- *(Añadidas nov. 2026, estudio de anzuelos del usuario.)* Ateşşahin y Cilbiz 2026 (preprint, embalse de Keban, tamaño de anzuelo y descartes de carpa).
+- Estudio de seis lagos rumanos sobre la localización de la clavada en carpa al pelo (92 carpas, anzuelos wide gape del 6 y del 8), citado en el estudio del usuario.
+- Rosenfeld, J. y Lee, R. 2022. Revisión cuantitativa de umbrales de oxígeno disuelto para el crecimiento y el consumo en peces de agua dulce (*Cyprinus carpio*: 3,95 y 4,29 mg/L).
+- Prensa de pesca (🟡/🔵): mesa redonda de Carpology sobre afinar en invierno (G. Bayes, M. Eaton, R. Hughes, M. Woods, I. Chillcott) y Angling Times (anzuelo del 18 con elástico blando; sujeciones en invierno).
 - Pérez-Bote, Pula y Cascos 2000. Graellsia 56:71–78.
 - *(Añadidas oct. 2026, viento; lista completa en `investigacion/2026-10-viento.md`.)*
 - HESS 2020, 24:3399. *Evolution and dynamics of the vertical temperature profile in an oligotrophic lake.*

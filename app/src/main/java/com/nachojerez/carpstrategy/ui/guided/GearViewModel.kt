@@ -68,6 +68,10 @@ class GearViewModel @Inject constructor(
         viewModelScope.launch { editor.toggleToday(id) }
     }
 
+    fun toggleHook(size: Int) {
+        viewModelScope.launch { editor.toggleHook(size) }
+    }
+
     fun setGroundbaitNormalKg(kg: Double?) {
         viewModelScope.launch { settings.setGroundbaitNormalKg(kg) }
     }

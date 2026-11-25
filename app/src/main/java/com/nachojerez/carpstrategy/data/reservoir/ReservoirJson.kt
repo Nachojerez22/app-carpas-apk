@@ -1,6 +1,7 @@
 package com.nachojerez.carpstrategy.data.reservoir
 
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
+import com.nachojerez.carpstrategy.domain.reservoir.CarpWeight
 import com.nachojerez.carpstrategy.domain.reservoir.FishSpecies
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirRegime
@@ -67,6 +68,7 @@ object ReservoirJson {
         @SerialName("notas") val notes: List<NoteDto> = emptyList(),
         @SerialName("ia") val aiGeneratedAt: String? = null,
         @SerialName("actualizada") val updatedAt: String? = null,
+        @SerialName("peso_carpas") val carpWeight: String? = null,
     )
 
     private inline fun <reified E : Enum<E>> enumOf(name: String?): E? = name?.let { n -> enumValues<E>().firstOrNull { it.name == n } }
@@ -101,7 +103,7 @@ object ReservoirJson {
         reservoirId,
         species.map { (sp, st) -> SpeciesDto(sp.name, st.present, st.confirmedByUser) },
         groundbaitAllowed, aiWaterSupply, summary, notes.map { NoteDto(it.text, it.evidence.name) },
-        aiGeneratedAt?.toString(), updatedAt?.toString(),
+        aiGeneratedAt?.toString(), updatedAt?.toString(), carpWeight?.name,
     )
 
     fun SheetDto.toDomain() = ReservoirSheet(
@@ -113,6 +115,7 @@ object ReservoirJson {
         notes = notes.map { SheetNote(it.text, enumOf<Evidence>(it.evidence) ?: Evidence.PURPLE) },
         aiGeneratedAt = instant(aiGeneratedAt),
         updatedAt = instant(updatedAt),
+        carpWeight = enumOf<CarpWeight>(carpWeight),
     )
 
     fun encodeSheets(list: List<ReservoirSheet>): String = json.encodeToString(sheets, list.map { it.toDto() })

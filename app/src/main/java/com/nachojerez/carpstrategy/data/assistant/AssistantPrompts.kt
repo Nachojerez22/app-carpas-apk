@@ -5,7 +5,9 @@ import com.nachojerez.carpstrategy.domain.advice.ExperienceSummary
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
 import com.nachojerez.carpstrategy.domain.advice.FloatChoice
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmounts
-import com.nachojerez.carpstrategy.domain.advice.HookChooser
+import com.nachojerez.carpstrategy.domain.advice.HookProfile
+import com.nachojerez.carpstrategy.domain.advice.hookProfile
+import com.nachojerez.carpstrategy.domain.advice.hookSizes
 import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.advice.Stat
 import com.nachojerez.carpstrategy.domain.assistant.AiKind
@@ -106,7 +108,7 @@ Formato y límites (si no los cumples, la app descarta tu respuesta):
 4. La app ya controla el horario: no hables de normativa, permisos ni horario legal. No propongas horas de noche ni fuera de "horario_de_pesca".
 5. Cada motivo lleva etiqueta de evidencia en "evidencia": 🟢 demostrado, 🟡 indicio o experiencia, 🔴 sin evidencia, 🟣 hipótesis local o datos propios, 🔵 variabilidad individual.
 6. Responde en español, breve (cada texto como mucho 300 caracteres) y SOLO con el JSON pedido, sin texto alrededor.
-7. Respeta el tipo de cada caña ("tipo" en "canas" o "canas_de_hoy"). FIJA (sin carrete, de "longitud_m"): a fondo (BOTTOM), a media agua con flotador (ZIG) o en superficie (SURFACE), siempre a una distancia hasta su longitud, con una de sus plumas ("plumas_que_tienes_g": 1,5 · 1,8 · 2,4 · 3 · 3,4 · 4 g) y NUNCA con boilies (ni pop-up ni boilie duro); no hables del plomo de la fija: lo pone el usuario. CARPFISHING: siempre a fondo (BOTTOM o POPUP, nunca ZIG ni SURFACE), de 7 a 100 m, con plomo de 40 a 90 g; vale cualquier cebo, también maíz. Para la pluma de cada fija di en "peso_g" una de "plumas_que_tienes_g" (§5.9.14): la más ligera que mantenga el cebo quieto; más pesada con más fondo, viento, oleaje de cara, deriva o peces pequeños activos; más ligera a media agua o en superficie, con calma y con agua fría o carpas poco activas (picadas desconfiadas). Parte de "recomendacion_de_la_app.pluma_fija_a_fondo" y cámbiala solo si tienes un motivo y dilo. En los textos puedes citar la pluma o el plomo en gramos («pluma de 2,4 g», «flotador de 3 g», «plomo de 60 g»): la pluma, solo una de las que tiene; el plomo, dentro de su rango. Para el anzuelo de cada caña di en "anzuelo" uno de "anzuelos_que_tienes" (18 · 16 · 14 · 12 · 10; número mayor = anzuelo más pequeño) que no sea más pequeño que "anzuelo_mas_pequeno" de esa caña (carpfishing 14, fija 16) (§5.9.15): manda la actividad de las carpas: cuanto menos activas (agua fría, desconfianza, toques sin clavada, mucha presión), más pequeño; con carpas activas (agua cálida, comiendo con ganas), más grande; más grande también con peces pequeños que se comen el cebo. El cebo solo limita: que quepa con la punta libre (masilla o pan, del 14 o más grande; chufa en la fija, del 12 o más grande). Parte de "recomendacion_de_la_app.anzuelos" y cámbialo solo con un motivo. En los textos puedes citarlo así: «anzuelo del 12»; solo uno de los que tiene.
+7. Respeta el tipo de cada caña ("tipo" en "canas" o "canas_de_hoy"). FIJA (sin carrete, de "longitud_m"): a fondo (BOTTOM), a media agua con flotador (ZIG) o en superficie (SURFACE), siempre a una distancia hasta su longitud, con una de sus plumas ("plumas_que_tienes_g": 1,5 · 1,8 · 2,4 · 3 · 3,4 · 4 g) y NUNCA con boilies (ni pop-up ni boilie duro); no hables del plomo de la fija: lo pone el usuario. CARPFISHING: siempre a fondo (BOTTOM o POPUP, nunca ZIG ni SURFACE), de 7 a 100 m, con plomo de 40 a 90 g; vale cualquier cebo, también maíz. Para la pluma de cada fija di en "peso_g" una de "plumas_que_tienes_g" (§5.9.14): la más ligera que mantenga el cebo quieto; más pesada con más fondo, viento, oleaje de cara, deriva o peces pequeños activos; más ligera a media agua o en superficie, con calma y con agua fría o carpas poco activas (picadas desconfiadas). Parte de "recomendacion_de_la_app.pluma_fija_a_fondo" y cámbiala solo si tienes un motivo y dilo. En los textos puedes citar la pluma o el plomo en gramos («pluma de 2,4 g», «flotador de 3 g», «plomo de 60 g»): la pluma, solo una de las que tiene; el plomo, dentro de su rango. Para el anzuelo de cada caña di en "anzuelo" uno de "equipo.anzuelos_que_tienes" (número mayor = anzuelo más pequeño) que no sea más pequeño que "anzuelo_mas_pequeno" de su "perfil_anzuelo" en "recomendacion_de_la_app.anzuelos" (§5.9.15). El suelo lo ponen la caña (FIXED_RIGID fija sin elástico, FIXED_ELASTIC fija con elástico, CARP_FEEDER carpfishing con cebador, CARP_LEAD carpfishing con plomo) y "embalse.peso_habitual_carpas" (sin dato, se suponen carpas de 5 a 10 kg). Dentro de lo que aguanta, manda la actividad: menos activas (agua fría, más de 26 °C con calma, desconfianza, toques sin clavada, mucha presión), más pequeño; activas, más grande; más grande también con peces pequeños que se comen el cebo. El cebo solo limita: que quepa con la punta libre. Parte de "recomendacion_de_la_app.anzuelos" y cámbialo solo con un motivo. En los textos puedes citarlo así: «anzuelo del 12»; solo uno de los que tiene.
 """
 
     val CHECK_IN_SYSTEM = RULES + """
@@ -474,16 +476,19 @@ Normas (si no las cumples, la app descarta la respuesta):
                 val spot = a.chosen ?: a.spots.firstOrNull()
                 a.floatFor(spot, Column.BOTTOM)?.let { f -> floatJson("pluma_fija_a_fondo", f) }
                 if (a.altColumn == Column.ZIG || a.column == Column.ZIG) a.floatFor(spot, Column.ZIG)?.let { f -> floatJson("pluma_fija_media_agua", f) }
-                // §5.9.15: el anzuelo que pondría la app con cada cebo, en la fija y en la de carpfishing.
+                // §5.9.15: el anzuelo que pondría la app con cada cebo y cada tipo de caña.
                 putJsonArray("anzuelos") {
                     a.baits.forEach { b ->
-                        RodKind.entries.forEach { kind ->
+                        HookProfile.entries.forEach { profile ->
+                            val kind = if (profile == HookProfile.FIXED_RIGID || profile == HookProfile.FIXED_ELASTIC) RodKind.FIXED else RodKind.CARP
                             if (b.type != null && !RodRules.baitAllowed(kind, b.type)) return@forEach
-                            val h = a.hookFor(b.type, kind) ?: return@forEach
+                            val h = a.hookFor(b.type, profile) ?: return@forEach
                             addJsonObject {
                                 put("cebo", b.gearName ?: b.type?.name ?: "?")
-                                put("tipo_cana", if (kind == RodKind.FIXED) "FIJA" else "CARPFISHING")
+                                put("perfil_anzuelo", profile.name)
                                 put("anzuelo", h.size)
+                                h.floor?.let { put("anzuelo_mas_pequeno", it) }
+                                h.elasticGrade?.let { put("elastico_grado", "${it.first}-${it.last}") }
                                 if (h.ideal != h.size) put("ideal_que_no_tienes", h.ideal)
                                 h.smaller?.let { put("si_toques_sin_clavada", it) }
                                 h.larger?.let { put("si_peces_pequenos", it) }
@@ -516,6 +521,7 @@ Normas (si no las cumples, la app descarta la respuesta):
                 putJsonArray("especies_que_no_hay") { absent.sortedBy { it.ordinal }.forEach { add(it.name) } }
             }
             if (sheet?.hasUnconfirmed == true) put("especies_sin_confirmar", true)
+            sheet?.carpWeight?.let { put("peso_habitual_carpas", it.name) }
             when (ctx.groundbaitAllowed) {
                 true -> put("se_puede_cebar", true)
                 false -> put("se_puede_cebar", false)
@@ -650,12 +656,12 @@ Normas (si no las cumples, la app descarta la respuesta):
             RodRules.weightRange(kind)?.let { w -> put("plomo_g", "${w.start.toInt()}-${w.endInclusive.toInt()}") }
         }
         put("boilies", RodRules.baitAllowed(kind, BaitType.BOILIE))
-        putJsonArray("anzuelos_que_tienes") { HookChooser.SIZES.forEach { add(it) } }
-        HookChooser.smallestFor(kind)?.let { put("anzuelo_mas_pequeno", it) }
+        r.hookProfile()?.let { put("perfil_anzuelo", it.name) }
     }
 
     private fun JsonObjectBuilder.gear(gear: List<GearItem>) {
         putJsonObject("equipo") {
+            putJsonArray("anzuelos_que_tienes") { gear.hookSizes().forEach { add(it) } }
             putJsonArray("cebos") {
                 gear.filter { it.category == GearCategory.BAIT }.forEach { g ->
                     addJsonObject {

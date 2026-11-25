@@ -392,12 +392,16 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `FLOAT_SHY_BITES` / `FLOAT_DRIFT` (`ContingencyLine.grams`). La IA recibe `plumas_que_tienes_g` y
   `recomendacion_de_la_app.pluma_fija_a_fondo`; `peso_g` y los textos de la fija solo valen con una de tus plumas.
 
-- 0.42.0, anzuelo (CONOCIMIENTO.md §5.9.15): `domain/advice/HookChoice.kt` (`HookChooser.SIZES` = los del usuario 18 · 16 ·
-  14 · 12 · 10; `choose`: manda la actividad de las carpas por el agua — `CarpActivity`, < 12 °C baja, 12–18 media,
-  ≥ 18 alta —; el cebo solo limita, `smallestForBait`; más grande con peces pequeños; carpfishing no más pequeño que el 14 y fija que el 16; `allowed`, `leaderMm`, umbrales 🟣).
-  `FishingAdvice.hookFor(bait, kind)`; `RodLine.hook`/`aiHookSize`/`shownHookSize`; «Si cambia algo» con `HOOK_SHY_BITES` /
-  `HOOK_SMALL_FISH` (`ContingencyLine.hookSize`). La IA recibe `anzuelos_que_tienes`, `anzuelo_mas_pequeno` y
-  `recomendacion_de_la_app.anzuelos`, responde `anzuelo` por caña y `AiIssue.HOOK_NOT_OWNED` rechaza otros (también en textos).
+- 0.42.0, anzuelo (CONOCIMIENTO.md §5.9.15, estudio del usuario): `domain/advice/HookChoice.kt`. `HookProfile` (fija rígida,
+  fija con elástico, carpfishing con cebador o con plomo; `RodSetup.hookProfile()`; `GearItem.rodElastic` — null = la de 9 m
+  sí — y `carpFeeder`, JSON `elastico`/`cebador`) × `CarpWeight` (ficha del embalse, `peso_carpas`; sin dato 5–10 kg) → tabla
+  🟣 con anzuelo por actividad (`CarpActivity`: < 12 °C baja, 12–18 media, 18–26 alta, > 26 media o baja con calma) y suelo
+  (`floorFor`, `allowed`); el cebo solo limita (`smallestForBait`); más grande con peces pequeños. Tus anzuelos son `GearItem`
+  de `GearCategory.HOOK` (`hookSize`, JSON `anzuelo`; `hookSizes()`, sin ninguno `SIZES` = 18 · 16 · 14 · 12 · 10; chips en
+  Mi equipo → Montajes con `CHOICES`, incluidos 8 y 6). `FishingAdvice.hookFor(bait, rod)`; `RodLine.hook`/`aiHookSize`/
+  `shownHookSize`; «Si cambia algo» con `HOOK_SHY_BITES` / `HOOK_SMALL_FISH`. La IA recibe `anzuelos_que_tienes`,
+  `perfil_anzuelo`, `peso_habitual_carpas` y `recomendacion_de_la_app.anzuelos`, responde `anzuelo` por caña y
+  `AiIssue.HOOK_NOT_OWNED` rechaza los que no tienes o no aguantan (también en textos).
 
 ## Activar la salida preparada (fase 7.21)
 

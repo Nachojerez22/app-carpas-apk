@@ -2,6 +2,9 @@ package com.nachojerez.carpstrategy.domain.assistant
 
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmounts
 import com.nachojerez.carpstrategy.domain.advice.HookChooser
+import com.nachojerez.carpstrategy.domain.advice.hookProfile
+import com.nachojerez.carpstrategy.domain.advice.hookSizes
+import com.nachojerez.carpstrategy.domain.reservoir.CarpWeight
 import com.nachojerez.carpstrategy.domain.advice.Lesson
 import com.nachojerez.carpstrategy.domain.advice.LessonConditions
 import com.nachojerez.carpstrategy.domain.advice.LessonSource
@@ -252,6 +255,8 @@ data class AiContext(
     val rodSetups: Map<Int, RodSetup> = emptyMap(),
     /** Todas las cañas que llevas hoy: entre ellas puede elegir la IA las fijas del plan (0.26.1). */
     val carriedRods: List<RodSetup> = emptyList(),
+    /** Peso habitual de las carpas del embalse (§5.9.15): pone el anzuelo más pequeño que vale. */
+    val carpWeight: CarpWeight? = null,
 )
 
 /**
@@ -293,7 +298,7 @@ object AiValidator {
     private val CLOCK = Regex("""\b([01]?\d|2[0-3])[:h]([0-5]\d)\b""")
     private val PROMISE = Regex("""garantiz\w*|seguro que (pica|picar|habr|vas a)|vas a pescar seguro|hay peces (en|ahí)""", RegexOption.IGNORE_CASE)
 
-    fun textIssues(text: String?, required: Boolean = true, maxLength: Int = MAX_TEXT): Set<AiIssue> = buildSet {
+    fun textIssues(text: String?, required: Boolean = true, maxLength: Int = MAX_TEXT, hookSizes: List<Int> = HookChooser.SIZES): Set<AiIssue> = buildSet {
         val t = text?.trim().orEmpty()
         if (t.isEmpty()) {
             if (required) add(AiIssue.EMPTY_TEXT)
@@ -302,7 +307,7 @@ object AiValidator {
         if (t.length > maxLength) add(AiIssue.TEXT_TOO_LONG)
         if (PROBABILITY.containsMatchIn(t)) add(AiIssue.PROBABILITY)
         if (tackleWeightIssue(t)) add(AiIssue.WEIGHT_OUT_OF_RANGE)
-        if (hookSizeIssue(t)) add(AiIssue.HOOK_NOT_OWNED)
+        if (hookSizeIssue(t, hookSizes)) add(AiIssue.HOOK_NOT_OWNED)
         if (GRAMS.containsMatchIn(TACKLE_WEIGHT.replace(t, ""))) add(AiIssue.GRAMS)
         if (NIGHT.containsMatchIn(t)) add(AiIssue.NIGHT)
         if (PROMISE.containsMatchIn(t)) add(AiIssue.PROMISE)
@@ -319,9 +324,9 @@ object AiValidator {
         }
     }
 
-    /** True si el texto cita un anzuelo que no tienes ([HookChooser.SIZES]). */
-    private fun hookSizeIssue(text: String): Boolean = HOOK_SIZE.findAll(text).any { m ->
-        m.groupValues.drop(1).filter { it.isNotEmpty() }.any { it.toInt() !in HookChooser.SIZES }
+    /** True si el texto cita un anzuelo que no tienes ([hookSizes], de Mi equipo). */
+    private fun hookSizeIssue(text: String, hookSizes: List<Int>): Boolean = HOOK_SIZE.findAll(text).any { m ->
+        m.groupValues.drop(1).filter { it.isNotEmpty() }.any { it.toInt() !in hookSizes }
     }
 
     /**
@@ -353,7 +358,7 @@ object AiValidator {
     }
 
     private fun MutableSet<AiIssue>.checkText(text: String?, ctx: AiContext, required: Boolean = true) {
-        addAll(textIssues(text, required))
+        addAll(textIssues(text, required, hookSizes = ctx.gear.hookSizes()))
         legalHoursIssue(text, ctx)?.let(::add)
     }
 
@@ -392,7 +397,7 @@ object AiValidator {
 
     /** Respuesta del chat: texto válido (más largo que un motivo) y, si propone cambios, que valgan. */
     fun validate(reply: AiChatReply, ctx: AiContext): Set<AiIssue> = buildSet {
-        addAll(textIssues(reply.text, maxLength = MAX_CHAT_TEXT))
+        addAll(textIssues(reply.text, maxLength = MAX_CHAT_TEXT, hookSizes = ctx.gear.hookSizes()))
         legalHoursIssue(reply.text, ctx)?.let(::add)
         if (reply.changes.isNotEmpty()) checkChanges(reply.changes, ctx)
     }
@@ -428,7 +433,12 @@ object AiValidator {
                 }
                 if (!ok) add(AiIssue.WEIGHT_OUT_OF_RANGE)
             }
-            r.hookSize?.let { if (!HookChooser.allowed(it, setup?.kind)) add(AiIssue.HOOK_NOT_OWNED) }
+            // §5.9.15: uno de tus anzuelos que aguante con esa caña y esas carpas.
+            r.hookSize?.let { size ->
+                val sizes = ctx.gear.hookSizes()
+                val ok = if (setup?.kind == null) size in sizes else HookChooser.allowed(size, setup.hookProfile(), ctx.carpWeight, sizes)
+                if (!ok) add(AiIssue.HOOK_NOT_OWNED)
+            }
             addAll(gearIssues(r.baitName, r.rigName, r.spotName, ctx))
             addAll(rodIssues(r.rod, r.baitName, r.rigName, r.column, ctx))
             checkText(r.reason, ctx)
@@ -554,6 +564,7 @@ object AiValidator {
             reservoirId = reservoirId,
             species = confirmed + proposed,
             groundbaitAllowed = previous?.groundbaitAllowed,
+            carpWeight = previous?.carpWeight,
             aiWaterSupply = draft.waterSupply,
             summary = draft.summary?.trim(),
             notes = draft.notes.take(MAX_SHEET_NOTES).map { SheetNote(it.text.trim(), it.evidence ?: Evidence.PURPLE) },

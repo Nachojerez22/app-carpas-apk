@@ -11,6 +11,7 @@ import com.nachojerez.carpstrategy.domain.assistant.AiExchange
 import com.nachojerez.carpstrategy.domain.derived.Geo
 import com.nachojerez.carpstrategy.domain.model.GeoPoint
 import com.nachojerez.carpstrategy.domain.repository.SettingsRepository
+import com.nachojerez.carpstrategy.domain.reservoir.CarpWeight
 import com.nachojerez.carpstrategy.domain.reservoir.FishSpecies
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
@@ -116,6 +117,8 @@ class ReservoirsViewModel @Inject constructor(
     fun setSpecies(species: FishSpecies, present: Boolean?) = editSheet { r, sheet -> ReservoirSheets.setSpecies(sheet, r.id, species, present, clock.instant()) }
 
     fun setGroundbait(allowed: Boolean?) = editSheet { r, sheet -> ReservoirSheets.setGroundbait(sheet, r.id, allowed, clock.instant()) }
+
+    fun setCarpWeight(weight: CarpWeight?) = editSheet { r, sheet -> ReservoirSheets.setCarpWeight(sheet, r.id, weight, clock.instant()) }
 
     fun confirmAll() = editSheet { _, sheet -> sheet?.let { ReservoirSheets.confirmAll(it, clock.instant()) } }
 

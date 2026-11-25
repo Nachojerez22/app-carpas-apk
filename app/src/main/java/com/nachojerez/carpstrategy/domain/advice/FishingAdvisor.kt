@@ -9,7 +9,8 @@ import com.nachojerez.carpstrategy.domain.guided.FishingPhase
 import com.nachojerez.carpstrategy.domain.guided.GearCategory
 import com.nachojerez.carpstrategy.domain.guided.GearItem
 import com.nachojerez.carpstrategy.domain.guided.GroundbaitLevel
-import com.nachojerez.carpstrategy.domain.guided.RodKind
+import com.nachojerez.carpstrategy.domain.guided.RodSetup
+import com.nachojerez.carpstrategy.domain.reservoir.CarpWeight
 import com.nachojerez.carpstrategy.domain.guided.Spot
 import com.nachojerez.carpstrategy.domain.guided.SpotStructure
 import com.nachojerez.carpstrategy.domain.guided.Spots
@@ -101,6 +102,10 @@ data class FishingAdvice(
     val better: SpotPick? = null,
     /** El tiempo de la hora para elegir la pluma de las fijas (§5.9.14). */
     val floatWeather: FloatWeather = FloatWeather(),
+    /** Peso habitual de las carpas del embalse (ficha); null = sin dato (§5.9.15). */
+    val carpWeight: CarpWeight? = null,
+    /** Tus anzuelos (Mi equipo). */
+    val hookSizes: List<Int> = HookChooser.SIZES,
 ) {
     /** Pluma para una fija en [spot] con [column] (null si no tienes plumas). */
     fun floatFor(spot: SpotPick?, column: Column): FloatChoice? = FloatChooser.choose(
@@ -116,9 +121,15 @@ data class FishingAdvice(
         ),
     )
 
-    /** Anzuelo para [bait] en una caña [kind] (§5.9.15); null si el cebo no va al anzuelo. */
-    fun hookFor(bait: BaitType?, kind: RodKind?): HookChoice? = HookChooser.choose(
-        HookInput(bait = bait, rodKind = kind, waterC = floatWeather.waterC, smallFish = species.selective),
+    /** Anzuelo para [bait] en la caña [rod] (§5.9.15); null si el cebo no va al anzuelo. */
+    fun hookFor(bait: BaitType?, rod: RodSetup?): HookChoice? = hookFor(bait, rod.hookProfile())
+
+    fun hookFor(bait: BaitType?, profile: HookProfile?): HookChoice? = HookChooser.choose(
+        HookInput(
+            bait = bait, profile = profile, waterC = floatWeather.waterC, windKmh = floatWeather.windKmh,
+            carpWeight = carpWeight, smallFish = species.selective,
+        ),
+        hookSizes,
     )
 }
 
@@ -182,6 +193,8 @@ object FishingAdvisor {
             chosen = chosen,
             better = chosen?.let { better(it, spots) },
             floatWeather = FloatWeather(input.waterC, input.windKmh, input.gustKmh),
+            carpWeight = input.reservoir?.sheet?.carpWeight,
+            hookSizes = input.gear.hookSizes(),
         )
     }
 

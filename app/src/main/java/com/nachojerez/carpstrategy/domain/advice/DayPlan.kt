@@ -166,7 +166,7 @@ object DayPlans {
                 source = PlanSource.APP,
                 setup = setup,
                 float = if (kind == RodKind.FIXED) advice.floatFor(spot, column) else null,
-                hook = advice.hookFor(bait?.type, kind),
+                hook = advice.hookFor(bait?.type, setup),
             )
         }
         val lines = if (ai == null) app else app.map { line -> merge(line, ai, gear, advice, spot) }
@@ -214,7 +214,7 @@ object DayPlans {
             weightG = r.weightG ?: line.weightG,
             float = line.float?.let { f -> if (r.column != null && r.column != line.column) advice.floatFor(spot, r.column) ?: f else f },
             // Con otro cebo, el anzuelo de la app se recalcula para ese cebo.
-            hook = if (r.baitName != null) advice.hookFor(baitItem?.baitType, line.setup?.kind) else line.hook,
+            hook = if (r.baitName != null) advice.hookFor(baitItem?.baitType, line.setup) else line.hook,
             aiHookSize = r.hookSize ?: line.aiHookSize,
             proven = if (r.baitName == null) line.proven else null,
             reason = r.reason.takeIf { it.isNotBlank() },
@@ -249,8 +249,8 @@ object DayPlans {
         rods.firstOrNull { it.hook != null }?.let { line ->
             val hook = line.hook ?: return@let
             val shown = line.shownHookSize ?: hook.size
-            val kind = line.setup?.kind
-            val usable = HookChooser.SIZES.filter { HookChooser.allowed(it, kind) }
+            val profile = line.setup.hookProfile()
+            val usable = advice.hookSizes.filter { HookChooser.allowed(it, profile, advice.carpWeight, advice.hookSizes) }
             usable.filter { it > shown }.minOrNull()?.let { add(ContingencyLine(Contingency.HOOK_SHY_BITES, hookSize = it, evidence = Evidence.YELLOW)) }
             if (advice.species.selective || advice.species.hardBaits) {
                 usable.filter { it < shown }.maxOrNull()?.let { add(ContingencyLine(Contingency.HOOK_SMALL_FISH, hookSize = it, evidence = Evidence.YELLOW)) }

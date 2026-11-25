@@ -286,6 +286,7 @@ fun planContext(state: StrategyUiState, rods: Int, gear: List<GearItem>, now: In
     groundbaitNormalKg = state.groundbaitNormalKg,
     rodSetups = state.rodSetups.withIndex().associate { (i, r) -> i + 1 to r },
     carriedRods = gear.carriedRods(),
+    carpWeight = state.reservoir?.sheet?.carpWeight,
 )
 
 /** Estación de las reglas en el texto que usa la sesión guiada (`estacion` de rules.json). */

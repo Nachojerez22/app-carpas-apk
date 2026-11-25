@@ -53,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.data.assistant.AiException
 import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmounts
+import com.nachojerez.carpstrategy.domain.advice.HookChooser
 import com.nachojerez.carpstrategy.domain.assistant.AiUsage
 import com.nachojerez.carpstrategy.domain.guided.BaitSheet
 import com.nachojerez.carpstrategy.domain.guided.BaitType
@@ -157,6 +158,7 @@ fun GearScreen(onBack: () -> Unit, viewModel: GearViewModel = hiltViewModel()) {
                 }
                 if (category == GearCategory.BAIT) GroundbaitNormalRow(normalKg, viewModel::setGroundbaitNormalKg)
                 if (category == GearCategory.ROD) Caption(stringResource(R.string.gear_rods_hint))
+                if (category == GearCategory.RIG) HookSizesRow(gear, viewModel::toggleHook)
             }
         }
         item { Caption(stringResource(R.string.gear_hint)) }
@@ -252,6 +254,7 @@ internal fun GearCategory.titleRes(): Int = when (this) {
     GearCategory.BAIT -> R.string.gear_baits
     GearCategory.RIG -> R.string.gear_rigs
     GearCategory.ROD -> R.string.gear_rods
+    GearCategory.HOOK -> R.string.gear_hooks
 }
 
 @StringRes
@@ -259,6 +262,26 @@ internal fun GearCategory.addRes(): Int = when (this) {
     GearCategory.BAIT -> R.string.gear_add_bait
     GearCategory.RIG -> R.string.gear_add_rig
     GearCategory.ROD -> R.string.gear_add_rod
+    GearCategory.HOOK -> R.string.gear_hooks
+}
+
+/**
+ * Anzuelos que tienes (§5.9.15): un chip por número; tocar para añadirlo o quitarlo. Sin ninguno,
+ * la app usa los de siempre (18 · 16 · 14 · 12 · 10).
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun HookSizesRow(gear: List<GearItem>, onToggle: (Int) -> Unit) {
+    val owned = gear.filter { it.category == GearCategory.HOOK }.mapNotNull { it.hookSize }.toSet()
+    Column(Modifier.padding(top = Spacing.md), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+        Text(stringResource(R.string.gear_hooks), style = MaterialTheme.typography.titleSmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            HookChooser.CHOICES.forEach { size ->
+                FilterChip(selected = size in owned, onClick = { onToggle(size) }, label = { Text(stringResource(R.string.gear_hook_size, size)) })
+            }
+        }
+        Caption(stringResource(if (owned.isEmpty()) R.string.gear_hooks_default else R.string.gear_hooks_hint))
+    }
 }
 
 /** Una caña de la lista (fase 7.20): casilla «hoy la llevo», nombre y tipo; tocar para editar. */
@@ -389,6 +412,19 @@ internal fun GearDialog(
                         }
                     }
                     draft.rodKind?.let { Caption(stringResource(if (it == RodKind.FIXED) R.string.gear_rod_fixed_rules else R.string.gear_rod_carp_rules)) }
+                    // §5.9.15: el elástico de la fija y el cebador de la de carpfishing cambian el anzuelo que aguanta.
+                    if (draft.rodKind == RodKind.FIXED) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.gear_rod_elastic), modifier = Modifier.weight(1f))
+                            Switch(checked = draft.elasticShown, onCheckedChange = { onChange(draft.copy(rodElastic = it)) })
+                        }
+                    }
+                    if (draft.rodKind == RodKind.CARP) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.gear_rod_feeder), modifier = Modifier.weight(1f))
+                            Switch(checked = draft.carpFeeder, onCheckedChange = { onChange(draft.copy(carpFeeder = it)) })
+                        }
+                    }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.gear_rod_today), modifier = Modifier.weight(1f))
                         Switch(

@@ -104,11 +104,14 @@ class RodRulesAiTest {
 
     @Test
     fun `anzuelo de los que tienes y que admite la cana`() {
-        // §5.9.15: fija hasta el 16, carpfishing hasta el 14; solo 18 · 16 · 14 · 12 · 10.
-        assertTrue(AiValidator.validate(plan(AiRodPlan(1, hookSize = 16, reason = "Anzuelo del 16 con un grano", evidence = Evidence.YELLOW)), ctx).isEmpty())
-        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(1, hookSize = 18, reason = "fino", evidence = Evidence.YELLOW)), ctx))
-        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(2, hookSize = 16, reason = "fino", evidence = Evidence.YELLOW)), ctx))
+        // §5.9.15, sin peso en la ficha (5–10 kg): fija rígida hasta el 14, carpfishing con plomo hasta el 10.
+        assertTrue(AiValidator.validate(plan(AiRodPlan(1, hookSize = 14, reason = "Anzuelo del 14 con un grano", evidence = Evidence.YELLOW)), ctx).isEmpty())
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(1, hookSize = 16, reason = "fino", evidence = Evidence.YELLOW)), ctx))
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(2, hookSize = 12, reason = "fino", evidence = Evidence.YELLOW)), ctx))
         assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(2, hookSize = 8, reason = "grande", evidence = Evidence.YELLOW)), ctx))
+        // Con el 8 apuntado en Mi equipo, sí.
+        val withEight = ctx.copy(gear = gear + GearItem("h8", GearCategory.HOOK, "Anzuelo del 8", hookSize = 8))
+        assertTrue(AiValidator.validate(plan(AiRodPlan(2, hookSize = 8, reason = "Anzuelo del 8 con boilie", evidence = Evidence.YELLOW)), withEight).isEmpty())
     }
 
     @Test
@@ -118,5 +121,6 @@ class RodRulesAiTest {
         assertTrue(AiValidator.textIssues("Pon en el anzuelo de 2 a 3 granos").isEmpty())
         assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.textIssues("Anzuelo del 8 con boilie grande"))
         assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.textIssues("Monta un 6 de anzuelo"))
+        assertTrue(AiValidator.textIssues("Monta un 6 de anzuelo", hookSizes = listOf(10, 8, 6)).isEmpty())
     }
 }

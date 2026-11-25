@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
+import com.nachojerez.carpstrategy.domain.reservoir.CarpWeight
 import com.nachojerez.carpstrategy.domain.reservoir.FishSpecies
 import com.nachojerez.carpstrategy.domain.reservoir.Reservoir
 import com.nachojerez.carpstrategy.domain.reservoir.ReservoirContext
@@ -267,7 +268,32 @@ fun ReservoirSheetScreen(onBack: () -> Unit, viewModel: ReservoirsViewModel = hi
                 if (allowed == null && active.reservoir.waterSupplyByName) Caption(stringResource(R.string.reservoir_groundbait_by_name))
             }
         }
+        // §5.9.15: el peso habitual de las carpas pone el anzuelo más pequeño que aguanta.
+        item {
+            SectionTitle(stringResource(R.string.reservoir_carp_weight_title))
+            CarpCard {
+                val weight = active.sheet?.carpWeight
+                Caption(stringResource(R.string.reservoir_carp_weight_hint))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    CarpWeight.entries.forEach { w ->
+                        FilterChip(selected = weight == w, onClick = { viewModel.setCarpWeight(w) }, label = { Text(stringResource(w.titleRes())) })
+                    }
+                    FilterChip(selected = weight == null, onClick = { viewModel.setCarpWeight(null) }, label = { Text(stringResource(R.string.reservoir_carp_weight_unknown)) })
+                }
+                if (weight == null) Caption(stringResource(R.string.reservoir_carp_weight_assumed))
+            }
+        }
     }
+}
+
+/** «Menos de 2 kg», «De 2 a 5 kg»… */
+@androidx.annotation.StringRes
+internal fun CarpWeight.titleRes(): Int = when (this) {
+    CarpWeight.UNDER_2 -> R.string.carp_weight_under_2
+    CarpWeight.FROM_2_TO_5 -> R.string.carp_weight_2_5
+    CarpWeight.FROM_5_TO_10 -> R.string.carp_weight_5_10
+    CarpWeight.FROM_10_TO_15 -> R.string.carp_weight_10_15
+    CarpWeight.OVER_15 -> R.string.carp_weight_over_15
 }
 
 @Composable

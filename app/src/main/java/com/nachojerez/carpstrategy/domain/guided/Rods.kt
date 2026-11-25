@@ -16,6 +16,10 @@ data class RodSetup(
     val kind: RodKind? = null,
     /** Longitud en metros de la caña fija; null en carpfishing. */
     val lengthM: Int? = null,
+    /** Fija con elástico en la puntera (amortigua: admite anzuelos más pequeños, §5.9.15). */
+    val elastic: Boolean = false,
+    /** Carpfishing con cebador (method o in-line) en vez de plomo (§5.9.15). */
+    val feeder: Boolean = false,
 )
 
 /** Qué permite cada tipo de caña. Funciones puras: lo usan el plan, la sesión guiada y la IA. */
@@ -46,6 +50,9 @@ object RodRules {
      * más cortas, que se manejan mejor.
      */
     const val STRONG_WIND_KMH = 15.0
+
+    /** Fija que lleva elástico si no se dice otra cosa (la de 9 m del usuario, §5.9.15). */
+    const val ELASTIC_DEFAULT_LENGTH_M = 9
 
     /** Carpfishing: plomo. */
     const val LEAD_MIN_G = 40.0
@@ -100,7 +107,11 @@ object RodRules {
 
 /** La caña del equipo como [RodSetup] (null si no es una caña). */
 fun GearItem.toRodSetup(): RodSetup? = if (category == GearCategory.ROD) {
-    RodSetup(name.trim(), rodKind, rodLengthM.takeIf { rodKind == RodKind.FIXED })
+    RodSetup(
+        name.trim(), rodKind, rodLengthM.takeIf { rodKind == RodKind.FIXED },
+        elastic = rodKind == RodKind.FIXED && (rodElastic ?: (rodLengthM == RodRules.ELASTIC_DEFAULT_LENGTH_M)),
+        feeder = rodKind == RodKind.CARP && carpFeeder,
+    )
 } else {
     null
 }
