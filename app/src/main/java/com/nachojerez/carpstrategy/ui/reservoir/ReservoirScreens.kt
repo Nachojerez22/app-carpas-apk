@@ -280,7 +280,9 @@ fun ReservoirSheetScreen(onBack: () -> Unit, viewModel: ReservoirsViewModel = hi
                     }
                     FilterChip(selected = weight == null, onClick = { viewModel.setCarpWeight(null) }, label = { Text(stringResource(R.string.reservoir_carp_weight_unknown)) })
                 }
-                if (weight == null) Caption(stringResource(R.string.reservoir_carp_weight_assumed))
+                if (weight == null) {
+                    Caption(stringResource(if (active.isBrovales) R.string.reservoir_carp_weight_brovales else R.string.reservoir_carp_weight_assumed))
+                }
             }
         }
     }

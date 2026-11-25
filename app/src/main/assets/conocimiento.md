@@ -598,7 +598,7 @@ Solo vibración; notificación expandible para responder sin abrir la app · int
 
 #### 5.9.15 Qué anzuelo montar (nov. 2026, estudio y decisión del usuario)
 
-> El usuario tiene anzuelos del **18, 16, 14, 12 y 10** (y puede apuntar el **8 y el 6** en Mi equipo → Montajes). Cuanto **mayor es el número, más pequeño** es el anzuelo. La app propone uno por caña. Es **equipo**: no puntúa ni cambia la valoración. Esta sección sale del estudio del usuario (nov. 2026, «Análisis técnico de anzuelos para carpa en Extremadura»). Los números de las tablas son 🟣 (propuesta de la app sobre ese estudio) y se contrastan con el diario.
+> El usuario tiene anzuelos del **18, 16, 14, 12, 10, 8 y 6** (confirmado en nov. 2026; en Mi equipo → Montajes se puede cambiar). Cuanto **mayor es el número, más pequeño** es el anzuelo. La app propone uno por caña. Es **equipo**: no puntúa ni cambia la valoración. Esta sección sale del estudio del usuario (nov. 2026, «Análisis técnico de anzuelos para carpa en Extremadura»). Los números de las tablas son 🟣 (propuesta de la app sobre ese estudio) y se contrastan con el diario.
 
 **Cuatro cosas deciden el anzuelo, en este orden (🟡):**
 1. **La amortiguación de la caña** y **el peso habitual de las carpas del embalse** ponen el **suelo**: el anzuelo más pequeño que aguanta el combate.
@@ -630,13 +630,15 @@ No es el calendario ni el tópico «anzuelo grande para pez grande».
 Lo que cambia el anzuelo mínimo no es si la caña lleva carrete, sino si hay **algo que amortigüe** entre el anzuelo y el pez.
 
 - **Fija rígida** (sin elástico ni carrete): el tirón cae de golpe sobre la caña y unos metros de nailon, y la carga segura baja al **35–45 %** de la resistencia del nudo húmedo (un 0,14 mm aguanta 0,26–0,43 kg en tirón seco). **El 18 está vetado**; el 16 solo con agua fría, orilla limpia y carpas de menos de 2–4 kg. Con carpas de 5–10 kg, el suelo es el **14** (reforzado y con cebo pequeño) y lo normal, **12–10** sobre 0,18–0,22 mm. Con carpas de 10 kg o más, **no es recomendable** (alto riesgo de rotura).
-- **Fija con elástico** (en la app, por defecto la de 9 m; se cambia en Mi equipo): el elástico sube la carga segura al **60–70 %** del nudo y abre todo el rango, del **18** (frío, carpas de menos de 4 kg) al **10**. Con carpas de 5–10 kg, **14–12–10** (el 16 solo con agua muy fría y sin enganches). Grado de elástico orientativo (🟣): < 2 kg 6–10 · 2–5 kg 10–14 (8–10 en frío) · 5–10 kg 12–16 · 10–15 kg 16–20 (ideal con salida lateral, strippa) · > 15 kg 18–25 y **muy al límite**, solo en zona limpia. **Antes de montar elásticos gruesos (16–20 o más), comprueba el calibre máximo que admite el top kit** para no partir los tramos finos.
+- **Fija con elástico** (en la app, por defecto la de 9 m; se cambia en Mi equipo): el elástico sube la carga segura al **60–70 %** del nudo y abre todo el rango, del **18** (frío, carpas de menos de 4 kg) al **10**. Con carpas de 5–10 kg, **14–12–10** (el 16 solo con agua muy fría y sin enganches). Grado de elástico orientativo (🟣): < 2 kg 6–10 · 2–5 kg 10–14 (8–10 en frío) · 5–10 kg 12–16 · 10–15 kg 16–20 (ideal con salida lateral, strippa) · > 15 kg 18–25 y **muy al límite**, solo en zona limpia. **Antes de montar elásticos gruesos (16–20 o más), comprueba el calibre máximo que admite el top kit** para no partir los tramos finos. El usuario no sabe aún qué admite el suyo (nov. 2026): **la app no propone más del grado 14** (🟣) y, cuando llega a ese tope, recuerda mirarlo (viene en el tramo o en la web del fabricante).
+  - Su única fija con elástico es la de 9 m.
 - **Carpfishing con cebador** (method o in-line, línea madre de 0,40 mm, bajo corto de unos 10 cm que se clava solo contra el peso del cebador): el **18 no es viable** (rompe al lanzar 50–90 g o en la autoclavada); el **16 solo como límite extremo** con anzuelo reforzado de boca ancha, vástago elastificado (tipo X-Safe) y freno suave en zona limpia (la app no lo propone). **14 reforzado, 12 y 10** son el estándar para carpas de 2 a 12 kg, mejor con bajo de nailon de 0,18–0,22 mm que con trenzado rígido. **El cebador siempre corredizo o de liberación segura**, para que una carpa no quede anclada si rompe la madre.
+- El usuario pesca la de carpfishing **con plomo y bolsa de PVA** o **con cebador que lleva el plomo incluido** (nov. 2026): en Mi equipo se marca «cebador» cuando monta el cebador; si no, la app entiende plomo.
 - **Carpfishing con plomo** de 40–90 g, al pelo: con anzuelos del 10 al 18, **suelo en el 12** (14 solo forjado y con un grano de maíz) y lo normal **12–10**. Con boilies desde 15 mm, chufas grandes, carpas de más de 10 kg o ramas y piedras, hacen falta el **8 y el 6** (forjados, boca ancha, con ojal) sobre 0,25–0,30 mm o trenzado de 15–25 lb.
 
 ##### Tabla de la app: caña × peso habitual de las carpas del embalse (🟣)
 
-El **peso habitual** se apunta en la ficha del embalse (Embalses → Ficha): < 2 kg · 2–5 · 5–10 · 10–15 · > 15 kg. **Sin dato, la app supone 5–10 kg** (lo prudente para embalses extremeños, donde hay capturas habituales de 15–20 kg y récords de 22 kg en García de Sola, 24 en Cíjara y 27–35 en Orellana). Cada casilla: anzuelo con actividad **baja · media · alta**, y entre paréntesis el **más pequeño que aguanta** (suelo).
+El **peso habitual** se apunta en la ficha del embalse (Embalses → Ficha): < 2 kg · 2–5 · 5–10 · 10–15 · > 15 kg. En **Brovales**, sin elegir nada, usa **2–5 kg** (§6.2). **En otros embalses, sin dato, la app supone 5–10 kg** (lo prudente para embalses extremeños, donde hay capturas habituales de 15–20 kg y récords de 22 kg en García de Sola, 24 en Cíjara y 27–35 en Orellana). Cada casilla: anzuelo con actividad **baja · media · alta**, y entre paréntesis el **más pequeño que aguanta** (suelo).
 
 | Peso habitual | Fija rígida | Fija con elástico | Carpfishing con cebador | Carpfishing con plomo |
 |---|---|---|---|---|
@@ -742,6 +744,7 @@ La IA parte del anzuelo de la app y puede cambiarlo con un motivo, pero **solo a
 - Estratificación estival: posible junto a la presa; improbable estable en colas.
 - Especies según fuentes divulgativas: boga, barbo, carpa, black-bass (sin inventario oficial accesible).
 - "Raro es que baje del 50 %" a finales de verano: concuerda con media decenal (~56 % a finales de septiembre).
+- *(Nov. 2026, lo que ha visto el usuario, 🟣.)* Las carpas de Brovales pesan de **0,4 a 2,5 kg**. Para el anzuelo (§5.9.15) la app usa, si no se elige otro en la ficha, el tramo de **2 a 5 kg**, que pone el suelo pensando en las más grandes.
 
 ### 6.3 No verificable / probablemente inventado (NO mostrar)
 - "Demasía Hidrográfica del Guadiana" (no existe).

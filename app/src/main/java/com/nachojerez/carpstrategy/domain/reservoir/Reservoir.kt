@@ -86,6 +86,17 @@ data class ReservoirContext(val reservoir: Reservoir, val sheet: ReservoirSheet?
     val groundbaitDoubt: Boolean get() = sheet?.groundbaitAllowed == null && (reservoir.waterSupplyByName || sheet?.aiWaterSupply == true)
 
     val species: Set<FishSpecies> get() = sheet?.presentSpecies.orEmpty()
+
+    /**
+     * Peso habitual de las carpas (§5.9.15): el de la ficha; si no hay y es Brovales, el que dio el
+     * usuario (de 0,4 a 2,5 kg, nov. 2026, §6): se usa el tramo de 2 a 5 kg, que pone el suelo por las más grandes.
+     */
+    val carpWeight: CarpWeight? get() = sheet?.carpWeight ?: if (isBrovales) BROVALES_CARP_WEIGHT else null
+
+    companion object {
+        /** 🟣 Carpas de Brovales según el usuario: de 0,4 a 2,5 kg. */
+        val BROVALES_CARP_WEIGHT: CarpWeight = CarpWeight.FROM_2_TO_5
+    }
 }
 
 /** Operaciones con embalses. Funciones puras. */

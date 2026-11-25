@@ -521,7 +521,7 @@ Normas (si no las cumples, la app descarta la respuesta):
                 putJsonArray("especies_que_no_hay") { absent.sortedBy { it.ordinal }.forEach { add(it.name) } }
             }
             if (sheet?.hasUnconfirmed == true) put("especies_sin_confirmar", true)
-            sheet?.carpWeight?.let { put("peso_habitual_carpas", it.name) }
+            ctx.carpWeight?.let { put("peso_habitual_carpas", it.name) }
             when (ctx.groundbaitAllowed) {
                 true -> put("se_puede_cebar", true)
                 false -> put("se_puede_cebar", false)

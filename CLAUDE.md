@@ -394,10 +394,10 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
 
 - 0.42.0, anzuelo (CONOCIMIENTO.md §5.9.15, estudio del usuario): `domain/advice/HookChoice.kt`. `HookProfile` (fija rígida,
   fija con elástico, carpfishing con cebador o con plomo; `RodSetup.hookProfile()`; `GearItem.rodElastic` — null = la de 9 m
-  sí — y `carpFeeder`, JSON `elastico`/`cebador`) × `CarpWeight` (ficha del embalse, `peso_carpas`; sin dato 5–10 kg) → tabla
+  sí — y `carpFeeder`, JSON `elastico`/`cebador`) × `CarpWeight` (ficha del embalse, `peso_carpas`; `ReservoirContext.carpWeight`: sin dato, Brovales 2–5 kg y los demás 5–10) → tabla
   🟣 con anzuelo por actividad (`CarpActivity`: < 12 °C baja, 12–18 media, 18–26 alta, > 26 media o baja con calma) y suelo
-  (`floorFor`, `allowed`); el cebo solo limita (`smallestForBait`); más grande con peces pequeños. Tus anzuelos son `GearItem`
-  de `GearCategory.HOOK` (`hookSize`, JSON `anzuelo`; `hookSizes()`, sin ninguno `SIZES` = 18 · 16 · 14 · 12 · 10; chips en
+  (`floorFor`, `allowed`; elástico hasta `ELASTIC_GRADE_CAP` = 14 hasta saber qué admite el top kit); el cebo solo limita (`smallestForBait`); más grande con peces pequeños. Tus anzuelos son `GearItem`
+  de `GearCategory.HOOK` (`hookSize`, JSON `anzuelo`; `hookSizes()`, sin ninguno `SIZES` = 18 · 16 · 14 · 12 · 10 · 8 · 6; chips en
   Mi equipo → Montajes con `CHOICES`, incluidos 8 y 6). `FishingAdvice.hookFor(bait, rod)`; `RodLine.hook`/`aiHookSize`/
   `shownHookSize`; «Si cambia algo» con `HOOK_SHY_BITES` / `HOOK_SMALL_FISH`. La IA recibe `anzuelos_que_tienes`,
   `perfil_anzuelo`, `peso_habitual_carpas` y `recomendacion_de_la_app.anzuelos`, responde `anzuelo` por caña y

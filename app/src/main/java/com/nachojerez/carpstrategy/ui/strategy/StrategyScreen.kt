@@ -997,7 +997,10 @@ internal fun hookWhyText(h: HookChoice, aiSize: Int?): String {
     val leader = HookChooser.leaderMm(aiSize ?: h.size)?.let {
         stringResource(R.string.strategy_hook_leader, Formatting.number(it.start, 2), Formatting.number(it.endInclusive, 2))
     }
-    val elastic = h.elasticGrade?.let { stringResource(R.string.strategy_hook_elastic, it.first, it.last) }
+    val elastic = h.elasticGrade?.let {
+        stringResource(R.string.strategy_hook_elastic, it.first, it.last) +
+            if (it.last >= HookChooser.ELASTIC_GRADE_CAP) " " + stringResource(R.string.strategy_hook_elastic_cap, HookChooser.ELASTIC_GRADE_CAP) else ""
+    }
     return listOfNotNull("$head $why.", leader, elastic).joinToString(" ")
 }
 

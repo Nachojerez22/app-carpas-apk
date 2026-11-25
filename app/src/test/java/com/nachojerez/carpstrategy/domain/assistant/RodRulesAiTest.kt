@@ -108,10 +108,11 @@ class RodRulesAiTest {
         assertTrue(AiValidator.validate(plan(AiRodPlan(1, hookSize = 14, reason = "Anzuelo del 14 con un grano", evidence = Evidence.YELLOW)), ctx).isEmpty())
         assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(1, hookSize = 16, reason = "fino", evidence = Evidence.YELLOW)), ctx))
         assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(2, hookSize = 12, reason = "fino", evidence = Evidence.YELLOW)), ctx))
-        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(2, hookSize = 8, reason = "grande", evidence = Evidence.YELLOW)), ctx))
-        // Con el 8 apuntado en Mi equipo, sí.
-        val withEight = ctx.copy(gear = gear + GearItem("h8", GearCategory.HOOK, "Anzuelo del 8", hookSize = 8))
-        assertTrue(AiValidator.validate(plan(AiRodPlan(2, hookSize = 8, reason = "Anzuelo del 8 con boilie", evidence = Evidence.YELLOW)), withEight).isEmpty())
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(2, hookSize = 4, reason = "grande", evidence = Evidence.YELLOW)), ctx))
+        assertTrue(AiValidator.validate(plan(AiRodPlan(2, hookSize = 8, reason = "Anzuelo del 8 con boilie", evidence = Evidence.YELLOW)), ctx).isEmpty())
+        // Si en Mi equipo solo apuntas el 12 y el 10, el 8 no vale.
+        val onlyTwo = ctx.copy(gear = gear + listOf(12, 10).map { GearItem("h$it", GearCategory.HOOK, "Anzuelo del $it", hookSize = it) })
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.validate(plan(AiRodPlan(2, hookSize = 8, reason = "grande", evidence = Evidence.YELLOW)), onlyTwo))
     }
 
     @Test
@@ -119,8 +120,9 @@ class RodRulesAiTest {
         assertTrue(AiValidator.textIssues("Anzuelo del 12 con masilla").isEmpty())
         assertTrue(AiValidator.textIssues("Prueba anzuelos del 14 o 16 en la fija").isEmpty())
         assertTrue(AiValidator.textIssues("Pon en el anzuelo de 2 a 3 granos").isEmpty())
-        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.textIssues("Anzuelo del 8 con boilie grande"))
-        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.textIssues("Monta un 6 de anzuelo"))
-        assertTrue(AiValidator.textIssues("Monta un 6 de anzuelo", hookSizes = listOf(10, 8, 6)).isEmpty())
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.textIssues("Anzuelo del 4 con boilie grande"))
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.textIssues("Monta un 4 de anzuelo"))
+        assertTrue(AiValidator.textIssues("Monta un 6 de anzuelo").isEmpty())
+        assertEquals(setOf(AiIssue.HOOK_NOT_OWNED), AiValidator.textIssues("Monta un 6 de anzuelo", hookSizes = listOf(12, 10)))
     }
 }

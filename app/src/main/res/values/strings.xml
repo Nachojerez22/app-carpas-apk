@@ -1463,6 +1463,7 @@
     <string name="strategy_hook_app_differs">La app pondría el %1$d:</string>
     <string name="strategy_hook_leader">Bajo de línea de %1$s a %2$s mm.</string>
     <string name="strategy_hook_elastic">Elástico de grado %1$d a %2$d.</string>
+    <string name="strategy_hook_elastic_cap">La app no pasa del grado %1$d: antes de montar uno más grueso, mira qué calibre admite el top kit de tu caña (viene en el tramo o en la web del fabricante).</string>
     <string name="hook_reason_activity_low">agua fría: carpas poco activas y desconfiadas, más pequeño</string>
     <string name="hook_reason_activity_medium">agua templada: actividad media</string>
     <string name="hook_reason_activity_high">agua cálida: carpas activas, más grande, que sujeta mejor</string>
@@ -1558,6 +1559,7 @@
     <string name="reservoir_carp_weight_hint">Lo que sueles sacar aquí. Con él la app no propone anzuelos que no aguanten el combate con cada caña.</string>
     <string name="reservoir_carp_weight_unknown">No lo sé</string>
     <string name="reservoir_carp_weight_assumed">Sin dato, la app supone carpas de 5 a 10 kg.</string>
+    <string name="reservoir_carp_weight_brovales">En Brovales, sin elegir nada, la app usa lo que dijiste (carpas de 0,4 a 2,5 kg) con el tramo de 2 a 5 kg, que pone el anzuelo más pequeño pensando en las más grandes.</string>
     <string name="carp_weight_under_2">Menos de 2 kg</string>
     <string name="carp_weight_2_5">De 2 a 5 kg</string>
     <string name="carp_weight_5_10">De 5 a 10 kg</string>

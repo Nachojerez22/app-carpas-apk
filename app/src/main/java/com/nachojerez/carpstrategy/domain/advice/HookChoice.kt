@@ -124,7 +124,13 @@ fun List<GearItem>.hookSizes(): List<Int> =
  */
 object HookChooser {
     /** Los anzuelos que dijo tener el usuario (nov. 2026) si no ha apuntado ninguno en Mi equipo. */
-    val SIZES: List<Int> = listOf(18, 16, 14, 12, 10)
+    val SIZES: List<Int> = listOf(18, 16, 14, 12, 10, 8, 6)
+
+    /**
+     * 🟣 Grado de elástico más alto que propone la app: el usuario no sabe qué calibre admite el top kit
+     * de su fija de 9 m (nov. 2026). Por encima hay que comprobarlo antes (§5.9.15).
+     */
+    const val ELASTIC_GRADE_CAP = 14
 
     /** Tamaños que se pueden apuntar en Mi equipo, del más pequeño al más grande. */
     val CHOICES: List<Int> = listOf(20, 18, 16, 14, 12, 10, 8, 6, 4, 2)
@@ -216,13 +222,14 @@ object HookChooser {
     /** Grado de elástico orientativo de la fija con elástico (🟣); null en las demás. */
     fun elasticGrade(profile: HookProfile?, weight: CarpWeight?, activity: CarpActivity?): IntRange? {
         if (profile != HookProfile.FIXED_ELASTIC) return null
-        return when (weight ?: ASSUMED_WEIGHT) {
+        val grade = when (weight ?: ASSUMED_WEIGHT) {
             CarpWeight.UNDER_2 -> 6..10
             CarpWeight.FROM_2_TO_5 -> if (activity == CarpActivity.LOW) 8..10 else 10..14
             CarpWeight.FROM_5_TO_10 -> 12..16
             CarpWeight.FROM_10_TO_15 -> 16..20
             CarpWeight.OVER_15 -> 18..25
         }
+        return minOf(grade.first, ELASTIC_GRADE_CAP)..minOf(grade.last, ELASTIC_GRADE_CAP)
     }
 
     /** 🟣 Bajo de línea orientativo por anzuelo (mm); null fuera de la tabla. */

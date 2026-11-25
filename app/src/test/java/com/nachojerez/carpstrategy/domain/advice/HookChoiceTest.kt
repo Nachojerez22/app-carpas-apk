@@ -15,6 +15,9 @@ import org.junit.jupiter.api.Test
 
 /** Qué anzuelo montar (CONOCIMIENTO.md §5.9.15): caña y peso ponen el suelo, la actividad mueve, el cebo limita. */
 class HookChoiceTest {
+    /** La caja de antes, sin el 8 ni el 6. */
+    private val small = listOf(18, 16, 14, 12, 10)
+
     private fun choose(
         bait: BaitType? = BaitType.MAIZE,
         profile: HookProfile? = HookProfile.FIXED_RIGID,
@@ -44,6 +47,9 @@ class HookChoiceTest {
         assertEquals(8..10, c.elasticGrade)
         assertTrue(HookReason.WEIGHT in c.reasons)
         assertNull(choose().elasticGrade)
+        // Sin saber qué admite el top kit, la app no pasa del grado 14.
+        assertEquals(14..14, HookChooser.elasticGrade(HookProfile.FIXED_ELASTIC, CarpWeight.OVER_15, null))
+        assertEquals(12..14, HookChooser.elasticGrade(HookProfile.FIXED_ELASTIC, CarpWeight.FROM_5_TO_10, null))
     }
 
     @Test
@@ -79,7 +85,7 @@ class HookChoiceTest {
 
     @Test
     fun `si no tienes el ideal, el mas cercano de los tuyos que aguanta`() {
-        val c = choose(profile = HookProfile.CARP_LEAD, waterC = 20.0)
+        val c = choose(profile = HookProfile.CARP_LEAD, waterC = 20.0, sizes = small)
         assertEquals(8, c.ideal)
         assertEquals(10, c.size)
         assertTrue(HookReason.NOT_OWNED in c.reasons)
@@ -88,7 +94,7 @@ class HookChoiceTest {
 
     @Test
     fun `carpas grandes sin anzuelo fuerte avisa de que falta`() {
-        val c = choose(profile = HookProfile.CARP_LEAD, waterC = 20.0, weight = CarpWeight.FROM_10_TO_15)
+        val c = choose(profile = HookProfile.CARP_LEAD, waterC = 20.0, weight = CarpWeight.FROM_10_TO_15, sizes = small)
         assertEquals(10, c.size)
         assertTrue(HookReason.MISSING_STRONGER in c.reasons)
         assertEquals(6, choose(profile = HookProfile.CARP_LEAD, waterC = 20.0, weight = CarpWeight.FROM_10_TO_15, sizes = listOf(12, 10, 8, 6)).size)
@@ -106,8 +112,9 @@ class HookChoiceTest {
         assertTrue(HookChooser.allowed(14, HookProfile.FIXED_RIGID))
         assertTrue(HookChooser.allowed(18, HookProfile.FIXED_ELASTIC, CarpWeight.UNDER_2))
         assertFalse(HookChooser.allowed(12, HookProfile.CARP_LEAD))
-        assertFalse(HookChooser.allowed(8, HookProfile.CARP_LEAD))
-        assertTrue(HookChooser.allowed(8, HookProfile.CARP_LEAD, sizes = HookChooser.SIZES + 8))
+        assertTrue(HookChooser.allowed(8, HookProfile.CARP_LEAD))
+        assertFalse(HookChooser.allowed(8, HookProfile.CARP_LEAD, sizes = small))
+        assertFalse(HookChooser.allowed(4, HookProfile.CARP_LEAD))
         assertNull(HookChooser.choose(HookInput(BaitType.GROUNDBAIT_MIX, HookProfile.CARP_LEAD, 15.0)))
         assertEquals(0.17..0.19, HookChooser.leaderMm(14))
     }

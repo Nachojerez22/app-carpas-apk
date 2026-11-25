@@ -193,7 +193,7 @@ object FishingAdvisor {
             chosen = chosen,
             better = chosen?.let { better(it, spots) },
             floatWeather = FloatWeather(input.waterC, input.windKmh, input.gustKmh),
-            carpWeight = input.reservoir?.sheet?.carpWeight,
+            carpWeight = input.reservoir?.carpWeight,
             hookSizes = input.gear.hookSizes(),
         )
     }
