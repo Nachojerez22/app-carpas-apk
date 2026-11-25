@@ -55,7 +55,7 @@ class RodsTest {
             GearItem("r2", GearCategory.ROD, "Carrete", rodKind = RodKind.CARP, rodLengthM = 9),
             GearItem("r3", GearCategory.ROD, "Corta", rodKind = RodKind.FIXED, rodLengthM = 5, available = false),
         )
-        assertEquals(listOf(RodSetup("Larga", RodKind.FIXED, 9), RodSetup("Carrete", RodKind.CARP, null)), gear.rodsToday())
+        assertEquals(listOf(RodSetup("Larga", RodKind.FIXED, 9, elastic = true), RodSetup("Carrete", RodKind.CARP, null)), gear.rodsToday())
         assertEquals(gear.rodsToday(), rodsFor(2, gear))
         assertEquals(List(2) { RodSetup("") }, rodsFor(2, listOf(maize)))
     }
@@ -65,7 +65,7 @@ class RodsTest {
         val fixed = listOf(9, 8, 7, 5).map { GearItem("f$it", GearCategory.ROD, "Fija $it", rodKind = RodKind.FIXED, rodLengthM = it) }
         val carp = GearItem("c", GearCategory.ROD, "Carrete", rodKind = RodKind.CARP)
         assertEquals(
-            listOf(RodSetup("Fija 9", RodKind.FIXED, 9), RodSetup("Fija 8", RodKind.FIXED, 8), RodSetup("Carrete", RodKind.CARP, null)),
+            listOf(RodSetup("Fija 9", RodKind.FIXED, 9, elastic = true), RodSetup("Fija 8", RodKind.FIXED, 8), RodSetup("Carrete", RodKind.CARP, null)),
             (fixed + carp).rodsToday(),
         )
         // Sin carpfishing, las tres primeras fijas; con una de carpfishing ya entre las tres, no cambia nada.

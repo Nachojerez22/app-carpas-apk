@@ -44,6 +44,10 @@ class ReservoirsTest {
     @Test
     fun `se puede cebar - el usuario manda y el abastecimiento por nombre prohibe`() {
         assertNull(ReservoirContext(burguillos, null).groundbaitAllowed)
+        // §5.9.15: sin peso en la ficha, Brovales usa el que dio el usuario (0,4–2,5 kg → tramo de 2 a 5); otro embalse, nada.
+        assertEquals(CarpWeight.FROM_2_TO_5, ReservoirContext(brovales, null).carpWeight)
+        assertNull(ReservoirContext(burguillos, null).carpWeight)
+        assertEquals(CarpWeight.UNDER_2, ReservoirContext(brovales, ReservoirSheet(Reservoirs.BROVALES_ID, carpWeight = CarpWeight.UNDER_2)).carpWeight)
         assertFalse(ReservoirContext(burguillos, null).groundbaitDoubt)
         assertEquals(false, ReservoirContext(supply, null).groundbaitAllowed)
         assertTrue(ReservoirContext(burguillos, ReservoirSheet("burguillos", aiWaterSupply = true)).groundbaitDoubt)

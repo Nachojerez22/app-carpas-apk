@@ -38,6 +38,12 @@ enum class FishSpecies { CARP, BARBEL, NASE, TENCH, CRUCIAN, BULLHEAD, CATFISH, 
 /** Si una especie está o no. Lo que confirma el usuario manda sobre lo que dice la IA. */
 data class SpeciesStatus(val present: Boolean, val confirmedByUser: Boolean)
 
+/**
+ * Peso habitual de las carpas del embalse (lo dice el usuario en la ficha): pone el anzuelo más
+ * pequeño que aguanta el combate con cada caña (CONOCIMIENTO.md §5.9.15).
+ */
+enum class CarpWeight { UNDER_2, FROM_2_TO_5, FROM_5_TO_10, FROM_10_TO_15, OVER_15 }
+
 /** Nota de la ficha (estructura, estrategia…) con su evidencia. */
 data class SheetNote(val text: String, val evidence: Evidence)
 
@@ -56,6 +62,8 @@ data class ReservoirSheet(
     val notes: List<SheetNote> = emptyList(),
     val aiGeneratedAt: Instant? = null,
     val updatedAt: Instant? = null,
+    /** Peso habitual de las carpas (lo dice el usuario); null = sin saber. */
+    val carpWeight: CarpWeight? = null,
 ) {
     /** Especies presentes (confirmadas o propuestas por la IA y no descartadas). */
     val presentSpecies: Set<FishSpecies> get() = species.filterValues { it.present }.keys
@@ -78,6 +86,17 @@ data class ReservoirContext(val reservoir: Reservoir, val sheet: ReservoirSheet?
     val groundbaitDoubt: Boolean get() = sheet?.groundbaitAllowed == null && (reservoir.waterSupplyByName || sheet?.aiWaterSupply == true)
 
     val species: Set<FishSpecies> get() = sheet?.presentSpecies.orEmpty()
+
+    /**
+     * Peso habitual de las carpas (§5.9.15): el de la ficha; si no hay y es Brovales, el que dio el
+     * usuario (de 0,4 a 2,5 kg, nov. 2026, §6): se usa el tramo de 2 a 5 kg, que pone el suelo por las más grandes.
+     */
+    val carpWeight: CarpWeight? get() = sheet?.carpWeight ?: if (isBrovales) BROVALES_CARP_WEIGHT else null
+
+    companion object {
+        /** 🟣 Carpas de Brovales según el usuario: de 0,4 a 2,5 kg. */
+        val BROVALES_CARP_WEIGHT: CarpWeight = CarpWeight.FROM_2_TO_5
+    }
 }
 
 /** Operaciones con embalses. Funciones puras. */
@@ -145,4 +164,8 @@ object ReservoirSheets {
 
     fun setGroundbait(sheet: ReservoirSheet?, reservoirId: String, allowed: Boolean?, now: Instant): ReservoirSheet =
         (sheet ?: ReservoirSheet(reservoirId)).copy(groundbaitAllowed = allowed, updatedAt = now)
+
+    /** Peso habitual de las carpas (null = sin saber). */
+    fun setCarpWeight(sheet: ReservoirSheet?, reservoirId: String, weight: CarpWeight?, now: Instant): ReservoirSheet =
+        (sheet ?: ReservoirSheet(reservoirId)).copy(carpWeight = weight, updatedAt = now)
 }

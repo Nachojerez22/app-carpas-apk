@@ -426,6 +426,7 @@ fun AiIssue.titleRes(): Int = when (this) {
     AiIssue.AMOUNT_OUT_OF_RANGE -> R.string.ai_issue_amount
     AiIssue.ROD_RULES -> R.string.ai_issue_rod_rules
     AiIssue.WEIGHT_OUT_OF_RANGE -> R.string.ai_issue_weight
+    AiIssue.HOOK_NOT_OWNED -> R.string.ai_issue_hook
 }
 
 /** «IA: mantener — motivo» o por qué se descartó / falló (mandan las reglas). */

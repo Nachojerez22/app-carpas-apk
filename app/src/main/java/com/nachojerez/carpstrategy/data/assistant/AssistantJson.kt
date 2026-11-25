@@ -98,6 +98,7 @@ object AssistantJson {
                 column = c.string("columna")?.let { name -> Column.entries.firstOrNull { it.name.equals(name.trim(), ignoreCase = true) } },
                 distanceM = (c["distancia_m"] as? JsonPrimitive)?.doubleOrNull,
                 weightG = (c["peso_g"] as? JsonPrimitive)?.doubleOrNull,
+                hookSize = (c["anzuelo"] as? JsonPrimitive)?.doubleOrNull?.takeIf { it % 1.0 == 0.0 }?.toInt(),
                 reason = c.string("motivo").orEmpty(),
                 evidence = evidence(c.string("evidencia")),
             )

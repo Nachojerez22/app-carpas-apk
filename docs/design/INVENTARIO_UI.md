@@ -63,15 +63,16 @@ limitaciones, normativa con «última revisión» y versión. Flecha ← para vo
 ## Mi equipo (fase 2, 0.35.0)
 | Función | Antes | Ahora |
 |---|---|---|
-| Cañas (fija/carpfishing, longitud, la llevo hoy), añadir y editar | sección al final de una lista larga | **pestaña Cañas** (la primera) |
+| Cañas (fija/carpfishing, longitud, elástico en la fija, cebador en la de carpfishing, la llevo hoy), añadir y editar | sección al final de una lista larga | **pestaña Cañas** (la primera) |
 | Cebos: «Hoy llevo», «Empezar de cero hoy», guardados por último uso, «Del diario», ficha de la IA, añadir, editar, medida de cebado | primera sección | **pestaña Cebos** |
 | Montajes: añadir y editar | sección del medio | **pestaña Montajes** |
+| Anzuelos que tienes (chips del 20 al 2, 0.42.0) | no había | **pestaña Montajes**, arriba |
 | Cuántas cañas y cebos llevas hoy | había que contarlos | resumen arriba y número en cada pestaña |
 | «Buscar de nuevo las fichas pendientes» | arriba | arriba (igual, en todas las pestañas) |
 
 ## Resto de subpantallas (solo cambia «Volver» → flecha ←)
 - **Mis puestos** y **Mapa de puestos**: añadir, editar, borrar, recolocar en el mapa.
-- **Embalses** y **Ficha del embalse**: buscar, elegir, embalse propio, ficha con la IA, confirmar especies, cebado.
+- **Embalses** y **Ficha del embalse**: buscar, elegir, embalse propio, ficha con la IA, confirmar especies, cebado, peso habitual de las carpas (0.42.0).
 - **Asistente de IA**: proveedor, clave (móvil/cuenta), modelos, probar, modo de avisos, consumo. Antetítulo «Ajustes».
 - **Lo aprendido**: añadir, aceptar/rechazar, repasar la última sesión, exportar.
 - **Ver la preparación**: foto de la salida preparada y «Activar».

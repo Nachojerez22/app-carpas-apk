@@ -42,7 +42,14 @@ data class RodLine(
     val weightG: Double? = null,
     /** Pluma que propone la app para la fija (§5.9.14); null en carpfishing o sin tipo. */
     val float: FloatChoice? = null,
+    /** Anzuelo que propone la app para el cebo y la caña (§5.9.15); null si el cebo no va al anzuelo. */
+    val hook: HookChoice? = null,
+    /** Anzuelo que dice la IA (uno de los tuyos que admite la caña). */
+    val aiHookSize: Int? = null,
 ) {
+    /** Anzuelo que se muestra: el de la IA o el de la app. */
+    val shownHookSize: Int? get() = aiHookSize ?: hook?.size
+
     /** Flotador (fija) o plomo (carpfishing) de tu rango; null sin tipo de caña. */
     val weightRange: ClosedFloatingPointRange<Double>? get() = RodRules.weightRange(setup?.kind)
 
@@ -75,6 +82,12 @@ enum class Contingency {
 
     /** La pluma de la fija deriva o el cebo se arrastra: sube a [ContingencyLine.grams]. */
     FLOAT_DRIFT,
+
+    /** Toques o picadas falladas: anzuelo más pequeño ([ContingencyLine.hookSize]) con cebo más pequeño (§5.9.15). */
+    HOOK_SHY_BITES,
+
+    /** Peces pequeños que se comen el cebo: anzuelo más grande ([ContingencyLine.hookSize]) con cebo más grande. */
+    HOOK_SMALL_FISH,
 }
 
 data class ContingencyLine(
@@ -85,6 +98,8 @@ data class ContingencyLine(
     val evidence: Evidence,
     /** Gramos de la pluma a la que cambiar ([Contingency.FLOAT_SHY_BITES], [Contingency.FLOAT_DRIFT]). */
     val grams: Double? = null,
+    /** Anzuelo al que cambiar ([Contingency.HOOK_SHY_BITES], [Contingency.HOOK_SMALL_FISH]). */
+    val hookSize: Int? = null,
 )
 
 /**
@@ -151,6 +166,7 @@ object DayPlans {
                 source = PlanSource.APP,
                 setup = setup,
                 float = if (kind == RodKind.FIXED) advice.floatFor(spot, column) else null,
+                hook = advice.hookFor(bait?.type, setup),
             )
         }
         val lines = if (ai == null) app else app.map { line -> merge(line, ai, gear, advice, spot) }
@@ -197,6 +213,9 @@ object DayPlans {
             distanceM = r.distanceM ?: line.distanceM,
             weightG = r.weightG ?: line.weightG,
             float = line.float?.let { f -> if (r.column != null && r.column != line.column) advice.floatFor(spot, r.column) ?: f else f },
+            // Con otro cebo, el anzuelo de la app se recalcula para ese cebo.
+            hook = if (r.baitName != null) advice.hookFor(baitItem?.baitType, line.setup) else line.hook,
+            aiHookSize = r.hookSize ?: line.aiHookSize,
             proven = if (r.baitName == null) line.proven else null,
             reason = r.reason.takeIf { it.isNotBlank() },
             evidence = r.evidence ?: line.evidence,
@@ -225,6 +244,17 @@ object DayPlans {
             val heavier = RodRules.FLOATS_G.filter { it > shown + RodRules.FLOAT_TOLERANCE_G }.minOrNull()
             lighter?.let { add(ContingencyLine(Contingency.FLOAT_SHY_BITES, grams = it, evidence = Evidence.YELLOW)) }
             heavier?.let { add(ContingencyLine(Contingency.FLOAT_DRIFT, grams = it, evidence = Evidence.YELLOW)) }
+        }
+        // §5.9.15: el anzuelo (la primera caña con anzuelo propuesto; cada caña lleva el suyo).
+        rods.firstOrNull { it.hook != null }?.let { line ->
+            val hook = line.hook ?: return@let
+            val shown = line.shownHookSize ?: hook.size
+            val profile = line.setup.hookProfile()
+            val usable = advice.hookSizes.filter { HookChooser.allowed(it, profile, advice.carpWeight, advice.hookSizes) }
+            usable.filter { it > shown }.minOrNull()?.let { add(ContingencyLine(Contingency.HOOK_SHY_BITES, hookSize = it, evidence = Evidence.YELLOW)) }
+            if (advice.species.selective || advice.species.hardBaits) {
+                usable.filter { it < shown }.maxOrNull()?.let { add(ContingencyLine(Contingency.HOOK_SMALL_FISH, hookSize = it, evidence = Evidence.YELLOW)) }
+            }
         }
         spot?.windTips?.forEach { add(ContingencyLine(Contingency.WIND, windTip = it, evidence = Evidence.YELLOW)) }
     }

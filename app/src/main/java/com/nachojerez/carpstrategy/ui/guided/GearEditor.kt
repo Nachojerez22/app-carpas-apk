@@ -67,6 +67,9 @@ class GearEditor @Inject constructor(
     suspend fun toggleToday(id: String) =
         settings.setGear(settings.observeGear().first().map { if (it.id == id) it.copy(available = !it.available) else it })
 
+    /** Añade o quita el anzuelo del número [size] (§5.9.15). */
+    suspend fun toggleHook(size: Int) = settings.setGear(toggleHookSize(settings.observeGear().first(), size) { UUID.randomUUID().toString() })
+
     /** Guarda el borrador, pide la ficha y, si es válida, la guarda en el cebo. */
     suspend fun fetchSheet(draft: GearDraft): BaitSheetResult {
         val item = save(draft) ?: return BaitSheetResult.Failed(null, listOf(AiIssue.EMPTY_TEXT))
