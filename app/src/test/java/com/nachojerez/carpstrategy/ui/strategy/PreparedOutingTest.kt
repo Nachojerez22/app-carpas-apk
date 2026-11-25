@@ -117,7 +117,7 @@ class PreparedOutingTest {
         val ai = AiPlan("Plan", Evidence.YELLOW, listOf(AiRodPlan(2, baitName = "Chufa", reason = "Plomo de 60 g", evidence = Evidence.YELLOW, weightG = 60.0)))
         val prepared = AiOutcome(AiExchange(now, AiKind.PLAN, "GEMINI", "modelo", valid = true), ai)
         val dayPlan = dayPlanFor(state, PlanUiState(prepared = prepared, preparedKey = key))!!
-        assertEquals(listOf(RodSetup("Larga", RodKind.FIXED, 9), RodSetup("Carrete", RodKind.CARP)), dayPlan.rods.map { it.setup })
+        assertEquals(listOf(RodSetup("Larga", RodKind.FIXED, 9, elastic = true), RodSetup("Carrete", RodKind.CARP)), dayPlan.rods.map { it.setup })
         assertEquals(60.0, dayPlan.rods[1].weightG)
 
         val outing = preparedOutingOf(state, dayPlan, emptyList(), result, now)
