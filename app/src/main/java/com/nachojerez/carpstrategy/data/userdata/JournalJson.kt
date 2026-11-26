@@ -189,12 +189,12 @@ object JournalJson {
     fun encodePrediction(snapshot: PredictionSnapshot): String = json.encodeToString(snapshot.toDto())
 
     fun decodePrediction(text: String?): PredictionSnapshot? =
-        text?.let { runCatching { json.decodeFromString<PredictionDto>(it) }.getOrNull() }?.toDomain()
+        text?.let { runCatching { json.decodeFromString<PredictionDto>(it).toDomain() }.getOrNull() }
 
     fun encodeContext(context: SessionContext): String = json.encodeToString(context.toDto())
 
     fun decodeContext(text: String?): SessionContext? =
-        text?.let { runCatching { json.decodeFromString<ContextDto>(it) }.getOrNull() }?.toDomain()
+        text?.let { runCatching { json.decodeFromString<ContextDto>(it).toDomain() }.getOrNull() }
 
     fun Session.toDto() = SessionDto(
         start = start.toString(),
@@ -262,6 +262,8 @@ object JournalJson {
     fun parseExport(text: String): List<Session>? {
         val dto = runCatching { json.decodeFromString<ExportDto>(text) }.getOrNull() ?: return null
         if (dto.format != FORMAT || dto.version != VERSION) return null
-        return dto.sessions.mapNotNull { it.toDomain() }
+        // Una sesión con datos imposibles (p. ej. latitud fuera de rango, editada a mano) se salta:
+        // no debe cerrar la app ni impedir restaurar las demás.
+        return dto.sessions.mapNotNull { runCatching { it.toDomain() }.getOrNull() }
     }
 }

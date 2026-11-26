@@ -146,6 +146,8 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   asset `CarpStrategy.apk`); aviso en `MainActivity` solo en la versión de producción.
 - `data/userdata/LocalSettings`: ajustes del móvil (`local_…`) que no se sincronizan.
 - Configuración de Google Cloud: docs/CUENTA_GOOGLE.md (sin secretos en el repositorio).
+- 0.42.1: `SyncSnapshot.hash()` **no incluye las valoraciones** (cambian cada hora y salen solas de la ventana de
+  subida): con ellas el móvil parecía tener cambios, se unía en vez de bajar y ganaba su copia vieja.
 
 ## Puestos, tiempo por aviso y Estrategia (fase 7.3)
 
