@@ -15,15 +15,15 @@ class DocumentReader @Inject constructor(
 ) {
     data class Document(val name: String, val text: String)
 
-    /** @throws IOException si no se puede leer o supera [MAX_BYTES]. */
-    fun read(uri: Uri): Document {
+    /** @throws IOException si no se puede leer o supera [maxBytes] (por defecto [MAX_BYTES]). */
+    fun read(uri: Uri, maxBytes: Int = MAX_BYTES): Document {
         val resolver = context.contentResolver
         val name = resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) cursor.getString(0) else null
         } ?: uri.lastPathSegment ?: "archivo.json"
         val bytes = resolver.openInputStream(uri)?.use { input ->
-            val buffer = input.readNBytesCompat(MAX_BYTES + 1)
-            if (buffer.size > MAX_BYTES) throw IOException("Archivo demasiado grande (máx. ${MAX_BYTES / 1024} KB)")
+            val buffer = input.readNBytesCompat(maxBytes + 1)
+            if (buffer.size > maxBytes) throw IOException("Archivo demasiado grande (máx. ${maxBytes / 1024} KB)")
             buffer
         } ?: throw IOException("No se pudo abrir el archivo")
         return Document(name, bytes.toString(Charsets.UTF_8).removePrefix(UTF8_BOM))
@@ -45,6 +45,12 @@ class DocumentReader @Inject constructor(
 
     companion object {
         const val MAX_BYTES = 2 * 1024 * 1024
+
+        /**
+         * Copia del diario: con sesiones guiadas (avisos, respuestas de la IA y chat) pasa pronto de
+         * 2 MB, y la app la exporta sin límite; si no, no se podría restaurar lo que ella misma guardó.
+         */
+        const val DIARY_MAX_BYTES = 32 * 1024 * 1024
 
         /** Marca de orden de bytes que algunos editores añaden al principio de los archivos UTF-8. */
         private val UTF8_BOM = Char(0xFEFF).toString()

@@ -35,9 +35,14 @@ data class SyncSnapshot(
         predictions = predictions.sortedWith(compareBy({ it.hourKey }, { it.locationKey })),
     )
 
-    /** Huella SHA-256 del contenido: detecta cambios sin comparar fila a fila. */
+    /**
+     * Huella SHA-256 del contenido: detecta cambios sin comparar fila a fila. Las valoraciones
+     * horarias no cuentan: la app guarda una nueva cada hora y las viejas salen solas de la ventana
+     * de subida, así que con ellas la huella del móvil cambiaba sin que tocaras nada. Entonces se
+     * unía en lugar de bajar, ganaba la copia del móvil y se perdían los cambios hechos en otro.
+     */
     fun hash(): String {
-        val bytes = SyncJson.json.encodeToString(serializer(), canonical()).toByteArray(Charsets.UTF_8)
+        val bytes = SyncJson.json.encodeToString(serializer(), canonical().copy(predictions = emptyList())).toByteArray(Charsets.UTF_8)
         return MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { ((it.toInt() and 0xff) + 0x100).toString(16).substring(1) }
     }
 

@@ -31,6 +31,13 @@ class SyncSnapshotTest {
     }
 
     @Test
+    fun `las valoraciones horarias no cambian la huella`() {
+        // Si cambiaran, cada hora el móvil parecería tener cambios y se uniría ganando su copia vieja.
+        assertEquals(a.hash(), a.copy(predictions = emptyList()).hash())
+        assertEquals(a.hash(), a.copy(predictions = a.predictions + PredictionRow(20, 2, "x", "{}")).hash())
+    }
+
+    @Test
     fun `ida y vuelta del archivo de Drive y formatos ajenos`() {
         val text = SyncJson.encode(a, Instant.parse("2026-10-04T10:00:00Z"), "0.8.2")
         assertTrue(text.contains("\"formato\":\"carpstrategy-sync\""))

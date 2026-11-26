@@ -49,7 +49,8 @@ class CatchPhotos @Inject constructor(
             file.delete()
             return@withContext null
         }
-        val rotation = file.inputStream().use(::rotationOf)
+        // Una foto a medias o un EXIF roto no debe cerrar la app: sin giro (como en importFrom).
+        val rotation = runCatching { file.inputStream().use(::rotationOf) }.getOrDefault(0)
         val bitmap = decodeScaled({ file.inputStream() }) ?: run {
             file.delete()
             return@withContext null

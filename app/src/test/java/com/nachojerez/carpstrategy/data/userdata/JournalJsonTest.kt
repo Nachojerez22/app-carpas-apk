@@ -83,5 +83,14 @@ class JournalJsonTest {
         assertEquals(emptyList<Catch>(), JournalJson.decodeCatches("no es json"))
         assertNull(JournalJson.decodePrediction("{}"))
         assertNull(JournalJson.parseExport("""{"formato":"otro","version":1,"exportado":"x","sesiones":[]}"""))
+        // Latitud imposible (copia editada a mano): se salta esa sesión, sin cerrar la app.
+        assertNull(JournalJson.decodePrediction("""{"calculada":"2026-10-04T10:00:00Z","lat":200.0,"lon":0.0,"bloqueada":false}"""))
+    }
+
+    @Test
+    fun `restaurar salta las sesiones con datos imposibles`() {
+        val text = JournalJson.export(listOf(session), Instant.parse("2026-10-04T10:00:00Z"))
+        val broken = text.replaceFirst(Regex("\"lat\": [0-9.]+"), "\"lat\": 200.0")
+        assertEquals(emptyList<Session>(), JournalJson.parseExport(broken))
     }
 }

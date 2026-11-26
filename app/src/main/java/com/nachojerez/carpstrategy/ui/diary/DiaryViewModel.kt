@@ -233,7 +233,7 @@ class DiaryViewModel @Inject constructor(
     fun restoreFrom(uri: Uri) {
         viewModelScope.launch {
             export.value = try {
-                val document = withContext(ioDispatcher) { reader.read(uri) }
+                val document = withContext(ioDispatcher) { reader.read(uri, DocumentReader.DIARY_MAX_BYTES) }
                 val sessions = JournalJson.parseExport(document.text)
                 if (sessions == null) {
                     ExportStatus.NotADiary
@@ -268,6 +268,9 @@ class DiaryViewModel @Inject constructor(
             export.value = try {
                 ExportStatus.PhotosRestored(catchPhotos.importZip(uri))
             } catch (e: IOException) {
+                ExportStatus.Failed(e.message.orEmpty())
+            } catch (e: IllegalArgumentException) {
+                // ZipInputStream lanza esto con un ZIP cuyos nombres no son UTF-8 válido: no debe cerrar la app.
                 ExportStatus.Failed(e.message.orEmpty())
             } catch (e: SecurityException) {
                 ExportStatus.Failed(e.message.orEmpty())
