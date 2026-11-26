@@ -3,6 +3,7 @@ package com.nachojerez.carpstrategy.data.assistant
 import com.nachojerez.carpstrategy.domain.advice.DayPart
 import com.nachojerez.carpstrategy.domain.advice.LessonConditions
 import com.nachojerez.carpstrategy.domain.advice.LessonTopic
+import com.nachojerez.carpstrategy.domain.advice.PlanChoice
 import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
 import com.nachojerez.carpstrategy.domain.assistant.AiBaitDraft
 import com.nachojerez.carpstrategy.domain.assistant.AiChange
@@ -86,6 +87,13 @@ object AssistantJson {
         )
     }
 
+    /** `{"cebo":"…","anzuelo":"…"}` → motivo por elección; las claves que no conoce se ignoran. */
+    private fun whys(o: JsonObject?): Map<PlanChoice, String> = o?.entries.orEmpty().mapNotNull { (k, v) ->
+        val choice = PlanChoice.ofKey(k) ?: return@mapNotNull null
+        val text = (v as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+        choice to text
+    }.toMap()
+
     fun parsePlan(text: String): AiPlan? {
         val o = objectIn(text) ?: return null
         val rods = o.array("canas").mapNotNull { e ->
@@ -101,6 +109,7 @@ object AssistantJson {
                 hookSize = (c["anzuelo"] as? JsonPrimitive)?.doubleOrNull?.takeIf { it % 1.0 == 0.0 }?.toInt(),
                 reason = c.string("motivo").orEmpty(),
                 evidence = evidence(c.string("evidencia")),
+                whys = whys(c["motivos"] as? JsonObject),
             )
         }
         val warnings = o.array("avisos").mapNotNull { e ->

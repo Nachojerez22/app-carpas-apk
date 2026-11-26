@@ -20,7 +20,11 @@ import java.time.Duration
 /** De dónde sale una línea del plan: la app (conocimiento y tus datos) o la IA (validada por la app). */
 enum class PlanSource { APP, AI }
 
-/** Qué lleva una caña. [reason] solo lo trae la IA; para la app, la UI lo explica con [proven] y el puesto. */
+/**
+ * Qué lleva una caña. El porqué: [appWhy] (de dónde sale cada cosa en la app), [float] y [hook]
+ * con sus motivos, y, si la IA lo ha afinado, su [reason], sus motivos por elección ([aiWhys]) y lo
+ * que proponía la app donde la IA cambia algo ([appProposal]).
+ */
 data class RodLine(
     val rod: Int,
     val spotName: String?,
@@ -46,6 +50,12 @@ data class RodLine(
     val hook: HookChoice? = null,
     /** Anzuelo que dice la IA (uno de los tuyos que admite la caña). */
     val aiHookSize: Int? = null,
+    /** Por qué la app eligió cebo, columna, distancia y caña (0.43.0). */
+    val appWhy: AppWhy = AppWhy(),
+    /** Motivo de la IA para cada elección (ya validado); vacío si no lo da. */
+    val aiWhys: Map<PlanChoice, String> = emptyMap(),
+    /** Lo que proponía la app si la IA cambió el cebo, la columna o la distancia. */
+    val appProposal: AppProposal? = null,
 ) {
     /** Anzuelo que se muestra: el de la IA o el de la app. */
     val shownHookSize: Int? get() = aiHookSize ?: hook?.size
@@ -141,6 +151,9 @@ object DayPlans {
         spot: SpotPick? = advice.chosen ?: advice.spots.firstOrNull(),
         groundbaitNormalKg: Double? = null,
         setups: List<RodSetup> = emptyList(),
+        /** Todas las cañas que llevas hoy y el viento con que se eligieron (para explicar la elección). */
+        carried: List<RodSetup> = setups,
+        rodsWindKmh: Double? = null,
     ): DayPlan {
         val count = (if (setups.isNotEmpty()) setups.size else rods).coerceIn(1, MAX_RODS)
         val app = (1..count).map { rod ->
@@ -149,9 +162,10 @@ object DayPlans {
             // Fase 7.20: solo cebos y columnas que valen para esta caña (la fija sin boilies; carpfishing a fondo).
             val baits = advice.baits.filter { RodRules.baitAllowed(kind, it.type) }
             val bait = baits.takeIf { it.isNotEmpty() }?.let { it[(rod - 1) % it.size] }
-                ?: BaitPick(BaitType.MAIZE, null, evidence = Evidence.YELLOW).takeIf { advice.baits.isNotEmpty() }
+                ?: BaitPick(BaitType.MAIZE, null, evidence = Evidence.YELLOW, why = BaitWhy.ROD_LIMIT).takeIf { advice.baits.isNotEmpty() }
             val wanted = if (rod == 3 && advice.altColumn != null) advice.altColumn else advice.column
             val column = columnFor(kind, wanted, advice.column)
+            val spotM = spot?.spot?.distanceM
             RodLine(
                 rod = rod,
                 spotName = spot?.spot?.name,
@@ -167,6 +181,12 @@ object DayPlans {
                 setup = setup,
                 float = if (kind == RodKind.FIXED) advice.floatFor(spot, column) else null,
                 hook = advice.hookFor(bait?.type, setup),
+                appWhy = AppWhy(
+                    bait = bait?.why,
+                    column = PlanWhys.column(rod, wanted, column, advice),
+                    distance = PlanWhys.distance(setup, spotM),
+                    rod = PlanWhys.rod(setup, carried, rodsWindKmh, ai?.fixedRods),
+                ),
             )
         }
         val lines = if (ai == null) app else app.map { line -> merge(line, ai, gear, advice, spot) }
@@ -218,6 +238,13 @@ object DayPlans {
             aiHookSize = r.hookSize ?: line.aiHookSize,
             proven = if (r.baitName == null) line.proven else null,
             reason = r.reason.takeIf { it.isNotBlank() },
+            aiWhys = r.whys.filterValues { it.isNotBlank() },
+            appProposal = AppProposal(line.baitName, line.baitType, line.column, line.distanceM).takeIf { app ->
+                val baitChanged = r.baitName != null && !r.baitName.trim().equals(app.baitName?.trim(), ignoreCase = true)
+                val columnChanged = r.column != null && r.column != app.column
+                val distanceChanged = r.distanceM != null && app.distanceM != null && kotlin.math.abs(r.distanceM - app.distanceM) >= 1.0
+                baitChanged || columnChanged || distanceChanged
+            },
             evidence = r.evidence ?: line.evidence,
             source = PlanSource.AI,
         )

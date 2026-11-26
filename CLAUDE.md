@@ -405,6 +405,14 @@ respuesta real; `aemet/` reproduce el formato real con estaciones de prueba).
   `perfil_anzuelo`, `peso_habitual_carpas` y `recomendacion_de_la_app.anzuelos`, responde `anzuelo` por caña y
   `AiIssue.HOOK_NOT_OWNED` rechaza los que no tienes o no aguantan (también en textos).
 
+- 0.43.0, el porqué de cada elección: `domain/advice/PlanWhy.kt` (puro). `BaitPick.why` (`BaitWhy`), y en cada `RodLine`
+  `appWhy` (`AppWhy`: cebo, `ColumnWhy`, `DistanceWhy`, `RodWhy` con `PlanWhys.rod`, como `pickRods`), `aiWhys`
+  (`PlanChoice` → texto; JSON `motivos` de cada caña del plan: `cana`, `cebo`, `anzuelo`, `pluma_o_plomo`, `columna`,
+  `distancia`, validados con `checkText`) y `appProposal` (lo que proponía la app si la IA cambia cebo, columna o
+  distancia). El prompt del plan pide revisar `recomendacion_de_la_app` (que lleva `por_que_cebos` y `por_que_columna`)
+  y explicar cada elección. `RodLineRow` → `RodWhyLines` (una línea por elección con su evidencia). También en `RodDto`
+  (`porque_app`, `motivos_ia`, `propuesta_app`).
+
 ## Activar la salida preparada (fase 7.21)
 
 - `PreparedOuting` guarda `reservoirId` y `spotId` (JSON `embalse_id`, `puesto_id`; también el puesto automático).

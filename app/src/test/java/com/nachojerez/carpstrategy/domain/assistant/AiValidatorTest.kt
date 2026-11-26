@@ -13,6 +13,7 @@ import com.nachojerez.carpstrategy.domain.rules.Evidence
 import com.nachojerez.carpstrategy.domain.rules.StrategyField
 import java.time.Duration
 import java.time.Instant
+import com.nachojerez.carpstrategy.domain.advice.PlanChoice
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -181,5 +182,14 @@ class AiValidatorTest {
         val sheet = AiValidator.toSheet(draft, now)
         assertEquals(BaitType.BOILIE, sheet.type)
         assertEquals(Evidence.GREEN, sheet.evidence)
+    }
+
+    @Test
+    fun `los motivos de cada eleccion pasan las mismas normas que el motivo`() {
+        val rod = AiRodPlan(1, "Punta", reason = "Fondo", evidence = Evidence.YELLOW)
+        val ok = AiPlan("Intermedio", Evidence.YELLOW, listOf(rod.copy(whys = mapOf(PlanChoice.BAIT to "Aguanta las bogas"))))
+        assertTrue(AiValidator.validate(ok, ctx).isEmpty())
+        val bad = ok.copy(rods = listOf(rod.copy(whys = mapOf(PlanChoice.BAIT to "Echa 2 kilos de chufa"))))
+        assertEquals(setOf(AiIssue.GRAMS), AiValidator.validate(bad, ctx))
     }
 }
