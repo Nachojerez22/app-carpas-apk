@@ -146,4 +146,64 @@ class DayPlanTest {
         plan.rods.forEach { r -> r.hook?.let { assertTrue(HookChooser.allowed(it.size, r.setup.hookProfile())) } }
         assertTrue(plan.rods.any { it.hook != null })
     }
+
+    @Test
+    fun `cada eleccion de la app dice de donde sale`() {
+        val plan = DayPlans.build(advice(chosen = 2), rods = 3, phase = FishingPhase.SUMMER, gear = gear)
+        // Sin datos tuyos: cebos de la fase, a fondo de partida y zig en la 3.ª por el calor.
+        assertTrue(plan.rods.all { it.appWhy.bait == BaitWhy.PHASE })
+        assertEquals(listOf(ColumnWhy.BOTTOM_DEFAULT, ColumnWhy.BOTTOM_DEFAULT, ColumnWhy.ALT_HEAT), plan.rods.map { it.appWhy.column })
+        assertTrue(plan.rods.all { it.appWhy.distance == DistanceWhy.SPOT })
+        // Cañas por número: no hay porqué de caña.
+        assertTrue(plan.rods.all { it.appWhy.rod == null })
+        assertTrue(plan.rods.all { it.appProposal == null && it.aiWhys.isEmpty() })
+    }
+
+    @Test
+    fun `porque de la distancia y la columna limitadas por la cana`() {
+        val setups = listOf(RodSetup("Corta", RodKind.FIXED, 5), RodSetup("Carrete", RodKind.CARP), RodSetup("Otra", RodKind.CARP))
+        val plan = DayPlans.build(advice(chosen = 2), rods = 1, phase = FishingPhase.SUMMER, gear = gear, setups = setups)
+        assertEquals(DistanceWhy.ROD_REACH, plan.rods[0].appWhy.distance)
+        assertEquals(DistanceWhy.SPOT, plan.rods[1].appWhy.distance)
+        // La 3.ª probaría zig, pero en carpfishing no se puede.
+        assertEquals(ColumnWhy.ROD_LIMIT, plan.rods[2].appWhy.column)
+        assertTrue(plan.rods.all { it.appWhy.rod == RodWhy.ALL_CARRIED })
+        // Sin pasar el puesto: la franja de la fase.
+        assertEquals(DistanceWhy.BAND, PlanWhys.distance(null, null))
+    }
+
+    @Test
+    fun `por que esta cana entre las que llevas`() {
+        val carp = RodSetup("Carrete", RodKind.CARP)
+        val fixed = (5..9).map { RodSetup("Fija $it", RodKind.FIXED, it) }
+        val carried = listOf(carp) + fixed
+        assertEquals(RodWhy.CARP_ALWAYS, PlanWhys.rod(carp, carried, null, null))
+        assertEquals(RodWhy.LONGEST, PlanWhys.rod(fixed.last(), carried, 5.0, null))
+        assertEquals(RodWhy.SHORTEST_WIND, PlanWhys.rod(fixed.first(), carried, 20.0, null))
+        assertEquals(RodWhy.AI, PlanWhys.rod(fixed[1], carried, 5.0, listOf("Fija 6", "Fija 7")))
+        assertEquals(RodWhy.ALL_CARRIED, PlanWhys.rod(carp, listOf(carp), null, null))
+        assertNull(PlanWhys.rod(null, carried, null, null))
+    }
+
+    @Test
+    fun `si la IA cambia algo se guarda lo que proponia la app y sus motivos`() {
+        val ai = AiPlan(
+            "Chufa en la caída", Evidence.YELLOW,
+            listOf(
+                AiRodPlan(
+                    1, "Caída", "chufa", null, Column.POPUP, 55.0, "Fondo duro", Evidence.PURPLE,
+                    whys = mapOf(PlanChoice.BAIT to "Aguanta el cangrejo", PlanChoice.COLUMN to " "),
+                ),
+                AiRodPlan(2, "Caída", "Maíz", null, null, null, "Igual que la app", Evidence.YELLOW),
+            ),
+        )
+        val plan = DayPlans.build(advice(chosen = 2), rods = 2, phase = FishingPhase.SUMMER, gear = gear, ai = ai)
+        val r1 = plan.rods[0]
+        assertEquals(AppProposal("Boilie fresa", BaitType.BOILIE, Column.BOTTOM, 60.0), r1.appProposal)
+        assertEquals(mapOf(PlanChoice.BAIT to "Aguanta el cangrejo"), r1.aiWhys)
+        // Lo que la app ya explicaba se conserva.
+        assertEquals(BaitWhy.PHASE, r1.appWhy.bait)
+        // La caña 2 la deja igual: no hay propuesta distinta de la app.
+        assertNull(plan.rods[1].appProposal)
+    }
 }

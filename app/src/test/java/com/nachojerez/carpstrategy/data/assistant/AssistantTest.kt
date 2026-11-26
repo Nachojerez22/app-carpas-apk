@@ -17,6 +17,7 @@ import java.time.Instant
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okhttp3.OkHttpClient
+import com.nachojerez.carpstrategy.domain.advice.PlanChoice
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -116,6 +117,14 @@ class AssistantTest {
         assertEquals("Recibe el viento cálido", best.reason)
         assertEquals(Evidence.YELLOW, best.evidence)
         assertNull(AssistantJson.parsePlan("""{"resumen":"A fondo","puesto_recomendado":null,"canas":[]}""")!!.bestSpot)
+    }
+
+    @Test
+    fun `plan con el motivo de cada eleccion`() {
+        val text = """{"resumen":"A fondo","canas":[{"cana":1,"cebo":"Chufa","motivo":"Fondo duro","motivos":{"cebo":"Aguanta el cangrejo","Anzuelo":" Del 12 ","nada":"x","columna":"","distancia":null},"evidencia":"🟡"}]}"""
+        val whys = AssistantJson.parsePlan(text)!!.rods.single().whys
+        assertEquals(mapOf(PlanChoice.BAIT to "Aguanta el cangrejo", PlanChoice.HOOK to "Del 12"), whys)
+        assertEquals(emptyMap<PlanChoice, String>(), AssistantJson.parsePlan("""{"resumen":"A","canas":[{"cana":1,"motivo":"x"}]}""")!!.rods.single().whys)
     }
 
     @Test

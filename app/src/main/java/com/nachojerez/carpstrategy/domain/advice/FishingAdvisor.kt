@@ -33,6 +33,8 @@ data class BaitPick(
     val gearName: String?,
     val proven: Stat<String>? = null,
     val evidence: Evidence,
+    /** De dónde sale (0.43.0). */
+    val why: BaitWhy = BaitWhy.PHASE,
 )
 
 /** Un puesto de «Mis puestos» con su puntuación para este momento y por qué. */
@@ -228,11 +230,11 @@ object FishingAdvisor {
         }
         exp.baits.filter { exp.proven(it) }.forEach { stat ->
             val item = baitsInGear.firstOrNull { it.name.trim().equals(stat.value.trim(), ignoreCase = true) }
-            if (item != null) add(BaitPick(item.baitType, item.name, stat, Evidence.PURPLE))
+            if (item != null) add(BaitPick(item.baitType, item.name, stat, Evidence.PURPLE, BaitWhy.PROVEN_NAME))
         }
         exp.baitTypes.filter { exp.proven(it) }.forEach { stat ->
             val item = baitsInGear.firstOrNull { it.baitType == stat.value }
-            if (item != null) add(BaitPick(item.baitType, item.name, Stat(item.name, stat.rodHours, stat.catches, stat.sessions), Evidence.PURPLE))
+            if (item != null) add(BaitPick(item.baitType, item.name, Stat(item.name, stat.rodHours, stat.catches, stat.sessions), Evidence.PURPLE, BaitWhy.PROVEN_TYPE))
         }
         val base = speciesOrder(BaitCatalog.initialBaits(input.phase), effects)
         base.indices.forEach { k ->
@@ -240,7 +242,7 @@ object FishingAdvisor {
             val rotated = base.drop(k) + base.take(k)
             val excluded = picks.mapNotNull { it.type }.toSet()
             val choice = BaitCatalog.choose(rotated.filterNot { it in excluded }.ifEmpty { rotated }, input.gear.filterNot { it.baitType in excluded }, input.phase, crab = effects.hardBaits)
-            add(BaitPick(choice.type, choice.item?.name, null, Evidence.YELLOW))
+            add(BaitPick(choice.type, choice.item?.name, null, Evidence.YELLOW, if (effects.selective || effects.hardBaits) BaitWhy.SPECIES else BaitWhy.PHASE))
         }
         return picks
     }

@@ -48,10 +48,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nachojerez.carpstrategy.R
 import com.nachojerez.carpstrategy.data.assistant.AiOutcome
 import com.nachojerez.carpstrategy.domain.advice.BaitUsage
+import com.nachojerez.carpstrategy.domain.advice.BaitWhy
+import com.nachojerez.carpstrategy.domain.advice.ColumnWhy
 import com.nachojerez.carpstrategy.domain.advice.Contingency
 import com.nachojerez.carpstrategy.domain.advice.ContingencyLine
 import com.nachojerez.carpstrategy.domain.advice.DayPlan
 import com.nachojerez.carpstrategy.domain.advice.DayPlans
+import com.nachojerez.carpstrategy.domain.advice.DistanceWhy
 import com.nachojerez.carpstrategy.domain.advice.FishingAdvice
 import com.nachojerez.carpstrategy.domain.advice.FloatChoice
 import com.nachojerez.carpstrategy.domain.advice.FloatReason
@@ -59,8 +62,11 @@ import com.nachojerez.carpstrategy.domain.advice.GroundbaitAmount
 import com.nachojerez.carpstrategy.domain.advice.HookChoice
 import com.nachojerez.carpstrategy.domain.advice.HookChooser
 import com.nachojerez.carpstrategy.domain.advice.HookReason
+import com.nachojerez.carpstrategy.domain.advice.PlanChoice
 import com.nachojerez.carpstrategy.domain.advice.PlanSource
+import com.nachojerez.carpstrategy.domain.advice.PlanWhys
 import com.nachojerez.carpstrategy.domain.advice.RodLine
+import com.nachojerez.carpstrategy.domain.advice.RodWhy
 import com.nachojerez.carpstrategy.domain.advice.SpotPick
 import com.nachojerez.carpstrategy.domain.assistant.AiAdvice
 import com.nachojerez.carpstrategy.domain.assistant.AiGroundbait
@@ -914,19 +920,105 @@ internal fun RodLineRow(r: RodLine, planSpot: String?) {
             )
             Text(parts.joinToString(" · "))
             if (open) {
-                val why = r.reason
-                    ?: r.proven?.let { stringResource(R.string.advice_bait_proven, it.catches, it.sessions) }
-                    ?: stringResource(R.string.strategy_rod_why_app, stringResource(r.depth.titleRes()), stringResource(r.distance.titleRes()))
-                Caption(why)
-                r.float?.let { f -> Caption(floatWhyText(f, r.weightG)) }
-                r.hook?.let { h -> Caption(hookWhyText(h, r.aiHookSize)) }
-                if (r.baitName == null && r.source == PlanSource.APP) Caption(stringResource(R.string.advice_bait_not_in_gear))
+                RodWhyLines(r)
             } else {
                 Caption(stringResource(R.string.strategy_rod_why_show))
             }
         }
         AnyEvidenceBadge(r.evidence)
     }
+}
+
+/**
+ * El porqué de cada elección de la caña (0.43.0): caña, cebo, columna, distancia, pluma o plomo y
+ * anzuelo. Si la IA dio su motivo, manda el suyo; si cambió algo, se dice qué proponía la app.
+ */
+@Composable
+private fun RodWhyLines(r: RodLine) {
+    val res = LocalContext.current.resources
+    val kind = r.setup?.kind
+    if (r.source == PlanSource.AI) {
+        r.reason?.let { Caption(stringResource(R.string.plan_why_ai_general, it)) }
+        r.appProposal?.let { app ->
+            val parts = listOfNotNull(
+                res.baitText(app.baitType, app.baitName),
+                stringResource(app.column.titleRes(kind)),
+                app.distanceM?.let { stringResource(R.string.strategy_ai_plan_distance, Formatting.number(it, 0)) },
+            )
+            Caption(stringResource(R.string.plan_why_app_proposed, parts.joinToString(" · ")))
+        }
+    }
+    fun ai(choice: PlanChoice): String? = r.aiWhys[choice]
+    // Lo que cambió la IA ya no se explica con el porqué de la app (va en «La app proponía»).
+    val p = r.appProposal
+    val baitChanged = p != null && !p.baitName.orEmpty().trim().equals(r.baitName.orEmpty().trim(), ignoreCase = true)
+    val columnChanged = p != null && p.column != r.column
+    val distanceChanged = p != null && p.distanceM != r.distanceM
+    // Caña.
+    (ai(PlanChoice.ROD)?.let { it to r.evidence } ?: r.appWhy.rod?.let { stringResource(it.textRes()) to PlanWhys.evidence(it) })
+        ?.let { (text, ev) -> WhyLine(R.string.plan_why_rod, text, ev) }
+    // Cebo.
+    val appBait = when {
+        r.proven != null -> stringResource(R.string.advice_bait_proven, r.proven.catches, r.proven.sessions)
+        else -> r.appWhy.bait?.let { stringResource(it.textRes()) }
+    }?.let { text -> if (r.baitName == null && r.source == PlanSource.APP) text + " · " + stringResource(R.string.advice_bait_not_in_gear) else text }
+    (ai(PlanChoice.BAIT)?.let { it to r.evidence } ?: appBait?.takeIf { !baitChanged }?.let { it to r.evidence })
+        ?.let { (text, ev) -> WhyLine(R.string.plan_why_bait, text, ev) }
+    // Columna.
+    (ai(PlanChoice.COLUMN)?.let { it to r.evidence } ?: r.appWhy.column?.takeIf { !columnChanged }?.let { stringResource(it.textRes()) to PlanWhys.evidence(it) })
+        ?.let { (text, ev) -> WhyLine(R.string.plan_why_column, text, ev) }
+    // Distancia.
+    val appDistance = r.appWhy.distance?.let { d ->
+        val text = when (d) {
+            DistanceWhy.BAND -> stringResource(R.string.strategy_rod_why_app, stringResource(r.depth.titleRes()), stringResource(r.distance.titleRes()))
+            DistanceWhy.ROD_REACH -> stringResource(R.string.plan_why_distance_reach, r.setup?.lengthM ?: 0)
+            DistanceWhy.SPOT -> stringResource(R.string.plan_why_distance_spot)
+        }
+        text to PlanWhys.evidence(d)
+    } ?: (stringResource(R.string.strategy_rod_why_app, stringResource(r.depth.titleRes()), stringResource(r.distance.titleRes())) to Evidence.PURPLE)
+    (ai(PlanChoice.DISTANCE)?.let { it to r.evidence } ?: appDistance.takeIf { !distanceChanged })
+        ?.let { (text, ev) -> WhyLine(R.string.plan_why_distance, text, ev) }
+    // Pluma o plomo.
+    ai(PlanChoice.WEIGHT)?.let { WhyLine(R.string.plan_why_weight, it, r.evidence) }
+    r.float?.let { f ->
+        if (ai(PlanChoice.WEIGHT) == null || (r.weightG != null && kotlin.math.abs(r.weightG - f.grams) > RodRules.FLOAT_TOLERANCE_G)) Caption(floatWhyText(f, r.weightG))
+    }
+    if (kind == RodKind.CARP && ai(PlanChoice.WEIGHT) == null) WhyLine(R.string.plan_why_weight, stringResource(R.string.plan_why_lead_app), Evidence.YELLOW)
+    // Anzuelo.
+    ai(PlanChoice.HOOK)?.let { WhyLine(R.string.plan_why_hook, it, r.evidence) }
+    r.hook?.let { h -> if (ai(PlanChoice.HOOK) == null || (r.aiHookSize != null && r.aiHookSize != h.size)) Caption(hookWhyText(h, r.aiHookSize)) }
+}
+
+/** «Cebo: te ha funcionado…» con su etiqueta de evidencia. */
+@Composable
+private fun WhyLine(label: Int, text: String, evidence: Evidence) {
+    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        Caption(stringResource(R.string.plan_why_line, stringResource(label), text), Modifier.weight(1f))
+        AnyEvidenceBadge(evidence)
+    }
+}
+
+private fun RodWhy.textRes(): Int = when (this) {
+    RodWhy.ALL_CARRIED -> R.string.rod_why_all_carried
+    RodWhy.CARP_ALWAYS -> R.string.rod_why_carp_always
+    RodWhy.LONGEST -> R.string.rod_why_longest
+    RodWhy.SHORTEST_WIND -> R.string.rod_why_shortest_wind
+    RodWhy.AI -> R.string.rod_why_ai
+}
+
+private fun BaitWhy.textRes(): Int = when (this) {
+    BaitWhy.PROVEN_NAME -> R.string.bait_why_proven_name
+    BaitWhy.PROVEN_TYPE -> R.string.bait_why_proven_type
+    BaitWhy.PHASE -> R.string.bait_why_phase
+    BaitWhy.SPECIES -> R.string.bait_why_species
+    BaitWhy.ROD_LIMIT -> R.string.bait_why_rod_limit
+}
+
+private fun ColumnWhy.textRes(): Int = when (this) {
+    ColumnWhy.PROVEN -> R.string.column_why_proven
+    ColumnWhy.BOTTOM_DEFAULT -> R.string.column_why_bottom
+    ColumnWhy.ALT_HEAT -> R.string.column_why_alt_heat
+    ColumnWhy.ROD_LIMIT -> R.string.column_why_rod_limit
 }
 
 /**

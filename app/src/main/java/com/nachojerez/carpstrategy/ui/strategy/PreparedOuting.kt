@@ -3,7 +3,14 @@ package com.nachojerez.carpstrategy.ui.strategy
 import com.nachojerez.carpstrategy.data.userdata.JournalJson
 import com.nachojerez.carpstrategy.domain.advice.Contingency
 import com.nachojerez.carpstrategy.domain.advice.ContingencyLine
+import com.nachojerez.carpstrategy.domain.advice.AppProposal
+import com.nachojerez.carpstrategy.domain.advice.AppWhy
+import com.nachojerez.carpstrategy.domain.advice.BaitWhy
+import com.nachojerez.carpstrategy.domain.advice.ColumnWhy
 import com.nachojerez.carpstrategy.domain.advice.DayPlan
+import com.nachojerez.carpstrategy.domain.advice.DistanceWhy
+import com.nachojerez.carpstrategy.domain.advice.PlanChoice
+import com.nachojerez.carpstrategy.domain.advice.RodWhy
 import com.nachojerez.carpstrategy.domain.advice.DepthBand
 import com.nachojerez.carpstrategy.domain.advice.DistanceBand
 import com.nachojerez.carpstrategy.domain.advice.FloatChoice
@@ -271,6 +278,28 @@ object PreparedOutingJson {
         /** Fija con elástico y carpfishing con cebador (§5.9.15). */
         @SerialName("elastico") val rodElastic: Boolean = false,
         @SerialName("cebador") val rodFeeder: Boolean = false,
+        /** Porqué de la app (0.43.0): nombres de [BaitWhy], [ColumnWhy], [DistanceWhy] y [RodWhy]. */
+        @SerialName("porque_app") val appWhy: WhyDto? = null,
+        /** Motivo de la IA por elección (claves de [PlanChoice]). */
+        @SerialName("motivos_ia") val aiWhys: Map<String, String> = emptyMap(),
+        /** Lo que proponía la app si la IA lo cambió. */
+        @SerialName("propuesta_app") val appProposal: ProposalDto? = null,
+    )
+
+    @Serializable
+    data class WhyDto(
+        @SerialName("cebo") val bait: String? = null,
+        @SerialName("columna") val column: String? = null,
+        @SerialName("distancia") val distance: String? = null,
+        @SerialName("cana") val rod: String? = null,
+    )
+
+    @Serializable
+    data class ProposalDto(
+        @SerialName("cebo") val baitName: String? = null,
+        @SerialName("tipo_cebo") val baitType: String? = null,
+        @SerialName("columna") val column: String,
+        @SerialName("distancia_m") val distanceM: Double? = null,
     )
 
     @Serializable
@@ -384,6 +413,9 @@ object PreparedOutingJson {
                     )
                 },
                 r.aiHookSize, r.setup?.elastic == true, r.setup?.feeder == true,
+                WhyDto(r.appWhy.bait?.name, r.appWhy.column?.name, r.appWhy.distance?.name, r.appWhy.rod?.name),
+                r.aiWhys.mapKeys { it.key.key },
+                r.appProposal?.let { ProposalDto(it.baitName, it.baitType?.name, it.column.name, it.distanceM) },
             )
         },
         planSource = planSource?.name,
@@ -454,6 +486,13 @@ object PreparedOutingJson {
                         )
                     },
                     aiHookSize = r.aiHookSize,
+                    appWhy = r.appWhy?.let { w ->
+                        AppWhy(enumOrNull<BaitWhy>(w.bait), enumOrNull<ColumnWhy>(w.column), enumOrNull<DistanceWhy>(w.distance), enumOrNull<RodWhy>(w.rod))
+                    } ?: AppWhy(),
+                    aiWhys = r.aiWhys.mapNotNull { (k, v) -> PlanChoice.ofKey(k)?.let { it to v } }.toMap(),
+                    appProposal = r.appProposal?.let { a ->
+                        enumOrNull<Column>(a.column)?.let { AppProposal(a.baitName, enumOrNull<BaitType>(a.baitType), it, a.distanceM) }
+                    },
                 )
             },
             planSource = enumOrNull<PlanSource>(planSource),

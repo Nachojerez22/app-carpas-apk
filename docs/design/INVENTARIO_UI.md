@@ -44,7 +44,7 @@ limitaciones, normativa con «última revisión» y versión. Flecha ← para vo
 | Condiciones para hoy (escala y nivel que limita) | arriba | igual |
 | ① Dónde: embalse/puesto, recomendación, «Pescar en …», «Cambiar embalse o puesto», ficha | igual | igual (título numerado común con Preparar) |
 | ② Lo que llevas hoy (número de cañas sin cañas apuntadas, «Cambiar cañas y cebos») | igual | igual |
-| ③ Tu plan: mejor rato, origen del plan, preguntar a la IA / otra vez, configurar IA, una línea por caña con su porqué, cebado y engodo, especies, consejos IA, «Si cambia algo», Lo aprendido | igual | igual |
+| ③ Tu plan: mejor rato, origen del plan, preguntar a la IA / otra vez, configurar IA, una línea por caña con su porqué (caña, cebo, columna, distancia, pluma o plomo y anzuelo; de la IA si lo da y lo que proponía la app), cebado y engodo, especies, consejos IA, «Si cambia algo», Lo aprendido | igual | igual |
 | **Empezar sesión guiada con este plan** | al final, debajo de «Detalles» | **justo debajo del plan** (sin bajar hasta el final) |
 | Detalles: qué hago ahora, consejos IA, qué hacer, cuándo, avisos, rotar, evitar, cadena, demanda, reglas, registradas, no evaluables, normativa | plegado | plegado (igual), después del botón principal |
 | Acceso «Preparar la próxima salida» | botón con borde al final | enlace al final (es secundario) |

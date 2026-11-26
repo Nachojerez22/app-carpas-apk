@@ -10,6 +10,7 @@ import com.nachojerez.carpstrategy.domain.advice.LessonConditions
 import com.nachojerez.carpstrategy.domain.advice.LessonSource
 import com.nachojerez.carpstrategy.domain.advice.LessonStatus
 import com.nachojerez.carpstrategy.domain.advice.LessonTopic
+import com.nachojerez.carpstrategy.domain.advice.PlanChoice
 import com.nachojerez.carpstrategy.domain.guided.BaitFunction
 import com.nachojerez.carpstrategy.domain.guided.BaitSheet
 import com.nachojerez.carpstrategy.domain.guided.BaitType
@@ -128,6 +129,8 @@ data class AiRodPlan(
     val weightG: Double? = null,
     /** Anzuelo (§5.9.15): uno de los tuyos que admite la caña. */
     val hookSize: Int? = null,
+    /** Motivo de cada elección (cebo, anzuelo, pluma o plomo, columna, distancia, caña; 0.43.0). */
+    val whys: Map<PlanChoice, String> = emptyMap(),
 )
 
 data class AiNote(val text: String, val evidence: Evidence?)
@@ -442,6 +445,7 @@ object AiValidator {
             addAll(gearIssues(r.baitName, r.rigName, r.spotName, ctx))
             addAll(rodIssues(r.rod, r.baitName, r.rigName, r.column, ctx))
             checkText(r.reason, ctx)
+            r.whys.values.forEach { checkText(it, ctx, required = false) }
         }
         plan.warnings.forEach { w ->
             if (w.evidence == null) add(AiIssue.MISSING_EVIDENCE)
